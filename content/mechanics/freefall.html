@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>自由落下・鉛直投げ上げの動きを見る — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 760px; margin: 2em auto; padding: 0 1em 4em; }
+  canvas { border: 1px solid #333; width: 100%; background: #f8f8f8; }
+  .card { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1em 0; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  label { display: block; margin: .5em 0; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>自由落下・鉛直投げ上げの動きを見る</h1>
+<p>落とすだけ、投げ上げるだけ。でも速度はどう変わるか。地面に戻ったら、最初からループ再生する。教科書の図では見られない、Web ならではの部分だ。</p>
+<p>見てほしいのは、速度の矢印（青）が1秒ごとに 9.8 m/s ずつ伸びていくこと。重力の矢印（赤）は、速さが変わってもずっと同じ長さだ。</p>
+
+<canvas id="cv" width="720" height="360"></canvas>
+<p id="readout">読み込み中…</p>
+
+<div class="card">
+  <h2>条件を変える</h2>
+  <label>動き：<select id="mode">
+    <option value="fall">自由落下（高さから静かに落とす）</option>
+    <option value="throw">鉛直投げ上げ（真上に投げる）</option>
+  </select></label>
+  <label>落とす高さ H：<input type="range" id="h0" min="5" max="30" step="1" value="20"> <span id="h0v">20 m</span></label>
+  <label>投げ上げの初速度 v0：<input type="range" id="v0" min="5" max="30" step="1" value="10"> <span id="v0v">10 m/s</span></label>
+  <label>再生速度：<input type="range" id="spd" min="0.5" max="2" step="0.5" value="1"> <span id="spdv">1倍</span></label>
+  <p>
+    <button id="play">一時停止</button>
+    <button id="restart">最初から</button>
+    <button id="download">データを JSON で出す</button>
+  </p>
+  <p id="theory"></p>
+</div>
+
+<div class="card">
+  <h2>ここで確かめること</h2>
+  <ol>
+    <li>自由落下では、落ちるほど速度が大きくなる（1秒ごとに 9.8 m/s 増える）</li>
+    <li>投げ上げでは、頂点で速度は 0 になるが、重力は働き続けている</li>
+    <li>重力の大きさは、速さや高さによらずいつも同じ（矢印の長さが変わらない）</li>
+    <li>落下時間は高さだけで決まる（H = 20 m なら約 2.02 s、地面での速さは約 19.8 m/s）</li>
+  </ol>
+  <p><a href="projectile.html">← 投げ上げ・斜方投射の動きへ</a> / <a href="../../index.html">トップへ戻る</a></p>
+</div>
+
+<script src="../../assets/js/motion.js"></script>
+<script>
+  const cv = document.getElementById('cv');
+  const ctx = cv.getContext('2d');
+  const SCALE = 10; // 1m = 10px。H=30m なら 300px で画面に収まる。
+  const OX = 360, OY = 330;
+  let t = 0, playing = true, last = null, trail = [];
+  let speed = 1;
+
+  function params() {
+    return {
+      mode: document.getElementById('mode').value,
+      h0: Number(document.getElementById('h0').value),
+      v0: Number(document.getElementById('v0').value),
+    };
+  }
+  function stateAt(p, tt) {
+    return p.mode === 'fall' ? freeFallAt(p.h0, tt) : verticalThrowAt(p.v0, tt);
+  }
+  function updateLabels() {
+    const p = params();
+    document.getElementById('h0v').textContent = p.h0 + ' m';
+    document.getElementById('v0v').textContent = p.v0 + ' m/s';
+    document.getElementById('spdv').textContent = speed + '倍';
+    document.getElementById('theory').textContent = p.mode === 'fall'
+      ? '理論値：落下時間 ' + fallTime(p.h0).toFixed(2) + ' s、地面での速さ ' + impactSpeed(p.h0).toFixed(1) + ' m/s（g = 9.8 m/s²、空気抵抗なし）'
+      : '理論値：最高点 ' + maxHeight(p.v0, 90).toFixed(2) + ' m、滞空時間 ' + flightTime(p.v0, 90).toFixed(2) + ' s（g = 9.8 m/s²、空気抵抗なし）';
+  }
+  function draw(p, st) {
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    // 地面
+    ctx.beginPath(); ctx.moveTo(0, OY); ctx.lineTo(cv.width, OY); ctx.strokeStyle = '#333'; ctx.lineWidth = 2; ctx.stroke();
+    // 軌跡（縦の線）
+    ctx.beginPath();
+    trail.forEach((pt, i) => { const y = OY - pt.y * SCALE; if (i === 0) ctx.moveTo(OX, y); else ctx.lineTo(OX, y); });
+    ctx.strokeStyle = '#999'; ctx.lineWidth = 1; ctx.stroke();
+    const y = OY - st.y * SCALE;
+    // 速度ベクトル（青）：1 m/s = 3px。重力（赤）：いつも同じ長さ 30px。
+    const vs = 3;
+    ctx.beginPath(); ctx.moveTo(OX, y); ctx.lineTo(OX, y - st.vy * vs); ctx.strokeStyle = 'blue'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(OX, y); ctx.lineTo(OX, y + 30); ctx.strokeStyle = 'red'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = 'blue'; ctx.fillText('速度 v', OX + 10, y - st.vy * vs);
+    ctx.fillStyle = 'red'; ctx.fillText('重力 mg', OX + 10, y + 34);
+    // ボール
+    ctx.beginPath(); ctx.arc(OX, y, 8, 0, Math.PI * 2); ctx.fillStyle = '#333'; ctx.fill();
+    document.getElementById('readout').textContent =
+      't = ' + st.t.toFixed(2) + ' s　高さ ' + Math.max(0, st.y).toFixed(1) + ' m　vy = ' + st.vy.toFixed(1) + ' m/s';
+  }
+  function frame(ts) {
+    if (last === null) last = ts;
+    const dt = Math.min(0.05, (ts - last) / 1000) * speed;
+    last = ts;
+    const p = params();
+    if (playing) {
+      t += dt;
+      const st = stateAt(p, t);
+      trail.push(st);
+      // ループ条件：地面に戻った、または画面外に出た
+      if (st.y < 0 || OY - st.y * SCALE < 0) {
+        t = 0; trail = [];
+        draw(p, stateAt(p, 0));
+      } else {
+        draw(p, st);
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+  document.getElementById('mode').onchange = () => { updateLabels(); t = 0; trail = []; };
+  document.getElementById('h0').oninput = () => { updateLabels(); t = 0; trail = []; };
+  document.getElementById('v0').oninput = () => { updateLabels(); t = 0; trail = []; };
+  document.getElementById('spd').oninput = (e) => { speed = Number(e.target.value); updateLabels(); };
+  document.getElementById('play').onclick = (e) => { playing = !playing; e.target.textContent = playing ? '一時停止' : '再生'; last = null; };
+  document.getElementById('restart').onclick = () => { t = 0; trail = []; };
+  document.getElementById('download').onclick = () => {
+    const p = params();
+    const data = p.mode === 'fall'
+      ? { mode: 'freeFall', h0: p.h0, g: G, fallTime: fallTime(p.h0), impactSpeed: impactSpeed(p.h0), points: freeFallTable(p.h0, 0.1) }
+      : { mode: 'verticalThrow', v0: p.v0, g: G, maxHeight: maxHeight(p.v0, 90), flightTime: flightTime(p.v0, 90), points: verticalThrowTable(p.v0, 0.1) };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'freefall.json'; a.click();
+  };
+  updateLabels();
+  requestAnimationFrame(frame);
+</script>
+</body>
+</html>
