@@ -22,13 +22,21 @@
     <li><strong>力の図示</strong> — 向きと作用点を間違えずに描く</li>
     <li><strong>公式の適用</strong> — モデルができてから、はじめて公式を使う</li>
   </ol>
+  <p>各ドリルは上から下へだけ進む。各ステップに図があるので、上の図まで戻る必要はない。</p>
 </div>
 
 <div class="card">
-  <h2>第1問：梯子の力の図示</h2>
-  <p>壁と床が直角に交わり、そこに斜めに梯子をかける。壁はなめらか、床はそうでない。——公式を知っているだけでは、力を図示できない。どこでつまずくか、1つずつ確かめよう。</p>
+  <h2>第1問：斜面上の物体の力の図示</h2>
+  <p>傾き θ の粗い斜面の上に、物体が静止している。よく見るテーマから始める。重力を斜面に垂直と間違える、垂直抗力を鉛直上向きと間違える、摩擦の向きを逆にする、分解を新しい力と数える——その4つのつまずきを1つずつ確かめよう。</p>
+  <p><a href="content/mechanics/slope.html">斜面のドリルを開く →</a></p>
+  <p id="progress-slope">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>第2問：梯子の力の図示</h2>
+  <p>壁と床が直角に交わり、そこに斜めに梯子をかける。壁はなめらか、床はそうでない。斜面で「面に垂直」「面に沿う」を身につけてから出すのがちょうどいい問題。</p>
   <p><a href="content/mechanics/ladder.html">梯子のドリルを開く →</a></p>
-  <p id="progress">進捗：読み込み中…</p>
+  <p id="progress-ladder">進捗：読み込み中…</p>
 </div>
 
 <div class="card">
@@ -43,10 +51,13 @@
 <script src="assets/js/export-import.js"></script>
 <script>
   loadProgress().then((p) => {
-    document.getElementById('progress').textContent =
-      p.ladderDone ? '進捗：梯子のドリルを完了済み ✓' : '進捗：まだ梯子のドリルは未完了';
+    document.getElementById('progress-slope').textContent =
+      p.slopeDone ? '進捗：第1問・斜面のドリルを完了済み ✓' : '進捗：まだ第1問・斜面のドリルは未完了';
+    document.getElementById('progress-ladder').textContent =
+      p.ladderDone ? '進捗：第2問・梯子のドリルを完了済み ✓' : '進捗：まだ第2問・梯子のドリルは未完了';
   }).catch(() => {
-    document.getElementById('progress').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-slope').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-ladder').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
   });
   document.getElementById('export').onclick = () => exportAll()
     .then(() => { document.getElementById('data-msg').textContent = '出力しました。'; })
