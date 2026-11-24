@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>高校物理攻略 — 公式暗記で止まらない、モデル化の力を鍛える</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em; }
+  .card { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1em 0; }
+  button { margin-right: .5em; }
+</style>
+</head>
+<body>
+<h1>高校物理攻略</h1>
+<p>高校物理が全く分からない人が、東大クラスの難問を楽に解けるようになるためのサイト。</p>
+<p><strong>肝は「モデル化」。</strong>公式を覚えるだけでは解けない。問題を、公式が使えるモデルに置き換える力——特に「図を見て、働く力を図示できる力」を、死ぬほど演習で鍛える。</p>
+
+<div class="card">
+  <h2>学習の流れ（すべての問題で共通）</h2>
+  <ol>
+    <li><strong>モデル化</strong> — 何を対象にするか決める</li>
+    <li><strong>力の図示</strong> — 向きと作用点を間違えずに描く</li>
+    <li><strong>公式の適用</strong> — モデルができてから、はじめて公式を使う</li>
+  </ol>
+</div>
+
+<div class="card">
+  <h2>第1問：梯子の力の図示</h2>
+  <p>壁と床が直角に交わり、そこに斜めに梯子をかける。壁はなめらか、床はそうでない。——公式を知っているだけでは、力を図示できない。どこでつまずくか、1つずつ確かめよう。</p>
+  <p><a href="content/mechanics/ladder.html">梯子のドリルを開く →</a></p>
+  <p id="progress">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>自分のデータ</h2>
+  <p>進捗はこのブラウザの IndexedDB（バージョン固定）にだけ保存される。サーバには送られない。</p>
+  <button id="export">データをファイルに出力する</button>
+  <label>ファイルから読み込む <input type="file" id="import" accept="application/json"></label>
+  <p id="data-msg"></p>
+</div>
+
+<script src="assets/js/idb.js"></script>
+<script src="assets/js/export-import.js"></script>
+<script>
+  loadProgress().then((p) => {
+    document.getElementById('progress').textContent =
+      p.ladderDone ? '進捗：梯子のドリルを完了済み ✓' : '進捗：まだ梯子のドリルは未完了';
+  }).catch(() => {
+    document.getElementById('progress').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+  });
+  document.getElementById('export').onclick = () => exportAll()
+    .then(() => { document.getElementById('data-msg').textContent = '出力しました。'; })
+    .catch((e) => { document.getElementById('data-msg').textContent = '出力に失敗しました：' + e.message; });
+  document.getElementById('import').onchange = async (e) => {
+    try { await importAll(e.target.files[0]); document.getElementById('data-msg').textContent = '読み込みました。ページを再読み込みしてください。'; }
+    catch (err) { document.getElementById('data-msg').textContent = '読み込みに失敗しました：' + err.message; }
+  };
+</script>
+</body>
+</html>
