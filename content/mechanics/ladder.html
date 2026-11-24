@@ -8,6 +8,7 @@
   body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
   .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
   .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
   .next { display: inline-block; margin-top: .5em; }
   .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
   .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
@@ -20,32 +21,19 @@
 <h1>第2問：梯子の力の図示</h1>
 <p><strong>問題：</strong>壁と床が直角に交わり、そこに斜めに梯子をかける。壁はなめらか、床はそうでない。梯子に働く力をすべて図示せよ。</p>
 <p>この問題は、斜面の第1問で「垂直抗力は面に垂直」「摩擦は面に沿う」を身につけてから出すのがちょうどいい。ここでも上から下へだけ進む。図は各ステップの中にある。</p>
+<p class="note">図は図描画シミュレータ（assets/js/figure.js）が下の JSON データから計算して描いている。壁からの力と摩擦力は、下端まわりのトルクのつり合いから mg × 5/9 の長さになる。</p>
+<script type="application/json" id="scene-ladder">{"type":"ladder","thetaDeg":42.0,"mgPx":60}</script>
 
 <section class="step" id="step0">
   <h2>はじめに：対象を決める</h2>
   <p>対象は<strong>「梯子そのもの」</strong>。壁でも床でもない。ここを間違えると、力の向きが全部ずれる。</p>
-  <svg viewBox="0 0 400 300" width="100%" role="img" aria-label="壁と床に立てかけた梯子（力はまだ描いていない）">
-    <line x1="80" y1="20" x2="80" y2="260" stroke="#333" stroke-width="3"/>
-    <line x1="80" y1="260" x2="380" y2="260" stroke="#333" stroke-width="3"/>
-    <text x="55" y="40">壁</text><text x="300" y="285">床</text>
-    <line x1="80" y1="80" x2="280" y2="260" stroke="#b5651d" stroke-width="6"/>
-    <circle cx="180" cy="170" r="4" fill="#333"/>
-    <defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#333"/></marker></defs>
-  </svg>
+  <svg class="fig" data-scene="scene-ladder" data-show="" width="100%" role="img" aria-label="壁と床に立てかけた梯子（力はまだ描いていない）"></svg>
   <a class="next" href="#step1">次へ ↓ ①重力</a>
 </section>
 
 <section class="step" id="step1">
   <h2>① 重力 mg</h2>
-  <svg viewBox="0 0 400 300" width="100%" role="img" aria-label="重力を描いた図">
-    <line x1="80" y1="20" x2="80" y2="260" stroke="#333" stroke-width="3"/>
-    <line x1="80" y1="260" x2="380" y2="260" stroke="#333" stroke-width="3"/>
-    <text x="55" y="40">壁</text><text x="300" y="285">床</text>
-    <line x1="80" y1="80" x2="280" y2="260" stroke="#b5651d" stroke-width="6"/>
-    <circle cx="180" cy="170" r="4" fill="#333"/>
-    <line x1="180" y1="170" x2="180" y2="230" stroke="red" stroke-width="2" marker-end="url(#a)"/><text x="190" y="215" fill="red">重力 mg（中心から下向き）</text>
-    <defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#333"/></marker></defs>
-  </svg>
+  <svg class="fig" data-scene="scene-ladder" data-show="gravity" width="100%" role="img" aria-label="重力を描いた図"></svg>
   <p>忘れやすい1本目。梯子を質点として見たとき、重さは中心に集中して下向きに働く。</p>
   <label><input type="checkbox" class="check"> 重力を、中心から下向きに描いた</label>
   <br><a class="next" href="#step2">次へ ↓ ②壁からの力</a>
@@ -53,16 +41,7 @@
 
 <section class="step" id="step2">
   <h2>② 壁からの力</h2>
-  <svg viewBox="0 0 400 300" width="100%" role="img" aria-label="重力と壁からの力を描いた図">
-    <line x1="80" y1="20" x2="80" y2="260" stroke="#333" stroke-width="3"/>
-    <line x1="80" y1="260" x2="380" y2="260" stroke="#333" stroke-width="3"/>
-    <text x="55" y="40">壁</text><text x="300" y="285">床</text>
-    <line x1="80" y1="80" x2="280" y2="260" stroke="#b5651d" stroke-width="6"/>
-    <circle cx="180" cy="170" r="4" fill="#333"/>
-    <line x1="180" y1="170" x2="180" y2="230" stroke="red" stroke-width="2" marker-end="url(#a)"/><text x="190" y="215" fill="red">重力 mg</text>
-    <line x1="80" y1="80" x2="140" y2="80" stroke="blue" stroke-width="2" marker-end="url(#a)"/><text x="145" y="75" fill="blue">壁からの垂直抗力（右向き）</text>
-    <defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#333"/></marker></defs>
-  </svg>
+  <svg class="fig" data-scene="scene-ladder" data-show="gravity,wall" width="100%" role="img" aria-label="重力と壁からの力を描いた図"></svg>
   <p>壁はなめらか＝摩擦なし。だから壁に垂直な方向、つまり水平・右向きの力だけ。</p>
   <label><input type="checkbox" class="check"> 壁からの力は摩擦なし＝水平方向だけ、と分かった</label>
   <br><a class="next" href="#step3">次へ ↓ ③床からの力（垂直）</a>
@@ -70,17 +49,7 @@
 
 <section class="step" id="step3">
   <h2>③ 床からの力（垂直抗力）</h2>
-  <svg viewBox="0 0 400 300" width="100%" role="img" aria-label="重力、壁からの力、床からの垂直抗力を描いた図">
-    <line x1="80" y1="20" x2="80" y2="260" stroke="#333" stroke-width="3"/>
-    <line x1="80" y1="260" x2="380" y2="260" stroke="#333" stroke-width="3"/>
-    <text x="55" y="40">壁</text><text x="300" y="285">床</text>
-    <line x1="80" y1="80" x2="280" y2="260" stroke="#b5651d" stroke-width="6"/>
-    <circle cx="180" cy="170" r="4" fill="#333"/>
-    <line x1="180" y1="170" x2="180" y2="230" stroke="red" stroke-width="2" marker-end="url(#a)"/><text x="190" y="215" fill="red">重力 mg</text>
-    <line x1="80" y1="80" x2="140" y2="80" stroke="blue" stroke-width="2" marker-end="url(#a)"/><text x="145" y="75" fill="blue">壁からの垂直抗力</text>
-    <line x1="280" y1="260" x2="280" y2="200" stroke="green" stroke-width="2" marker-end="url(#a)"/><text x="285" y="200" fill="green">床からの垂直抗力（上向き）</text>
-    <defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#333"/></marker></defs>
-  </svg>
+  <svg class="fig" data-scene="scene-ladder" data-show="gravity,wall,floor" width="100%" role="img" aria-label="重力、壁からの力、床からの垂直抗力を描いた図"></svg>
   <p>床が梯子を押し返す力。上向き。第1問の斜面と同じく、「面に垂直」な方向だ。</p>
   <label><input type="checkbox" class="check"> 床からの垂直抗力は上向き、と分かった</label>
   <br><a class="next" href="#step4">次へ ↓ ④床からの力（摩擦）</a>
@@ -88,18 +57,7 @@
 
 <section class="step" id="step4">
   <h2>④ 床からの力（摩擦力）</h2>
-  <svg viewBox="0 0 400 300" width="100%" role="img" aria-label="すべての力を描いた図">
-    <line x1="80" y1="20" x2="80" y2="260" stroke="#333" stroke-width="3"/>
-    <line x1="80" y1="260" x2="380" y2="260" stroke="#333" stroke-width="3"/>
-    <text x="55" y="40">壁</text><text x="300" y="285">床</text>
-    <line x1="80" y1="80" x2="280" y2="260" stroke="#b5651d" stroke-width="6"/>
-    <circle cx="180" cy="170" r="4" fill="#333"/>
-    <line x1="180" y1="170" x2="180" y2="230" stroke="red" stroke-width="2" marker-end="url(#a)"/><text x="190" y="215" fill="red">重力 mg</text>
-    <line x1="80" y1="80" x2="140" y2="80" stroke="blue" stroke-width="2" marker-end="url(#a)"/><text x="145" y="75" fill="blue">壁からの垂直抗力</text>
-    <line x1="280" y1="260" x2="280" y2="200" stroke="green" stroke-width="2" marker-end="url(#a)"/><text x="285" y="200" fill="green">床からの垂直抗力</text>
-    <line x1="280" y1="260" x2="220" y2="260" stroke="purple" stroke-width="2" marker-end="url(#a)"/><text x="150" y="285" fill="purple">摩擦力（左向き）</text>
-    <defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#333"/></marker></defs>
-  </svg>
+  <svg class="fig" data-scene="scene-ladder" data-show="gravity,wall,floor,friction" width="100%" role="img" aria-label="すべての力を描いた図"></svg>
   <p>床は粗い。下端は右へ滑ろうとするから、摩擦はそれを止める左向き。ここを忘れるとつり合いが取れない。</p>
   <label><input type="checkbox" class="check"> 床からの力は「上向きの垂直抗力」と「左向きの摩擦力」の2本、と分かった</label>
   <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
@@ -114,7 +72,9 @@
 </section>
 
 <script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
 <script>
+  renderAllFigures();
   document.getElementById('done').onclick = async () => {
     const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
     if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。4つ全部にチェックしてから完了にしよう。'; return; }
