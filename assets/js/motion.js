@@ -42,4 +42,28 @@ function trajectoryTable(v0, angleDeg, dt) {
   return out;
 }
 
-if (typeof module !== 'undefined') module.exports = { G, projectileAt, maxHeight, range, flightTime, trajectoryTable };
+// --- 自由落下・鉛直投げ上げ（v0.2）---
+// 自由落下：高さ h0 から初速度 0 で落とす。y は地面からの高さ、vy は上向き正。
+function freeFallAt(h0, t) {
+  return { y: h0 - 0.5 * G * t * t, vy: -G * t, t };
+}
+function fallTime(h0) { return Math.sqrt((2 * h0) / G); }
+function impactSpeed(h0) { return Math.sqrt(2 * G * h0); }
+// 鉛直投げ上げ：地面から初速度 v0 で真上に投げる。projectileAt(v0, 90°, t) と同じ式。
+function verticalThrowAt(v0, t) {
+  return { y: v0 * t - 0.5 * G * t * t, vy: v0 - G * t, t };
+}
+function verticalThrowTable(v0, dt) {
+  const out = [];
+  const T = (2 * v0) / G;
+  for (let t = 0; t <= T + 1e-9; t += dt) out.push(verticalThrowAt(v0, t));
+  return out;
+}
+function freeFallTable(h0, dt) {
+  const out = [];
+  const T = fallTime(h0);
+  for (let t = 0; t <= T + 1e-9; t += dt) out.push(freeFallAt(h0, t));
+  return out;
+}
+
+if (typeof module !== 'undefined') module.exports = { G, projectileAt, maxHeight, range, flightTime, trajectoryTable, freeFallAt, fallTime, impactSpeed, verticalThrowAt, verticalThrowTable, freeFallTable };
