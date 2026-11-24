@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第1問：斜面上の物体の力の図示 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>第1問：斜面上の物体の力の図示</h1>
+<p><strong>問題：</strong>傾き θ の粗い斜面の上に、物体が静止している。物体に働く力をすべて図示せよ。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+
+<section class="step" id="step0">
+  <h2>はじめに：対象を決める</h2>
+  <p>対象は<strong>「物体そのもの」</strong>。斜面ではない。ここを間違えると、力の向きが全部ずれる。</p>
+  <svg viewBox="0 0 400 300" width="100%" role="img" aria-label="斜面の上に静止した物体（力はまだ描いていない）">
+    <polygon points="60,240 340,120 340,280 60,280" fill="#eee"/>
+    <line x1="60" y1="240" x2="340" y2="120" stroke="#333" stroke-width="3"/>
+    <text x="300" y="105">斜面（粗い）</text>
+    <text x="200" y="295">θ</text>
+    <g transform="rotate(-23 200 180)"><rect x="160" y="160" width="80" height="40" fill="#cfe3ff" stroke="#333" stroke-width="2"/></g>
+    <circle cx="200" cy="180" r="4" fill="#333"/>
+    <defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#333"/></marker></defs>
+  </svg>
+  <p>力を描く前の図はこれだけ。ここから下へ、1本ずつ足していく。</p>
+  <a class="next" href="#step1">次へ ↓ ①重力</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 重力 mg</h2>
+  <svg viewBox="0 0 400 300" width="100%" role="img" aria-label="重力を描いた図">
+    <polygon points="60,240 340,120 340,280 60,280" fill="#eee"/>
+    <line x1="60" y1="240" x2="340" y2="120" stroke="#333" stroke-width="3"/>
+    <text x="300" y="105">斜面（粗い）</text>
+    <g transform="rotate(-23 200 180)"><rect x="160" y="160" width="80" height="40" fill="#cfe3ff" stroke="#333" stroke-width="2"/></g>
+    <circle cx="200" cy="180" r="4" fill="#333"/>
+    <line x1="200" y1="180" x2="200" y2="240" stroke="red" stroke-width="2" marker-end="url(#a)"/><text x="205" y="235" fill="red">重力 mg（鉛直下向き）</text>
+    <defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#333"/></marker></defs>
+  </svg>
+  <p>忘れやすい1本目。重力はつねに<strong>鉛直下向き</strong>。斜面に垂直ではない。</p>
+  <label><input type="checkbox" class="check"> 重力を、中心から鉛直下向きに描いた（斜面に垂直、ではない）</label>
+  <br><a class="next" href="#step2">次へ ↓ ②垂直抗力</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 斜面からの力（垂直抗力）</h2>
+  <svg viewBox="0 0 400 300" width="100%" role="img" aria-label="重力と垂直抗力を描いた図">
+    <polygon points="60,240 340,120 340,280 60,280" fill="#eee"/>
+    <line x1="60" y1="240" x2="340" y2="120" stroke="#333" stroke-width="3"/>
+    <text x="300" y="105">斜面（粗い）</text>
+    <g transform="rotate(-23 200 180)"><rect x="160" y="160" width="80" height="40" fill="#cfe3ff" stroke="#333" stroke-width="2"/></g>
+    <circle cx="200" cy="180" r="4" fill="#333"/>
+    <line x1="200" y1="180" x2="200" y2="240" stroke="red" stroke-width="2" marker-end="url(#a)"/><text x="205" y="235" fill="red">重力 mg</text>
+    <line x1="200" y1="180" x2="175" y2="121" stroke="blue" stroke-width="2" marker-end="url(#a)"/><text x="120" y="110" fill="blue">垂直抗力（斜面に垂直）</text>
+    <defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#333"/></marker></defs>
+  </svg>
+  <p>垂直抗力は<strong>「斜面に垂直」</strong>な方向。鉛直上向きと間違えやすい。上の図では、重力も残してあるので、2本の違いをその場で比べられる。</p>
+  <label><input type="checkbox" class="check"> 垂直抗力は斜面に垂直な方向、と分かった</label>
+  <br><a class="next" href="#step3">次へ ↓ ③摩擦力</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 摩擦力</h2>
+  <svg viewBox="0 0 400 300" width="100%" role="img" aria-label="重力、垂直抗力、摩擦力を描いた図">
+    <polygon points="60,240 340,120 340,280 60,280" fill="#eee"/>
+    <line x1="60" y1="240" x2="340" y2="120" stroke="#333" stroke-width="3"/>
+    <text x="300" y="105">斜面（粗い）</text>
+    <g transform="rotate(-23 200 180)"><rect x="160" y="160" width="80" height="40" fill="#cfe3ff" stroke="#333" stroke-width="2"/></g>
+    <circle cx="200" cy="180" r="4" fill="#333"/>
+    <line x1="200" y1="180" x2="200" y2="240" stroke="red" stroke-width="2" marker-end="url(#a)"/><text x="205" y="235" fill="red">重力 mg</text>
+    <line x1="200" y1="180" x2="175" y2="121" stroke="blue" stroke-width="2" marker-end="url(#a)"/><text x="120" y="110" fill="blue">垂直抗力</text>
+    <line x1="200" y1="180" x2="256" y2="156" stroke="purple" stroke-width="2" marker-end="url(#a)"/><text x="260" y="150" fill="purple">摩擦力（斜面に沿って上向き）</text>
+    <defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#333"/></marker></defs>
+  </svg>
+  <p>物体は斜面を下へ滑ろうとするから、摩擦はそれを止める<strong>斜面沿い・上向き</strong>。下向きと逆にしないこと。</p>
+  <label><input type="checkbox" class="check"> 摩擦力は斜面沿い・上向き、と分かった</label>
+  <br><a class="next" href="#step4">次へ ↓ ④重力の分解</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 重力の分解（計算の道具）</h2>
+  <svg viewBox="0 0 400 300" width="100%" role="img" aria-label="重力の分解を破線で描いた図">
+    <polygon points="60,240 340,120 340,280 60,280" fill="#eee"/>
+    <line x1="60" y1="240" x2="340" y2="120" stroke="#333" stroke-width="3"/>
+    <text x="300" y="105">斜面（粗い）</text>
+    <g transform="rotate(-23 200 180)"><rect x="160" y="160" width="80" height="40" fill="#cfe3ff" stroke="#333" stroke-width="2"/></g>
+    <circle cx="200" cy="180" r="4" fill="#333"/>
+    <line x1="200" y1="180" x2="200" y2="240" stroke="red" stroke-width="2" marker-end="url(#a)"/><text x="205" y="235" fill="red">重力 mg</text>
+    <line x1="200" y1="180" x2="175" y2="121" stroke="blue" stroke-width="2" marker-end="url(#a)"/><text x="120" y="110" fill="blue">垂直抗力</text>
+    <line x1="200" y1="180" x2="256" y2="156" stroke="purple" stroke-width="2" marker-end="url(#a)"/><text x="260" y="150" fill="purple">摩擦力</text>
+    <line x1="200" y1="180" x2="145" y2="205" stroke="#b00" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#a)"/><text x="60" y="215" fill="#b00">mg sinθ（斜面に沿って下向き）</text>
+    <line x1="200" y1="180" x2="225" y2="235" stroke="#b00" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#a)"/><text x="230" y="250" fill="#b00">mg cosθ（斜面に垂直）</text>
+    <defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#333"/></marker></defs>
+  </svg>
+  <p class="note">分解の矢印は破線です。mg を分解した「成分」であって、mg とは別に働く力ではありません。mg と成分を両方数えると二重計算になる。</p>
+  <label><input type="checkbox" class="check"> 分解は新しい力ではなく、mg と成分を二重に数えない、と分かった</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>対象を「物体」にしたことも、ここまでの4つのチェックに入っている。4つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p><a href="ladder.html">次の問題へ → 第2問：梯子の力の図示</a></p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script>
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。4つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.slopeDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
