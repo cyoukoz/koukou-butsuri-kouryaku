@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題H：干渉＋屈折 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題H：干渉＋屈折</h1>
+<p><strong>問題：</strong>波長 λ = 600 nm の赤い光でヤングの干渉実験をする。二重スリットの間隔は d = 0.20 mm、スリットからスクリーンまでの距離は L = 1.0 m とする。まず空気中で実験し、次に装置全体を水（屈折率 n = 4/3）の中に入れて同じ実験をする。(1) 空気中の縞間隔と、3番目の明線の位置を求めよ。(2) 水の中では光の波長はどう変わるか。(3) 水の中の縞間隔と、3番目の明線の位置を求めよ。(4) 青い光（空気中で 450 nm）なら、空気中と水中で縞間隔はどうなるか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v1.7、youngWater 型）が下の JSON データから計算して描く。光路図は第8問と同じ配置（スリット x=120、スクリーン x=330、中心 y=150、縞 10 px/mm）。</p>
+<script type="application/json" id="scene-yw-air">{"type":"youngWater","phase":"air","lambdaNm":600,"lambdaBlueNm":450,"nWater":1.3333333333333333,"dMm":0.2,"lM":1}</script>
+<script type="application/json" id="scene-yw-water">{"type":"youngWater","phase":"water","lambdaNm":600,"lambdaBlueNm":450,"nWater":1.3333333333333333,"dMm":0.2,"lM":1}</script>
+<script type="application/json" id="scene-yw-compare">{"type":"youngWater","phase":"compare","lambdaNm":600,"lambdaBlueNm":450,"nWater":1.3333333333333333,"dMm":0.2,"lM":1}</script>
+<script type="application/json" id="scene-yw-blue">{"type":"youngWater","phase":"blue","lambdaNm":600,"lambdaBlueNm":450,"nWater":1.3333333333333333,"dMm":0.2,"lM":1}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。ここでは、光が水に入る前と後で切る。屈折で変わるのは波長だけ、干渉の式の形は同じだ。場面をつなぐのは、波長 λ′ だ。</p>
+  <table>
+    <tr><th>時間</th><th>系（どの光か）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>空気中</td><td>赤い光（λ = 600 nm）</td><td>—</td><td>縞間隔 Δx = 3.0 mm、3番目の明線 9.0 mm（ステップ①）</td></tr>
+    <tr><td>水に入る瞬間</td><td>同じ光（振動数は変わらない）</td><td><strong>波長 λ′ = 450 nm</strong></td><td>速さが c/n になり、波長が λ/n になる（ステップ②）</td></tr>
+    <tr><td>水中</td><td>赤い光（λ′ = 450 nm）</td><td><strong>波長 λ′ = 450 nm</strong></td><td>縞間隔 Δx′ = 2.25 mm、3番目の明線 6.75 mm（ステップ③）</td></tr>
+    <tr><td>青い光の場合</td><td>青い光（空気中で 450 nm）</td><td>波長（空気中で 450 nm）</td><td>空気中で 2.25 mm、水中で 1.69 mm（ステップ④）</td></tr>
+  </table>
+  <p>光が媒質に入ると、速さが変わる。でも振動数は、光源が決めるものだから変わらない。速さ = 波長 × 振動数 だから、速さが 1/n 倍になれば、波長も 1/n 倍になる。干渉の式 Δx = λL/d は、λ を λ′ に置き換えるだけで、そのまま使える。</p>
+  <svg class="fig" data-scene="scene-yw-air" data-show="" width="100%" role="img" aria-label="空気中のヤングの干渉：二重スリットとスクリーン"></svg>
+  <p>力を描く前の図はこれだけ。二重スリットを通った光が、スクリーンに縞を作る。ここから下へ、1本ずつ足していく。</p>
+  <a class="next" href="#step1">次へ ↓ ①空気中の縞間隔</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 空気中の縞間隔と3番目の明線</h2>
+  <svg class="fig" data-scene="scene-yw-air" data-show="ray1,ray2" width="100%" role="img" aria-label="空気中の光路：3番目の明線への2本の光路"></svg>
+  <p>ヤングの干渉では、明るい縞の条件は「光路差 = nλ」、縞間隔は Δx = λL/d だ。λ = 600 nm、L = 1.0 m、d = 0.20 mm を入れると、Δx = 600×10⁻⁹ × 1.0 / (0.20×10⁻³) = 3.0×10⁻³ m = <strong>3.0 mm</strong>。3番目の明線の位置は、x = 3Δx = <strong>9.0 mm</strong> だ。</p>
+  <p>図の2本の光路は、3番目の明線へ向かう光だ。下の光路のほうが、ちょうど 3λ だけ長い。光路差が波長の整数倍のところで、波が強め合って明るくなる。</p>
+  <label><input type="checkbox" class="check"> 空気中の縞間隔 Δx = 3.0 mm、3番目の明線 9.0 mm を求めた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②水に入ると波長が変わる</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 水に入ると波長が変わる</h2>
+  <svg class="fig" data-scene="scene-yw-water" data-show="ray1,ray2" width="100%" role="img" aria-label="水中の光路：水槽の中の二重スリットとスクリーン"></svg>
+  <p>光の速さは、真空中では c = 3.0×10⁸ m/s だが、水の中では c/n = 3.0×10⁸ / (4/3) = <strong>2.25×10⁸ m/s</strong> になる。振動数は光源が決めるものだから、空気中のまま f = c/λ = 3.0×10⁸ / (600×10⁻⁹) = <strong>5.0×10¹⁴ Hz</strong> で変わらない。</p>
+  <p>速さ = 波長 × 振動数 だから、水中の波長は λ′ = v/f = 2.25×10⁸ / (5.0×10¹⁴) = 450×10⁻⁹ m = <strong>450 nm</strong>。つまり λ′ = λ/n だ。波の山と山の間隔が、4/3 分の 1 に縮む。</p>
+  <label><input type="checkbox" class="check"> 水中の速さ 2.25×10⁸ m/s、波長 λ′ = 450 nm を求め、振動数が変わらないことを確かめた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③水中の縞間隔</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 水中の縞間隔と3番目の明線</h2>
+  <svg class="fig" data-scene="scene-yw-compare" data-show="" width="100%" role="img" aria-label="空気と水の縞の並びの比較"></svg>
+  <p>干渉の式の形は、水の中でも同じだ。λ を λ′ に置き換えるだけ。Δx′ = λ′L/d = 450×10⁻⁹ × 1.0 / (0.20×10⁻³) = 2.25×10⁻³ m = <strong>2.25 mm</strong>。3番目の明線の位置は、x′ = 3Δx′ = <strong>6.75 mm</strong> だ。</p>
+  <p>図のとおり、水の中では縞が狭くなる。縞間隔は 3.0 mm から 2.25 mm へ、ちょうど 3/4 倍（= 1/n 倍）になった。光路差の条件「光路差 = nλ′」も、λ′ で数え直せば同じ形だ。</p>
+  <label><input type="checkbox" class="check"> 水中の縞間隔 Δx′ = 2.25 mm、3番目の明線 6.75 mm を求めた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④青い光ならどうなるか</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 青い光ならどうなるか</h2>
+  <svg class="fig" data-scene="scene-yw-blue" data-show="" width="100%" role="img" aria-label="青い光の縞：空気と水中の比較"></svg>
+  <p>青い光は、空気中での波長が 450 nm と短い。空気中の縞間隔は Δx = 450×10⁻⁹ × 1.0 / (0.20×10⁻³) = <strong>2.25 mm</strong>。赤い光の 3.0 mm より、もともと狭い。</p>
+  <p>水に入れると、さらに λ′ = 450 / (4/3) = 337.5 nm になる。縞間隔は Δx′ = 337.5×10⁻⁹ × 1.0 / (0.20×10⁻³) ≈ <strong>1.69 mm</strong>。波長が短い光ほど、縞は狭い。色と媒質の両方が、縞間隔を決める。</p>
+  <label><input type="checkbox" class="check"> 青い光の縞間隔が空気中で 2.25 mm、水中で約 1.69 mm になることを求めた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ・罠の確認</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ・罠の確認</h2>
+  <svg class="fig" data-scene="scene-yw-water" data-show="ray1,ray2" width="100%" role="img" aria-label="水中の光路：3番目の明線への2本の光路"></svg>
+  <p>この問題の罠は2つある。1つめは、「水に入ると振動数が変わる」と思い込むことだ。振動数は光源が決めるもので、媒質が変わっても変わらない。変わるのは速さと波長だ。2つめは、「屈折角が変わる話」と混同することだ。屈折の式 n₁sinθ₁ = n₂sinθ₂ は光の進む向きの話で、こちらは波長そのものが変わる話だ。どちらも「n が出てくる」が、別のはたらきだ。</p>
+  <p>切り分けはこうだ。光が媒質に入る前と後で切り、橋渡し量は波長 λ′ = λ/n。干渉の式は λ を λ′ に置き換えるだけで、そのまま使える。縞間隔は 1/n 倍になる。</p>
+  <label><input type="checkbox" class="check"> 振動数は変わらず波長だけが λ/n になること、屈折角の話と別であることを確かめた</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と系を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 空気中の縞間隔 Δx = 3.0 mm、3番目の明線 9.0 mm。(2) 水中の波長 λ′ = 450 nm（振動数 5.0×10¹⁴ Hz は変わらない）。(3) 水中の縞間隔 Δx′ = 2.25 mm、3番目の明線 6.75 mm。(4) 青い光は空気中で 2.25 mm、水中で約 1.69 mm。もとになった単体モデル：干渉の式は <a href="young.html">第8問：ヤングの干渉</a>、屈折の考え方は <a href="refraction-lens.html">第20問：屈折・レンズ</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboYoungWaterDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>

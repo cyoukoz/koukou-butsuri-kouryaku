@@ -110,6 +110,20 @@
 </div>
 
 <div class="card">
+  <h2>組み合わせ問題G：斜方投射＋エネルギー</h2>
+  <p>高さ 5.0 m から 30° に投げた玉の、着地の速さ・最高点・滞空時間・飛距離・着地の向きを求める。速さだけならエネルギー保存、時間や飛距離や向きなら斜方投射の式を使う。下向きに投げても着地の速さは同じ 14.1 m/s だが、飛距離は約 5.4 m と短い。速さだけでは飛距離は決まらない。</p>
+  <p><a href="content/mechanics/proj-energy.html">斜方投射＋エネルギーのドリルを開く →</a></p>
+  <p id="progress-combo-proj-energy">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>組み合わせ問題H：干渉＋屈折</h2>
+  <p>ヤングの干渉実験を水の中で行うと、光の波長が λ/n = 450 nm になり、縞間隔も 3.0 mm から 2.25 mm へ狭くなる。振動数は変わらない。干渉の式は λ を λ′ に置き換えるだけで、そのまま使える。青い光なら水中で縞間隔は約 1.69 mm になる。</p>
+  <p><a href="content/mechanics/young-water.html">干渉＋屈折のドリルを開く →</a></p>
+  <p id="progress-combo-young-water">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
   <h2>第7問：気体＋ピストン</h2>
   <p>シリンダーにピストンがのっている。ピストンの力のつり合いから気体の圧力を、状態方程式から体積と高さを求める。加熱するとピストンが上がる等圧変化で、仕事・内部エネルギー・熱を区別しよう。</p>
   <p><a href="content/mechanics/gas-piston.html">気体＋ピストンのドリルを開く →</a></p>
@@ -340,6 +354,10 @@
       p.comboBallisticDone ? '進捗：組み合わせ問題E・弾道振り子を完了済み ✓' : '進捗：まだ組み合わせ問題E・弾道振り子は未完了';
     document.getElementById('progress-combo-loop').textContent =
       p.comboLoopDone ? '進捗：組み合わせ問題F・ループ・ザ・ループを完了済み ✓' : '進捗：まだ組み合わせ問題F・ループ・ザ・ループは未完了';
+    document.getElementById('progress-combo-proj-energy').textContent =
+      p.comboProjEnergyDone ? '進捗：組み合わせ問題G・斜方投射＋エネルギーを完了済み ✓' : '進捗：まだ組み合わせ問題G・斜方投射＋エネルギーは未完了';
+    document.getElementById('progress-combo-young-water').textContent =
+      p.comboYoungWaterDone ? '進捗：組み合わせ問題H・干渉＋屈折を完了済み ✓' : '進捗：まだ組み合わせ問題H・干渉＋屈折は未完了';
     document.getElementById('progress-gas-piston').textContent =
       p.gasPistonDone ? '進捗：第7問・気体＋ピストンを完了済み ✓' : '進捗：まだ第7問・気体＋ピストンは未完了';
     document.getElementById('progress-young').textContent =
@@ -405,6 +423,8 @@
     document.getElementById('progress-cross-lc').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-ballistic').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-loop').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-proj-energy').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-young-water').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-gas-piston').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-young').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-capacitor').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';

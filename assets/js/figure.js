@@ -1,4 +1,4 @@
-// 高校物理攻略 — 図描画シミュレータ（試作 v1.6：組み合わせE 弾道振り子・組み合わせF ループ・ザ・ループ 追加）
+// 高校物理攻略 — 図描画シミュレータ（試作 v1.7：組み合わせG 斜方投射＋エネルギー・組み合わせH 干渉＋屈折 追加）
 // 方針：図は手書きの座標を直書きしない。入力は JSON の「物理データ」だけ。
 // 描画側が角度・つり合いから矢印の向きと長さを計算する。
 // だから mg sinθ が mg と同じ長さになる、θ が消える、ラベルが切れる、
@@ -402,6 +402,55 @@ function youngForces(data) {
     { id: 'ray1', short: '光路1', color: '#d35400', vector: [L.point.x - L.upperSlit.x, L.point.y - L.upperSlit.y], dashed: true, labelDx: 6, labelDy: -10, from: L.upperSlit },
     { id: 'ray2', short: '光路2', color: '#d35400', vector: [L.point.x - L.lowerSlit.x, L.point.y - L.lowerSlit.y], dashed: true, labelDx: -64, labelDy: 12, from: L.lowerSlit },
   ];
+}
+
+// ---- ヤングの干渉＋屈折（組み合わせH）：水に入ると波長が λ/n になり、縞間隔も狭くなる ----
+// 具体値（検算済み）：λ=600 nm、d=0.20 mm、L=1.0 m、n=4/3 のとき
+//   空気中：Δx = λL/d = 3.0 mm、3番目の明線 x = 9.0 mm。
+//   水中：λ' = λ/n = 450 nm、Δx' = λ'L/d = 2.25 mm、3番目の明線 x' = 6.75 mm。
+//   振動数 f = c/λ = 5.0×10¹⁴ Hz は変わらない。水中の速さ v = c/n = 2.25×10⁸ m/s。
+//   青い光（空気中で 450 nm）：空気中で Δx = 2.25 mm、水中で λ' = 337.5 nm、Δx' ≈ 1.69 mm。
+// 罠：波長が変わるのは媒質に入ったとき。振動数は変わらない。干渉の式の形は同じで、
+//   λ だけが λ' になる。屈折角の式と混同しない（こちらは波長そのものが変わる話）。
+// 光路図の幾何：スリット x=120、スクリーン x=330、中心 y=150、縞 10 px/mm（young と同じ配置）。
+function youngWaterDerived(data) {
+  const c = 3.0e8;
+  const n = data.nWater;
+  const lamNm = data.lambdaNm;
+  const lamWaterNm = lamNm / n;
+  const dMm = data.dMm, lM = data.lM;
+  const dxAirMm = (lamNm * 1e-9 * lM) / (dMm * 1e-3) * 1e3;
+  const dxWaterMm = (lamWaterNm * 1e-9 * lM) / (dMm * 1e-3) * 1e3;
+  const x3AirMm = 3 * dxAirMm;
+  const x3WaterMm = 3 * dxWaterMm;
+  const freqHz = c / (lamNm * 1e-9);
+  const vWaterMs = c / n;
+  const lamBlueNm = data.lambdaBlueNm;
+  const lamBlueWaterNm = lamBlueNm / n;
+  const dxBlueAirMm = (lamBlueNm * 1e-9 * lM) / (dMm * 1e-3) * 1e3;
+  const dxBlueWaterMm = (lamBlueWaterNm * 1e-9 * lM) / (dMm * 1e-3) * 1e3;
+  const slitX = 120, screenX = 330, centerY = 150, slitSepPx = 40, fringePxPerMm = 10;
+  const pointAir = { x: screenX, y: centerY - x3AirMm * fringePxPerMm };
+  const pointWater = { x: screenX, y: centerY - x3WaterMm * fringePxPerMm };
+  const upperSlit = { x: slitX, y: centerY - slitSepPx / 2 };
+  const lowerSlit = { x: slitX, y: centerY + slitSepPx / 2 };
+  return {
+    c, n, lamNm, lamWaterNm, dxAirMm, dxWaterMm, x3AirMm, x3WaterMm,
+    freqHz, vWaterMs, lamBlueNm, lamBlueWaterNm, dxBlueAirMm, dxBlueWaterMm,
+    slitX, screenX, centerY, slitSepPx, fringePxPerMm, pointAir, pointWater, upperSlit, lowerSlit,
+  };
+}
+
+function youngWaterForces(data) {
+  const d = youngWaterDerived(data);
+  if (data.phase === 'air' || data.phase === 'water') {
+    const point = data.phase === 'air' ? d.pointAir : d.pointWater;
+    return [
+      { id: 'ray1', short: '光路1', color: '#d35400', vector: [point.x - d.upperSlit.x, point.y - d.upperSlit.y], dashed: true, labelDx: 6, labelDy: -10, from: d.upperSlit },
+      { id: 'ray2', short: '光路2', color: '#d35400', vector: [point.x - d.lowerSlit.x, point.y - d.lowerSlit.y], dashed: true, labelDx: -64, labelDy: 12, from: d.lowerSlit },
+    ];
+  }
+  return []; // compare・blue：縞の並びだけを描くので、光路の矢印はない。
 }
 
 // ---- コンデンサ（E2）：C=εS/d、Q=CV、U=½CV²。何が一定かがすべてを決める ----
@@ -1599,6 +1648,77 @@ function loopForces(data) {
   return []; // drop：静かに落とすので、速度の矢印はない。
 }
 
+// ---- 斜方投射＋エネルギー（組み合わせG）：エネルギーで速さ、斜方投射で時間・飛距離・向き ----
+// 具体値（検算済み）：m=0.50 kg、v0=10 m/s、30°、高さ h0=5.0 m、g=10 のとき
+//   v0x = 10cos30° ≈ 8.66 m/s、v0y = 5.0 m/s。
+//   最高点 H = h0 + v0y²/(2g) = 6.25 m、頂点まで 0.50 s。
+//   滞空時間 t = (v0y + √(v0y²+2gh0))/g ≈ 1.62 s、飛距離 R = v0x・t ≈ 14.0 m。
+//   着地の速さ v = √(v0²+2gh0) ≈ 14.1 m/s、着地の鉛直成分 vy = √(v0y²+2gh0) ≈ 11.2 m/s、着地角 ≈ 52°。
+//   下向き 30° に投げても着地の速さは同じ 14.1 m/s だが、t ≈ 0.62 s、R ≈ 5.4 m と短い。
+//   速さだけでは飛距離は決まらない。向き（成分）が必要。
+// 図の縮尺：位置 16 px/m（地面 y=260、発射点 (60,180)）。速度 6 px/(m/s)、重力 10 px/N（mg=5.0 N → 50 px、つねに同じ長さ）。
+function projEnergyDerived(data) {
+  const g = data.g || 10;
+  const rad = (data.angleDeg * Math.PI) / 180;
+  const v0x = data.v0Ms * Math.cos(rad);
+  const v0y = data.v0Ms * Math.sin(rad);
+  const hMaxM = data.h0M + (v0y * v0y) / (2 * g);
+  const tTopS = v0y / g;
+  const tFlightS = (v0y + Math.sqrt(v0y * v0y + 2 * g * data.h0M)) / g;
+  const rangeM = v0x * tFlightS;
+  const vGroundMs = Math.sqrt(data.v0Ms * data.v0Ms + 2 * g * data.h0M);
+  const vyGroundMs = Math.sqrt(v0y * v0y + 2 * g * data.h0M);
+  const landAngleDeg = (Math.atan2(vyGroundMs, v0x) * 180) / Math.PI;
+  // 下向きに投げた場合：初速度の鉛直成分が −v0y。
+  const tDownS = (Math.sqrt(v0y * v0y + 2 * g * data.h0M) - v0y) / g;
+  const rangeDownM = v0x * tDownS;
+  const xScale = 16, groundY = 260, originX = 60;
+  const launch = { x: originX, y: groundY - data.h0M * xScale };
+  const top = { x: originX + v0x * tTopS * xScale, y: groundY - hMaxM * xScale };
+  const landing = { x: originX + rangeM * xScale, y: groundY };
+  const landingDown = { x: originX + rangeDownM * xScale, y: groundY };
+  return {
+    g, v0x, v0y, hMaxM, tTopS, tFlightS, rangeM, vGroundMs, vyGroundMs, landAngleDeg,
+    tDownS, rangeDownM, xScale, groundY, originX, launch, top, landing, landingDown,
+    gravityN: data.mKg * g,
+  };
+}
+
+function projEnergyForces(data) {
+  const d = projEnergyDerived(data);
+  const vScale = 6; // px/(m/s)
+  const fScale = 10; // px/N
+  if (data.phase === 'base') {
+    return [
+      { id: 'velocity', short: 'v0=10 m/s', color: '#d35400', vector: [d.v0x * vScale, -d.v0y * vScale], dashed: true, labelDx: 6, labelDy: -8, from: d.launch },
+      { id: 'gravity', short: '重力 5.0 N', color: 'red', vector: [0, d.gravityN * fScale], dashed: false, labelDx: 6, labelDy: -6, from: d.launch },
+    ];
+  }
+  if (data.phase === 'top') {
+    return [
+      { id: 'velocity', short: 'v=8.66 m/s', color: '#d35400', vector: [d.v0x * vScale, 0], dashed: true, labelDx: 6, labelDy: -8, from: d.top },
+      { id: 'gravity', short: '重力 5.0 N', color: 'red', vector: [0, d.gravityN * fScale], dashed: false, labelDx: 6, labelDy: -6, from: d.top },
+    ];
+  }
+  if (data.phase === 'ground') {
+    // 着地の速さの三角形：原点 (70,70) から水平成分・鉛直成分・合成を描く。
+    // 鉛直成分のラベルは左へ逃がし、合成のラベルと重ならないようにする。
+    const o = { x: 70, y: 70 };
+    return [
+      { id: 'vx', short: 'vx=8.66 m/s', color: '#666', vector: [d.v0x * vScale, 0], dashed: true, labelDx: 0, labelDy: -8, from: o },
+      { id: 'vy', short: 'vy≈11.2 m/s', color: '#666', vector: [0, d.vyGroundMs * vScale], dashed: true, labelDx: -70, labelDy: -6, from: o },
+      { id: 'v', short: 'v≈14.1 m/s', color: '#d35400', vector: [d.v0x * vScale, d.vyGroundMs * vScale], dashed: true, labelDx: 6, labelDy: -8, from: o },
+    ];
+  }
+  if (data.phase === 'down') {
+    return [
+      { id: 'velocity', short: 'v0=10 m/s', color: '#d35400', vector: [d.v0x * vScale, d.v0y * vScale], dashed: true, labelDx: 6, labelDy: -8, from: d.launch },
+      { id: 'gravity', short: '重力 5.0 N', color: 'red', vector: [0, d.gravityN * fScale], dashed: false, labelDx: 6, labelDy: -6, from: d.launch },
+    ];
+  }
+  return []; // time：飛距離の注釈だけを描くので、矢印はない。
+}
+
 function sceneFor(type, thetaDeg, mgPx, fPx, data) {
   if (type === 'dcCircuit') {
     const d = dcCircuitDerived(data);
@@ -1936,6 +2056,27 @@ function sceneFor(type, thetaDeg, mgPx, fPx, data) {
       derived: d,
       center: { x: 200, y: 170 }, centerDot: false,
       forces: loopForces(data),
+    };
+  }
+  if (type === 'projEnergy') {
+    const d = projEnergyDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      mKg: data.mKg, v0Ms: data.v0Ms, angleDeg: data.angleDeg, h0M: data.h0M, g: (data && data.g) || 10,
+      derived: d,
+      center: { x: 200, y: 200 }, centerDot: false,
+      forces: projEnergyForces(data),
+    };
+  }
+  if (type === 'youngWater') {
+    const d = youngWaterDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'air',
+      lambdaNm: data.lambdaNm, lambdaBlueNm: data.lambdaBlueNm, nWater: data.nWater,
+      dMm: data.dMm, lM: data.lM,
+      derived: d,
+      center: { x: 200, y: 150 }, centerDot: false,
+      forces: youngWaterForces(data),
     };
   }
   if (type === 'slopePulley') {
@@ -2297,6 +2438,60 @@ function validateScene(scene) {
       if (Math.abs(d.fallV * d.fallV - 2 * g * (h - d.fallYM)) > 1e-9) return ['離れる点の速さがエネルギー保存と一致しません'];
       if (Math.abs((m * d.fallV * d.fallV) / r - m * g * d.fallCos) > 1e-9) return ['離れる点で mv²/R が mg cosφ と一致しません'];
       if (byId.velocity && Math.abs(Math.hypot(byId.velocity.vector[0], byId.velocity.vector[1]) - d.fallV * 10) > 0.5) return ['離れる点の速度の矢印が v の縮尺と一致しません'];
+    }
+  }
+  if (scene.type === 'projEnergy') {
+    const d = scene.derived;
+    const rad = (scene.angleDeg * Math.PI) / 180;
+    // 初速度の成分：v0x = v0cosθ、v0y = v0sinθ。
+    if (Math.abs(d.v0x - scene.v0Ms * Math.cos(rad)) > 1e-9) return ['水平成分が v0cosθ と一致しません'];
+    if (Math.abs(d.v0y - scene.v0Ms * Math.sin(rad)) > 1e-9) return ['鉛直成分が v0sinθ と一致しません'];
+    // 最高点 H = h0 + v0y²/(2g)、頂点まで t = v0y/g。
+    if (Math.abs(d.hMaxM - (scene.h0M + (d.v0y * d.v0y) / (2 * d.g))) > 1e-9) return ['最高点の高さが一致しません'];
+    if (Math.abs(d.tTopS - d.v0y / d.g) > 1e-9) return ['頂点までの時間が v0y/g と一致しません'];
+    // 滞空時間と飛距離：R = v0x・t。
+    if (Math.abs(d.tFlightS - (d.v0y + Math.sqrt(d.v0y * d.v0y + 2 * d.g * scene.h0M)) / d.g) > 1e-9) return ['滞空時間が一致しません'];
+    if (Math.abs(d.rangeM - d.v0x * d.tFlightS) > 1e-9) return ['飛距離が vx・t と一致しません'];
+    // 着地の速さはエネルギー保存：v² = v0² + 2gh0。成分の合成とも一致すること。
+    if (Math.abs(d.vGroundMs * d.vGroundMs - (scene.v0Ms * scene.v0Ms + 2 * d.g * scene.h0M)) > 1e-9) return ['着地の速さがエネルギー保存と一致しません'];
+    if (Math.abs(d.vyGroundMs * d.vyGroundMs - (d.v0y * d.v0y + 2 * d.g * scene.h0M)) > 1e-9) return ['着地の鉛直成分が一致しません'];
+    if (Math.abs(d.vGroundMs * d.vGroundMs - (d.v0x * d.v0x + d.vyGroundMs * d.vyGroundMs)) > 1e-9) return ['着地の速さが成分の合成と一致しません'];
+    // 下向きに投げた場合：着地の速さは同じだが、滞空時間と飛距離は短い。
+    if (Math.abs(d.tDownS - (Math.sqrt(d.v0y * d.v0y + 2 * d.g * scene.h0M) - d.v0y) / d.g) > 1e-9) return ['下向きに投げた滞空時間が一致しません'];
+    if (Math.abs(d.rangeDownM - d.v0x * d.tDownS) > 1e-9) return ['下向きに投げた飛距離が一致しません'];
+    if (!(d.rangeDownM < d.rangeM)) return ['下向きに投げた飛距離が上向きより短くなっていません'];
+    // 矢印の長さが縮尺どおりか。速度 6 px/(m/s)、重力 10 px/N。
+    if (scene.phase === 'base' && byId.velocity && Math.abs(Math.hypot(byId.velocity.vector[0], byId.velocity.vector[1]) - scene.v0Ms * 6) > 0.5) return ['初速度の矢印が v0 の縮尺と一致しません'];
+    if (scene.phase === 'top' && byId.velocity && Math.abs(byId.velocity.vector[0] - d.v0x * 6) > 0.5) return ['頂点の速度の矢印が vx の縮尺と一致しません'];
+    if (scene.phase === 'ground' && byId.vx && byId.vy && byId.v) {
+      if (Math.abs(byId.vx.vector[0] - d.v0x * 6) > 0.5) return ['水平成分の矢印が vx の縮尺と一致しません'];
+      if (Math.abs(byId.vy.vector[1] - d.vyGroundMs * 6) > 0.5) return ['鉛直成分の矢印が vy の縮尺と一致しません'];
+      if (Math.abs(Math.hypot(byId.v.vector[0], byId.v.vector[1]) - d.vGroundMs * 6) > 0.5) return ['着地の速度の矢印が v の縮尺と一致しません'];
+    }
+    if (byId.gravity && Math.abs(Math.hypot(byId.gravity.vector[0], byId.gravity.vector[1]) - d.gravityN * 10) > 0.5) return ['重力の矢印が mg の縮尺と一致しません'];
+  }
+  if (scene.type === 'youngWater') {
+    const d = scene.derived;
+    // 水中の波長 λ' = λ/n。振動数は変わらないので λ' = v水/f。
+    if (Math.abs(d.lamWaterNm - scene.lambdaNm / scene.nWater) > 1e-9) return ['水中の波長が λ/n と一致しません'];
+    if (Math.abs(d.freqHz - d.c / (scene.lambdaNm * 1e-9)) > 1e3) return ['振動数が c/λ と一致しません'];
+    if (Math.abs(d.vWaterMs - d.c / scene.nWater) > 1) return ['水中の光の速さが c/n と一致しません'];
+    if (Math.abs(d.lamWaterNm * 1e-9 - d.vWaterMs / d.freqHz) > 1e-12) return ['水中の波長が v/f と一致しません'];
+    // 縞間隔 Δx = λL/d（空気中と水中）、3番目の明線 x = 3Δx。
+    if (Math.abs(d.dxAirMm - (scene.lambdaNm * 1e-9 * scene.lM) / (scene.dMm * 1e-3) * 1e3) > 1e-9) return ['空気中の縞間隔が λL/d と一致しません'];
+    if (Math.abs(d.dxWaterMm - (d.lamWaterNm * 1e-9 * scene.lM) / (scene.dMm * 1e-3) * 1e3) > 1e-9) return ['水中の縞間隔が λ′L/d と一致しません'];
+    if (Math.abs(d.x3AirMm - 3 * d.dxAirMm) > 1e-9 || Math.abs(d.x3WaterMm - 3 * d.dxWaterMm) > 1e-9) return ['3番目の明線の位置が 3Δx と一致しません'];
+    // 青い光：水中ではさらに波長が短く、縞間隔も狭くなる。
+    if (Math.abs(d.lamBlueWaterNm - scene.lambdaBlueNm / scene.nWater) > 1e-9) return ['青い光の水中の波長が λ/n と一致しません'];
+    if (Math.abs(d.dxBlueWaterMm - (d.lamBlueWaterNm * 1e-9 * scene.lM) / (scene.dMm * 1e-3) * 1e3) > 1e-9) return ['青い光の水中の縞間隔が λ′L/d と一致しません'];
+    // 光路の矢印の長さが幾何と一致すること（air/water の場面）。
+    if ((scene.phase === 'air' || scene.phase === 'water') && byId.ray1 && byId.ray2) {
+      const point = scene.phase === 'air' ? d.pointAir : d.pointWater;
+      const r1 = Math.hypot(point.x - d.upperSlit.x, point.y - d.upperSlit.y);
+      const r2 = Math.hypot(point.x - d.lowerSlit.x, point.y - d.lowerSlit.y);
+      if (Math.abs(Math.hypot(byId.ray1.vector[0], byId.ray1.vector[1]) - r1) > 0.5) return ['光路1の矢印の長さが幾何と一致しません'];
+      if (Math.abs(Math.hypot(byId.ray2.vector[0], byId.ray2.vector[1]) - r2) > 0.5) return ['光路2の矢印の長さが幾何と一致しません'];
+      if (r2 <= r1) return ['下の光路が上の光路より長くなっていません'];
     }
   }
   if (scene.type === 'charged-circle') {
@@ -3007,6 +3202,61 @@ function drawBase(svg, scene) {
     }));
     // 「光路差 3λ」は右端で切れないよう、目印の左側に右寄せで出す。
     const tD = el('text', { x: L.tick.x - 10, y: L.tick.y + 16, fill: '#b00', 'text-anchor': 'end' }); tD.textContent = '光路差 3λ'; svg.appendChild(tD);
+  } else if (scene.type === 'youngWater') {
+    const d = scene.derived;
+    if (scene.phase === 'compare') {
+      // 縞の並びを比べる：空気の縞（上）と水の縞（下）。
+      const tH = el('text', { x: 40, y: 36, fill: '#555' }); tH.textContent = '縞を比べる：水では縞が狭くなる'; svg.appendChild(tH);
+      const tA = el('text', { x: 40, y: 88, fill: '#555' }); tA.textContent = '空気：縞間隔 3.0 mm'; svg.appendChild(tA);
+      for (let k = -2; k <= 2; k++) {
+        svg.appendChild(el('line', { x1: 200 + k * 45, y1: 100, x2: 200 + k * 45, y2: 140, stroke: '#b00', 'stroke-width': 2.5 }));
+      }
+      const tW = el('text', { x: 40, y: 188, fill: '#555' }); tW.textContent = '水：縞間隔 2.25 mm'; svg.appendChild(tW);
+      for (let k = -2; k <= 2; k++) {
+        svg.appendChild(el('line', { x1: 200 + k * 33.75, y1: 200, x2: 200 + k * 33.75, y2: 240, stroke: '#b00', 'stroke-width': 2.5 }));
+      }
+    } else if (scene.phase === 'blue') {
+      // 青い光の縞：空気（上）と水中（下）。
+      const tH = el('text', { x: 40, y: 36, fill: '#555' }); tH.textContent = '青い光：水中ではさらに縞が狭い'; svg.appendChild(tH);
+      const tA = el('text', { x: 40, y: 88, fill: '#555' }); tA.textContent = '青い光（空気）：縞間隔 2.25 mm'; svg.appendChild(tA);
+      for (let k = -4; k <= 4; k++) {
+        svg.appendChild(el('line', { x1: 200 + k * 22.5, y1: 100, x2: 200 + k * 22.5, y2: 140, stroke: 'blue', 'stroke-width': 2.5 }));
+      }
+      const tW = el('text', { x: 40, y: 188, fill: '#555' }); tW.textContent = '青い光（水中）：縞間隔 1.69 mm'; svg.appendChild(tW);
+      for (let k = -5; k <= 5; k++) {
+        svg.appendChild(el('line', { x1: 200 + k * 16.875, y1: 200, x2: 200 + k * 16.875, y2: 240, stroke: 'blue', 'stroke-width': 2.5 }));
+      }
+    } else {
+      // 光路図（young と同じ配置）。water の場面では水槽を先に描く。
+      const isWater = scene.phase === 'water';
+      const point = isWater ? d.pointWater : d.pointAir;
+      if (isWater) {
+        svg.appendChild(el('rect', { x: d.slitX, y: 40, width: 220, height: 220, fill: '#dceeff', stroke: '#88aacc', 'stroke-width': 1.5 }));
+        const tW = el('text', { x: 200, y: 58, fill: '#336699' }); tW.textContent = '水 n=4/3'; svg.appendChild(tW);
+      }
+      // 場面の説明は下に出す（上に置くと「二重スリット」「スクリーン」と重なる）。
+      const tH = el('text', { x: 40, y: 290, fill: '#555' });
+      tH.textContent = isWater ? '水中：λ′=450 nm、縞間隔 2.25 mm' : '空気中：λ=600 nm、縞間隔 3.0 mm';
+      svg.appendChild(tH);
+      svg.appendChild(el('circle', { cx: 50, cy: d.centerY, r: 8, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      const tS = el('text', { x: 30, y: d.centerY + 26 }); tS.textContent = '光源'; svg.appendChild(tS);
+      svg.appendChild(el('line', { x1: d.slitX, y1: d.centerY, x2: d.screenX, y2: d.centerY, stroke: '#888', 'stroke-width': 1, 'stroke-dasharray': '4 3' }));
+      svg.appendChild(el('line', { x1: d.slitX, y1: 40, x2: d.slitX, y2: d.upperSlit.y - 8, stroke: '#333', 'stroke-width': 3 }));
+      svg.appendChild(el('line', { x1: d.slitX, y1: d.upperSlit.y + 8, x2: d.slitX, y2: d.lowerSlit.y - 8, stroke: '#333', 'stroke-width': 3 }));
+      svg.appendChild(el('line', { x1: d.slitX, y1: d.lowerSlit.y + 8, x2: d.slitX, y2: 260, stroke: '#333', 'stroke-width': 3 }));
+      const tSl = el('text', { x: 96, y: 30 }); tSl.textContent = '二重スリット'; svg.appendChild(tSl);
+      svg.appendChild(el('line', { x1: d.screenX, y1: 40, x2: d.screenX, y2: 260, stroke: '#333', 'stroke-width': 3 }));
+      const tSc = el('text', { x: 286, y: 30 }); tSc.textContent = 'スクリーン'; svg.appendChild(tSc);
+      // 明線の目印：縞間隔（空気 30 px、水 22.5 px）ごとに引く。
+      const spacing = isWater ? 22.5 : 30;
+      for (let k = -3; k <= 3; k++) {
+        const y = d.centerY + k * spacing;
+        svg.appendChild(el('line', { x1: d.screenX - 8, y1: y, x2: d.screenX + 8, y2: y, stroke: '#b00', 'stroke-width': 2.5 }));
+      }
+      const tC = el('text', { x: d.screenX + 12, y: d.centerY + 4, fill: '#b00' }); tC.textContent = '明線'; svg.appendChild(tC);
+      // 「n=3」は「光路1」のラベルと接しないよう、点から少し下へ出す。
+      const tN = el('text', { x: d.screenX + 12, y: point.y + 18, fill: '#b00' }); tN.textContent = 'n=3'; svg.appendChild(tN);
+    }
   } else if (scene.type === 'capacitor') {
     const topY = 110, dPx = scene.dPx;
     // 2枚の極板（水平）。上板が +、下板が −。
@@ -4039,6 +4289,61 @@ function drawBase(svg, scene) {
       svg.appendChild(el('path', { d: p, fill: 'none', stroke: '#b00', 'stroke-width': 2, 'stroke-dasharray': '5 4' }));
       const tL = el('text', { x: 300, y: 110, fill: '#b00' }); tL.textContent = 'ここで離れる'; svg.appendChild(tL);
     }
+  } else if (scene.type === 'projEnergy') {
+    const d = scene.derived;
+    const tH = el('text', { x: 40, y: 36, fill: '#555' });
+    tH.textContent = scene.phase === 'top' ? '最高点：鉛直成分は 0、水平成分だけ残る'
+      : scene.phase === 'ground' ? '着地の速さ：成分に分けて考える'
+      : scene.phase === 'time' ? '滞空時間 t≈1.62 s、飛距離 R≈14.0 m'
+      : scene.phase === 'down' ? '下向きに投げても着地の速さは同じ'
+      : '高さ 5.0 m から 30° に投げる';
+    svg.appendChild(tH);
+    // 地面と発射台の高さ。
+    svg.appendChild(el('line', { x1: 40, y1: d.groundY, x2: 360, y2: d.groundY, stroke: '#333', 'stroke-width': 2 }));
+    svg.appendChild(el('line', { x1: d.originX, y1: d.launch.y, x2: d.originX, y2: d.groundY, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+    const tH0 = el('text', { x: 66, y: 240, fill: '#555' }); tH0.textContent = 'h0=5.0 m'; svg.appendChild(tH0);
+    // 軌道を描く：y(t) = h0 ± v0y・t − (g/2)t² を 0.05 s 刻みでたどる。
+    const traj = (v0ySign, color) => {
+      let p = '';
+      const tEnd = v0ySign > 0 ? d.tFlightS : d.tDownS;
+      for (let i = 0; i <= 40; i++) {
+        const t = (i / 40) * tEnd;
+        const y = scene.h0M + v0ySign * d.v0y * t - 0.5 * d.g * t * t;
+        const x = d.originX + d.v0x * t * d.xScale;
+        const sy = d.groundY - y * d.xScale;
+        p += (p ? ' L ' : 'M ') + x.toFixed(1) + ' ' + sy.toFixed(1);
+      }
+      svg.appendChild(el('path', { d: p, fill: 'none', stroke: color, 'stroke-width': 2 }));
+    };
+    if (scene.phase === 'top') {
+      traj(1, '#b00');
+      svg.appendChild(el('circle', { cx: d.top.x, cy: d.top.y, r: 10, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      // 最高点から地面までの破線と H のラベル。
+      svg.appendChild(el('line', { x1: d.top.x, y1: d.top.y, x2: d.top.x, y2: d.groundY, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      const tHm = el('text', { x: 136, y: 210, fill: '#555' }); tHm.textContent = 'H=6.25 m'; svg.appendChild(tHm);
+    } else if (scene.phase === 'ground') {
+      traj(1, '#b00');
+      svg.appendChild(el('circle', { cx: d.landing.x, cy: d.landing.y - 10, r: 10, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      const tL = el('text', { x: 250, y: 285, fill: '#555' }); tL.textContent = '着地'; svg.appendChild(tL);
+    } else if (scene.phase === 'time') {
+      traj(1, '#b00');
+      svg.appendChild(el('circle', { cx: d.launch.x, cy: d.launch.y, r: 10, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx: d.landing.x, cy: d.landing.y - 10, r: 10, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      // 飛距離の矢印（地面の下）。
+      svg.appendChild(el('line', { x1: d.originX, y1: 278, x2: d.landing.x, y2: 278, stroke: '#333', 'stroke-width': 1.5, 'marker-end': 'url(#fig-arrow)' }));
+      const tR = el('text', { x: 150, y: 295, fill: '#555' }); tR.textContent = 'R≈14.0 m'; svg.appendChild(tR);
+    } else if (scene.phase === 'down') {
+      traj(1, '#b00');
+      traj(-1, 'blue');
+      svg.appendChild(el('circle', { cx: d.launch.x, cy: d.launch.y, r: 10, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx: d.landing.x, cy: d.landing.y - 10, r: 10, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx: d.landingDown.x, cy: d.landingDown.y - 10, r: 10, fill: '#cfe3ff', stroke: '#333', 'stroke-width': 2 }));
+      const tD = el('text', { x: 60, y: 292, fill: '#555' }); tD.textContent = '下向き：R≈5.4 m'; svg.appendChild(tD);
+      const tU = el('text', { x: 230, y: 292, fill: '#555' }); tU.textContent = '上向き：R≈14.0 m'; svg.appendChild(tU);
+    } else {
+      traj(1, '#b00');
+      svg.appendChild(el('circle', { cx: d.launch.x, cy: d.launch.y, r: 10, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+    }
   }
   // 中心の黒点は、力の作用点がある型だけに描く。young・capacitor には作用点がないので描かない。
   if (scene.centerDot !== false) svg.appendChild(el('circle', { cx: scene.center.x, cy: scene.center.y, r: 4, fill: '#333' }));
@@ -4092,4 +4397,4 @@ function renderAllFigures() {
   });
 }
 
-if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, sceneFor, validateScene, renderFigure };
+if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, sceneFor, validateScene, renderFigure };
