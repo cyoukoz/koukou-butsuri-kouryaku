@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第31問：二体問題・重心・相対運動 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>第31問：二体問題・重心・相対運動</h1>
+<p><strong>問題：</strong>なめらかな水平面の上で、質量 2.0 kg の物体 A が速さ 3.0 m/s、質量 3.0 kg の物体 B が速さ 1.0 m/s で、同じ向きに進んでいる。はじめ A は B の 5.0 m 後ろにいる。(1) 2つの物体の重心の位置を、A の位置を原点として求めよ。(2) 重心の速度を求めよ。(3) A が B に追いつくのは何秒後か。(4) 2つが弾性衝突したあとの速度を、重心系を使って求めよ。(5) 衝突の前後で、重心の運動はどうなるか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js）が下の JSON データから計算して描いている。重心の位置と速度、相対速度、衝突後の速度は、質量と速度のデータから計算し、矢印の長さも速度に比例させている。</p>
+<script type="application/json" id="scene-tb-base">{"type":"twoBody","phase":"base","m1Kg":2.0,"m2Kg":3.0,"v1Ms":3.0,"v2Ms":1.0,"x1M":0,"x2M":5.0}</script>
+<script type="application/json" id="scene-tb-velocity">{"type":"twoBody","phase":"velocity","m1Kg":2.0,"m2Kg":3.0,"v1Ms":3.0,"v2Ms":1.0,"x1M":0,"x2M":5.0}</script>
+<script type="application/json" id="scene-tb-relative">{"type":"twoBody","phase":"relative","m1Kg":2.0,"m2Kg":3.0,"v1Ms":3.0,"v2Ms":1.0,"x1M":0,"x2M":5.0}</script>
+<script type="application/json" id="scene-tb-collision">{"type":"twoBody","phase":"collision","m1Kg":2.0,"m2Kg":3.0,"v1Ms":3.0,"v2Ms":1.0,"x1M":0,"x2M":5.0}</script>
+<script type="application/json" id="scene-tb-summary">{"type":"twoBody","phase":"summary","m1Kg":2.0,"m2Kg":3.0,"v1Ms":3.0,"v2Ms":1.0,"x1M":0,"x2M":5.0}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：2つの物体は、重心という1つの点でまとめられる</h2>
+  <p>2つの物体がバラバラに動いていても、質量で重みづけした平均の位置を「重心」という。重心の位置は、x_G = (m1x1 + m2x2) / (m1 + m2) で求まる。重心の速度も同じように、V_G = (m1v1 + m2v2) / (m1 + m2) だ。</p>
+  <p>重心のいちばん大事な性質は、外から力がはたらかなければ、重心は等速直線運動を続けることだ。2つの物体が衝突しても、重心の動きは変わらない。</p>
+  <p>この問題では、A が後ろから B に追いついて、弾性衝突する。まず重心の位置と速度を求めてから、衝突を考える。</p>
+  <svg class="fig" data-scene="scene-tb-base" data-show="" width="100%" role="img" aria-label="2つの物体と重心の位置"></svg>
+  <p>図は、A と B と、そのあいだの重心 G だ。重心は、重い B のほうに寄っている。ここから、重心の位置を求めていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①重心の位置</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 重心の位置：x_G = 3.0 m</h2>
+  <svg class="fig" data-scene="scene-tb-base" data-show="" width="100%" role="img" aria-label="重心の位置の図"></svg>
+  <p>A の位置を原点（x = 0）とすると、B は x = 5.0 m のところにいる。重心の位置は、x_G = (2.0 × 0 + 3.0 × 5.0) / (2.0 + 3.0) = 15 / 5.0 = <strong>3.0 m</strong> だ。</p>
+  <p>A から 3.0 m、B から 2.0 m のところが重心だ。重い B のほうに寄っている。重心は、2つの物体のあいだにいつもある。質量が等しければ、ちょうど真ん中になる。</p>
+  <label><input type="checkbox" class="check"> 重心の位置が A から 3.0 m と分かった</label>
+  <br><a class="next" href="#step2">次へ ↓ ②重心の速度</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 重心の速度：V_G = 1.8 m/s</h2>
+  <svg class="fig" data-scene="scene-tb-velocity" data-show="velocity1,velocity2,velocityG" width="100%" role="img" aria-label="2つの物体の速度と重心の速度"></svg>
+  <p>重心の速度も、位置と同じように重みづけ平均で求まる。V_G = (2.0 × 3.0 + 3.0 × 1.0) / (2.0 + 3.0) = (6.0 + 3.0) / 5.0 = <strong>1.8 m/s</strong> だ。</p>
+  <p>重心の速度 1.8 m/s は、A の 3.0 m/s と B の 1.0 m/s のあいだの値になっている。なめらかな水平面では外からの水平方向の力がないので、重心はこの 1.8 m/s のまま、等速直線運動を続ける。</p>
+  <p>図の青い矢印が重心の速度だ。A と B の速度の矢印と比べると、重心の矢印の長さはそのあいだの長さになっている。</p>
+  <label><input type="checkbox" class="check"> 重心の速度が 1.8 m/s で、等速直線運動を続けると分かった</label>
+  <br><a class="next" href="#step3">次へ ↓ ③相対速度と追いつく時間</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 相対速度：A から見た B は 2.0 m/s で近づく。2.5 s 後に追いつく</h2>
+  <svg class="fig" data-scene="scene-tb-relative" data-show="relVel" width="100%" role="img" aria-label="Aから見たBの相対速度"></svg>
+  <p>A から見た B の速度（相対速度）は、v2 − v1 = 1.0 − 3.0 = <strong>−2.0 m/s</strong> だ。マイナスは、A から見ると B が近づいてくる向き（左向き）ということだ。つまり、A と B は 2.0 m/s の速さで近づいている。</p>
+  <p>はじめの距離は 5.0 m だから、追いつくまでの時間は 5.0 ÷ 2.0 = <strong>2.5 s</strong> だ。地面から見ると A も B も進んでいるが、A から見れば、B が 2.0 m/s で近づいてくるだけの、簡単な問題になる。相対運動で見ると、問題が簡単になる。</p>
+  <label><input type="checkbox" class="check"> 相対速度 −2.0 m/s で、2.5 s 後に追いつくと分かった</label>
+  <br><a class="next" href="#step4">次へ ↓ ④罠：重心系で見ると衝突は速度の反転</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 罠：重心系で見ると、弾性衝突は速度が反転するだけ</h2>
+  <svg class="fig" data-scene="scene-tb-collision" data-show="v1cmBefore,v2cmBefore,v1cmAfter,v2cmAfter" width="100%" role="img" aria-label="重心系での弾性衝突の前後"></svg>
+  <p>重心と一緒に動く「重心系」で見ると、A の速度は 3.0 − 1.8 = 1.2 m/s、B の速度は 1.0 − 1.8 = −0.8 m/s だ。重心系では、2つの運動量の和は 0 になっている（2.0 × 1.2 + 3.0 × (−0.8) = 0）。</p>
+  <p>弾性衝突では、重心系で速度がそのまま反転するだけだ。だから衝突後は、A が −1.2 m/s、B が +0.8 m/s になる。地面系に戻すには、重心の速度 1.8 m/s を足す。v1′ = −1.2 + 1.8 = <strong>0.60 m/s</strong>、v2′ = 0.8 + 1.8 = <strong>2.6 m/s</strong> だ。</p>
+  <p>確かめ：運動量は、衝突前 2.0 × 3.0 + 3.0 × 1.0 = 9.0、衝突後 2.0 × 0.60 + 3.0 × 2.6 = 1.2 + 7.8 = 9.0 で保存している。運動エネルギーも、衝突前 9.0 + 1.5 = 10.5 J、衝突後 0.36 + 10.14 = 10.5 J で保存している。重心系で見れば、公式を覚えていなくても、反転させるだけで衝突後の速度が出る。</p>
+  <label><input type="checkbox" class="check"> 衝突後は v1′=0.60 m/s、v2′=2.6 m/s と分かった</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ：重心は外力がなければ等速直線運動。衝突しても変わらない</h2>
+  <svg class="fig" data-scene="scene-tb-summary" data-show="velocityG" width="100%" role="img" aria-label="重心の等速直線運動"></svg>
+  <p>重心の位置は t = 0 で x = 3.0 m、t = 2.5 s では x = 3.0 + 1.8 × 2.5 = <strong>7.5 m</strong> だ。衝突する点も、A が 3.0 × 2.5 = 7.5 m、B が 5.0 + 1.0 × 2.5 = 7.5 m で、同じ 7.5 m になる。衝突点は、ちょうどその時刻の重心の位置と一致する。</p>
+  <p>衝突の前後で、重心の速度は 1.8 m/s のまま変わらない。2つの物体のあいだではたらく力（衝突の力）は内力であって、外力ではないからだ。重心の運動を決めるのは、外力だけだ。</p>
+  <p>2つの物体の問題では、まず重心を求める。重心系で見ると、衝突も相対運動も簡単になる。重心系で解いて、最後に地面系に戻す、という流れが、このモデルの型だ。</p>
+  <label><input type="checkbox" class="check"> 重心は衝突しても 1.8 m/s の等速直線運動を続けると分かった</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) x_G = 3.0 m。(2) V_G = 1.8 m/s。(3) 2.5 s 後。(4) v1′= 0.60 m/s、v2′= 2.6 m/s。(5) 重心の速度は 1.8 m/s のまま変わらない。運動量の保存と衝突の計算は <a href="collision.html">第12問：運動量・衝突</a>、2つの物体をつないだ運動は <a href="pulley.html">第6問：滑車・連結体</a> でも確かめられる。</p>
+  <p>次は準備中です。<a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.twoBodyDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-// 高校物理攻略 — 図描画シミュレータ（試作 v1.4：単一モデル 剛体のモーメント・ソレノイド・RL/RC過渡現象 追加）
+// 高校物理攻略 — 図描画シミュレータ（試作 v1.5：単一モデル 二体問題・重心・相対運動・電磁誘導 追加）
 // 方針：図は手書きの座標を直書きしない。入力は JSON の「物理データ」だけ。
 // 描画側が角度・つり合いから矢印の向きと長さを計算する。
 // だから mg sinθ が mg と同じ長さになる、θ が消える、ラベルが切れる、
@@ -1371,6 +1371,88 @@ function transientForces(data) {
   return []; // 回路図と指数曲線は drawBase で式から描く。力の矢印はない。
 }
 
+// ---- 二体問題・重心・相対運動（M13）：重心の位置・速度、相対速度、重心系での衝突 ----
+// 具体値（検算済み）：m1=2.0 kg（A、v1=3.0 m/s、x1=0）、m2=3.0 kg（B、v2=1.0 m/s、x2=5.0 m）。
+//   重心 x_G=(2×0+3×5)/5=3.0 m、V_G=(2×3+3×1)/5=1.8 m/s。相対速度 v2−v1=−2.0 m/s、
+//   追いつくまで (5.0−0)/(3.0−1.0)=2.5 s。重心系では A は 1.2 m/s、B は −0.8 m/s。
+//   弾性衝突では重心系で速度が反転し、地面系では v1′=2×1.8−3.0=0.60 m/s、v2′=2×1.8−1.0=2.6 m/s。
+//   運動量は 9.0 kg·m/s、運動エネルギーは 10.5 J で、衝突の前後で保存する。
+//   衝突点 x=7.5 m は、t=2.5 s における重心の位置 x_G+V_G×2.5=3.0+4.5=7.5 m と一致する。
+// 罠：重心は外力がなければ等速直線運動する。衝突しても重心の動きは変わらない。
+//   重心系で見ると、弾性衝突は「速度が反転するだけ」になって簡単になる。
+function twoBodyDerived(data) {
+  const mTotal = data.m1Kg + data.m2Kg;
+  const xG = (data.m1Kg * data.x1M + data.m2Kg * data.x2M) / mTotal;
+  const vG = (data.m1Kg * data.v1Ms + data.m2Kg * data.v2Ms) / mTotal;
+  const vRel = data.v2Ms - data.v1Ms;
+  const tCatch = (data.x2M - data.x1M) / (data.v1Ms - data.v2Ms);
+  const v1cm = data.v1Ms - vG;
+  const v2cm = data.v2Ms - vG;
+  const v1p = 2 * vG - data.v1Ms;
+  const v2p = 2 * vG - data.v2Ms;
+  const pTotal = data.m1Kg * data.v1Ms + data.m2Kg * data.v2Ms;
+  const keBefore = 0.5 * data.m1Kg * data.v1Ms * data.v1Ms + 0.5 * data.m2Kg * data.v2Ms * data.v2Ms;
+  const keAfter = 0.5 * data.m1Kg * v1p * v1p + 0.5 * data.m2Kg * v2p * v2p;
+  const xGAtCatch = xG + vG * tCatch;
+  return { mTotal, xG, vG, vRel, tCatch, v1cm, v2cm, v1p, v2p, pTotal, keBefore, keAfter, xGAtCatch };
+}
+
+function twoBodyForces(data) {
+  const d = twoBodyDerived(data);
+  const vScale = 30; // px/(m/s)
+  if (data.phase === 'velocity') {
+    // 速度の矢印：A の上（y=230）、B の上（y=230）、重心の矢印はその上（y=200）。
+    return [
+      { id: 'velocity1', short: 'v1=3.0 m/s', color: '#b00', vector: [data.v1Ms * vScale, 0], dashed: false, labelDx: 6, labelDy: -6, from: { x: 60, y: 230 } },
+      { id: 'velocity2', short: 'v2=1.0 m/s', color: '#b00', vector: [data.v2Ms * vScale, 0], dashed: false, labelDx: 6, labelDy: -6, from: { x: 260, y: 230 } },
+      { id: 'velocityG', short: 'V_G=1.8 m/s', color: 'blue', vector: [d.vG * vScale, 0], dashed: false, labelDx: 6, labelDy: -6, from: { x: 180, y: 200 } },
+    ];
+  }
+  if (data.phase === 'relative') {
+    // B から見た相対速度：B から A へ向かう左向きの矢印。ラベルは上に逃がす。
+    return [
+      { id: 'relVel', short: 'v2−v1=−2.0 m/s', color: '#d35400', vector: [d.vRel * vScale, 0], dashed: false, labelDx: -140, labelDy: -40, from: { x: 260, y: 230 } },
+    ];
+  }
+  if (data.phase === 'collision') {
+    // 重心系の2段：上段が衝突前、下段が衝突後。弾性衝突では速度が反転するだけ。
+    return [
+      { id: 'v1cmBefore', short: '1.2 m/s', color: '#b00', vector: [d.v1cm * vScale, 0], dashed: false, labelDx: 6, labelDy: -20, from: { x: 100, y: 110 } },
+      { id: 'v2cmBefore', short: '0.8 m/s', color: '#b00', vector: [d.v2cm * vScale, 0], dashed: false, labelDx: -60, labelDy: 16, from: { x: 280, y: 110 } },
+      { id: 'v1cmAfter', short: '1.2 m/s', color: '#b00', vector: [-d.v1cm * vScale, 0], dashed: false, labelDx: 6, labelDy: -20, from: { x: 100, y: 210 } },
+      { id: 'v2cmAfter', short: '0.8 m/s', color: '#b00', vector: [-d.v2cm * vScale, 0], dashed: false, labelDx: 6, labelDy: -6, from: { x: 280, y: 210 } },
+    ];
+  }
+  if (data.phase === 'summary') {
+    // 重心の動き：t=0 から t=2.5 s まで、V_G=1.8 m/s で 4.5 m 進む。
+    return [
+      { id: 'velocityG', short: 'V_G=1.8 m/s', color: 'blue', vector: [d.vG * vScale, 0], dashed: false, labelDx: 6, labelDy: -6, from: { x: 80, y: 200 } },
+    ];
+  }
+  return []; // base：物体と重心の位置だけ。矢印はない。
+}
+
+// ---- 電磁誘導（E5）：磁束 Φ=BS、ファラデーの法則 V=NΔΦ/Δt、レンツの法則 ----
+// 具体値（検算済み）：コイル N=100 回、面積 S=0.010 m²、B が 0→0.20 T に 0.10 s で増える。
+//   磁束 Φ=0.20×0.010=2.0×10⁻³ Wb。起電力 V=100×2.0×10⁻³/0.10=2.0 V。
+//   抵抗 R=10 Ω なら誘導電流 I=2.0/10=0.20 A。
+//   外の磁場（紙面の裏向き）が増えるので、誘導電流は表向きの磁場をつくる＝反時計回り。
+// 罠：磁場が大きくても、変わらなければ起電力は 0（B=0.50 T 一定 → V=0）。
+//   Δt が半分（0.050 s）なら V は 2 倍の 4.0 V。コイルを 60° 傾けると Φ=BS cos60°=1.0×10⁻³ Wb。
+function inductionDerived(data) {
+  const phiWb = data.b1T * data.areaM2;
+  const dPhiWb = (data.b1T - data.b0T) * data.areaM2;
+  const emfV = data.turnsN * dPhiWb / data.dtS;
+  const currentA = emfV / data.resistanceOhm;
+  const phiTiltWb = data.b1T * data.areaM2 * Math.cos((data.tiltDeg * Math.PI) / 180);
+  const emfFastV = data.turnsN * dPhiWb / 0.050;
+  return { phiWb, dPhiWb, emfV, currentA, phiTiltWb, emfFastV };
+}
+
+function inductionForces(data) {
+  return []; // ×印の磁場・誘導電流の円矢印・B–t グラフは drawBase で式から描く。直線の力の矢印はない。
+}
+
 function sceneFor(type, thetaDeg, mgPx, fPx, data) {
   if (type === 'dcCircuit') {
     const d = dcCircuitDerived(data);
@@ -1500,6 +1582,28 @@ function sceneFor(type, thetaDeg, mgPx, fPx, data) {
       derived: d,
       center: { x: 200, y: 180 }, centerDot: false,
       forces: transientForces(data),
+    };
+  }
+  if (type === 'twoBody') {
+    const d = twoBodyDerived(data);
+    return {
+      type, phase: data.phase || 'base',
+      m1Kg: data.m1Kg, m2Kg: data.m2Kg, v1Ms: data.v1Ms, v2Ms: data.v2Ms,
+      x1M: data.x1M, x2M: data.x2M,
+      derived: d,
+      center: { x: 200, y: 180 }, centerDot: false,
+      forces: twoBodyForces(data),
+    };
+  }
+  if (type === 'induction') {
+    const d = inductionDerived(data);
+    return {
+      type, phase: data.phase || 'base',
+      turnsN: data.turnsN, areaM2: data.areaM2, b0T: data.b0T, b1T: data.b1T,
+      dtS: data.dtS, resistanceOhm: data.resistanceOhm, tiltDeg: data.tiltDeg,
+      derived: d,
+      center: { x: 200, y: 150 }, centerDot: false,
+      forces: inductionForces(data),
     };
   }
   if (type === 'heatCycle') {
@@ -2367,6 +2471,47 @@ function validateScene(scene) {
     if (Math.abs(d.iInf - scene.emfV / scene.rlROhm) > 1e-9) return ['RL の最終電流が E/R と一致しません'];
     if (Math.abs(d.iTau - d.iInf * (1 - Math.exp(-1))) > 1e-9) return ['RL τ 後の電流が一致しません'];
     if (Math.abs(d.i0RC - scene.emfV / scene.rOhm) > 1e-9) return ['充電のはじめの電流が E/R と一致しません'];
+  }
+  if (scene.type === 'twoBody') {
+    const d = scene.derived;
+    // 重心：x_G = (m1x1+m2x2)/(m1+m2)、V_G = (m1v1+m2v2)/(m1+m2)。
+    if (Math.abs(d.xG - (scene.m1Kg * scene.x1M + scene.m2Kg * scene.x2M) / d.mTotal) > 1e-9) return ['重心の位置が (m1x1+m2x2)/(m1+m2) と一致しません'];
+    if (Math.abs(d.vG - (scene.m1Kg * scene.v1Ms + scene.m2Kg * scene.v2Ms) / d.mTotal) > 1e-9) return ['重心の速度が (m1v1+m2v2)/(m1+m2) と一致しません'];
+    // 相対速度と、追いつくまでの時間。
+    if (Math.abs(d.vRel - (scene.v2Ms - scene.v1Ms)) > 1e-9) return ['相対速度が v2−v1 と一致しません'];
+    if (Math.abs(d.tCatch - (scene.x2M - scene.x1M) / (scene.v1Ms - scene.v2Ms)) > 1e-9) return ['追いつくまでの時間が一致しません'];
+    // 重心系での速度と、弾性衝突での反転（v′ = 2V_G − v）。
+    if (Math.abs(d.v1cm - (scene.v1Ms - d.vG)) > 1e-9) return ['重心系での A の速度が一致しません'];
+    if (Math.abs(d.v2cm - (scene.v2Ms - d.vG)) > 1e-9) return ['重心系での B の速度が一致しません'];
+    if (Math.abs(d.v1p - (2 * d.vG - scene.v1Ms)) > 1e-9) return ["衝突後の v1' が一致しません"];
+    if (Math.abs(d.v2p - (2 * d.vG - scene.v2Ms)) > 1e-9) return ["衝突後の v2' が一致しません"];
+    // 運動量と運動エネルギーの保存。衝突点はその時刻の重心の位置と一致する。
+    if (Math.abs(d.pTotal - (scene.m1Kg * scene.v1Ms + scene.m2Kg * scene.v2Ms)) > 1e-9) return ['運動量が一致しません'];
+    if (Math.abs(d.keBefore - d.keAfter) > 1e-9) return ['弾性衝突で運動エネルギーが保存していません'];
+    if (Math.abs(d.xGAtCatch - (d.xG + d.vG * d.tCatch)) > 1e-9) return ['衝突点がその時刻の重心の位置と一致しません'];
+    // 矢印の長さが速度の縮尺（30 px/(m/s)）どおりか。
+    if (scene.phase === 'velocity') {
+      if (byId.velocity1 && Math.abs(byId.velocity1.vector[0] - scene.v1Ms * 30) > 0.5) return ['v1 の矢印が速度の縮尺と一致しません'];
+      if (byId.velocity2 && Math.abs(byId.velocity2.vector[0] - scene.v2Ms * 30) > 0.5) return ['v2 の矢印が速度の縮尺と一致しません'];
+      if (byId.velocityG && Math.abs(byId.velocityG.vector[0] - d.vG * 30) > 0.5) return ['V_G の矢印が速度の縮尺と一致しません'];
+    }
+    if (scene.phase === 'relative' && byId.relVel && Math.abs(byId.relVel.vector[0] - d.vRel * 30) > 0.5) return ['相対速度の矢印が速度の縮尺と一致しません'];
+    if (scene.phase === 'collision') {
+      if (byId.v1cmBefore && Math.abs(byId.v1cmBefore.vector[0] - d.v1cm * 30) > 0.5) return ['重心系の A の矢印が速度の縮尺と一致しません'];
+      if (byId.v2cmBefore && Math.abs(byId.v2cmBefore.vector[0] - d.v2cm * 30) > 0.5) return ['重心系の B の矢印が速度の縮尺と一致しません'];
+      if (byId.v1cmAfter && Math.abs(byId.v1cmAfter.vector[0] + d.v1cm * 30) > 0.5) return ['衝突後の A の矢印が反転していません'];
+      if (byId.v2cmAfter && Math.abs(byId.v2cmAfter.vector[0] + d.v2cm * 30) > 0.5) return ['衝突後の B の矢印が反転していません'];
+    }
+  }
+  if (scene.type === 'induction') {
+    const d = scene.derived;
+    // 磁束 Φ = BS、起電力 V = NΔΦ/Δt、電流 I = V/R、傾けたコイル Φ = BS cosθ。
+    if (Math.abs(d.phiWb - scene.b1T * scene.areaM2) > 1e-12) return ['磁束が BS と一致しません'];
+    if (Math.abs(d.dPhiWb - (scene.b1T - scene.b0T) * scene.areaM2) > 1e-12) return ['磁束の変化が ΔB・S と一致しません'];
+    if (Math.abs(d.emfV - scene.turnsN * d.dPhiWb / scene.dtS) > 1e-9) return ['誘導起電力が NΔΦ/Δt と一致しません'];
+    if (Math.abs(d.currentA - d.emfV / scene.resistanceOhm) > 1e-9) return ['誘導電流が V/R と一致しません'];
+    if (Math.abs(d.phiTiltWb - scene.b1T * scene.areaM2 * Math.cos(deg2rad(scene.tiltDeg))) > 1e-12) return ['傾けたコイルの磁束が BS cosθ と一致しません'];
+    if (Math.abs(d.emfFastV - scene.turnsN * d.dPhiWb / 0.050) > 1e-9) return ['Δt を半分にしたときの起電力が一致しません'];
   }
   return [];
 }
@@ -3475,6 +3620,108 @@ function drawBase(svg, scene) {
     const t1 = el('text', { x: 55, y: 40 }); t1.textContent = '壁'; svg.appendChild(t1);
     const t2 = el('text', { x: 300, y: 285 }); t2.textContent = '床'; svg.appendChild(t2);
     svg.appendChild(el('line', { x1: 80, y1: 80, x2: 280, y2: 260, stroke: '#b5651d', 'stroke-width': 6 }));
+  } else if (scene.type === 'twoBody') {
+    const d = scene.derived;
+    const xPx = (x) => 60 + x * 40; // 位置：1 m = 40 px、原点 x=60
+    const tH = el('text', { x: 40, y: 36, fill: '#555' });
+    if (scene.phase === 'collision') {
+      // 重心系の2段：上段が衝突前、下段が衝突後。矢印は forces で描く。
+      tH.textContent = '重心系で見ると、衝突は速度の反転';
+      svg.appendChild(tH);
+      const r1 = el('text', { x: 40, y: 70, fill: '#555' }); r1.textContent = '衝突前（重心系）'; svg.appendChild(r1);
+      const r2 = el('text', { x: 40, y: 160, fill: '#555' }); r2.textContent = '衝突後（重心系）'; svg.appendChild(r2);
+      for (const [cx, cy] of [[100, 110], [280, 110], [100, 210], [280, 210]]) {
+        svg.appendChild(el('rect', { x: cx - 15, y: cy - 10, width: 30, height: 20, fill: '#cfe3ff', stroke: '#333', 'stroke-width': 2 }));
+      }
+      const lA1 = el('text', { x: 92, y: 88 }); lA1.textContent = 'A'; svg.appendChild(lA1);
+      const lB1 = el('text', { x: 272, y: 88 }); lB1.textContent = 'B'; svg.appendChild(lB1);
+      const lA2 = el('text', { x: 92, y: 188 }); lA2.textContent = 'A'; svg.appendChild(lA2);
+      const lB2 = el('text', { x: 272, y: 188 }); lB2.textContent = 'B'; svg.appendChild(lB2);
+      const cap = el('text', { x: 40, y: 280, fill: '#555' }); cap.textContent = '地面系：v1′=0.60 m/s、v2′=2.6 m/s'; svg.appendChild(cap);
+    } else if (scene.phase === 'summary') {
+      // 重心の軌跡：t=0 から t=2.5 s まで、V_G=1.8 m/s で 4.5 m 進む。
+      tH.textContent = '重心は等速直線運動：外力がなければ';
+      svg.appendChild(tH);
+      svg.appendChild(el('line', { x1: 80, y1: 200, x2: 260, y2: 200, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      svg.appendChild(el('polygon', { points: '80,192 80,208 88,200', fill: '#b00' }));
+      svg.appendChild(el('polygon', { points: '260,192 260,208 268,200', fill: '#b00' }));
+      const l0 = el('text', { x: 40, y: 230, fill: '#555' }); l0.textContent = 't=0：x_G=3.0 m'; svg.appendChild(l0);
+      const l25 = el('text', { x: 200, y: 230, fill: '#555' }); l25.textContent = 't=2.5 s：x_G=7.5 m'; svg.appendChild(l25);
+      const cap = el('text', { x: 40, y: 280, fill: '#555' }); cap.textContent = 't=2.5 s に A と B は x=7.5 m で出会う'; svg.appendChild(cap);
+    } else {
+      // 床と2つの物体、重心の位置。速度の矢印は forces で描く。
+      tH.textContent = scene.phase === 'velocity' ? '重心の速度 V_G = 1.8 m/s'
+        : scene.phase === 'relative' ? 'A から見た B は 2.0 m/s で近づく'
+        : '2つの物体と、その重心';
+      svg.appendChild(tH);
+      svg.appendChild(el('line', { x1: 40, y1: 270, x2: 360, y2: 270, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('rect', { x: xPx(scene.x1M) - 15, y: 246, width: 30, height: 24, fill: '#cfe3ff', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('rect', { x: xPx(scene.x2M) - 15, y: 246, width: 30, height: 24, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      const lA = el('text', { x: xPx(scene.x1M) - 8, y: 238 }); lA.textContent = 'A'; svg.appendChild(lA);
+      const lB = el('text', { x: xPx(scene.x2M) - 8, y: 238 }); lB.textContent = 'B'; svg.appendChild(lB);
+      // 重心：破線の目印とラベル。velocity の場面では v1 のラベルと重ならないよう、下に出す。
+      svg.appendChild(el('line', { x1: xPx(d.xG), y1: 225, x2: xPx(d.xG), y2: 270, stroke: '#b00', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+      const lG = el('text', { x: xPx(d.xG) - 30, y: scene.phase === 'velocity' ? 290 : 215, fill: '#b00' }); lG.textContent = '重心 G'; svg.appendChild(lG);
+      if (scene.phase !== 'relative') {
+        const mA = el('text', { x: xPx(scene.x1M) - 18, y: 290, fill: '#555' }); mA.textContent = '2.0 kg'; svg.appendChild(mA);
+        const mB = el('text', { x: xPx(scene.x2M) - 18, y: 290, fill: '#555' }); mB.textContent = '3.0 kg'; svg.appendChild(mB);
+      }
+      if (scene.phase === 'base') {
+        const dist = el('text', { x: 150, y: 290, fill: '#555' }); dist.textContent = '5.0 m'; svg.appendChild(dist);
+      }
+      if (scene.phase === 'relative') {
+        const cap = el('text', { x: 40, y: 290, fill: '#555' }); cap.textContent = '2.5 s 後に追いつく（5.0 m ÷ 2.0 m/s）'; svg.appendChild(cap);
+      }
+    }
+  } else if (scene.type === 'induction') {
+    const d = scene.derived;
+    const tH = el('text', { x: 40, y: 36, fill: '#555' });
+    if (scene.phase === 'summary') {
+      // B–t グラフ：B は 0.10 s で 0.20 T まで上がり、その後一定。V は上がるあいだだけ 2.0 V。
+      tH.textContent = 'B が変わるあいだだけ、起電力が生まれる';
+      svg.appendChild(tH);
+      const x0 = 60, x1 = 340, y0 = 240, yTop = 100;
+      const tx = (t) => x0 + (t / 0.30) * (x1 - x0);
+      svg.appendChild(el('line', { x1: x0, y1: y0, x2: x1, y2: y0, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: x0, y1: yTop - 20, x2: x0, y2: y0, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('path', { d: `M ${x0} ${y0} L ${tx(0.10).toFixed(1)} ${yTop} L ${x1} ${yTop}`, fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
+      svg.appendChild(el('path', { d: `M ${x0} ${yTop} L ${tx(0.10).toFixed(1)} ${yTop} L ${tx(0.10).toFixed(1)} ${y0} L ${x1} ${y0}`, fill: 'none', stroke: 'blue', 'stroke-width': 2, 'stroke-dasharray': '5 4' }));
+      const lV = el('text', { x: 70, y: 90, fill: 'blue' }); lV.textContent = 'V=2.0 V'; svg.appendChild(lV);
+      const lB = el('text', { x: 170, y: 90, fill: '#b00' }); lB.textContent = 'B=0.20 T'; svg.appendChild(lB);
+      const lT = el('text', { x: 320, y: 262 }); lT.textContent = 't'; svg.appendChild(lT);
+      const lT10 = el('text', { x: tx(0.10) - 18, y: 262, fill: '#555' }); lT10.textContent = '0.10 s'; svg.appendChild(lT10);
+      const cap = el('text', { x: 40, y: 285, fill: '#555' }); cap.textContent = 'B が変わっているあいだだけ、V が生まれる'; svg.appendChild(cap);
+    } else {
+      // コイルを正面から見た円。× は紙面の裏向きの磁場。
+      tH.textContent = scene.phase === 'flux' ? '磁束 Φ = BS = 2.0×10⁻³ Wb'
+        : scene.phase === 'emf' ? '誘導起電力 V = 2.0 V、電流 0.20 A'
+        : scene.phase === 'lenz' ? 'レンツの法則：変化を妨げる向きに流れる'
+        : 'コイルを貫く磁束 Φ = BS';
+      svg.appendChild(tH);
+      svg.appendChild(el('circle', { cx: 200, cy: 150, r: 60, fill: scene.phase === 'flux' ? '#cfe3ff' : 'none', stroke: '#333', 'stroke-width': 2 }));
+      for (const [cx, cy] of [[170, 120], [200, 120], [230, 120], [170, 150], [200, 150], [230, 150], [170, 180], [200, 180], [230, 180]]) {
+        svg.appendChild(el('line', { x1: cx - 6, y1: cy - 6, x2: cx + 6, y2: cy + 6, stroke: '#b00', 'stroke-width': 2 }));
+        svg.appendChild(el('line', { x1: cx + 6, y1: cy - 6, x2: cx - 6, y2: cy + 6, stroke: '#b00', 'stroke-width': 2 }));
+      }
+      const lB = el('text', { x: 40, y: 70, fill: '#b00' }); lB.textContent = 'B（裏向き）'; svg.appendChild(lB);
+      const lC = el('text', { x: 40, y: 240, fill: '#555' }); lC.textContent = 'コイル N=100 回'; svg.appendChild(lC);
+      if (scene.phase === 'flux') {
+        const lP = el('text', { x: 40, y: 270, fill: '#555' }); lP.textContent = 'Φ = 0.20 × 0.010 = 2.0×10⁻³ Wb'; svg.appendChild(lP);
+      }
+      if (scene.phase === 'emf' || scene.phase === 'lenz') {
+        // 誘導電流：外の磁場（裏向き）が増えるので、表向きの磁場をつくる向き＝反時計回り。
+        svg.appendChild(el('path', { d: 'M 280 150 A 80 80 0 1 0 200 230', fill: 'none', stroke: '#d35400', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+        const lI = el('text', { x: 40, y: 270, fill: '#d35400' }); lI.textContent = '誘導電流 I=0.20 A'; svg.appendChild(lI);
+      }
+      if (scene.phase === 'lenz') {
+        // 誘導電流のつくる磁場は表向き（・印）。
+        for (const [cx, cy] of [[180, 140], [220, 140], [180, 160], [220, 160]]) {
+          svg.appendChild(el('circle', { cx, cy, r: 3, fill: '#d35400' }));
+        }
+        // ラベルは短くして、右端ではみ出さないようにする（「表向き」は本文で説明する）。
+        const lD = el('text', { x: 250, y: 260, fill: '#d35400' }); lD.textContent = '誘導電流の磁場'; svg.appendChild(lD);
+      }
+    }
   }
   // 中心の黒点は、力の作用点がある型だけに描く。young・capacitor には作用点がないので描かない。
   if (scene.centerDot !== false) svg.appendChild(el('circle', { cx: scene.center.x, cy: scene.center.y, r: 4, fill: '#333' }));
@@ -3528,4 +3775,4 @@ function renderAllFigures() {
   });
 }
 
-if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, sceneFor, validateScene, renderFigure };
+if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, sceneFor, validateScene, renderFigure };

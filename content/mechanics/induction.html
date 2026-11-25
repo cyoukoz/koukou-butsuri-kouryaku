@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第32問：電磁誘導・ファラデーの法則・レンツの法則 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>第32問：電磁誘導・ファラデーの法則・レンツの法則</h1>
+<p><strong>問題：</strong>面積 0.010 m²、巻き数 100 回のコイルを、磁場の中に置く。はじめ磁場は 0 で、0.10 s かけて 0.20 T まで一様に増えた。コイルの抵抗は 10 Ω とする。(1) 磁場が 0.20 T になったときのコイルを貫く磁束を求めよ。(2) 誘導起電力と誘導電流を求めよ。(3) 誘導電流の向きを、レンツの法則から答えよ。(4) 磁場が 0.50 T で一定のままなら、起電力はどうなるか。磁場が 0.10 s の半分の 0.050 s で 0.20 T まで増えたら、起電力はどうなるか。(5) コイルを磁場に対して 60° 傾けたら、磁束はどうなるか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js）が下の JSON データから計算して描いている。磁束と誘導起電力は、巻き数・面積・磁場・時間のデータから計算している。誘導電流の円矢印は向きだけを表すものだ。</p>
+<script type="application/json" id="scene-ind-base">{"type":"induction","phase":"base","turnsN":100,"areaM2":0.010,"b0T":0,"b1T":0.20,"dtS":0.10,"resistanceOhm":10,"tiltDeg":60}</script>
+<script type="application/json" id="scene-ind-flux">{"type":"induction","phase":"flux","turnsN":100,"areaM2":0.010,"b0T":0,"b1T":0.20,"dtS":0.10,"resistanceOhm":10,"tiltDeg":60}</script>
+<script type="application/json" id="scene-ind-emf">{"type":"induction","phase":"emf","turnsN":100,"areaM2":0.010,"b0T":0,"b1T":0.20,"dtS":0.10,"resistanceOhm":10,"tiltDeg":60}</script>
+<script type="application/json" id="scene-ind-lenz">{"type":"induction","phase":"lenz","turnsN":100,"areaM2":0.010,"b0T":0,"b1T":0.20,"dtS":0.10,"resistanceOhm":10,"tiltDeg":60}</script>
+<script type="application/json" id="scene-ind-summary">{"type":"induction","phase":"summary","turnsN":100,"areaM2":0.010,"b0T":0,"b1T":0.20,"dtS":0.10,"resistanceOhm":10,"tiltDeg":60}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：磁束が変わると、起電力が生まれる</h2>
+  <p>コイルを貫く磁束 Φ は、磁場の強さ B とコイルの面積 S の積で、Φ = BS と表される。磁束の単位はウェーバ（Wb）だ。磁束が時間で変わると、コイルに起電力が生まれる。これが電磁誘導で、起電力の大きさはファラデーの法則 V = N × ΔΦ / Δt で決まる。N は巻き数、ΔΦ は磁束の変化、Δt は変化にかかった時間だ。</p>
+  <p>大事なのは、磁場が強いことではなく、磁束が「変わる」ことだ。磁場が大きくても、変わらなければ起電力は生まれない。ここがこの問題の罠だ。</p>
+  <svg class="fig" data-scene="scene-ind-base" data-show="" width="100%" role="img" aria-label="コイルを貫く磁場の図"></svg>
+  <p>図は、コイルを正面から見たものだ。× 印は、紙面の裏向きの磁場を表している。磁場が増えていくと、コイルを貫く磁束が増える。ここから、磁束を求めていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①磁束</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 磁束：Φ = BS = 2.0×10⁻³ Wb</h2>
+  <svg class="fig" data-scene="scene-ind-flux" data-show="" width="100%" role="img" aria-label="磁束の図"></svg>
+  <p>磁場 B = 0.20 T、面積 S = 0.010 m² だから、磁束は Φ = 0.20 × 0.010 = <strong>2.0×10⁻³ Wb</strong> だ。</p>
+  <p>はじめ磁場は 0 だったので、磁束の変化は ΔΦ = 2.0×10⁻³ − 0 = 2.0×10⁻³ Wb だ。磁束は、磁場の強さと面積の両方で決まる。面積が 2 倍なら、磁束も 2 倍になる。</p>
+  <label><input type="checkbox" class="check"> 磁束が 2.0×10⁻³ Wb と分かった</label>
+  <br><a class="next" href="#step2">次へ ↓ ②誘導起電力と誘導電流</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 誘導起電力：V = 2.0 V、誘導電流 I = 0.20 A</h2>
+  <svg class="fig" data-scene="scene-ind-emf" data-show="" width="100%" role="img" aria-label="誘導電流の向きの図"></svg>
+  <p>ファラデーの法則 V = N × ΔΦ / Δt に、N = 100、ΔΦ = 2.0×10⁻³ Wb、Δt = 0.10 s を入れると、V = 100 × 2.0×10⁻³ / 0.10 = <strong>2.0 V</strong> だ。</p>
+  <p>コイルの抵抗は 10 Ω だから、誘導電流はオームの法則から I = V / R = 2.0 / 10 = <strong>0.20 A</strong> だ。巻き数が 100 回あるから、1 回分の 100 倍の起電力になる。巻き数が多ければ、起電力も大きくなる。</p>
+  <label><input type="checkbox" class="check"> 起電力 2.0 V、誘導電流 0.20 A と分かった</label>
+  <br><a class="next" href="#step3">次へ ↓ ③レンツの法則</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ レンツの法則：誘導電流は、変化を妨げる向きに流れる</h2>
+  <svg class="fig" data-scene="scene-ind-lenz" data-show="" width="100%" role="img" aria-label="レンツの法則の図"></svg>
+  <p>外の磁場（紙面の裏向き）が増えている。誘導電流は、この変化を妨げる向き、つまり外の磁場とは逆向き（紙面の表向き）の磁場をつくる向きに流れる。これがレンツの法則だ。</p>
+  <p>表向きの磁場をつくるには、コイルの電流は反時計回りに流れる。右ねじの法則で確かめられる。図のオレンジ色の円矢印が、誘導電流の向きだ。・印は、誘導電流のつくる表向きの磁場を表している。</p>
+  <p>もし外の磁場が減っていたら、誘導電流は逆向きに流れて、外の磁場と同じ向きの磁場をつくる。誘導電流はいつも、「変化を打ち消そうとする」向きに流れる。</p>
+  <label><input type="checkbox" class="check"> 誘導電流は反時計回りで、表向きの磁場をつくると分かった</label>
+  <br><a class="next" href="#step4">次へ ↓ ④罠：変わらなければ起電力は 0</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 罠：B が大きくても、変わらなければ起電力は 0。速く変えれば起電力は大きい</h2>
+  <svg class="fig" data-scene="scene-ind-summary" data-show="" width="100%" role="img" aria-label="磁場と起電力の時間変化のグラフ"></svg>
+  <p>磁場が 0.50 T で一定のままなら、磁束は変わらない。ΔΦ = 0 だから、起電力は <strong>0 V</strong> だ。磁場が強くても、変わらなければ電流は流れない。起電力を決めるのは、磁場の大きさではなく、磁束の「変化の速さ」だ。</p>
+  <p>逆に、磁場が 0.050 s（半分の時間）で 0.20 T まで増えたら、ΔΦ / Δt は 2 倍になるので、起電力は V = 100 × 2.0×10⁻³ / 0.050 = <strong>4.0 V</strong> になる。グラフの通り、起電力が生まれるのは、B が変わっているあいだだけだ。</p>
+  <label><input type="checkbox" class="check"> 変わらなければ V=0、速く変えれば V が大きくなると分かった</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ：V = NΔΦ/Δt、Φ = BS cosθ。傾けると磁束は減る</h2>
+  <svg class="fig" data-scene="scene-ind-base" data-show="" width="100%" role="img" aria-label="コイルを貫く磁場のまとめの図"></svg>
+  <p>コイルを磁場に対して 60° 傾けると、磁束は Φ = BS cosθ になる。cos60° = 0.5 だから、Φ = 0.20 × 0.010 × 0.5 = <strong>1.0×10⁻³ Wb</strong> で、傾けないときの半分になる。磁束は、コイルの面に垂直な磁場の成分だけで決まる。</p>
+  <p>まとめ：磁束 Φ = BS（傾いていれば BS cosθ）、誘導起電力 V = NΔΦ/Δt、誘導電流の向きはレンツの法則（変化を妨げる向き）。起電力は、磁束の変化の速さで決まる。</p>
+  <label><input type="checkbox" class="check"> V = NΔΦ/Δt と、傾けたときの磁束が分かった</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) Φ = 2.0×10⁻³ Wb。(2) V = 2.0 V、I = 0.20 A。(3) 反時計回り（表向きの磁場をつくる向き）。(4) B 一定なら V = 0、Δt が半分なら V = 4.0 V。(5) Φ = 1.0×10⁻³ Wb。誘導起電力を使った棒の運動は <a href="rail-rod.html">第17問：レール上の棒</a>、磁場をつくるコイルは <a href="solenoid.html">第29問：ソレノイド・コイルの磁場</a> でも確かめられる。</p>
+  <p>次は準備中です。<a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.inductionDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
