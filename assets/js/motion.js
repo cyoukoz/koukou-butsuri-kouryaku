@@ -1,4 +1,4 @@
-// 高校物理攻略 — 動きのシミュレータ（試作 v0.1：投げ上げ・斜方投射）
+// 高校物理攻略 — 動きのシミュレータ（試作 v0.3：単振動 追加）
 // 教科書では見られない、Web の優位性は「動き」そのもの。
 // このファイルは物理の計算だけをする。描画は projectile.html 側。
 // ループ再生：ボールが画面外に出るか、地面に戻ったら、最初から始める。
@@ -66,4 +66,24 @@ function freeFallTable(h0, dt) {
   return out;
 }
 
-if (typeof module !== 'undefined') module.exports = { G, projectileAt, maxHeight, range, flightTime, trajectoryTable, freeFallAt, fallTime, impactSpeed, verticalThrowAt, verticalThrowTable, freeFallTable };
+// --- 単振動（v0.3）---
+// ばねの単振動：x = A cos ωt、v = −Aω sin ωt。t=0 で最大の変位、速さ 0。
+function shmAt(omega, amplitudeM, t) {
+  return { x: amplitudeM * Math.cos(omega * t), v: -amplitudeM * omega * Math.sin(omega * t), t };
+}
+function shmPeriod(omega) { return (2 * Math.PI) / omega; }
+function shmTable(omega, amplitudeM, dt) {
+  const out = [];
+  const T = shmPeriod(omega);
+  for (let t = 0; t <= T + 1e-9; t += dt) out.push(shmAt(omega, amplitudeM, t));
+  return out;
+}
+// 単振り子（小さい振れ角）：θ = θ0 cos ωt、ω = √(g/L)。
+function pendulumAt(lengthM, theta0Rad, t, g) {
+  const gg = g || G;
+  const omega = Math.sqrt(gg / lengthM);
+  return { theta: theta0Rad * Math.cos(omega * t), omegaAngular: -theta0Rad * omega * Math.sin(omega * t), omega, t };
+}
+function pendulumPeriod(lengthM, g) { return 2 * Math.PI * Math.sqrt(lengthM / (g || G)); }
+
+if (typeof module !== 'undefined') module.exports = { G, projectileAt, maxHeight, range, flightTime, trajectoryTable, freeFallAt, fallTime, impactSpeed, verticalThrowAt, verticalThrowTable, freeFallTable, shmAt, shmPeriod, shmTable, pendulumAt, pendulumPeriod };
