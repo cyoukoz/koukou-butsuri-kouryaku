@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題AA：斜面上のばね振り子＋摩擦 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題AA：斜面上のばね振り子＋摩擦</h1>
+<p><strong>問題：</strong>傾き θ = 37°（sinθ = 0.60、cosθ = 0.80）の斜面の上に、ばね定数 k = 100 N/m のばねが斜面に沿って固定されている。ばねの下端に質量 m = 1.0 kg の小物体をつけた。斜面と小物体のあいだの動摩擦係数は μ = 0.25 で、最大静止摩擦力も同じ大きさとする。重力加速度は g = 10 m/s² とする。小物体をつり合い位置の中心から斜面に沿って 0.20 m 伸ばして静かに放す。(1) つり合い位置を求めよ。(2) 振幅がどのように減っていくかを求めよ。(3) 小物体が止まるまでの時間と、発生する熱を求めよ。(4) 粘性抵抗の場合とどうちがうか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v2.7、slopeSpringFric 型）が下の JSON データから計算して描く。力の矢印は 3 px/N（重力 10 N は 30 px、ばねの力 6.0 N は 18 px）で決める。振幅のグラフは、横軸が時間、縦軸がつり合い位置の中心からの変位だ。</p>
+<script type="application/json" id="scene-slope-spring-fric-base">{"type":"slopeSpringFric","thetaDeg":37,"sinTheta":0.6,"cosTheta":0.8,"mKg":1,"kNperM":100,"mu":0.25,"g":10,"amp0M":0.2,"phase":"base"}</script>
+<script type="application/json" id="scene-slope-spring-fric-forces">{"type":"slopeSpringFric","thetaDeg":37,"sinTheta":0.6,"cosTheta":0.8,"mKg":1,"kNperM":100,"mu":0.25,"g":10,"amp0M":0.2,"phase":"forces"}</script>
+<script type="application/json" id="scene-slope-spring-fric-decay">{"type":"slopeSpringFric","thetaDeg":37,"sinTheta":0.6,"cosTheta":0.8,"mKg":1,"kNperM":100,"mu":0.25,"g":10,"amp0M":0.2,"phase":"decay"}</script>
+<script type="application/json" id="scene-slope-spring-fric-energy">{"type":"slopeSpringFric","thetaDeg":37,"sinTheta":0.6,"cosTheta":0.8,"mKg":1,"kNperM":100,"mu":0.25,"g":10,"amp0M":0.2,"phase":"energy"}</script>
+<script type="application/json" id="scene-slope-spring-fric-turns">{"type":"slopeSpringFric","thetaDeg":37,"sinTheta":0.6,"cosTheta":0.8,"mKg":1,"kNperM":100,"mu":0.25,"g":10,"amp0M":0.2,"phase":"turns"}</script>
+<script type="application/json" id="scene-slope-spring-fric-trap">{"type":"slopeSpringFric","thetaDeg":37,"sinTheta":0.6,"cosTheta":0.8,"mKg":1,"kNperM":100,"mu":0.25,"g":10,"amp0M":0.2,"phase":"trap"}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。つり合いを求める場面と、振動する場面と、止まる場面では、使う考え方がちがう。3つをつなぐのは、つり合い位置と振幅とエネルギーだ。</p>
+  <table>
+    <tr><th>時間</th><th>系（何を見るか）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>はじめ（静止）</td><td>小物体（斜面上）</td><td>—</td><td>つり合い位置は幅がある（はじめに）</td></tr>
+    <tr><td>放して振動する</td><td>小物体＋ばね</td><td><strong>つり合い位置の中心 0.060 m</strong></td><td>力のつり合いで中心を求める（ステップ①）</td></tr>
+    <tr><td>振幅が減る</td><td>小物体＋ばね</td><td><strong>振幅 0.20 m → 0 m</strong></td><td>半周期ごとに 0.040 m ずつ減る（ステップ②）</td></tr>
+    <tr><td>エネルギーと熱</td><td>小物体＋ばね＋熱</td><td><strong>エネルギー 2.0 J、熱 2.0 J</strong></td><td>動いた距離 1.00 m × 摩擦力 2.0 N（ステップ③）</td></tr>
+    <tr><td>止まるまで</td><td>小物体＋ばね</td><td><strong>5半周期、1.57 s</strong></td><td>有限の時間で止まる（ステップ④⑤）</td></tr>
+  </table>
+  <p>重力 mg = 10 N のうち、斜面に沿った成分は mg sinθ = 10 × 0.60 = <strong>6.0 N</strong>、斜面に垂直な成分は mg cosθ = 10 × 0.80 = <strong>8.0 N</strong> だ。垂直抗力は 8.0 N で、摩擦力の最大値は μN = 0.25 × 8.0 = <strong>2.0 N</strong> になる。この 2.0 N が、振幅を減らしていく。</p>
+  <svg class="fig" data-scene="scene-slope-spring-fric-base" data-show="" width="100%" role="img" aria-label="斜面上のばね振り子。玉はつり合い位置に止まっている。ばねの力 6.0 N が重力の斜面成分 6.0 N とつり合う"></svg>
+  <p>つり合い位置は、ばねの力が重力の斜面成分 6.0 N と等しくなるところで、自然長からの伸びは x0 = 6.0 / 100 = <strong>0.060 m</strong> だ。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①つり合い位置：幅がある</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① つり合い位置：幅がある</h2>
+  <svg class="fig" data-scene="scene-slope-spring-fric-forces" data-show="gravity,normal,spring,decompSin,decompCos" width="100%" role="img" aria-label="つり合い位置での力。重力 10 N を分解すると斜面成分 6.0 N と垂直成分 8.0 N になり、ばねの力 6.0 N と垂直抗力 8.0 N がそれぞれつり合う"></svg>
+  <p>つり合い位置は、1 点ではない。摩擦力は 0 から最大値 2.0 N まで、向きも含めて調節できる。だからばねの力が mg sinθ − F = 6.0 − 2.0 = <strong>4.0 N</strong> から mg sinθ + F = 6.0 + 2.0 = <strong>8.0 N</strong> のあいだなら、どこでも静止できる。自然長からの伸びに直すと、x = 4.0 / 100 = 0.040 m から x = 8.0 / 100 = 0.080 m までの <strong>0.040〜0.080 m の幅</strong>だ。</p>
+  <p>この幅の中心は x0 = 6.0 / 100 = <strong>0.060 m</strong> で、ここではばねの力 6.0 N が重力の斜面成分 6.0 N とちょうどつり合うので、摩擦力は 0 だ。図の玉は、この中心に置いてある。重力 10 N を分解すると、斜面成分 6.0 N と、斜面にめり込む成分 8.0 N になる。2 本の和が重力になることを、矢印の長さで確かめよう。</p>
+  <p>つり合い位置を自然長とまちがえないこと。自然長ではばねの力は 0 だが、重力の斜面成分 6.0 N が残るので、玉は自然長では止まれない。止まれるのは、ばねが 0.040〜0.080 m 伸びたところだけだ。</p>
+  <label><input type="checkbox" class="check"> つり合い位置が 0.040〜0.080 m の幅であること、中心 0.060 m では摩擦力が 0 であることを求めた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②振幅は等差数列で減る</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 振幅は等差数列で減る</h2>
+  <svg class="fig" data-scene="scene-slope-spring-fric-decay" data-show="" width="100%" role="img" aria-label="振幅の時間変化。はじめ 0.20 m の振幅が、半周期ごとに 0.040 m ずつ直線で減り、5半周期で 0 になる"></svg>
+  <p>玉が動いているあいだ、摩擦力はつねに動きと逆向きに 2.0 N ではたらく。玉が上向きに動くとき、摩擦力は下向きで、ばねの力と重力の斜面成分のつり合いは x = (6.0 + 2.0) / 100 = <strong>0.080 m</strong> にずれる。玉が下向きに動くときは、摩擦力は上向きで、つり合いは x = (6.0 − 2.0) / 100 = <strong>0.040 m</strong> にずれる。動く向きが変わるたびに、振動の中心が 0.040 m ずれる。</p>
+  <p>そのため、振幅（中心 0.060 m から測る）は、半周期ごとに 2F/k = 2 × 2.0 / 100 = <strong>0.040 m</strong> ずつ減る。0.20 → 0.16 → 0.12 → 0.08 → 0.04 → 0 m と、等差数列で減っていく。等比数列ではない。1 周期では 0.080 m ずつ減る。</p>
+  <p>周期は、摩擦がなくても同じだ。ω = √(k/m) = √(100/1.0) = <strong>10 rad/s</strong>、T = 2π/ω ≈ <strong>0.63 s</strong>、半周期は T/2 ≈ <strong>0.31 s</strong> になる。摩擦力は一定なので、振動の速さは変わらない。変わるのは振幅だけだ。</p>
+  <label><input type="checkbox" class="check"> 振幅が半周期ごとに 0.040 m ずつ、等差数列で減ることを求めた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③エネルギーと熱</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ エネルギーと熱</h2>
+  <svg class="fig" data-scene="scene-slope-spring-fric-energy" data-show="" width="100%" role="img" aria-label="エネルギーの棒グラフ。はじめ 2.00 J、1半周期後 1.28 J、3半周期後 0.32 J、止まったとき 0 J"></svg>
+  <p>はじめのエネルギーは、つり合い位置の中心から測って (1/2)kA² = (1/2) × 100 × 0.20² = <strong>2.00 J</strong> だ。玉が止まればエネルギーは 0 になる。なくなった 2.00 J は、全部熱になる。摩擦力がする仕事が、熱に変わるからだ。</p>
+  <p>動いた距離を確かめよう。各半周期の移動距離は、隣り合う振幅の和だ。0.20 + 0.16 = 0.36 m、0.16 + 0.12 = 0.28 m、0.12 + 0.08 = 0.20 m、0.08 + 0.04 = 0.12 m、0.04 + 0 = 0.04 m。合計は <strong>1.00 m</strong> になる。摩擦力 2.0 N × 1.00 m = <strong>2.0 J</strong> で、はじめのエネルギー 2.00 J とぴったり一致する。</p>
+  <p>はじめに中心を通るときの速さも、エネルギーで求められる。(1/2)mv² = 2.00 − 2.0 × 0.20 = 1.6 J から、v² = 3.2、v ≈ <strong>1.8 m/s</strong> になる。摩擦がなければ v = √(2 × 2.00 / 1.0) = 2.0 m/s だった。摩擦で 0.40 J だけ減っている。</p>
+  <label><input type="checkbox" class="check"> はじめのエネルギー 2.00 J が、動いた距離 1.00 m × 摩擦力 2.0 N = 2.0 J の熱になることを確かめた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④止まるまで</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 止まるまで</h2>
+  <svg class="fig" data-scene="scene-slope-spring-fric-turns" data-show="" width="100%" role="img" aria-label="折り返し点の振幅と時間。0.20 m から 0.16、0.12、0.08、0.04 m と減り、1.57 s で 0 になって止まる"></svg>
+  <p>振幅は 5 半周期でちょうど 0 になる。0.20 → 0.16 → 0.12 → 0.08 → 0.04 → 0 m。止まるまでの時間は、5 × T/2 = 5 × 0.31 s ≈ <strong>1.57 s</strong> だ。有限の時間で、きっぱり止まる。</p>
+  <p>止まる場所は、つり合い位置の中心そのものだ。振幅が 0 になれば、玉は中心にいて、ばねの力 6.0 N と重力の斜面成分 6.0 N がつり合う。摩擦力がなくても止まれる場所だ。だから止まったあとは、もう動かない。</p>
+  <p>もし初めの振幅が 0.040 m の倍数でなければ、どうなるか。たとえば 0.18 m から放すと、0.18 → 0.14 → 0.10 → 0.06 → 0.02 m と減り、0.02 m のところで止まる。0.02 m の点では、ばねの力と重力の斜面成分の差がちょうど 2.0 N で、最大静止摩擦力と等しい。中心でなくても、つり合いの幅の端なら止まれる。</p>
+  <label><input type="checkbox" class="check"> 5半周期、1.57 s で止まること、止まる場所がつり合い位置の中心であることを求めた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤罠：クーロン摩擦と粘性抵抗</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ 罠：クーロン摩擦と粘性抵抗</h2>
+  <svg class="fig" data-scene="scene-slope-spring-fric-trap" data-show="" width="100%" role="img" aria-label="振幅の減り方の比べ。クーロン摩擦では直線で減って 5半周期で 0 になるが、粘性抵抗では指数で減り、0 にはならない"></svg>
+  <p>罠は、摩擦を「速さに比例する抵抗」と思い込むことだ。空気抵抗のような粘性抵抗では、振幅は指数関数で減る。0.20 → 0.12 → 0.073 → 0.045 → … と、等比数列で減っていく。いつまでたっても 0 にはならず、玉は永遠に小さく振動し続ける。止まることはない。</p>
+  <p>クーロン摩擦（乾いた面どうしの摩擦）では、摩擦力は速さによらずつねに 2.0 N だ。だから振幅は直線で減り、有限の回数で 0 になる。図の青い線がクーロン摩擦、赤い破線が粘性抵抗だ。はじめのうちは粘性抵抗のほうが速く減るように見えるが、クーロン摩擦だけが 5 半周期で 0 に届く。</p>
+  <p>もう一つの罠は、つり合い位置を 1 点だと思うことだ。摩擦があるばね振り子では、つり合い位置は 0.040〜0.080 m の幅がある。振幅が 0 になったからといって、玉がかならず中心に止まるとは限らない。幅の端でも止まれる。振幅の減り方が直線か指数か、つり合い位置が点か幅か。この 2 つが、クーロン摩擦と粘性抵抗の見分け方だ。</p>
+  <label><input type="checkbox" class="check"> クーロン摩擦では振幅は直線で減って有限回で止まること、粘性抵抗では指数で減って止まらないこと、つり合い位置に幅があることを確かめた</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と系を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) つり合い位置は 0.040〜0.080 m の幅、中心 0.060 m（中心では摩擦力は 0）。(2) 振幅は半周期ごとに 0.040 m ずつ、等差数列で減る：0.20 → 0.16 → 0.12 → 0.08 → 0.04 → 0 m。T ≈ 0.63 s、T/2 ≈ 0.31 s。(3) 5半周期、約 1.57 s で止まる。動いた距離 1.00 m、熱 2.0 N × 1.00 m = 2.0 J。はじめのエネルギー 2.00 J がそっくり熱になる。(4) 粘性抵抗なら振幅は指数で減り、いつまでも止まらない。もとになった単体モデル：斜面は <a href="slope.html">第1問：斜面上の物体</a>、ばねは <a href="spring.html">第5問：ばねのつり合い</a>、単振動は <a href="shm.html">第11問：単振動・振り子</a>、斜面とエネルギーの組み合わせは <a href="slope-energy.html">組み合わせ問題K：斜面＋摩擦＋エネルギー</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboSlopeSpringFricDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
