@@ -200,6 +200,28 @@
   <p id="progress-bohr">進捗：読み込み中…</p>
 </div>
 
+
+<div class="card">
+  <h2>第22問：分子運動論</h2>
+  <p>気体の圧力は、分子が壁にぶつかる力だ。1個の分子の力は約 4.14×10⁻²⁰ N だが、2.41×10²² 個で約 997 N になり、圧力は約 1.0×10⁵ Pa になる。温度を 2 倍にすると速さは √2 倍、圧力は 2 倍。体積を半分にしても圧力は 2 倍になる。</p>
+  <p><a href="content/mechanics/kinetic-theory.html">分子運動論のドリルを開く →</a></p>
+  <p id="progress-kinetic-theory">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>第23問：進行波・位相</h2>
+  <p>波の式 y = A sin 2π(t/T − x/λ) は、t を固定すれば波形、x を固定すれば振動になる。x = 0.50 m の点は x = 0 の点より位相が π/2、時間で 0.125 s 遅れる。波は 4.0 m/s で進み、0.125 s で 0.50 m 右へ進む。</p>
+  <p><a href="content/mechanics/travelling-wave.html">進行波・位相のドリルを開く →</a></p>
+  <p id="progress-travelling-wave">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>第24問：クーロンの法則・電場</h2>
+  <p>点電荷の電場は E = kQ/r² で、0.10 m で 1.8×10⁶ N/C、0.20 m で 4.5×10⁵ N/C になる。試験電荷を 2 倍にしても電場は変わらず、電気力だけが 2 倍になる。双極子の中点では電場は 1.6×10⁶ N/C、電位は 0 V だ。</p>
+  <p><a href="content/mechanics/coulomb-field.html">クーロンの法則・電場のドリルを開く →</a></p>
+  <p id="progress-coulomb-field">進捗：読み込み中…</p>
+</div>
+
 <div class="card">
   <h2>動きを見る：自由落下・鉛直投げ上げ</h2>
   <p>落とすだけ、投げ上げるだけ。でも速度は1秒ごとに 9.8 m/s ずつ変わる。その動きそのものをループ再生で確かめる。落とす高さ・初速度・再生速度を変えられる。</p>
@@ -274,6 +296,12 @@
       p.refractionLensDone ? '進捗：第20問・屈折・レンズを完了済み ✓' : '進捗：まだ第20問・屈折・レンズは未完了';
     document.getElementById('progress-bohr').textContent =
       p.bohrDone ? '進捗：第21問・ボーア模型・ド・ブロイ波長を完了済み ✓' : '進捗：まだ第21問・ボーア模型・ド・ブロイ波長は未完了';
+    document.getElementById('progress-kinetic-theory').textContent =
+      p.kineticTheoryDone ? '進捗：第22問・分子運動論を完了済み ✓' : '進捗：まだ第22問・分子運動論は未完了';
+    document.getElementById('progress-travelling-wave').textContent =
+      p.travellingWaveDone ? '進捗：第23問・進行波・位相を完了済み ✓' : '進捗：まだ第23問・進行波・位相は未完了';
+    document.getElementById('progress-coulomb-field').textContent =
+      p.coulombFieldDone ? '進捗：第24問・クーロンの法則・電場を完了済み ✓' : '進捗：まだ第24問・クーロンの法則・電場は未完了';
   }).catch(() => {
     document.getElementById('progress-slope').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-ladder').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
@@ -300,6 +328,9 @@
     document.getElementById('progress-dc-circuit').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-refraction-lens').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-bohr').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-kinetic-theory').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-travelling-wave').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-coulomb-field').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
   });
   document.getElementById('export').onclick = () => exportAll()
     .then(() => { document.getElementById('data-msg').textContent = '出力しました。'; })
