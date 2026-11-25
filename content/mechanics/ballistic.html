@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題E：弾道振り子（衝突＋振り子） — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題E：弾道振り子（衝突＋振り子・エネルギー）</h1>
+<p><strong>問題：</strong>糸の長さ L = 1.0 m で天井からつるされた質量 M = 1.99 kg のおもりに、質量 m = 0.010 kg の弾丸が水平に v0 = 400 m/s で撃ち込まれた。弾丸はおもりにめり込んで一緒に動き、おもりは振り上がった。g = 10 m/s² とする。(1) 衝突直後の速さ v′ を求めよ。(2) おもりが振り上がる最大の高さ h を求めよ。(3) 最大の振れ角 θ と、そのときの糸の張力を求めよ。最下点の張力も求めよ。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v1.6、ballistic 型）が下の JSON データから計算して描く。力の矢印は 2 px/N（重力 20 N は 40、張力 28 N は 56）。衝突直後の速さの矢印は 30 px/(m/s)（v′ = 2.0 m/s は 60）。弾丸の速度矢印だけは方向だけの固定長 60 px だ。v0 = 400 m/s は v′ の 200 倍で、同じ縮尺では描けないためだ。</p>
+<script type="application/json" id="scene-ballistic-before">{"type":"ballistic","phase":"before","mBulletKg":0.01,"v0Ms":400,"bobMassKg":1.99,"lengthM":1,"g":10}</script>
+<script type="application/json" id="scene-ballistic-impact">{"type":"ballistic","phase":"impact","mBulletKg":0.01,"v0Ms":400,"bobMassKg":1.99,"lengthM":1,"g":10}</script>
+<script type="application/json" id="scene-ballistic-max">{"type":"ballistic","phase":"max","mBulletKg":0.01,"v0Ms":400,"bobMassKg":1.99,"lengthM":1,"g":10}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。弾丸がめり込む前と後では、使える保存則が変わる。2つの場面をつなぐのは、衝突直後の速さだ。</p>
+  <table>
+    <tr><th>時間</th><th>系（どの物体か）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>衝突前</td><td>弾丸だけ（おもりは静止）</td><td>—</td><td>弾丸の運動量 p = 4.0 kg·m/s、運動エネルギー 800 J（ステップ①）</td></tr>
+    <tr><td>衝突の瞬間</td><td>弾丸＋おもり（めり込む）</td><td><strong>速さ v′ = 2.0 m/s</strong></td><td>運動量保存だけで v′ を求める。エネルギーは保存されない（ステップ②）</td></tr>
+    <tr><td>衝突後（振り上がり）</td><td>弾丸＋おもり（合計 2.00 kg）</td><td>v′ = 2.0 m/s を初速度として使う</td><td>エネルギー保存で最大の高さ h = 0.20 m、角度 θ ≈ 36.9°、張力を求める（ステップ③④）</td></tr>
+  </table>
+  <p>保存則を境界をまたいで使わないこと。衝突の瞬間、運動エネルギーは 800 J から 4.0 J へ減る。衝突の前後でエネルギー保存を使ってはいけない。</p>
+  <svg class="fig" data-scene="scene-ballistic-before" data-show="" width="100%" role="img" aria-label="糸でつるされたおもりと、左から飛んでくる弾丸"></svg>
+  <p>力を描く前の図はこれだけ。左の弾丸が、右のおもりに向かって飛んでくる。ここから下へ、1本ずつ足していく。</p>
+  <a class="next" href="#step1">次へ ↓ ①衝突前の運動量とエネルギー</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 衝突前の運動量とエネルギー</h2>
+  <svg class="fig" data-scene="scene-ballistic-before" data-show="velocity0" width="100%" role="img" aria-label="弾丸の速度の向きを描いた図"></svg>
+  <p class="note">弾丸の速度矢印は方向だけの固定長だ（v0 = 400 m/s は v′ の 200 倍で、同じ縮尺では描けない）。おもりは静止しているので、速さは 0 だ。</p>
+  <p>弾丸の運動量は p = mv0 = 0.010 × 400 = <strong>4.0 kg·m/s</strong>。運動エネルギーは (1/2)mv0² = (1/2) × 0.010 × 400² = <strong>800 J</strong>。おもりは静止しているので、運動量も運動エネルギーも 0 だ。系全体の運動量は 4.0 kg·m/s、運動エネルギーは 800 J になる。</p>
+  <label><input type="checkbox" class="check"> 弾丸の運動量 p = 4.0 kg·m/s、運動エネルギー 800 J を求めた。おもりは静止しているので 0 だ</label>
+  <br><a class="next" href="#step2">次へ ↓ ②衝突の瞬間（運動量保存だけ）</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 衝突の瞬間（運動量保存だけ）</h2>
+  <svg class="fig" data-scene="scene-ballistic-impact" data-show="velocityAfter,gravity,tension" width="100%" role="img" aria-label="衝突直後のおもりの速さ・重力・張力を描いた図"></svg>
+  <p>弾丸がおもりにめり込む完全非弾性衝突では、<strong>運動量だけが保存される</strong>。衝突の前後で、弾丸＋おもりの運動量は変わらない。衝突直後の速さを v′ とすると、(m + M)v′ = mv0 だから、v′ = 4.0 / 2.00 = <strong>2.0 m/s</strong>。弾丸の速さ 400 m/s から見ると、200 分の 1 になってしまった。</p>
+  <p>運動エネルギーはどうなったか。衝突直後は (1/2)(m + M)v′² = (1/2) × 2.00 × 2.0² = <strong>4.0 J</strong>。衝突前の 800 J から <strong>796 J も失われた</strong>。失われたエネルギーは、弾丸がおもりにめり込むときの変形や熱になった。ここでエネルギー保存を使ったら、v′ = 400 m/s のままになってしまう。衝突の瞬間をまたいでエネルギー保存を使ってはいけない。</p>
+  <label><input type="checkbox" class="check"> 運動量保存から v′ = 2.0 m/s を求めた。運動エネルギーは 800 J から 4.0 J へ減り、796 J 失われることを確かめた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③振り上がり（エネルギー保存）</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 振り上がり（エネルギー保存）</h2>
+  <svg class="fig" data-scene="scene-ballistic-max" data-show="gravity" width="100%" role="img" aria-label="最大の高さまで振り上がったおもりと重力を描いた図"></svg>
+  <p class="note">張力は速さと関係するので、ここでは重力だけを描いている。張力はステップ④で描く。</p>
+  <p>衝突が終わったあとは、弾丸＋おもり（合計 2.00 kg）が速さ v′ = 2.0 m/s で振り上がる。糸の張力は運動の向きと直角なので仕事をしない。だから、<strong>振り上がりのあいだは力学的エネルギーが保存される</strong>。最下点の運動エネルギーが、最大の高さでの位置エネルギーになる。(1/2)(m + M)v′² = (m + M)gh から、h = v′² / (2g) = 2.0² / (2 × 10) = <strong>0.20 m</strong>。質量は両辺で消えるので、h は v′ だけで決まる。</p>
+  <label><input type="checkbox" class="check"> 振り上がりではエネルギー保存が使えること、h = v′²/(2g) = 0.20 m を求めた。質量は消える</label>
+  <br><a class="next" href="#step4">次へ ↓ ④最大の角度と張力</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 最大の角度と張力</h2>
+  <svg class="fig" data-scene="scene-ballistic-max" data-show="gravity,tension" width="100%" role="img" aria-label="最大の高さでのおもりの重力と張力を描いた図"></svg>
+  <p>糸の長さ L = 1.0 m で、高さが h = 0.20 m だけ上がったとき、糸と鉛直線のなす角を θ とすると、cosθ = (L − h) / L = 0.80 / 1.0 = 0.80 だから、<strong>θ ≈ 36.9°</strong> になる（3:4:5 の直角三角形の角だ）。</p>
+  <p>張力は場所で変わる。最大の高さでは速さが 0 なので、糸に沿う向きのつり合いから T = (m + M)g cosθ = 20 × 0.80 = <strong>16 N</strong>。いちばん下（衝突直後）では、張力が重力を上回って向心力になる。T − (m + M)g = (m + M)v′² / L だから、T = 20 + 2.00 × 2.0² / 1.0 = <strong>28 N</strong>。重力 20 N より 8 N だけ大きい。張力は「つねに重力と等しい」のではない。</p>
+  <p>おもりの振動の周期は T = 2π√(L/g) ≈ 1.99 s。最下点から最大の高さまでにかかる時間は、その 4 分の 1 で <strong>約 0.50 s</strong> だ。</p>
+  <label><input type="checkbox" class="check"> cosθ = 0.80 から θ ≈ 36.9° を求めた。張力は最大の高さで 16 N、最下点で 28 N になることを確かめた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ・罠の確認</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ・罠の確認</h2>
+  <svg class="fig" data-scene="scene-ballistic-impact" data-show="velocityAfter,gravity,tension" width="100%" role="img" aria-label="衝突直後のおもりの速さ・重力・張力を描いた図"></svg>
+  <p>罠を数字で確かめよう。もし衝突の瞬間をまたいでエネルギー保存を（まちがって）使ったら、どうなるか。(1/2)mv0² = (m + M)gh から h = 800 / 20 = <strong>40 m</strong> になってしまう。糸の長さは 1.0 m しかないのに、40 m も上がるはずがない。おかしいと気づけるのが、切り分けの力だ。</p>
+  <p>この問題の切り分けは3つだけだ。衝突前は弾丸の運動量とエネルギー、衝突の瞬間は運動量保存だけ、振り上がりはエネルギー保存だけ。橋渡し量は、衝突直後の速さ <strong>v′ = 2.0 m/s</strong> だった。</p>
+  <label><input type="checkbox" class="check"> エネルギー保存を衝突の瞬間をまたいで使うと h = 40 m になるおかしさを確かめた。切り分けは「衝突前／衝突の瞬間／振り上がり」の3つだ</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と系を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) v′ = 2.0 m/s。(2) h = 0.20 m。(3) θ ≈ 36.9°、最大の高さの張力は 16 N、最下点の張力は 28 N。周期は約 1.99 s、最下点から最大の高さまでは約 0.50 s。もとになった単体モデル：運動量と衝突は <a href="collision.html">第12問：運動量・衝突</a>、振り子の周期と単振動は <a href="shm.html">第11問：単振動・振り子</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboBallisticDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題F：ループ・ザ・ループ（エネルギー＋円運動） — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題F：ループ・ザ・ループ（エネルギー＋円運動）</h1>
+<p><strong>問題：</strong>質量 m = 1.0 kg の小球を、半径 R = 0.50 m の円形レールの高さ h = 2.0 m のところから静かに落とす。レールはなめらかで、玉はレールに沿って1周する。g = 10 m/s² とする。(1) 最下点の速さと、レールから受ける垂直抗力を求めよ。(2) 頂点の速さと垂直抗力を求めよ。(3) 頂点をちょうど回れる最小の高さを求めよ。(4) h = 1.0 m のとき、玉はどこでレールから離れるか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v1.6、loop 型）が下の JSON データから計算して描く。速度の矢印は 10 px/(m/s)、力の矢印は 1 px/N（最下点の垂直抗力 90 N は 90）。ループの半径 0.50 m は 60 px、高さも 120 px/m で描く。</p>
+<script type="application/json" id="scene-loop-drop">{"type":"loop","phase":"drop","mKg":1,"loopRM":0.5,"hM":2,"g":10}</script>
+<script type="application/json" id="scene-loop-bottom">{"type":"loop","phase":"bottom","mKg":1,"loopRM":0.5,"hM":2,"g":10}</script>
+<script type="application/json" id="scene-loop-top">{"type":"loop","phase":"top","mKg":1,"loopRM":0.5,"hM":2,"g":10}</script>
+<script type="application/json" id="scene-loop-top-min">{"type":"loop","phase":"top","mKg":1,"loopRM":0.5,"hM":1.25,"g":10}</script>
+<script type="application/json" id="scene-loop-fall">{"type":"loop","phase":"fall","mKg":1,"loopRM":0.5,"hM":1,"g":10}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。落下ではエネルギーだけ、頂点では円運動の条件だけを使う。場面をつなぐのは、その点での速さだ。</p>
+  <table>
+    <tr><th>時間</th><th>系（どの物体か）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>落下（出発 → 最下点）</td><td>玉だけ（レールはなめらか）</td><td>—</td><td>エネルギー保存で最下点の速さ v ≈ 6.3 m/s（ステップ①）</td></tr>
+    <tr><td>最下点</td><td>玉（重力＋垂直抗力）</td><td><strong>速さ v ≈ 6.3 m/s</strong></td><td>向心力の式で N = 90 N（ステップ①）</td></tr>
+    <tr><td>頂点</td><td>玉（重力＋垂直抗力）</td><td><strong>速さ v ≈ 4.5 m/s</strong></td><td>エネルギー保存で v を求め、向心力の式で N = 30 N（ステップ②）</td></tr>
+    <tr><td>届かない場合（h = 1.0 m）</td><td>玉（頂点まで行けない）</td><td>速さ v ≈ 1.8 m/s</td><td>N = 0 になる点でレールから離れる（ステップ④）</td></tr>
+  </table>
+  <p>レールがなめらかなら、垂直抗力は仕事をしない。だから出発から頂点まで、力学的エネルギーが保存される。ただし、レールから離れたあとは円運動の式は使えない。</p>
+  <svg class="fig" data-scene="scene-loop-drop" data-show="" width="100%" role="img" aria-label="高さ 2.0 m の台の上の玉と円形レール"></svg>
+  <p>力を描く前の図はこれだけ。左の台の上の玉が、円形レールに沿って1周する。ここから下へ、1本ずつ足していく。</p>
+  <a class="next" href="#step1">次へ ↓ ①最下点の速さと垂直抗力</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 最下点の速さと垂直抗力</h2>
+  <svg class="fig" data-scene="scene-loop-bottom" data-show="velocity,normal,gravity" width="100%" role="img" aria-label="最下点の玉の速度・垂直抗力・重力を描いた図"></svg>
+  <p>出発点では速さ 0、高さ 2.0 m。最下点では高さ 0 になる。力学的エネルギー保存から、(1/2)mv² = mgh となり、v = √(2gh) = √(2 × 10 × 2.0) = √40 ≈ <strong>6.3 m/s</strong>。質量は両辺で消えるので、最下点の速さは高さだけで決まる。</p>
+  <p>最下点では、重力と垂直抗力の合力が向心力になる。円の中心は玉の真上だから、N − mg = mv²/R。v² = 40 だから、N = 10 + 1.0 × 40 / 0.50 = <strong>90 N</strong>。重力の 9 倍だ。ジェットコースターの最下点で体が重く感じるのは、このためだ。</p>
+  <label><input type="checkbox" class="check"> エネルギー保存から最下点の速さ v ≈ 6.3 m/s、向心力の式から N = 90 N を求めた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②頂点の速さと垂直抗力</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 頂点の速さと垂直抗力</h2>
+  <svg class="fig" data-scene="scene-loop-top" data-show="velocity,normal,gravity" width="100%" role="img" aria-label="頂点の玉の速度・垂直抗力・重力を描いた図"></svg>
+  <p>頂点では高さが 2R = 1.0 m だけ上がっている。エネルギー保存から、(1/2)mv² = mg(h − 2R) となり、v² = 2 × 10 × (2.0 − 1.0) = 20 だから、v = √20 ≈ <strong>4.5 m/s</strong>。最下点より遅くなったが、まだ速い。</p>
+  <p>頂点では、重力も垂直抗力もどちらも下向き（円の中心向き）だ。だから N + mg = mv²/R。v² = 20 だから、N = 1.0 × 20 / 0.50 − 10 = <strong>30 N</strong>。重力だけでは向心力（40 N）に足りず、残りの 30 N をレールが押している。もし v がもっと遅ければ、N はもっと小さくなる。</p>
+  <label><input type="checkbox" class="check"> エネルギー保存から頂点の速さ v ≈ 4.5 m/s、N + mg = mv²/R から N = 30 N を求めた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③頂点をちょうど回れる最小の高さ</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 頂点をちょうど回れる最小の高さ</h2>
+  <svg class="fig" data-scene="scene-loop-top-min" data-show="velocity,gravity" width="100%" role="img" aria-label="最小の高さから落とした玉が頂点で重力だけで回る図"></svg>
+  <p class="note">この図では N = 0 なので、垂直抗力の矢印はない。重力だけが向心力になっている。</p>
+  <p>頂点を回れるぎりぎりの速さは、垂直抗力がちょうど 0 になるときだ。そのとき、重力だけが向心力になる。mg = mv²/R から、v² = gR。エネルギー保存と合わせると、v² = 2g(h − 2R) = gR となり、h − 2R = R/2 だから、<strong>h = 2.5R = 1.25 m</strong>。そのときの頂点の速さは v = √(gR) = √5 ≈ <strong>2.2 m/s</strong> だ。</p>
+  <p>h が 1.25 m より低いと、頂点で重力だけでは向心力が足りなくなり、玉は頂点まで届かない。N は負にはなれない（レールは押すだけで、引っ張ることはできない）。</p>
+  <label><input type="checkbox" class="check"> N = 0 の条件から h = 2.5R = 1.25 m、頂点の速さ v ≈ 2.2 m/s を求めた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④h = 1.0 m では途中で落ちる</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ h = 1.0 m では途中で落ちる</h2>
+  <svg class="fig" data-scene="scene-loop-fall" data-show="velocity,gravity" width="100%" role="img" aria-label="レールから離れる点の玉の速度と重力、離れたあとの放物線を描いた図"></svg>
+  <p>h = 1.0 m は最小の高さ 1.25 m より低い。玉は頂点まで届かず、途中でレールから離れる。離れるのは、垂直抗力がちょうど 0 になる点だ。その点では、重力の中心向きの成分だけが向心力になる。頂点からの角度を φ とすると、mv²/R = mg cosφ。エネルギー保存（v² = 2g(h − y)、y = R + R cosφ）と合わせると、cosφ = 2(h − R)/(3R) = 2 × 0.50 / 1.50 ≈ <strong>0.67</strong>、φ ≈ <strong>48°</strong> になる。</p>
+  <p>離れる点の高さは y = R + R cosφ = 0.50 + 0.50 × 0.67 ≈ <strong>0.83 m</strong>、その点の速さは v = √(2g(h − y)) = √(2 × 10 × 0.17) ≈ <strong>1.8 m/s</strong>。離れたあと、玉はレールに沿わず、斜方投射で落ちていく（図の破線）。離れたあとに円運動の式を使うと、まちがえる。</p>
+  <label><input type="checkbox" class="check"> N = 0 の点が φ ≈ 48°、高さ約 0.83 m、速さ約 1.8 m/s になることを確かめた。離れたあとは斜方投射だ</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ・罠の確認</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ・罠の確認</h2>
+  <svg class="fig" data-scene="scene-loop-bottom" data-show="velocity,normal,gravity" width="100%" role="img" aria-label="最下点の玉の速度・垂直抗力・重力を描いた図"></svg>
+  <p>この問題の罠は2つある。1つめは、「向心力」という新しい力を書き足してしまうことだ。向心力は力の名前ではなく、<strong>重力と垂直抗力の合力が果たす役目</strong>だ。力の図示に「向心力」という矢印を描いてはいけない。2つめは、レールから離れたあとに円運動の式を使い続けることだ。離れたあとは、玉はただの斜方投射になる。</p>
+  <p>切り分けはこうだ。落下から頂点まではエネルギー保存で速さを求め、各点では「合力 = mv²/R」で垂直抗力を求める。橋渡し量は、その点での速さ v だった。最小の高さ h = 2.5R と、離れる条件 N = 0 は、セットで覚えよう。</p>
+  <label><input type="checkbox" class="check"> 向心力は新しい力ではなく合力の役目だということ、離れたあとは斜方投射になることを確かめた</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と系を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 最下点 v ≈ 6.3 m/s、N = 90 N。(2) 頂点 v ≈ 4.5 m/s、N = 30 N。(3) 最小の高さ h = 1.25 m、そのときの頂点の速さは約 2.2 m/s。(4) h = 1.0 m では φ ≈ 48°、高さ約 0.83 m、速さ約 1.8 m/s の点でレールから離れる。もとになった単体モデル：円運動と向心力は <a href="circle.html">第10問：円運動</a>、エネルギー保存の使い方は <a href="collision-spring.html">組み合わせ問題B：衝突＋ばね</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboLoopDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
