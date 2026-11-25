@@ -2740,6 +2740,137 @@ function rlcChargeDerived(data) {
 
 function rlcChargeForces(data) { return []; }
 
+// ---- 光電効果＋コンデンサ＋磁場円運動（組み合わせAS）：光電効果・阻止電圧・円運動 ----
+// 具体値（検算済み）：λ=400 nm、φ=2.0 eV、hc=1240 eV·nm、C=10 nF、B=1.0 mT、光電流 1.0 μA。
+//   光子 3.10 eV、Kmax=1.10 eV、v_max≈6.2×10⁵ m/s、阻止電圧 V0=1.10 V。
+//   Q=CV0=11 nC、電子の数 N≈6.9×10¹⁰ 個、U=½CV0²≈6.1 nJ、充電時間 Q/I=11 ms。
+//   円運動：r=mv/eB≈3.5 mm、T=2πm/eB≈36 ns、f≈28 MHz、F=evB≈1.0×10⁻¹⁶ N。
+//   650 nm（1.91 eV）では電子は出ない。限界波長 620 nm。
+//   罠：明るい光で V0 も r も大きくなる、はまちがい。阻止電圧で止まるのは Kmax の電子だけ。
+// 変えたら：λ=300 nm → Kmax=2.13 eV、v≈8.7×10⁵ m/s、V0=2.13 V、Q≈21 nC、r≈4.9 mm（T は変わらない）。
+//   B=2.0 mT → r≈1.8 mm、T≈18 ns。明るい光（I=2.0 μA）→ 充電時間 5.5 ms、V0・r は変わらない。
+function photoCapCircleDerived(data) {
+  const hc = data.hcEvNm || 1240;
+  const ePhEV = hc / data.lambdaNm;
+  const kMaxEV = ePhEV - data.phiEV;
+  const eV = 1.602e-19, me = 9.11e-31;
+  const vMaxMs = Math.sqrt((2 * kMaxEV * eV) / me);
+  const v0V = kMaxEV; // 阻止電圧（V）＝ Kmax（eV）の数値。
+  const qC = data.capF * v0V;
+  const nElec = qC / data.eC;
+  const uJ = 0.5 * data.capF * v0V * v0V;
+  const tChargeS = qC / data.photoCurrentA;
+  const rM = (me * vMaxMs) / (data.eC * data.bT);
+  const periodS = (2 * Math.PI * me) / (data.eC * data.bT);
+  const freqHz = 1 / periodS;
+  const lorentzN = data.eC * vMaxMs * data.bT;
+  const thresholdNm = hc / data.phiEV;
+  const e650EV = hc / 650;
+  // 変えたら：λ=300 nm。
+  const ePh2EV = hc / 300;
+  const kMax2EV = ePh2EV - data.phiEV;
+  const v2Ms = Math.sqrt((2 * kMax2EV * eV) / me);
+  const v02V = kMax2EV;
+  const q2C = data.capF * v02V;
+  const u2J = 0.5 * data.capF * v02V * v02V;
+  const r2M = (me * v2Ms) / (data.eC * data.bT);
+  // 変えたら：B を 2 倍。明るい光（光電流 2 倍）。
+  const rB2M = rM / 2;
+  const periodB2S = periodS / 2;
+  const freqB2Hz = 1 / periodB2S;
+  const lorentzB2N = 2 * lorentzN;
+  const tChargeBrightS = qC / (2 * data.photoCurrentA);
+  return {
+    hc, ePhEV, kMaxEV, vMaxMs, v0V, qC, nElec, uJ, tChargeS,
+    rM, periodS, freqHz, lorentzN, thresholdNm, e650EV,
+    ePh2EV, kMax2EV, v2Ms, v02V, q2C, u2J, r2M,
+    rB2M, periodB2S, freqB2Hz, lorentzB2N, tChargeBrightS,
+    circleCenter: { x: 260, y: 170 }, circleR: 40,
+    electron: { x: 260, y: 130 },
+  };
+}
+
+function photoCapCircleForces(data) {
+  const phase = (data && data.phase) || 'base';
+  if (phase !== 'circle') return [];
+  return [
+    {
+      id: 'velocity', short: 'v=6.2×10⁵ m/s', color: '#d35400',
+      from: { x: 260, y: 130 }, vector: [30, 0], dashed: true,
+      labelDx: -30, labelDy: -18,
+    },
+    {
+      id: 'lorentz', short: 'F≈10⁻¹⁶ N', color: '#b00',
+      from: { x: 260, y: 130 }, vector: [0, 30],
+      labelDx: -130, labelDy: 20,
+    },
+  ];
+}
+
+// ---- 交流RLC直列回路（組み合わせAT）：実効値・インピーダンス・共振・電力 ----
+// 具体値（検算済み）：E=100 V（実効値）、f=50 Hz、R=100 Ω、L=0.32 H、C=100 μF。
+//   ω=2πf≈314 rad/s、XL=ωL≈100 Ω、XC=1/(ωC)≈32 Ω、Z=√(R²+(XL−XC)²)≈121 Ω。
+//   I=E/Z≈0.82 A、φ=arctan((XL−XC)/R)≈34°（電流が遅れる）、cosφ=R/Z≈0.82。
+//   P=EI cosφ≈68 W、S=EI≈82 VA、Q=EI sinφ≈47 var。
+//   V_R≈82 V、V_L≈83 V、V_C≈26 V（そのまま足すと 192 V、ベクトル和で 100 V）。
+//   最大値：E_max≈141 V、I_max≈1.17 A。罠：最大値で P=165 W、cosφ を忘れて P=82 W。
+// 共振：f0=1/(2π√(LC))≈28 Hz、XL0=XC0≈57 Ω、Z=R=100 Ω、I=1.0 A、P=100 W、V_L=V_C≈57 V。
+// 変えたら：f=100 Hz → XL≈201 Ω、XC≈16 Ω、Z≈210 Ω、I≈0.48 A、φ≈62°、P≈23 W。
+//   R=200 Ω → Z≈211 Ω、I≈0.47 A、φ≈19°、P≈45 W。
+function acRlcDerived(data) {
+  const E = data.emfEffV, f = data.freqHz, R = data.rOhm, L = data.indH, C = data.capF;
+  const omega = 2 * Math.PI * f;
+  const xL = omega * L;
+  const xC = 1 / (omega * C);
+  const z = Math.sqrt(R * R + (xL - xC) * (xL - xC));
+  const iEffA = E / z;
+  const phiRad = Math.atan2(xL - xC, R);
+  const cosPhi = R / z;
+  const sinPhi = (xL - xC) / z;
+  const pW = E * iEffA * cosPhi;
+  const sVA = E * iEffA;
+  const qVar = E * iEffA * sinPhi;
+  const vRA = iEffA * R, vLA = iEffA * xL, vCA = iEffA * xC;
+  const eMaxV = E * Math.sqrt(2), iMaxA = iEffA * Math.sqrt(2);
+  const pTrapMaxW = eMaxV * iMaxA;
+  const pTrapNoCosW = E * iEffA;
+  // 共振：f0 = 1/(2π√(LC))。
+  const f0Hz = 1 / (2 * Math.PI * Math.sqrt(L * C));
+  const omega0 = 2 * Math.PI * f0Hz;
+  const x0 = omega0 * L;
+  const iResA = E / R;
+  const pResW = (E * E) / R;
+  const vResV = iResA * x0;
+  // I(f) 曲線：f 0→100 Hz を 21 点（f=0 ではコンデンサが直流をとめるので I=0）。
+  const iCurve = [];
+  for (let i = 0; i <= 20; i++) {
+    const ff = (i / 20) * 100;
+    if (ff === 0) { iCurve.push([0, 0]); continue; }
+    const w = 2 * Math.PI * ff;
+    const zz = Math.sqrt(R * R + (w * L - 1 / (w * C)) ** 2);
+    iCurve.push([ff, E / zz]);
+  }
+  // 変えたら：f=100 Hz、R=200 Ω。
+  const w2 = 2 * Math.PI * 100;
+  const xL2 = w2 * L, xC2 = 1 / (w2 * C);
+  const z2 = Math.sqrt(R * R + (xL2 - xC2) * (xL2 - xC2));
+  const i2A = E / z2;
+  const phi2Rad = Math.atan2(xL2 - xC2, R);
+  const p2W = E * i2A * (R / z2);
+  const zR2 = Math.sqrt(200 * 200 + (xL - xC) * (xL - xC));
+  const iR2A = E / zR2;
+  const phiR2Rad = Math.atan2(xL - xC, 200);
+  const pR2W = E * iR2A * (200 / zR2);
+  return {
+    E, f, R, L, C, omega, xL, xC, z, iEffA, phiRad, cosPhi, sinPhi,
+    pW, sVA, qVar, vRA, vLA, vCA, eMaxV, iMaxA, pTrapMaxW, pTrapNoCosW,
+    f0Hz, omega0, x0, iResA, pResW, vResV, iCurve,
+    xL2, xC2, z2, i2A, phi2Rad, p2W, zR2, iR2A, phiR2Rad, pR2W,
+  };
+}
+
+function acRlcForces(data) { return []; }
+
 // p-V 図の座標：V 0→1.0 L を x 60→340 px、log10(p) 1e5→1e7 Pa を y 220→50 px。
 function ottoX(vM3) { return 60 + 280 * (vM3 / 0.001); }
 function ottoY(pPa) { return 220 - 85 * (Math.log10(pPa) - 5); }
@@ -4767,6 +4898,27 @@ function sceneFor(type, thetaDeg, mgPx, fPx, data) {
       forces: rlcChargeForces(data),
     };
   }
+  if (type === 'photoCapCircle') {
+    const d = photoCapCircleDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      lambdaNm: data.lambdaNm, phiEV: data.phiEV, capF: data.capF, bT: data.bT,
+      photoCurrentA: data.photoCurrentA, hcEvNm: data.hcEvNm, eC: data.eC, mKg: data.mKg,
+      derived: d,
+      center: { x: 200, y: 150 }, centerDot: false,
+      forces: photoCapCircleForces(data),
+    };
+  }
+  if (type === 'acRlc') {
+    const d = acRlcDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      emfEffV: data.emfEffV, freqHz: data.freqHz, rOhm: data.rOhm, indH: data.indH, capF: data.capF,
+      derived: d,
+      center: { x: 200, y: 150 }, centerDot: false,
+      forces: acRlcForces(data),
+    };
+  }
   if (type === 'slopePulley') {
     return {
       type, phase: (data && data.phase) || 'connected',
@@ -6305,6 +6457,77 @@ function validateScene(scene) {
     for (const [t, q] of d.qCurve) {
       const expect = d.qInfC * (1 - Math.exp(-d.alpha * t) * (Math.cos(d.omegaP * t) + (d.alpha / d.omegaP) * Math.sin(d.omegaP * t)));
       if (Math.abs(q - expect) > 1e-12) return ['電気量曲線の点が一致しません'];
+    }
+  }
+  if (scene.type === 'photoCapCircle') {
+    const d = scene.derived;
+    // 光子のエネルギー：E = hc/λ。Kmax = E − φ。速さ：v = √(2K/m)。
+    if (Math.abs(d.ePhEV - d.hc / scene.lambdaNm) > 1e-12) return ['光子のエネルギーが hc/λ と一致しません'];
+    if (Math.abs(d.kMaxEV - (d.ePhEV - scene.phiEV)) > 1e-12) return ['Kmax が E − φ と一致しません'];
+    if (Math.abs(d.vMaxMs - Math.sqrt((2 * d.kMaxEV * 1.602e-19) / 9.11e-31)) / d.vMaxMs > 1e-9) return ['最も速い電子の速さが √(2K/m) と一致しません'];
+    // 阻止電圧とコンデンサ：V0 = Kmax、Q = CV0、N = Q/e、U = ½CV0²、充電時間 = Q/I。
+    if (Math.abs(d.v0V - d.kMaxEV) > 1e-12) return ['阻止電圧が Kmax と一致しません'];
+    if (Math.abs(d.qC - scene.capF * d.v0V) > 1e-15) return ['たまる電荷が CV0 と一致しません'];
+    if (Math.abs(d.nElec - d.qC / scene.eC) / d.nElec > 1e-9) return ['電子の数が Q/e と一致しません'];
+    if (Math.abs(d.uJ - 0.5 * scene.capF * d.v0V * d.v0V) > 1e-15) return ['静電エネルギーが ½CV0² と一致しません'];
+    if (Math.abs(d.tChargeS - d.qC / scene.photoCurrentA) > 1e-12) return ['充電時間が Q/I と一致しません'];
+    // 磁場の円運動：r = mv/eB、T = 2πm/eB、F = evB。
+    if (Math.abs(d.rM - (9.11e-31 * d.vMaxMs) / (scene.eC * scene.bT)) > 1e-12) return ['円の半径が mv/eB と一致しません'];
+    if (Math.abs(d.periodS - (2 * Math.PI * 9.11e-31) / (scene.eC * scene.bT)) > 1e-12) return ['円運動の周期が 2πm/eB と一致しません'];
+    if (Math.abs(d.lorentzN - scene.eC * d.vMaxMs * scene.bT) > 1e-24) return ['ローレンツ力が evB と一致しません'];
+    // 650 nm では電子は出ない。限界波長は 620 nm。
+    if (d.e650EV > scene.phiEV) return ['650 nm の光で電子が出ることになっています'];
+    if (Math.abs(d.thresholdNm - d.hc / scene.phiEV) > 1e-9) return ['限界波長が hc/φ と一致しません'];
+    // 変えたら：λ=300 nm、B を 2 倍、明るい光（光電流 2 倍）。
+    if (Math.abs(d.kMax2EV - (d.ePh2EV - scene.phiEV)) > 1e-12) return ['300 nm の Kmax が一致しません'];
+    if (Math.abs(d.r2M - (9.11e-31 * d.v2Ms) / (scene.eC * scene.bT)) > 1e-12) return ['300 nm の半径が一致しません'];
+    if (Math.abs(d.rB2M - d.rM / 2) > 1e-12) return ['B を 2 倍にした半径が半分になっていません'];
+    if (Math.abs(d.periodB2S - d.periodS / 2) > 1e-12) return ['B を 2 倍にした周期が半分になっていません'];
+    if (Math.abs(d.tChargeBrightS - d.tChargeS / 2) > 1e-12) return ['明るい光の充電時間が半分になっていません'];
+    // 矢印の長さ：速度 30 px、ローレンツ力 30 px。ローレンツ力は速度と直角。
+    if (byId.velocity && Math.abs(Math.hypot(byId.velocity.vector[0], byId.velocity.vector[1]) - 30) > 0.5) return ['速度の矢印が 30 px になっていません'];
+    if (byId.lorentz && Math.abs(Math.hypot(byId.lorentz.vector[0], byId.lorentz.vector[1]) - 30) > 0.5) return ['ローレンツ力の矢印が 30 px になっていません'];
+    if (byId.velocity && byId.lorentz) {
+      const dot = byId.velocity.vector[0] * byId.lorentz.vector[0] + byId.velocity.vector[1] * byId.lorentz.vector[1];
+      if (Math.abs(dot) > 0.5) return ['ローレンツ力が速度と直角になっていません'];
+    }
+  }
+  if (scene.type === 'acRlc') {
+    const d = scene.derived;
+    // 角振動数とリアクタンス：ω = 2πf、XL = ωL、XC = 1/(ωC)。
+    if (Math.abs(d.omega - 2 * Math.PI * scene.freqHz) > 1e-9) return ['角振動数が 2πf と一致しません'];
+    if (Math.abs(d.xL - d.omega * scene.indH) > 1e-9) return ['誘導リアクタンスが ωL と一致しません'];
+    if (Math.abs(d.xC - 1 / (d.omega * scene.capF)) > 1e-9) return ['容量リアクタンスが 1/(ωC) と一致しません'];
+    // インピーダンスと電流：Z = √(R² + (XL−XC)²)、I = E/Z、tanφ = (XL−XC)/R。
+    if (Math.abs(d.z - Math.sqrt(scene.rOhm * scene.rOhm + (d.xL - d.xC) * (d.xL - d.xC))) > 1e-9) return ['インピーダンスが √(R² + (XL−XC)²) と一致しません'];
+    if (Math.abs(d.iEffA - scene.emfEffV / d.z) > 1e-9) return ['電流が E/Z と一致しません'];
+    if (Math.abs(Math.tan(d.phiRad) - (d.xL - d.xC) / scene.rOhm) > 1e-9) return ['位相が tanφ = (XL−XC)/R と一致しません'];
+    if (Math.abs(d.cosPhi - scene.rOhm / d.z) > 1e-9) return ['力率が R/Z と一致しません'];
+    // 電力：P = EI cosφ、S = EI、Q = EI sinφ。
+    if (Math.abs(d.pW - scene.emfEffV * d.iEffA * d.cosPhi) > 1e-9) return ['有効電力が EI cosφ と一致しません'];
+    if (Math.abs(d.sVA - scene.emfEffV * d.iEffA) > 1e-9) return ['皮相電力が EI と一致しません'];
+    if (Math.abs(d.qVar - scene.emfEffV * d.iEffA * d.sinPhi) > 1e-9) return ['無効電力が EI sinφ と一致しません'];
+    // 各部の電圧：V_R = IR、V_L = IXL、V_C = IXC。ベクトル和は E になる。
+    if (Math.abs(d.vRA - d.iEffA * scene.rOhm) > 1e-9) return ['抵抗の電圧が IR と一致しません'];
+    if (Math.abs(d.vLA - d.iEffA * d.xL) > 1e-9) return ['コイルの電圧が IXL と一致しません'];
+    if (Math.abs(d.vCA - d.iEffA * d.xC) > 1e-9) return ['コンデンサの電圧が IXC と一致しません'];
+    if (Math.abs(Math.sqrt(d.vRA * d.vRA + (d.vLA - d.vCA) * (d.vLA - d.vCA)) - scene.emfEffV) > 1e-9) return ['電圧のベクトル和が E と一致しません'];
+    // 最大値と罠：E_max = √2 E、P の罠。
+    if (Math.abs(d.eMaxV - scene.emfEffV * Math.sqrt(2)) > 1e-9) return ['最大の電圧が √2 E と一致しません'];
+    if (Math.abs(d.pTrapMaxW - d.eMaxV * d.iMaxA) > 1e-9) return ['最大値で計算した電力が一致しません'];
+    // 共振：f0 = 1/(2π√(LC))、XL0 = XC0、I = E/R、P = E²/R。
+    if (Math.abs(d.f0Hz - 1 / (2 * Math.PI * Math.sqrt(scene.indH * scene.capF))) > 1e-9) return ['共振周波数が 1/(2π√(LC)) と一致しません'];
+    if (Math.abs(d.x0 - d.omega0 * scene.indH) > 1e-9) return ['共振のリアクタンスが一致しません'];
+    if (Math.abs(d.iResA - scene.emfEffV / scene.rOhm) > 1e-9) return ['共振の電流が E/R と一致しません'];
+    if (Math.abs(d.pResW - (scene.emfEffV * scene.emfEffV) / scene.rOhm) > 1e-9) return ['共振の電力が E²/R と一致しません'];
+    // 変えたら：f=100 Hz、R=200 Ω。
+    if (Math.abs(d.i2A - scene.emfEffV / d.z2) > 1e-9) return ['f=100 Hz の電流が一致しません'];
+    if (Math.abs(d.iR2A - scene.emfEffV / d.zR2) > 1e-9) return ['R=200 Ω の電流が一致しません'];
+    // I(f) 曲線の点列。
+    for (const [ff, ii] of d.iCurve) {
+      const w = 2 * Math.PI * ff;
+      const expect = ff === 0 ? 0 : scene.emfEffV / Math.sqrt(scene.rOhm * scene.rOhm + (w * scene.indH - 1 / (w * scene.capF)) ** 2);
+      if (Math.abs(ii - expect) > 1e-9) return ['電流曲線の点が一致しません'];
     }
   }
   if (scene.type === 'charged-circle') {
@@ -10663,6 +10886,245 @@ function drawBase(svg, scene) {
       note(276, 'R=100 Ω なら振動せず、95% まで 28 ms');
       note(294, '臨界減衰は R≈63 Ω');
     }
+  } else if (scene.type === 'photoCapCircle') {
+    const d = scene.derived;
+    const phase = scene.phase;
+    const tH = el('text', { x: 40, y: 36, fill: '#333' });
+    tH.textContent = phase === 'photo' ? '光電効果：Kmax = 1.10 eV'
+      : phase === 'charge' ? 'コンデンサの充電：11 nC、6.1 nJ'
+      : phase === 'circle' ? '磁場中の円運動：r≈3.5 mm'
+      : phase === 'trap' ? '罠：明るい光でも V0 は変わらない'
+      : phase === 'vary' ? '変えたら：300 nm・B を 2 倍'
+      : '光電効果＋コンデンサ＋磁場円運動';
+    svg.appendChild(tH);
+    const note = (y, text) => { const t = el('text', { x: 60, y, fill: '#333' }); t.textContent = text; svg.appendChild(t); };
+    const barRows = (rows) => {
+      rows.forEach((r, i) => {
+        const y = 75 + i * 45;
+        const tN = el('text', { x: 60, y: y - 8 }); tN.textContent = r.name; svg.appendChild(tN);
+        svg.appendChild(el('rect', { x: 140, y, width: r.w, height: 18, fill: r.color, stroke: '#333', 'stroke-width': 1 }));
+        const tV = el('text', { x: 140 + r.w + 8, y: y + 15 }); tV.textContent = r.val; svg.appendChild(tV);
+      });
+    };
+    if (phase === 'photo') {
+      // エネルギーの棒グラフ（50 px/eV）。
+      barRows([
+        { name: '光子 3.10 eV', w: d.ePhEV * 50, val: '3.10 eV', color: '#ffd24d' },
+        { name: '仕事関数 2.0 eV', w: scene.phiEV * 50, val: '2.0 eV', color: '#cfe3ff' },
+        { name: 'Kmax 1.10 eV', w: d.kMaxEV * 50, val: '1.10 eV', color: '#b3e6b3' },
+      ]);
+      note(258, 'Kmax = 3.10 − 2.0 = 1.10 eV');
+      note(276, 'v_max = √(2K/m) ≈ 6.2×10⁵ m/s');
+      note(294, '650 nm は 1.91 eV < 2.0 eV で出ない');
+    } else if (phase === 'charge') {
+      // コンデンサの拡大図：上板に ＋、下板に －。電荷と静電エネルギーを示す。
+      svg.appendChild(el('line', { x1: 140, y1: 120, x2: 260, y2: 120, stroke: '#333', 'stroke-width': 3 }));
+      svg.appendChild(el('line', { x1: 140, y1: 160, x2: 260, y2: 160, stroke: '#333', 'stroke-width': 3 }));
+      for (const px of [155, 195, 235]) {
+        const s1 = el('text', { x: px, y: 108, fill: '#b00', 'font-size': 18 }); s1.textContent = '＋'; svg.appendChild(s1);
+        const s2 = el('text', { x: px, y: 188, fill: '#b00', 'font-size': 18 }); s2.textContent = '－'; svg.appendChild(s2);
+      }
+      const tQ = el('text', { x: 275, y: 140 }); tQ.textContent = 'Q=11 nC'; svg.appendChild(tQ);
+      const tU = el('text', { x: 275, y: 165 }); tU.textContent = 'U=6.1 nJ'; svg.appendChild(tU);
+      const tT = el('text', { x: 275, y: 190 }); tT.textContent = '充電 11 ms'; svg.appendChild(tT);
+      const tE = el('text', { x: 140, y: 208 }); tE.textContent = '電子 6.9×10¹⁰ 個'; svg.appendChild(tE);
+      note(258, 'Q = CV0 = 11 nC の電荷がたまる');
+      note(276, '電子の数は Q/e ≈ 6.9×10¹⁰ 個');
+      note(294, '充電時間は Q/I = 11 ms');
+    } else if (phase === 'trap') {
+      // 阻止電圧の比べ（60 px/V）：明るい光でも V0 は変わらない。
+      barRows([
+        { name: '暗い光の V0', w: d.v0V * 60, val: '1.10 V', color: '#cfe3ff' },
+        { name: '明るい光の V0', w: d.v0V * 60, val: '1.10 V', color: '#b3e6b3' },
+        { name: '300 nm の V0', w: d.v02V * 60, val: '2.13 V', color: '#ffd24d' },
+      ]);
+      note(258, '明るい光でも V0 は 1.10 V のまま');
+      note(276, '阻止電圧で止まるのは Kmax の電子だけ');
+      note(294, 'K が小さい電子はもっと小さい電圧で止まる');
+    } else if (phase === 'vary') {
+      // 半径の棒グラフ（30 px/mm）。
+      barRows([
+        { name: '400 nm', w: d.rM * 1000 * 30, val: '3.5 mm', color: '#b3e6b3' },
+        { name: '300 nm', w: d.r2M * 1000 * 30, val: '4.9 mm', color: '#cfe3ff' },
+        { name: 'B を 2 倍', w: d.rB2M * 1000 * 30, val: '1.8 mm', color: '#ffd24d' },
+        { name: '明るい光', w: d.rM * 1000 * 30, val: '3.5 mm', color: '#ffe8e8' },
+      ]);
+      note(258, '300 nm では Kmax = 2.13 eV、r≈4.9 mm');
+      note(276, 'B が 2 倍で r は半分、T も半分');
+      note(294, '明るい光は電子の数だけ増やす');
+    } else if (phase === 'circle') {
+      // 磁場（×）と円軌道。中心 (260,170)、半径 40 px。
+      for (const x of [100, 140, 180, 220, 260, 300, 340]) {
+        const tX = el('text', { x, y: 70, fill: '#888', 'font-size': 16 }); tX.textContent = '×'; svg.appendChild(tX);
+      }
+      for (const x of [100, 140, 340]) {
+        const tX = el('text', { x, y: 230, fill: '#888', 'font-size': 16 }); tX.textContent = '×'; svg.appendChild(tX);
+      }
+      const tB = el('text', { x: 300, y: 40, fill: '#555' }); tB.textContent = 'B=1.0 mT'; svg.appendChild(tB);
+      svg.appendChild(el('circle', { cx: d.circleCenter.x, cy: d.circleCenter.y, r: d.circleR, fill: 'none', stroke: '#b00', 'stroke-width': 2, 'stroke-dasharray': '5 4' }));
+      svg.appendChild(el('line', { x1: 260, y1: 170, x2: 300, y2: 170, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      svg.appendChild(el('circle', { cx: d.electron.x, cy: d.electron.y, r: 8, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      const tR = el('text', { x: 305, y: 175, fill: '#555' }); tR.textContent = 'r≈3.5 mm'; svg.appendChild(tR);
+      const tC = el('text', { x: 240, y: 192, fill: '#555' }); tC.textContent = '中心'; svg.appendChild(tC);
+      note(258, 'ローレンツ力 F≈1.0×10⁻¹⁶ N が向心力');
+      note(276, '速さは変わらない（磁場は仕事をしない）');
+      note(294, '周期 T≈36 ns、1周で 28 MHz');
+    } else {
+      // base：光電管の図。管 (100,70,200,110)、陰極 x=140、陽極 x=260。
+      // コンデンサ：上板 y=215、下板 y=228（x=190〜250）。導線で管とつなぐ。電子は右の磁場へ。
+      svg.appendChild(el('rect', { x: 100, y: 70, width: 200, height: 110, fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('rect', { x: 136, y: 100, width: 8, height: 50, fill: '#cfe3ff', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('rect', { x: 256, y: 100, width: 8, height: 50, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      for (const ly of [110, 130, 150]) {
+        svg.appendChild(el('line', { x1: 30, y1: ly, x2: 95, y2: ly, stroke: '#d35400', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+      }
+      const tL = el('text', { x: 25, y: 88, fill: '#d35400' }); tL.textContent = '光 400 nm'; svg.appendChild(tL);
+      const tC = el('text', { x: 118, y: 92 }); tC.textContent = '陰極'; svg.appendChild(tC);
+      const tA = el('text', { x: 244, y: 92 }); tA.textContent = '陽極'; svg.appendChild(tA);
+      svg.appendChild(el('line', { x1: 140, y1: 150, x2: 140, y2: 215, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 140, y1: 215, x2: 190, y2: 215, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 260, y1: 150, x2: 260, y2: 228, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 260, y1: 228, x2: 250, y2: 228, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 190, y1: 215, x2: 250, y2: 215, stroke: '#333', 'stroke-width': 3 }));
+      svg.appendChild(el('line', { x1: 190, y1: 228, x2: 250, y2: 228, stroke: '#333', 'stroke-width': 3 }));
+      const tCap = el('text', { x: 130, y: 224, 'text-anchor': 'end' }); tCap.textContent = 'C=10 nF'; svg.appendChild(tCap);
+      // 電子が陰極から陽極へ飛ぶ。
+      svg.appendChild(el('circle', { cx: 175, cy: 120, r: 4, fill: 'blue', stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: 179, y1: 120, x2: 192, y2: 120, stroke: 'blue', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+      svg.appendChild(el('circle', { cx: 210, cy: 140, r: 4, fill: 'blue', stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: 214, y1: 140, x2: 227, y2: 140, stroke: 'blue', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+      const tE = el('text', { x: 180, y: 168, fill: 'blue' }); tE.textContent = '電子'; svg.appendChild(tE);
+      // 電子は管を出て、右の磁場へ。
+      svg.appendChild(el('line', { x1: 268, y1: 125, x2: 306, y2: 125, stroke: '#b00', 'stroke-width': 2, 'stroke-dasharray': '5 4', 'marker-end': 'url(#fig-arrow)' }));
+      const tM = el('text', { x: 272, y: 116, fill: '#b00' }); tM.textContent = '磁場へ'; svg.appendChild(tM);
+      for (const [mx, my] of [[320, 110], [350, 110], [320, 150], [350, 150]]) {
+        const tX = el('text', { x: mx, y: my, fill: '#888', 'font-size': 16 }); tX.textContent = '×'; svg.appendChild(tX);
+      }
+      const tB = el('text', { x: 310, y: 88, fill: '#555' }); tB.textContent = 'B=1.0 mT'; svg.appendChild(tB);
+      note(258, '陰極の仕事関数 2.0 eV、光の波長 400 nm');
+      note(276, '電子は陽極へ飛び、コンデンサにたまる');
+      note(294, '同じ電子が磁場に入ると円を描く');
+    }
+  } else if (scene.type === 'acRlc') {
+    const d = scene.derived;
+    const phase = scene.phase;
+    const tH = el('text', { x: 40, y: 36, fill: '#333' });
+    tH.textContent = phase === 'impedance' ? 'インピーダンス：Z≈121 Ω'
+      : phase === 'power' ? '電力：P = EI cosφ ≈ 68 W'
+      : phase === 'resonance' ? '共振：f0≈28 Hz で電流最大'
+      : phase === 'trap' ? '罠：最大値で電力を計算すると'
+      : phase === 'vary' ? '変えたら：f=100 Hz・R=200 Ω'
+      : '交流RLC回路：実効値・共振・電力';
+    svg.appendChild(tH);
+    const note = (y, text) => { const t = el('text', { x: 60, y, fill: '#333' }); t.textContent = text; svg.appendChild(t); };
+    const barRows = (rows) => {
+      rows.forEach((r, i) => {
+        const y = 75 + i * 45;
+        const tN = el('text', { x: 60, y: y - 8 }); tN.textContent = r.name; svg.appendChild(tN);
+        svg.appendChild(el('rect', { x: 140, y, width: r.w, height: 18, fill: r.color, stroke: '#333', 'stroke-width': 1 }));
+        const tV = el('text', { x: 140 + r.w + 8, y: y + 15 }); tV.textContent = r.val; svg.appendChild(tV);
+      });
+    };
+    if (phase === 'base') {
+      // 回路図。AR と同じ配置に、電池のかわりに交流電源（丸に 〜）を入れる。
+      svg.appendChild(el('line', { x1: 100, y1: 110, x2: 140, y2: 110, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('path', { d: 'M 140 110 L 150 100 L 160 120 L 170 100 L 180 120 L 190 100 L 200 120 L 210 100 L 220 120 L 230 100 L 240 120 L 250 100 L 260 110', fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 260, y1: 110, x2: 300, y2: 110, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 300, y1: 110, x2: 300, y2: 148, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 288, y1: 150, x2: 312, y2: 150, stroke: '#333', 'stroke-width': 3 }));
+      svg.appendChild(el('line', { x1: 288, y1: 165, x2: 312, y2: 165, stroke: '#333', 'stroke-width': 3 }));
+      svg.appendChild(el('line', { x1: 300, y1: 167, x2: 300, y2: 210, stroke: '#333', 'stroke-width': 2 }));
+      // コイル（底辺、右側）：4つの小さな弧。
+      svg.appendChild(el('path', { d: 'M 300 210 Q 295 226 290 210 Q 285 226 280 210 Q 275 226 270 210 Q 265 226 260 210', fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 260, y1: 210, x2: 220, y2: 210, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 220, y1: 210, x2: 186, y2: 192, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx: 220, cy: 210, r: 3, fill: '#333' }));
+      svg.appendChild(el('circle', { cx: 180, cy: 210, r: 3, fill: '#333' }));
+      svg.appendChild(el('line', { x1: 180, y1: 210, x2: 100, y2: 210, stroke: '#333', 'stroke-width': 2 }));
+      // 交流電源（左辺）：丸に 〜。
+      svg.appendChild(el('line', { x1: 100, y1: 110, x2: 100, y2: 143, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx: 100, cy: 157, r: 14, fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      const tTilde = el('text', { x: 100, y: 162, 'text-anchor': 'middle', 'font-size': 16 }); tTilde.textContent = '～'; svg.appendChild(tTilde);
+      svg.appendChild(el('line', { x1: 100, y1: 171, x2: 100, y2: 210, stroke: '#333', 'stroke-width': 2 }));
+      // 電流の向きの矢印（上の配線、赤）。
+      svg.appendChild(el('line', { x1: 104, y1: 110, x2: 136, y2: 110, stroke: '#b00', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+      const tB = el('text', { x: 84, y: 158, 'text-anchor': 'end' }); tB.textContent = 'E=100 V'; svg.appendChild(tB);
+      const tF = el('text', { x: 84, y: 182, 'text-anchor': 'end' }); tF.textContent = 'f=50 Hz'; svg.appendChild(tF);
+      const tR = el('text', { x: 200, y: 88, 'text-anchor': 'middle' }); tR.textContent = 'R=100 Ω'; svg.appendChild(tR);
+      const tC = el('text', { x: 318, y: 160 }); tC.textContent = 'C=100 μF'; svg.appendChild(tC);
+      const tL = el('text', { x: 250, y: 190, 'text-anchor': 'middle' }); tL.textContent = 'L=0.32 H'; svg.appendChild(tL);
+      const tS = el('text', { x: 200, y: 238, 'text-anchor': 'middle' }); tS.textContent = 'スイッチ'; svg.appendChild(tS);
+      note(258, '交流電源 E=100 V（実効値）、f=50 Hz');
+      note(276, '抵抗・コイル・コンデンサを直列につなぐ');
+      note(294, '電流は 0.82 A、電圧より 34° 遅れる');
+    } else if (phase === 'impedance') {
+      // インピーダンスの三角形。原点 (80,210)、R=100 Ω を 130 px、XL−XC=69 Ω を 89 px。
+      const ox = 80, oy = 210, rPx = 130, xPx = 89;
+      const tx = ox + rPx, ty = oy - xPx;
+      svg.appendChild(el('line', { x1: ox, y1: oy, x2: tx, y2: oy, stroke: '#333', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+      svg.appendChild(el('line', { x1: tx, y1: oy, x2: tx, y2: ty, stroke: '#333', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+      svg.appendChild(el('line', { x1: ox, y1: oy, x2: tx, y2: ty, stroke: '#0066cc', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+      // φ の弧：原点を中心に、R（右向き）と Z のあいだ。
+      const ax = ox + 30 * Math.cos(d.phiRad), ay = oy - 30 * Math.sin(d.phiRad);
+      svg.appendChild(el('path', { d: `M ${ox + 30} ${oy} A 30 30 0 0 0 ${ax.toFixed(1)} ${ay.toFixed(1)}`, fill: 'none', stroke: '#333', 'stroke-width': 1.5 }));
+      const tR = el('text', { x: 160, y: 230, 'text-anchor': 'middle' }); tR.textContent = 'R=100 Ω'; svg.appendChild(tR);
+      const tP = el('text', { x: 95, y: 235, 'text-anchor': 'middle' }); tP.textContent = 'φ≈34°'; svg.appendChild(tP);
+      const tX = el('text', { x: 218, y: 160 }); tX.textContent = 'XL−XC≈69 Ω'; svg.appendChild(tX);
+      const tZ = el('text', { x: 215, y: 105 }); tZ.textContent = 'Z≈121 Ω'; svg.appendChild(tZ);
+      note(258, 'XL≈100 Ω、XC≈32 Ω、差は 69 Ω');
+      note(276, 'Z = √(100² + 69²) ≈ 121 Ω');
+      note(294, '電流は電圧より 34° 遅れる');
+    } else if (phase === 'power') {
+      // 電力の棒グラフ（2 px/W）。
+      barRows([
+        { name: '有効電力 P=68 W', w: d.pW * 2, val: '68 W', color: '#b3e6b3' },
+        { name: '皮相電力 S=82 VA', w: d.sVA * 2, val: '82 VA', color: '#cfe3ff' },
+        { name: '無効電力 Q=47 var', w: d.qVar * 2, val: '47 var', color: '#ffd24d' },
+      ]);
+      note(258, 'P = EI cosφ ≈ 68 W');
+      note(276, 'S = EI ≈ 82 VA、Q ≈ 47 var');
+      note(294, 'V_R≈82 V、V_L≈83 V、V_C≈26 V');
+    } else if (phase === 'resonance') {
+      // I–f グラフ。x: f 0→100 Hz を 60→340 px、y: I 0→1.2 A を 220→70 px。
+      const xOfF = (f) => 60 + (f / 100) * 280;
+      const yOfI = (i) => 220 - (i / 1.2) * 150;
+      svg.appendChild(el('line', { x1: 60, y1: 220, x2: 340, y2: 220, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 60, y1: 60, x2: 60, y2: 220, stroke: '#333', 'stroke-width': 2 }));
+      const pts = d.iCurve.map(([f, i]) => [xOfF(f), yOfI(i)]);
+      svg.appendChild(el('path', { d: pts.map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`).join(' '), fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: xOfF(d.f0Hz), y1: yOfI(d.iResA), x2: xOfF(d.f0Hz), y2: 220, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+      svg.appendChild(el('line', { x1: 60, y1: yOfI(d.iResA), x2: xOfF(d.f0Hz), y2: yOfI(d.iResA), stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+      svg.appendChild(el('circle', { cx: xOfF(d.f0Hz), cy: yOfI(d.iResA), r: 4, fill: '#333' }));
+      const tI = el('text', { x: 70, y: 88 }); tI.textContent = 'I=1.0 A'; svg.appendChild(tI);
+      const tF = el('text', { x: xOfF(d.f0Hz), y: 238, 'text-anchor': 'middle' }); tF.textContent = 'f0≈28 Hz'; svg.appendChild(tF);
+      const tY = el('text', { x: 48, y: 66 }); tY.textContent = 'I'; svg.appendChild(tY);
+      const tX = el('text', { x: 344, y: 238 }); tX.textContent = 'f'; svg.appendChild(tX);
+      const t0 = el('text', { x: 52, y: 236 }); t0.textContent = '0'; svg.appendChild(t0);
+      note(258, '共振 f0≈28 Hz で電流が最大 1.0 A');
+      note(276, 'Z = R = 100 Ω、φ = 0');
+      note(294, 'V_L = V_C ≈ 57 V（打ち消し合う）');
+    } else if (phase === 'trap') {
+      // 電力の比べ（1 px/W）：最大値で計算するとまちがう。
+      barRows([
+        { name: '最大値で計算 165 W', w: d.pTrapMaxW, val: '165 W', color: '#ffb3b3' },
+        { name: 'cosφ を忘れる 82 W', w: d.pTrapNoCosW, val: '82 W', color: '#ffd24d' },
+        { name: '正しい電力 68 W', w: d.pW, val: '68 W', color: '#b3e6b3' },
+      ]);
+      note(258, '最大値どうしをかけると 165 W（2.4 倍）');
+      note(276, '実効値でも cosφ がいる');
+      note(294, 'V_R + V_L + V_C = 192 V ではない');
+    } else if (phase === 'vary') {
+      // 電流の比べ（180 px/A）。
+      barRows([
+        { name: '共振 f=28 Hz', w: d.iResA * 180, val: '1.0 A', color: '#b3e6b3' },
+        { name: 'もと f=50 Hz', w: d.iEffA * 180, val: '0.82 A', color: '#cfe3ff' },
+        { name: 'f=100 Hz', w: d.i2A * 180, val: '0.48 A', color: '#ffd24d' },
+        { name: 'R=200 Ω', w: d.iR2A * 180, val: '0.47 A', color: '#ffe8e8' },
+      ]);
+      note(258, '共振で電流は最大 1.0 A、電力 100 W');
+      note(276, 'f=100 Hz では 0.48 A、22 W');
+      note(294, 'R=200 Ω では 0.47 A、45 W');
+    }
   } else if (scene.type === 'capacitor') {
     const topY = 110, dPx = scene.dPx;
     // 2枚の極板（水平）。上板が +、下板が −。
@@ -11804,4 +12266,4 @@ function renderAllFigures() {
   });
 }
 
-if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, capSpringGravDerived, capSpringGravForces, gasSpringCycleDerived, gasSpringCycleForces, slopeSpringDerived, slopeSpringForces, fallLoopDerived, fallLoopForces, beltSpringDerived, beltSpringForces, massSpecDerived, massSpecForces, coilHallDerived, coilHallForces, platformChargeDerived, platformChargeForces, pendulumCollideDerived, pendulumCollideForces, photoCapDerived, photoCapForces, orbitTransferDerived, orbitTransferForces, cyclotronDerived, cyclotronForces, slopeSpringFricDerived, slopeSpringFricForces, projWallDerived, projWallForces, railSpringDampDerived, railSpringDampForces, pendulumSpringDerived, pendulumSpringForces, gasPistonOscDerived, gasPistonOscForces, photoCircleDerived, photoCircleForces, earthTunnelDerived, earthTunnelForces, heaterGasDerived, heaterGasForces, specPhotoCircleDerived, specPhotoCircleForces, ottoCycleDerived, ottoCycleForces, generatorACDerived, generatorACForces, explodeProjectileDerived, explodeProjectileForces, slopePulleySpringDerived, slopePulleySpringForces, cathodeRayDerived, cathodeRayForces, conicalPendulumDerived, conicalPendulumForces, rcChargeDerived, rcChargeForces, projWallFricDerived, projWallFricForces, rlcChargeDerived, rlcChargeForces, sceneFor, validateScene, renderFigure };
+if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, capSpringGravDerived, capSpringGravForces, gasSpringCycleDerived, gasSpringCycleForces, slopeSpringDerived, slopeSpringForces, fallLoopDerived, fallLoopForces, beltSpringDerived, beltSpringForces, massSpecDerived, massSpecForces, coilHallDerived, coilHallForces, platformChargeDerived, platformChargeForces, pendulumCollideDerived, pendulumCollideForces, photoCapDerived, photoCapForces, orbitTransferDerived, orbitTransferForces, cyclotronDerived, cyclotronForces, slopeSpringFricDerived, slopeSpringFricForces, projWallDerived, projWallForces, railSpringDampDerived, railSpringDampForces, pendulumSpringDerived, pendulumSpringForces, gasPistonOscDerived, gasPistonOscForces, photoCircleDerived, photoCircleForces, earthTunnelDerived, earthTunnelForces, heaterGasDerived, heaterGasForces, specPhotoCircleDerived, specPhotoCircleForces, ottoCycleDerived, ottoCycleForces, generatorACDerived, generatorACForces, explodeProjectileDerived, explodeProjectileForces, slopePulleySpringDerived, slopePulleySpringForces, cathodeRayDerived, cathodeRayForces, conicalPendulumDerived, conicalPendulumForces, rcChargeDerived, rcChargeForces, projWallFricDerived, projWallFricForces, rlcChargeDerived, rlcChargeForces, photoCapCircleDerived, photoCapCircleForces, acRlcDerived, acRlcForces, sceneFor, validateScene, renderFigure };
