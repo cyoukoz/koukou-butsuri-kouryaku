@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題AD：振り子＋弾性衝突＋ばね — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題AD：振り子＋弾性衝突＋ばね</h1>
+<p><strong>問題：</strong>長さ L = 1.0 m の糸に質量 m = 1.0 kg の玉をつけ、高さ 0.20 m のところから静かに放した。最下点で玉は、なめらかな床の上の質量 M = 1.0 kg のブロックに当たる。ブロックはばね（ばね定数 k = 100 N/m）につながれている。重力加速度は g = 10 m/s² とする。(1) 最下点の速さを求めよ。(2) 衝突の直後、玉とブロックの速さを求めよ。(3) ブロックの単振動の振幅・周期・最大のばねの力を求めよ。(4) エネルギーはどう移り変わるか。(5) 玉とブロックがくっついたら、どうなるか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v2.8、pendulumSpring 型）が下の JSON データから計算して描く。最下点の速さは √(2gh)、ばねの振幅は v/ω で決まる。縮尺は 200 px/m（振幅 0.20 m は 40 px）だ。</p>
+<script type="application/json" id="scene-pendulum-spring-base">{"type":"pendulumSpring","mKg":1.0,"blockMKg":1.0,"lengthM":1.0,"heightM":0.2,"kNperM":100,"g":10,"phase":"base"}</script>
+<script type="application/json" id="scene-pendulum-spring-swing">{"type":"pendulumSpring","mKg":1.0,"blockMKg":1.0,"lengthM":1.0,"heightM":0.2,"kNperM":100,"g":10,"phase":"swing"}</script>
+<script type="application/json" id="scene-pendulum-spring-collision">{"type":"pendulumSpring","mKg":1.0,"blockMKg":1.0,"lengthM":1.0,"heightM":0.2,"kNperM":100,"g":10,"phase":"collision"}</script>
+<script type="application/json" id="scene-pendulum-spring-spring">{"type":"pendulumSpring","mKg":1.0,"blockMKg":1.0,"lengthM":1.0,"heightM":0.2,"kNperM":100,"g":10,"phase":"spring"}</script>
+<script type="application/json" id="scene-pendulum-spring-energy">{"type":"pendulumSpring","mKg":1.0,"blockMKg":1.0,"lengthM":1.0,"heightM":0.2,"kNperM":100,"g":10,"phase":"energy"}</script>
+<script type="application/json" id="scene-pendulum-spring-trap">{"type":"pendulumSpring","mKg":1.0,"blockMKg":1.0,"lengthM":1.0,"heightM":0.2,"kNperM":100,"g":10,"phase":"trap"}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。振り下ろす前と、衝突の瞬間と、ばねが縮むときでは、使える式がちがう。3つをつなぐのは、最下点の速さだ。</p>
+  <table>
+    <tr><th>時間</th><th>系（何を見るか）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>はじめ（放す前）</td><td>玉</td><td>—</td><td>高さ 0.20 m から放す（はじめに）</td></tr>
+    <tr><td>振り下ろす</td><td>玉</td><td><strong>最下点の速さ 2.0 m/s</strong></td><td>重力の仕事が運動エネルギーになる（ステップ①）</td></tr>
+    <tr><td>弾性衝突</td><td>玉＋ブロック</td><td><strong>玉 0、ブロック 2.0 m/s</strong></td><td>等質量では速さが入れ替わる（ステップ②）</td></tr>
+    <tr><td>ばねが縮む</td><td>ブロック＋ばね</td><td><strong>振幅 0.20 m、最大の力 20 N</strong></td><td>単振動の振幅は v/ω（ステップ③）</td></tr>
+    <tr><td>エネルギー</td><td>玉＋ブロック＋ばね</td><td><strong>2.0 J が形を変えて移る</strong></td><td>弾性衝突ではエネルギーが失われない（ステップ④⑤）</td></tr>
+  </table>
+  <p>振り子は重力で加速され、衝突で速さをブロックに渡し、ブロックはばねで単振動する。エネルギーは、位置エネルギー → 運動エネルギー → 運動エネルギー → ばねのエネルギーと、形を変えながら移っていく。</p>
+  <svg class="fig" data-scene="scene-pendulum-spring-base" data-show="" width="100%" role="img" aria-label="振り子＋弾性衝突＋ばねの全体図。振り子の玉、ブロック、ばね、壁"></svg>
+  <p>糸の長さは 1.0 m、高さは 0.20 m なので、cosθ = 1 − 0.20/1.0 = <strong>0.80</strong>、θ ≈ 36.9° になる。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①振り下ろす</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 振り下ろす：最下点の速さ</h2>
+  <svg class="fig" data-scene="scene-pendulum-spring-swing" data-show="velocity" width="100%" role="img" aria-label="最下点。玉の速さは 2.0 m/s、ブロックはまだ止まっている"></svg>
+  <p>高さ 0.20 m から放す。最下点までに重力がする仕事は、mgh = 1.0 × 10 × 0.20 = <strong>2.0 J</strong> だ。これがそっくり運動エネルギーになるので、(1/2)mv² = 2.0 から、v = √(2gh) = √4 = <strong>2.0 m/s</strong> になる。</p>
+  <p>糸の張力は、玉の運動方向と直角にはたらくので、仕事をしない。だから、重力の仕事だけを考えればよい。振り子の周期は T = 2π√(L/g) ≈ <strong>2.0 s</strong> で、最下点までは T/4 ≈ <strong>0.50 s</strong> かかる。</p>
+  <p>最下点の速さは、振り子の長さにはよらない。高さだけで決まる。同じ高さから放せば、糸が長くても短くても、最下点の速さは同じ 2.0 m/s だ。</p>
+  <label><input type="checkbox" class="check"> 最下点の速さ 2.0 m/s、運動エネルギー 2.0 J、T/4 ≈ 0.50 s を求めた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②弾性衝突</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 弾性衝突：玉は止まる</h2>
+  <svg class="fig" data-scene="scene-pendulum-spring-collision" data-show="velocity" width="100%" role="img" aria-label="弾性衝突の直後。玉は止まり、ブロックが 2.0 m/s で動き出す"></svg>
+  <p>最下点で、玉はブロックに弾性衝突する。玉とブロックの質量は等しい（1.0 kg）。等しい質量の弾性衝突では、速さがそっくり入れ替わる。玉は <strong>0</strong>、ブロックは <strong>2.0 m/s</strong> になる。</p>
+  <p>運動量は、衝突の前は 1.0 × 2.0 = 2.0 kg·m/s、衝突のあとは 1.0 × 2.0 = 2.0 kg·m/s で、保存している。運動エネルギーも、衝突の前は 2.0 J、衝突のあとは (1/2)×1.0×2.0² = 2.0 J で、保存している。</p>
+  <p>衝突の瞬間、糸の張力は玉の運動方向と直角なので、仕事をしない。だから、衝突の前後で玉の速さは変わらない……のではなく、衝突で速さがブロックに移る。張力が仕事をしないからといって、衝突がないわけではない。</p>
+  <label><input type="checkbox" class="check"> 弾性衝突で玉は 0、ブロックは 2.0 m/s になり、運動量 2.0 と KE 2.0 J が保存することを求めた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③ばね</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ ばね：最大の縮み 0.20 m</h2>
+  <svg class="fig" data-scene="scene-pendulum-spring-spring" data-show="spring" width="100%" role="img" aria-label="ばねが最大に縮んだところ。縮み 0.20 m、ばねの力 20 N"></svg>
+  <p>ブロックは速さ 2.0 m/s でばねを押し縮める。ばねの単振動は、ω = √(k/M) = √(100/1.0) = <strong>10 rad/s</strong>、周期 T = 2π/ω ≈ <strong>0.63 s</strong> になる。</p>
+  <p>振幅は、A = v/ω = 2.0/10 = <strong>0.20 m</strong> だ。最大の縮みは 0.20 m で、最大のばねの力は kA = 100 × 0.20 = <strong>20 N</strong>、最大の加速度は ω²A = 100 × 0.20 = <strong>20 m/s²</strong> になる。最大の縮みに達するまで、T/4 ≈ <strong>0.16 s</strong> かかる。</p>
+  <p>ブロックが止まる瞬間、速さは 0 だが、加速度は最大になる。単振動では、速さが最大のところで加速度は 0、速さが 0 のところで加速度は最大になる。</p>
+  <label><input type="checkbox" class="check"> 振幅 0.20 m、周期 0.63 s、最大のばねの力 20 N、最大の加速度 20 m/s²、T/4 ≈ 0.16 s を求めた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④エネルギー</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ エネルギー</h2>
+  <svg class="fig" data-scene="scene-pendulum-spring-energy" data-show="" width="100%" role="img" aria-label="エネルギーの棒グラフ。はじめ 2.0 J、衝突後 2.0 J、ばね最大 2.0 J、くっついたら 1.0 J"></svg>
+  <p>エネルギーの移り変わりを追おう。はじめは、玉の位置エネルギー 2.0 J だけだ。最下点では、玉の運動エネルギー 2.0 J になる。衝突の直後は、ブロックの運動エネルギー 2.0 J になる。</p>
+  <p>ばねが最大に縮んだときは、ブロックは止まり、エネルギーはばねのエネルギー (1/2)kA² = 0.5 × 100 × 0.04 = <strong>2.0 J</strong> になる。弾性衝突ではエネルギーが失われないので、2.0 J がそのまま形を変えて移っていく。</p>
+  <p>ばねが元に戻ると、ブロックはまた 2.0 m/s で左に動き、玉に当たって速さを返す。玉はまた振り上がり、はじめの高さ 0.20 m に戻る。摩擦がなければ、このくり返しは永遠に続く。</p>
+  <label><input type="checkbox" class="check"> エネルギー 2.0 J が位置エネルギー → 運動エネルギー → ばねのエネルギーと移ることを確かめた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤罠：くっついたら 1.0 J しか残らない</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ 罠：くっついたら 1.0 J しか残らない</h2>
+  <svg class="fig" data-scene="scene-pendulum-spring-trap" data-show="" width="100%" role="img" aria-label="振幅の比べ。弾性なら 0.20 m、くっついたら 0.14 m"></svg>
+  <p>罠は、衝突の前後でエネルギー保存を使えるのが、弾性衝突のときだけだということだ。玉とブロックがくっついたら、どうなるか。運動量保存から、くっついたあとの速さは、v' = mv/(m+M) = 1.0 × 2.0 / 2.0 = <strong>1.0 m/s</strong> になる。</p>
+  <p>運動エネルギーは、(1/2)×2.0×1.0² = <strong>1.0 J</strong> で、1.0 J が失われる。くっついたあとは玉とブロックが一体で振るので、振る質量は 2.0 kg になり、角振動数は ω' = √(k/(m+M)) = √(100/2.0) ≈ <strong>7.1 rad/s</strong> になる。振幅は A' = v'/ω' = 1.0/7.1 ≈ <strong>0.14 m</strong>、最大のばねの力は kA' = 100 × 0.14 ≈ <strong>14 N</strong> になる。弾性衝突の 0.20 m・20 N の約 0.71 倍だ。ブロックだけの ω = 10 rad/s を使うと 0.10 m・10 N になってしまうので、くっついたあとの質量に注意する。</p>
+  <p>失われた 1.0 J は、衝突のときの変形や熱になった。組み合わせEの弾道振り子では、くっつく衝突でエネルギーは 800 J から 4.0 J になった。衝突の種類を確かめずにエネルギー保存を使うと、答えがちがう。</p>
+  <label><input type="checkbox" class="check"> くっついたら速さ 1.0 m/s、KE 1.0 J、振幅 0.14 m、最大の力 14 N になることを確かめた</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と系を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 最下点の速さ 2.0 m/s、KE 2.0 J、T/4 ≈ 0.50 s。(2) 玉 0、ブロック 2.0 m/s、運動量 2.0 と KE 2.0 J が保存する。(3) 振幅 0.20 m、周期 0.63 s、最大のばねの力 20 N、最大の加速度 20 m/s²、T/4 ≈ 0.16 s。(4) エネルギー 2.0 J が形を変えて移る。(5) くっついたら速さ 1.0 m/s、KE 1.0 J、振幅 0.14 m、最大の力 14 N。もとになった単体モデル：振り子は <a href="shm.html">第11問：単振動・振り子</a>、衝突は <a href="collision.html">第12問：運動量・衝突</a>、ばねは <a href="spring.html">第5問：ばね</a>、振り子＋衝突＋摩擦は <a href="pendulum-collide.html">組み合わせ問題W：振り子＋弾性衝突＋摩擦</a>、弾道振り子は <a href="ballistic.html">組み合わせ問題E：弾道振り子</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboPendulumSpringDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
