@@ -334,6 +334,20 @@
 </div>
 
 <div class="card">
+  <h2>組み合わせ問題AM：斜面＋滑車＋ばねの2物体単振動</h2>
+  <p>斜面（θ=30°）の上に質量 2.0 kg の物体を置き、滑車をとおして質量 1.0 kg のおもりとつなぎ、おもりの下にばね（k=120 N/m）をつける。つり合いでは m1 g sinθ = m2 g = 10 N で、ばねは自然長だ。おもりを 0.10 m 下に引いて放すと、2 つ合わせて振る 2 物体単振動になる。角振動数は ω = √(k/(m1+m2)) ≈ 6.3 rad/s、周期は約 0.99 s、最大の速さは 0.63 m/s、最大の加速度は 4.0 m/s²、エネルギーは 0.60 J。振る質量を m1 だけとすると 7.7 rad/s になってしまう罠があり、k を 480 N/m にすると周期は半分、m1 を 5.0 kg にすると 1.40 s になる。橋渡し量は「速さと振幅」。</p>
+  <p><a href="content/mechanics/slope-pulley-spring.html">斜面＋滑車＋ばねの2物体単振動のドリルを開く →</a></p>
+  <p id="progress-combo-slope-pulley-spring">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>組み合わせ問題AN：陰極線管</h2>
+  <p>電子を 1000 V の電圧で加速すると、速さは約 1.9×10⁷ m/s、運動エネルギーは 1000 eV になる。長さ 0.050 m、間隔 0.010 m の偏向板（電圧 50 V）に通すと、板の中の電場は 5000 V/m、加速度は 8.8×10¹⁴ m/s² で、板を出るときに 3.1 mm ずれ、向きは 7.1° 傾く。0.20 m 先のスクリーンでは合計約 28 mm ずれる。加速電圧を 2 倍にするとずれは半分になる罠があり、偏向電圧を 100 V にすると 56 mm、板の長さを 0.10 m にすると 62.5 mm になる。橋渡し量は「速さ」。</p>
+  <p><a href="content/mechanics/cathode-ray.html">陰極線管のドリルを開く →</a></p>
+  <p id="progress-combo-cathode-ray">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
   <h2>第7問：気体＋ピストン</h2>
   <p>シリンダーにピストンがのっている。ピストンの力のつり合いから気体の圧力を、状態方程式から体積と高さを求める。加熱するとピストンが上がる等圧変化で、仕事・内部エネルギー・熱を区別しよう。</p>
   <p><a href="content/mechanics/gas-piston.html">気体＋ピストンのドリルを開く →</a></p>
@@ -628,6 +642,10 @@
       p.comboGeneratorDone ? '進捗：組み合わせ問題AK・回転コイル発電機を完了済み ✓' : '進捗：まだ組み合わせ問題AK・回転コイル発電機は未完了';
     document.getElementById('progress-combo-explode').textContent =
       p.comboExplodeDone ? '進捗：組み合わせ問題AL・空中で分裂する斜方投射を完了済み ✓' : '進捗：まだ組み合わせ問題AL・空中で分裂する斜方投射は未完了';
+    document.getElementById('progress-combo-slope-pulley-spring').textContent =
+      p.comboSlopePulleySpringDone ? '進捗：組み合わせ問題AM・斜面＋滑車＋ばねの2物体単振動を完了済み ✓' : '進捗：まだ組み合わせ問題AM・斜面＋滑車＋ばねの2物体単振動は未完了';
+    document.getElementById('progress-combo-cathode-ray').textContent =
+      p.comboCathodeRayDone ? '進捗：組み合わせ問題AN・陰極線管を完了済み ✓' : '進捗：まだ組み合わせ問題AN・陰極線管は未完了';
     document.getElementById('progress-gas-piston').textContent =
       p.gasPistonDone ? '進捗：第7問・気体＋ピストンを完了済み ✓' : '進捗：まだ第7問・気体＋ピストンは未完了';
     document.getElementById('progress-young').textContent =
@@ -725,6 +743,8 @@
     document.getElementById('progress-combo-otto').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-generator').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-explode').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-slope-pulley-spring').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-cathode-ray').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-gas-piston').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-young').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-capacitor').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';

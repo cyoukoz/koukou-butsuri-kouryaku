@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>組み合わせ問題AN：陰極線管</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body { max-width: 760px; margin: 0 auto; padding: 16px; font-family: sans-serif; line-height: 1.8; }
+h1 { font-size: 22px; }
+.step { border-top: 2px solid #eee; padding: 18px 0; }
+.fig { margin: 12px 0; }
+.fig svg { width: 100%; height: auto; display: block; }
+.check { font-size: 18px; margin-right: 8px; }
+.next { display: inline-block; margin-top: 8px; }
+.toplink { position: fixed; right: 12px; bottom: 12px; background: #fff; border: 1px solid #ccc; padding: 6px 10px; border-radius: 6px; text-decoration: none; }
+.donebox { border: 2px solid #4a4; padding: 14px; margin: 20px 0; }
+table { border-collapse: collapse; margin: 10px 0; }
+th, td { border: 1px solid #999; padding: 6px 8px; text-align: left; }
+</style>
+</head>
+<body id="top">
+<h1>組み合わせ問題AN：陰極線管</h1>
+<p>電子を 1000 V の電圧で加速し、長さ 0.050 m、間隔 0.010 m の偏向板（電圧 50 V）に通し、0.20 m 先のスクリーンに当てる。(1) 電子の速さと運動エネルギーを求めよ。(2) 偏向板の中での運動を求めよ。(3) スクリーンでのずれを求めよ。(4) 加速電圧を 2 倍にするとずれはどうなるか。(5) 偏向電圧を 100 V にする、加速電圧を 4000 V にする、板の長さを 0.10 m にするとどうなるか。</p>
+
+<div class="step">
+<p><b>はじめに：どう切り分けるか</b></p>
+<p>加速 → 偏向板の中 → スクリーンまで → 罠 → 変えたら、の順に区切る。橋渡し量は「速さ」だ。</p>
+<table>
+<tr><th>いつ</th><th>何が起きるか</th><th>橋渡し量</th><th>どこで解くか</th></tr>
+<tr><td>はじめ</td><td>加速</td><td>v=1.9×10⁷ m/s</td><td>ステップ①</td></tr>
+<tr><td>板の中</td><td>偏向</td><td>y1=3.1 mm、θ=7.1°</td><td>ステップ②</td></tr>
+<tr><td>板の外</td><td>直進</td><td>Y=28 mm</td><td>ステップ③</td></tr>
+<tr><td>罠・変えたら</td><td>比例関係</td><td>V0 を 2 倍にすると Y は半分</td><td>ステップ④⑤</td></tr>
+</table>
+<p>図：電子銃で加速した電子が、偏向板で曲がり、スクリーンに当たる。板の中では放物線、板の外では直線を進む。</p>
+<script type="application/json" class="scene-data" data-scene="cathodeRay">{"type":"cathodeRay","phase":"base"}</script>
+<div class="fig" data-fig="cathodeRay"></div>
+</div>
+
+<div class="step">
+<p><b>ステップ① 加速：v≈1.9×10⁷ m/s</b></p>
+<script type="application/json" class="scene-data" data-scene="cathodeRay">{"type":"cathodeRay","phase":"accelerate"}</script>
+<div class="fig" data-fig="cathodeRay"></div>
+<p>電子は 1000 V の電圧で加速される。得る運動エネルギーは KE = eV0 = 1000 eV = 1.6×10⁻¹⁶ J。</p>
+<p>速さは v = √(2eV0/m) = √(2×1.6×10⁻¹⁹×1000/9.11×10⁻³¹) ≈ 1.9×10⁷ m/s。光速の約 6% だ。</p>
+<p><label><input type="checkbox" class="check">① 加速が分かった</label></p>
+<p><a class="next" href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<p><b>ステップ② 偏向板の中：y1=3.1 mm</b></p>
+<script type="application/json" class="scene-data" data-scene="cathodeRay">{"type":"cathodeRay","phase":"deflect"}</script>
+<div class="fig" data-fig="cathodeRay"></div>
+<p>偏向板の間の電場は E = Vd/d = 50/0.010 = 5000 V/m。電子にはたらく力は eE で、加速度は a = eE/m ≈ 8.8×10¹⁴ m/s²。</p>
+<p>板を通る時間は t = l/v = 0.050/1.9×10⁷ ≈ 2.7 ns。この間に下向きに y1 = ½at² ≈ 3.1 mm ずれる。縦の速さは vy = at ≈ 2.3×10⁶ m/s で、板を出るときの進む向きは tanθ = vy/v ≈ 0.125、θ ≈ 7.1° だ。</p>
+<p>板の中で増える運動エネルギーは ½m·vy² ≈ 15.6 eV。電場は仕事をするので、電子のエネルギーは増える。磁場だけでは速さは変わらない、というちがいを思い出そう。</p>
+<p><label><input type="checkbox" class="check">② 偏向板の中が分かった</label></p>
+<p><a class="next" href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<p><b>ステップ③ スクリーン：Y=28 mm</b></p>
+<script type="application/json" class="scene-data" data-scene="cathodeRay">{"type":"cathodeRay","phase":"screen"}</script>
+<div class="fig" data-fig="cathodeRay"></div>
+<p>板を出たあとは電場がないので、電子は θ=7.1° の向きに直進する。0.20 m 先のスクリーンまでのずれは y2 = D·tanθ = 0.20×0.125 = 25 mm。</p>
+<p>スクリーンでのずれの合計は Y = y1 + y2 = 3.1 + 25 ≈ 28 mm。まとめて書くと、Y = (Vd/V0)·(l²/4d + lD/2d) になる。</p>
+<p><label><input type="checkbox" class="check">③ スクリーンが分かった</label></p>
+<p><a class="next" href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<p><b>ステップ④ 罠：加速電圧を 2 倍にすると、ずれは半分</b></p>
+<script type="application/json" class="scene-data" data-scene="cathodeRay">{"type":"cathodeRay","phase":"trap"}</script>
+<div class="fig" data-fig="cathodeRay"></div>
+<p>加速電圧 V0 を 2 倍（2000 V）にすると、電子は速くなるので、板の中にいる時間が短くなり、ずれは小さくなる。Y = (Vd/V0)·(l²/4d + lD/2d) から、Y は V0 に反比例する。V0 を 2 倍にすると Y ≈ 14 mm、つまり半分になる。「速くなるからずれも大きくなる」はまちがいだ。</p>
+<p><label><input type="checkbox" class="check">④ 罠が分かった</label></p>
+<p><a class="next" href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<p><b>ステップ⑤ 変えたら</b></p>
+<script type="application/json" class="scene-data" data-scene="cathodeRay">{"type":"cathodeRay","phase":"vary"}</script>
+<div class="fig" data-fig="cathodeRay"></div>
+<p>偏向電圧 Vd を 100 V にすると、Y は 2 倍の約 56 mm になる。加速電圧 V0 を 4000 V にすると、Y は 1/4 の約 7.0 mm になる。板の長さ l を 0.10 m にすると、y1=12.5 mm、tanθ=0.25、y2=50 mm で、Y=62.5 mm になる。</p>
+<p><label><input type="checkbox" class="check">⑤ 変えたらが分かった</label></p>
+</div>
+
+<div class="donebox">
+<p id="done-message">5つのチェックをすべて入れると完了になります。</p>
+<button id="done-btn">完了にする</button>
+<p>答え：v≈1.9×10⁷ m/s、KE=1000 eV、y1≈3.1 mm、θ≈7.1°、Y≈28 mm。コンデンサは<a href="capacitor.html">第9問：コンデンサ</a>、電場は<a href="coulomb-field.html">第24問：クーロンの法則・電場</a>、光電効果は<a href="photoelectric.html">第15問：光電効果</a>、荷電粒子の運動は<a href="charged-circle.html">組み合わせ問題C：荷電粒子＋円運動</a>、速度選別は<a href="mass-spec.html">組み合わせ問題T：速度選別＋質量分析計</a>、光電効果＋コンデンサは<a href="photo-cap.html">組み合わせ問題X：光電効果＋コンデンサ</a>に戻って確認しよう。</p>
+<p><a href="slope-pulley-spring.html">← 組み合わせ問題AM：斜面＋滑車＋ばねの2物体単振動</a></p>
+</div>
+
+<a class="toplink" href="#top">↑ TOP</a>
+<script src="../../assets/js/figure.js"></script>
+<script src="../../assets/js/idb.js"></script>
+<script>
+renderAllFigures();
+const boxes = Array.from(document.querySelectorAll('.check'));
+const doneBtn = document.getElementById('done-btn');
+const doneMsg = document.getElementById('done-message');
+const doneKey = 'comboCathodeRayDone';
+const allChecked = () => boxes.every(b => b.checked);
+boxes.forEach(b => b.addEventListener('change', () => { doneBtn.disabled = !allChecked(); }));
+doneBtn.disabled = true;
+(async () => {
+  try {
+    const saved = await idbGetProgress();
+    if (saved && saved[doneKey]) { doneMsg.textContent = '完了済み ✓'; doneBtn.disabled = true; }
+  } catch (e) { /* IndexedDB が使えない環境では無視 */ }
+})();
+doneBtn.addEventListener('click', async () => {
+  if (!allChecked()) return;
+  try {
+    const saved = await idbGetProgress();
+    saved[doneKey] = true;
+    await idbSetProgress(saved);
+    doneMsg.textContent = '完了済み ✓';
+    doneBtn.disabled = true;
+  } catch (e) { doneMsg.textContent = '保存できませんでした（IndexedDB が使えません）。'; }
+});
+</script>
+</body>
+</html>
