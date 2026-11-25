@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第26問：空気抵抗・終端速度 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>第26問：空気抵抗・終端速度</h1>
+<p><strong>問題：</strong>質量 0.50 kg の玉を静かに落とす。空気抵抗は速さに比例し、F = kv、k = 0.25 N・s/m とする。重力加速度は g = 10 m/s² とする。(1) 落とし始めの加速度を求めよ。(2) 落ち始めてから 2.0 s 後の速さ、空気抵抗、加速度、落ちた距離を求めよ。(3) 終端速度を求めよ。(4) 質量 1.0 kg の玉（k は同じ）を落としたとき、終端速度と 2.0 s 後の速さはどうなるか。真空の場合と比べよ。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js）が下の JSON データから計算して描いている。重力の矢印はつねに 50 px（mg = 5.0 N × 10 px/N）で変わらないが、空気抵抗の矢印は速さで変わり、速度の矢印は速さ×2 px になっている。v–t グラフの曲線は、v(t) = v<sub>t</sub>(1 − e<sup>−t/τ</sup>) の式から描いている。ラベルは短い名前だけにして、枠からはみ出さないよう描画側で調整している。</p>
+<script type="application/json" id="scene-drag-start">{"type":"drag","phase":"start","massKg":0.5,"dragK":0.25,"g":10,"heavyMassKg":1.0,"tMidS":2}</script>
+<script type="application/json" id="scene-drag-mid">{"type":"drag","phase":"mid","massKg":0.5,"dragK":0.25,"g":10,"heavyMassKg":1.0,"tMidS":2}</script>
+<script type="application/json" id="scene-drag-terminal">{"type":"drag","phase":"terminal","massKg":0.5,"dragK":0.25,"g":10,"heavyMassKg":1.0,"tMidS":2}</script>
+<script type="application/json" id="scene-drag-heavy">{"type":"drag","phase":"heavy","massKg":0.5,"dragK":0.25,"g":10,"heavyMassKg":1.0,"tMidS":2}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：抵抗は速さで決まる</h2>
+  <p>空気の中を落ちる玉には、重力 mg のほかに、空気抵抗がはたらく。空気抵抗は、速いほど大きくなる。ここでは速さ v に比例するとして、F = kv とする。k は空気抵抗の係数だ。速さが 0 のとき抵抗は 0、速さが 2 倍になれば抵抗も 2 倍になる。</p>
+  <p>玉の運動方程式は、ma = mg − kv だ。速さが上がると抵抗が増えて、合力が小さくなる。合力が 0 になったところで、玉はそれ以上速くならない。その速さを終端速度といい、v<sub>t</sub> = mg / k で決まる。この問題の中心は、「重力はつねに同じなのに、合力は速さで変わる」ことだ。</p>
+  <svg class="fig" data-scene="scene-drag-start" data-show="gravity" width="100%" role="img" aria-label="落とし始めの玉と重力の矢印"></svg>
+  <p>落とし始めは、まだ速さが 0 なので空気抵抗はない。重力だけがはたらいている。</p>
+  <a class="next" href="#step1">次へ ↓ ①落とし始め</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 落とし始め：加速度 10 m/s²、抵抗は 0</h2>
+  <svg class="fig" data-scene="scene-drag-start" data-show="gravity" width="100%" role="img" aria-label="落とし始めの玉と重力"></svg>
+  <p>落とし始めは v = 0 だから、空気抵抗 F = kv = 0 だ。はたらく力は重力 mg = 0.50 × 10 = <strong>5.0 N</strong> だけ。加速度は、a = F / m = 5.0 / 0.50 = <strong>10 m/s²</strong>。つまり、はじめの一瞬だけは、真空で落とすのと同じだ。</p>
+  <p>図の重力の矢印は 50 px で、このあとのステップでも長さは変わらない。重力は速さによらずつねに 5.0 N だからだ。変わるのは空気抵抗の矢印と速度の矢印だけだ。ここを区別するのが、この問題の第一歩だ。</p>
+  <label><input type="checkbox" class="check"> 落とし始めは抵抗が 0 で、加速度は 10 m/s² と分かった</label>
+  <br><a class="next" href="#step2">次へ ↓ ②2.0 s 後</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 2.0 s 後：速さ 12.6 m/s、抵抗 3.16 N、加速度 3.68 m/s²</h2>
+  <svg class="fig" data-scene="scene-drag-mid" data-show="gravity,drag,velocity" width="100%" role="img" aria-label="t=2.0秒の玉と重力・空気抵抗・速度の矢印"></svg>
+  <p>空気抵抗がある落下の速さは、v(t) = v<sub>t</sub>(1 − e<sup>−t/τ</sup>) で表される。ここで終端速度 v<sub>t</sub> = mg / k = 5.0 / 0.25 = 20 m/s、時定数 τ = m / k = 0.50 / 0.25 = 2.0 s だ。t = 2.0 s では、v = 20 × (1 − e<sup>−1</sup>) ≈ 20 × 0.632 = <strong>12.6 m/s</strong> になる。</p>
+  <p>このときの空気抵抗は、F = kv = 0.25 × 12.6 ≈ <strong>3.16 N</strong>。合力は 5.0 − 3.16 = <strong>1.84 N</strong> で、加速度は a = 1.84 / 0.50 ≈ <strong>3.68 m/s²</strong>。はじめの 10 m/s² から、ずいぶん小さくなっている。落ちた距離は、x = v<sub>t</sub>(t − τ(1 − e<sup>−t/τ</sup>)) = 20 × (2.0 − 2.0 × 0.632) ≈ <strong>14.7 m</strong> だ。真空なら 2.0 s で 20 m 落ちるので、空気抵抗があると遅れることが分かる。</p>
+  <label><input type="checkbox" class="check"> 2.0 s 後は速さ 12.6 m/s、抵抗 3.16 N、加速度 3.68 m/s² と分かった</label>
+  <br><a class="next" href="#step3">次へ ↓ ③終端速度</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 終端速度：20 m/s、抵抗 = 重力、加速度 0</h2>
+  <svg class="fig" data-scene="scene-drag-terminal" data-show="gravity,drag,velocity" width="100%" role="img" aria-label="終端速度で落ちる玉とつり合った力"></svg>
+  <p>速さが上がるにつれて空気抵抗は大きくなり、やがて重力と等しくなる。そのとき合力は 0 になり、加速度も 0 になる。玉はそれ以上速くならず、一定の速さで落ち続ける。この速さが終端速度だ。mg = kv<sub>t</sub> より、v<sub>t</sub> = mg / k = 5.0 / 0.25 = <strong>20 m/s</strong> になる。</p>
+  <p>終端速度では、空気抵抗は 0.25 × 20 = <strong>5.0 N</strong> で、重力とつり合っている。図でも、重力の矢印と空気抵抗の矢印が同じ長さになっている。重力が消えたわけではない。2つの力がつり合って、合力が 0 になっただけだ。「終端速度では力がはたらいていない」と思うと、ここで間違う。</p>
+  <label><input type="checkbox" class="check"> 終端速度は 20 m/s で、抵抗と重力がつり合って加速度が 0 になると分かった</label>
+  <br><a class="next" href="#step4">次へ ↓ ④重い玉</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 重い玉：終端速度 40 m/s、2.0 s 後は 15.7 m/s</h2>
+  <svg class="fig" data-scene="scene-drag-heavy" data-show="" width="100%" role="img" aria-label="軽い玉と重い玉のv-tグラフ"></svg>
+  <p>質量 1.0 kg の玉（k は同じ 0.25 N・s/m）を落とすと、重力は 10 N になる。終端速度は v<sub>t</sub> = mg / k = 10 / 0.25 = <strong>40 m/s</strong> で、軽い玉の 2 倍だ。時定数も τ = m / k = 1.0 / 0.25 = 4.0 s と 2 倍になる。t = 2.0 s での速さは、v = 40 × (1 − e<sup>−0.5</sup>) ≈ 40 × 0.393 = <strong>15.7 m/s</strong> で、軽い玉の 12.6 m/s より速い。</p>
+  <p>真空なら、重い玉も軽い玉も、2.0 s 後の速さは gt = 20 m/s で同じだ。「重いものほど速く落ちる」というのは、真空では間違いだ。でも空気があると、重い玉のほうが終端速度が大きく、実際に速く落ちる。ガリレオの話と、雨粒やパラシュートの話は、条件が違う。「重いほど速い」がいつ成り立ち、いつ成り立たないか。ここがこの問題の中心の罠だ。</p>
+  <label><input type="checkbox" class="check"> 重い玉は終端速度 40 m/s で、2.0 s 後も軽い玉より速いと分かった</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ：重力は一定、合力は速さで変わる</h2>
+  <svg class="fig" data-scene="scene-drag-terminal" data-show="gravity,drag,velocity" width="100%" role="img" aria-label="空気抵抗・終端速度のまとめの図"></svg>
+  <p>ma = mg − kv。重力はつねに同じだが、空気抵抗は速さで増える。だから加速度はだんだん小さくなり、速さは終端速度 v<sub>t</sub> = mg / k に近づく。重い玉ほど終端速度は大きい。真空では質量によらない。この3つを区別できれば、空気抵抗の問題は解ける。</p>
+  <label><input type="checkbox" class="check"> 重力は一定で、合力は速さで変わり、速さは終端速度に近づくと分かった</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 加速度 10 m/s²。(2) 速さ約 12.6 m/s、抵抗約 3.16 N、加速度約 3.68 m/s²、落ちた距離約 14.7 m。(3) 終端速度 20 m/s。(4) 重い玉は終端速度 40 m/s、2.0 s 後の速さ約 15.7 m/s。真空なら 2.0 s 後の速さはどちらも 20 m/s。空気のない落下は <a href="freefall.html">自由落下・鉛直投げ上げ</a>、空気の分子の衝突は <a href="kinetic-theory.html">第22問：分子運動論</a> でも確かめられる。</p>
+  <p>次は準備中です。<a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.dragDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>

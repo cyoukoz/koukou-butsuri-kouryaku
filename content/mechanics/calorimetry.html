@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第25問：熱量・比熱 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>第25問：熱量・比熱</h1>
+<p><strong>問題：</strong>水 0.20 kg（比熱 4200 J/(kg・K)）を 20°C から 80°C に温める。(1) 必要な熱量と、水の熱容量を求めよ。(2) 銅 0.50 kg（比熱 390 J/(kg・K)）を 50 K 温めるのに必要な熱量を求め、その熱量を水 0.20 kg に与えたときの温度上昇と比べよ。(3) 80°C の水 0.20 kg と 20°C の水 0.30 kg を混ぜたときの温度を求めよ。(4) 0°C の氷 0.10 kg をとかすのに必要な熱量を求めよ。融解熱は 3.3×10⁵ J/kg とする。とけた水を 20°C まで温めるのに必要な熱量も求めよ。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js）が下の JSON データから計算して描いている。熱量の矢印は 1 px/1000 J で、50400 J は約 50 px、33000 J は 33 px になっている。温度の棒の高さも、温度の上がり幅そのものから計算している。ラベルは短い名前だけにして、枠からはみ出さないよう描画側で調整している。</p>
+<script type="application/json" id="scene-cal-compare">{"type":"calorimetry","phase":"compare","waterMassKg":0.2,"waterC":4200,"t1C":20,"t2C":80,"copperMassKg":0.5,"copperC":390,"copperDT":50,"mixMass2Kg":0.3,"mixT2C":20,"iceMassKg":0.1,"latentJperKg":330000}</script>
+<script type="application/json" id="scene-cal-heat">{"type":"calorimetry","phase":"heat","waterMassKg":0.2,"waterC":4200,"t1C":20,"t2C":80,"copperMassKg":0.5,"copperC":390,"copperDT":50,"mixMass2Kg":0.3,"mixT2C":20,"iceMassKg":0.1,"latentJperKg":330000}</script>
+<script type="application/json" id="scene-cal-mix">{"type":"calorimetry","phase":"mix","waterMassKg":0.2,"waterC":4200,"t1C":20,"t2C":80,"copperMassKg":0.5,"copperC":390,"copperDT":50,"mixMass2Kg":0.3,"mixT2C":20,"iceMassKg":0.1,"latentJperKg":330000}</script>
+<script type="application/json" id="scene-cal-latent">{"type":"calorimetry","phase":"latent","waterMassKg":0.2,"waterC":4200,"t1C":20,"t2C":80,"copperMassKg":0.5,"copperC":390,"copperDT":50,"mixMass2Kg":0.3,"mixT2C":20,"iceMassKg":0.1,"latentJperKg":330000}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：熱と温度は別物</h2>
+  <p>「熱い」と「温度が高い」は、日常では同じように使うが、物理では別物だ。温度は、ものの温かさの度合い。熱は、温度差があるときに移動するエネルギーの量だ。ものを温めるのに必要な熱量は、Q = mcΔT で決まる。m は質量、c は比熱、ΔT は温度の上がり幅だ。比熱 c は、1 kg の物質を 1 K 温めるのに必要な熱量で、物質ごとに決まっている。水の比熱は 4200 J/(kg・K) と大きい。だから水は温まりにくく、冷めにくい。</p>
+  <p>mc をまとめて熱容量 C と呼ぶ。C は、そのもの全体を 1 K 温めるのに必要な熱量だ。水 0.20 kg なら C = 0.20 × 4200 = <strong>840 J/K</strong>。熱と温度の区別が、この問題の中心だ。「たくさん熱を与えたから、温度もたくさん上がるはず」と思うと、ここで間違う。</p>
+  <svg class="fig" data-scene="scene-cal-compare" data-show="" width="100%" role="img" aria-label="同じ熱量を与えた銅と水の温度上昇の違い"></svg>
+  <p>図の右側の棒は、同じ熱量を与えたときの温度の上がり幅だ。銅の棒は高く、水の棒は低い。同じ熱でも、上がり方は違う。</p>
+  <a class="next" href="#step1">次へ ↓ ①水を温める</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 水を温める：Q = 50400 J、熱容量 840 J/K</h2>
+  <svg class="fig" data-scene="scene-cal-heat" data-show="heatIn" width="100%" role="img" aria-label="水を温めるビーカーと熱の矢印"></svg>
+  <p>水 0.20 kg を 20°C から 80°C に温める。温度の上がり幅は ΔT = 80 − 20 = 60 K だ。必要な熱量は、Q = mcΔT = 0.20 × 4200 × 60 = <strong>50400 J</strong>。約 5.0×10⁴ J だ。熱容量は C = mc = 0.20 × 4200 = <strong>840 J/K</strong>。これを使うと、Q = CΔT = 840 × 60 = 50400 J と同じ答えになる。</p>
+  <p>単位に注意する。比熱の単位は J/(kg・K) で、kg と K をかけると J になる。温度の「上がり幅」は、℃で測っても K で測っても同じ 60 だ。20°C から 80°C への変化は 60 K の変化と同じだからだ。絶対温度に直す必要はない。</p>
+  <label><input type="checkbox" class="check"> 水 0.20 kg を 20°C から 80°C に温めるのに 50400 J、熱容量は 840 J/K と分かった</label>
+  <br><a class="next" href="#step2">次へ ↓ ②同じ熱量を銅と水に</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 同じ熱量を銅と水に：銅は 50 K、水は約 12 K</h2>
+  <svg class="fig" data-scene="scene-cal-compare" data-show="" width="100%" role="img" aria-label="銅と水の温度上昇の棒グラフ"></svg>
+  <p>銅 0.50 kg を 50 K 温めるのに必要な熱量は、Q = mcΔT = 0.50 × 390 × 50 = <strong>9750 J</strong>。銅の熱容量は C = 0.50 × 390 = 195 J/K と小さい。だから 9750 J でも 50 K も上がる。</p>
+  <p>では、同じ 9750 J を水 0.20 kg に与えたらどうなるか。水の熱容量は 840 J/K だから、ΔT = Q / C = 9750 / 840 ≈ <strong>11.6 K</strong>。銅の 50 K の 4 分の 1 以下しか上がらない。同じ熱量でも、熱容量が違えば温度の上がり方は違う。熱量と温度上昇を混同すると、ここで間違う。図の棒の高さの違いが、そのまま熱容量の違いだ。</p>
+  <label><input type="checkbox" class="check"> 同じ 9750 J でも、銅は 50 K、水は約 12 K しか上がらないと分かった</label>
+  <br><a class="next" href="#step3">次へ ↓ ③混ぜる</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 混ぜる：44°C、失った熱 = 得た熱</h2>
+  <svg class="fig" data-scene="scene-cal-mix" data-show="heatFlow" width="100%" role="img" aria-label="80°Cの水と20°Cの水を混ぜる図"></svg>
+  <p>80°C の水 0.20 kg と 20°C の水 0.30 kg を混ぜる。熱は、熱いほうから冷たいほうへ流れる。混ぜたあとの温度を T とすると、熱い水が失う熱量は、Q<sub>失</sub> = 0.20 × 4200 × (80 − T)。冷たい水が得る熱量は、Q<sub>得</sub> = 0.30 × 4200 × (T − 20) だ。熱は逃げないので、Q<sub>失</sub> = Q<sub>得</sub> になる。</p>
+  <p>0.20 × (80 − T) = 0.30 × (T − 20) を解くと、16 − 0.20T = 0.30T − 6、22 = 0.50T だから T = <strong>44°C</strong>。失った熱も得た熱も、0.20 × 4200 × 36 = <strong>30240 J</strong> で一致する。混ぜた温度は、ただの平均 (80 + 20) / 2 = 50°C ではない。量が多いほうの温度に引っ張られる。ここが混合問題の中心の罠だ。</p>
+  <label><input type="checkbox" class="check"> 混ぜると 44°C になり、失った熱と得た熱が 30240 J で一致すると分かった</label>
+  <br><a class="next" href="#step4">次へ ↓ ④氷をとかす</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 氷をとかす：33000 J、温度は 0°C のまま</h2>
+  <svg class="fig" data-scene="scene-cal-latent" data-show="heatMelt" width="100%" role="img" aria-label="氷がとけるときの温度と熱量のグラフ"></svg>
+  <p>0°C の氷 0.10 kg をとかす。氷が水に変わるとき、温度は 0°C のままで変わらない。熱は、氷の結びつきをほどくのに使われる。この熱を潜熱（融解熱）という。必要な熱量は、Q = mL = 0.10 × 3.3×10⁵ = <strong>33000 J</strong>。温度を上げる熱ではないので、mcΔT では計算できない。</p>
+  <p>とけた水を 20°C まで温めるには、さらに Q = 0.10 × 4200 × 20 = <strong>8400 J</strong> が必要だ。氷から 20°C の水まで、合計で 33000 + 8400 = <strong>41400 J</strong> になる。図のグラフを見ると、横軸の熱量が増えているあいだ、温度は 0°C で横ばいになり、とけきってから上がり始める。「熱を与えたら温度が上がる」と思い込むと、ここで間違う。</p>
+  <label><input type="checkbox" class="check"> 氷をとかすのに 33000 J かかり、そのあいだ温度は 0°C のままと分かった</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ：Q = mcΔT と Q = mL を使い分ける</h2>
+  <svg class="fig" data-scene="scene-cal-heat" data-show="heatIn" width="100%" role="img" aria-label="熱量・比熱のまとめの図"></svg>
+  <p>温度が変わるときは Q = mcΔT、状態が変わるときは Q = mL を使う。熱容量 C = mc が小さいものほど、同じ熱量で温度が大きく上がる。混ぜるときは、失った熱と得た熱が等しい。熱と温度を区別できれば、熱量の問題は解ける。</p>
+  <label><input type="checkbox" class="check"> 温度が変わるときは mcΔT、状態が変わるときは mL と分かった</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 50400 J、熱容量 840 J/K。(2) 銅は 9750 J、その熱量で水は約 12 K しか上がらない。(3) 44°C。(4) 氷をとかすのに 33000 J、とけた水を 20°C まで温めるのに 8400 J、合計 41400 J。気体の熱については <a href="gas-piston.html">第7問：気体＋ピストン</a>、熱のサイクルは <a href="heat-cycle.html">第16問：熱サイクル・熱機関</a> でも確かめられる。</p>
+  <p>次は準備中です。<a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.calorimetryDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
