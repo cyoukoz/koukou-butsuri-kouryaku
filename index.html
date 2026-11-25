@@ -390,6 +390,20 @@
 </div>
 
 <div class="card">
+  <h2>組み合わせ問題AU：斜方投射＋空気抵抗＋エネルギー</h2>
+  <p>質量 0.50 kg の玉を速さ 20 m/s、仰角 45° で投げる。空気抵抗は F = k v²（k = 0.010 kg/m）で、打ち出しの瞬間は 4.0 N、重力 5.0 N と同じくらい大きい。終端速度は 22 m/s。軌道は数値積分で求めると、飛距離 26 m、滞空 2.5 s、最高点 7.7 m、着地の速さ 14 m/s で、抵抗がなければ 40 m、2.8 s、10 m、20 m/s になる。運動エネルギーは 100 J から 46 J に減り、54 J が空気抵抗の仕事で熱になる。質量を 1.0 kg にすると飛距離は 31 m、初速度を 10 m/s にすると 8.7 m になる。橋渡し量は「速さ・エネルギー」。</p>
+  <p><a href="content/mechanics/proj-drag.html">斜方投射＋空気抵抗＋エネルギーのドリルを開く →</a></p>
+  <p id="progress-combo-proj-drag">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>組み合わせ問題AV：振り子＋弾性衝突＋ばね＋摩擦</h2>
+  <p>長さ 1.0 m の糸につるした質量 1.0 kg の玉を高さ 0.20 m から放すと、最下点で速さ 2.0 m/s になる。等質量の弾性衝突でブロックが 2.0 m/s をもらい、ばね（k = 100 N/m）を押す。床の摩擦は 2.0 N で、ばねの振動のつり合いの位置がずれるため、最大の縮みは 0.18 m（摩擦がなければ 0.20 m）、ばねの力は 18 N になる。ブロックは 0.32 s で戻ってきて速さは 1.6 m/s になり、再衝突で玉は 0.13 m まで振り上がる。往復で摩擦熱は 0.72 J になる。μ = 0.40 なら最大の縮みは 0.16 m、k = 200 N/m なら 0.13 m になる。橋渡し量は「速さ・エネルギー」。</p>
+  <p><a href="content/mechanics/pendulum-spring-fric.html">振り子＋弾性衝突＋ばね＋摩擦のドリルを開く →</a></p>
+  <p id="progress-combo-pendulum-spring-fric">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
   <h2>第7問：気体＋ピストン</h2>
   <p>シリンダーにピストンがのっている。ピストンの力のつり合いから気体の圧力を、状態方程式から体積と高さを求める。加熱するとピストンが上がる等圧変化で、仕事・内部エネルギー・熱を区別しよう。</p>
   <p><a href="content/mechanics/gas-piston.html">気体＋ピストンのドリルを開く →</a></p>
@@ -700,6 +714,10 @@
       p.comboPhotoCapCircleDone ? '進捗：組み合わせ問題AS・光電効果＋コンデンサ＋磁場円運動を完了済み ✓' : '進捗：まだ組み合わせ問題AS・光電効果＋コンデンサ＋磁場円運動は未完了';
     document.getElementById('progress-combo-ac-rlc').textContent =
       p.comboAcRlcDone ? '進捗：組み合わせ問題AT・交流RLC回路＋共振＋電力を完了済み ✓' : '進捗：まだ組み合わせ問題AT・交流RLC回路＋共振＋電力は未完了';
+    document.getElementById('progress-combo-proj-drag').textContent =
+      p.comboProjDragDone ? '進捗：組み合わせ問題AU・斜方投射＋空気抵抗＋エネルギーを完了済み ✓' : '進捗：まだ組み合わせ問題AU・斜方投射＋空気抵抗＋エネルギーは未完了';
+    document.getElementById('progress-combo-pendulum-spring-fric').textContent =
+      p.comboPendulumSpringFricDone ? '進捗：組み合わせ問題AV・振り子＋弾性衝突＋ばね＋摩擦を完了済み ✓' : '進捗：まだ組み合わせ問題AV・振り子＋弾性衝突＋ばね＋摩擦は未完了';
     document.getElementById('progress-gas-piston').textContent =
       p.gasPistonDone ? '進捗：第7問・気体＋ピストンを完了済み ✓' : '進捗：まだ第7問・気体＋ピストンは未完了';
     document.getElementById('progress-young').textContent =
@@ -805,6 +823,8 @@
     document.getElementById('progress-combo-rlc-charge').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-photo-cap-circle').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-ac-rlc').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-proj-drag').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-pendulum-spring-fric').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-gas-piston').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-young').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-capacitor').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
