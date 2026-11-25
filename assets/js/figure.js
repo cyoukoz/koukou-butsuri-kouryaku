@@ -1,4 +1,4 @@
-// 高校物理攻略 — 図描画シミュレータ（試作 v2.5：組み合わせW 振り子＋弾性衝突＋摩擦・組み合わせX 光電効果＋コンデンサ 追加）
+// 高校物理攻略 — 図描画シミュレータ（試作 v2.6：組み合わせY 人工衛星の軌道遷移・組み合わせZ サイクロトロン 追加）
 // 方針：図は手書きの座標を直書きしない。入力は JSON の「物理データ」だけ。
 // 描画側が角度・つり合いから矢印の向きと長さを計算する。
 // だから mg sinθ が mg と同じ長さになる、θ が消える、ラベルが切れる、
@@ -1538,6 +1538,130 @@ function photoCapDerived(data) {
 
 function photoCapForces() {
   return []; // 矢印はすべて drawBase が場面ごとに描く。
+}
+
+// ---- 人工衛星の軌道遷移（組み合わせY）：万有引力＋円運動＋エネルギー（ホーマン遷移） ----
+// 具体値（検算済み）：g0=10、R=6.4×10⁶ m、GM=g0R²=4.096×10¹⁴、低軌道 r1=6.8×10⁶ m（高度 400 km）、
+//   静止軌道 r2=4.22×10⁷ m（高度 35800 km）。Q13 と同じ定数。
+//   低軌道：v1=√(GM/r1)=7.76 km/s、T1=2π√(r1³/GM)=5505 s≈92 分、g1=8.86 m/s²。
+//   静止軌道：v2=√(GM/r2)=3.12 km/s、T2≈85108 s≈23.6 h（約24時間）、g2=0.23 m/s²。
+//   遷移楕円：a=(r1+r2)/2=2.45×10⁷ m、近地点 vp=√(GM(2/r1−1/a))=10.19 km/s、
+//     遠地点 va=√(GM(2/r2−1/a))=1.64 km/s。Δv1=2.42 km/s、Δv2=1.47 km/s。
+//   遷移時間 = π√(a³/GM)=18824 s≈5.2 h。
+//   単位質量あたりのエネルギー E=−GM/(2r)（円軌道）、E=−GM/(2a)（楕円軌道）：
+//     低軌道 −30.1 MJ/kg、遷移楕円 −8.36 MJ/kg、静止軌道 −4.85 MJ/kg。
+//     エンジンが与えるエネルギー：ΔE1=21.8 MJ/kg、ΔE2=3.5 MJ/kg。
+//   近地点：KE=51.9 MJ/kg、PE=−60.2 MJ/kg。遠地点：KE=1.35 MJ/kg、PE=−9.71 MJ/kg。
+//   罠：遠地点で加速しないと楕円軌道のままで静止軌道に乗れない。低軌道は速いのにエネルギーは小さい。
+// 図の配置：中心 (200,150)、地球の半径 24 px、低軌道の半径 85 px、静止軌道の半径 90 px。
+//   遷移楕円：中心 (197.5,150)、横半径 87.5 px、縦半径 60 px。近地点 (285,150)、遠地点 (110,150)。
+//   速さの矢印：0.008 px/(m/s)。重力の矢印：4 px/(m/s²)。軌道の大きさは模式図。
+function orbitTransferDerived(data) {
+  const g0 = data.g0 || 10;
+  const R = data.radiusM || 6.4e6;
+  const GM = g0 * R * R;
+  const r1 = R + data.altitude1M;
+  const r2 = R + data.altitude2M;
+  const v1 = Math.sqrt(GM / r1);
+  const v2 = Math.sqrt(GM / r2);
+  const period1S = 2 * Math.PI * Math.sqrt((r1 ** 3) / GM);
+  const period2S = 2 * Math.PI * Math.sqrt((r2 ** 3) / GM);
+  const g1 = g0 * (R / r1) ** 2;
+  const g2 = g0 * (R / r2) ** 2;
+  const a = (r1 + r2) / 2;
+  const vp = Math.sqrt(GM * (2 / r1 - 1 / a));
+  const va = Math.sqrt(GM * (2 / r2 - 1 / a));
+  const dv1 = vp - v1;
+  const dv2 = v2 - va;
+  const tTransferS = Math.PI * Math.sqrt((a ** 3) / GM);
+  const e1Jkg = -GM / (2 * r1);
+  const etJkg = -GM / (2 * a);
+  const e2Jkg = -GM / (2 * r2);
+  const dE1Jkg = etJkg - e1Jkg;
+  const dE2Jkg = e2Jkg - etJkg;
+  const kePeriJkg = 0.5 * vp * vp;
+  const pePeriJkg = -GM / r1;
+  const keApoJkg = 0.5 * va * va;
+  const peApoJkg = -GM / r2;
+  return {
+    g0, R, GM, r1, r2, v1, v2, period1S, period2S, g1, g2, a, vp, va, dv1, dv2,
+    tTransferS, e1Jkg, etJkg, e2Jkg, dE1Jkg, dE2Jkg,
+    kePeriJkg, pePeriJkg, keApoJkg, peApoJkg,
+    center: { x: 200, y: 150 }, earthPx: 24, lowPx: 85, geoPx: 90,
+    ellipse: { cx: 197.5, cy: 150, rx: 87.5, ry: 60 },
+    vScalePxPerMs: 0.008, gScalePxPerMs2: 4,
+  };
+}
+
+function orbitTransferForces(data) {
+  const d = orbitTransferDerived(data);
+  if (data.phase === 'low') {
+    // 低軌道の上端の衛星：重力（下向き）と速さ（右向き・破線）。
+    // 重力のラベルは矢印の先端から左下の空きに置く（地球の円と重ならない）。
+    // 速さのラベルは矢印の先端から下の空きに置く（上の見出しと重ならない）。
+    return [
+      { id: 'gravity', short: 'g=8.9 m/s²', color: '#b00', vector: [0, d.g1 * d.gScalePxPerMs2], labelDx: -55, labelDy: 18, from: { x: 200, y: 65 } },
+      { id: 'velocity', short: 'v=7.76 km/s', color: '#d35400', vector: [d.v1 * d.vScalePxPerMs, 0], dashed: true, labelDx: 6, labelDy: 16, from: { x: 200, y: 65 } },
+    ];
+  }
+  return []; // base・transfer・apogee・energy・trap：矢印は drawBase が描く。
+}
+
+// ---- サイクロトロン（組み合わせZ）：電場加速＋磁場円運動＋エネルギー ----
+// 具体値（検算済み）：陽子 m=1.67×10⁻²⁷ kg、q=1.602×10⁻¹⁹ C、B=1.0 T、D電極の半径 R=0.50 m、D電極間の電圧 10 kV。
+//   周期 T=2πm/qB=65.5 ns（速さによらない）、振動数 f=15.3 MHz、半周 32.7 ns。
+//   最大の速さ v_max=qBR/m=4.80×10⁷ m/s、運動エネルギー KE=½mv²=1.92×10⁻¹² J=12.0 MeV。
+//   1周で得るエネルギー 2qV=20 keV。周回数 12 MeV/20 keV=600 周。かかる時間 600×65.5 ns=39 μs。
+//   n 周後の半径 r=√(2m·KE)/(qB)：1周 0.020 m、10周 0.065 m、100周 0.20 m、300周 0.35 m、600周 0.50 m。
+//   罠：周期は速さによらない。半径は √n で大きくなる（線形だと 600周で 12 m）。磁場は仕事をしない。
+//   12 MeV は陽子の静止エネルギー 938 MeV に比べて小さいので、非相対論の式でよい（誤差 約1%）。
+// 図の配置：D電極は半径 80 px の半円2つ（中心 (200,150)）。渦巻きは r=8 px から 60 px まで（D電極の半径 0.50 m → 120 px/m）。
+//   円運動の図：半径 80 px。最大の速さの図：半径 85 px（中心 (200,155)）。速さの矢印：1.0×10⁻⁶ px/(m/s)。
+function cyclotronDerived(data) {
+  const q = data.qC, m = data.mKg, B = data.bT, R = data.deeRM;
+  const vDeeV = data.deeVKv * 1000;
+  const periodS = (2 * Math.PI * m) / (q * B);
+  const freqHz = 1 / periodS;
+  const halfTurnS = periodS / 2;
+  const vMaxMs = (q * B * R) / m;
+  const keMaxJ = 0.5 * m * vMaxMs * vMaxMs;
+  const keMaxMeV = keMaxJ / q / 1e6;
+  const gainPerTurnJ = 2 * q * vDeeV;
+  const gainPerTurnKeV = gainPerTurnJ / q / 1000;
+  const turns = keMaxJ / gainPerTurnJ;
+  const totalTimeS = turns * periodS;
+  const rAfterTurns = [1, 10, 100, 300, 600].map((n) => ({
+    n, rM: Math.sqrt((2 * m * n * gainPerTurnJ) / (q * B) ** 2),
+  }));
+  const vAfter1TurnMs = Math.sqrt((2 * gainPerTurnJ) / m);
+  const restMeV = (m * 9e16) / q / 1e6;
+  return {
+    q, m, B, R, vDeeV, periodS, freqHz, halfTurnS, vMaxMs, keMaxJ, keMaxMeV,
+    gainPerTurnJ, gainPerTurnKeV, turns, totalTimeS, rAfterTurns, vAfter1TurnMs, restMeV,
+    center: { x: 200, y: 150 }, deePx: 80, spiralMaxPx: 60,
+    vScalePxPerMs: 1e-6,
+  };
+}
+
+function cyclotronForces(data) {
+  const d = cyclotronDerived(data);
+  if (data.phase === 'period') {
+    // 円運動の上端の陽子：速さ（右向き・破線）とローレンツ力（中心向き）。
+    // 速さの矢印は模式的に 40 px。ローレンツ力の矢印は 30 px。
+    // 速さのラベルは矢印の先端から上の空きに置く。ローレンツ力のラベルは矢印の右の空きに置く。
+    return [
+      { id: 'velocity', short: '速さ v', color: '#d35400', vector: [40, 0], dashed: true, labelDx: 6, labelDy: -8, from: { x: 200, y: 70 } },
+      { id: 'lorentz', short: 'qvB', color: '#0066cc', vector: [0, 30], labelDx: 8, labelDy: -8, from: { x: 200, y: 70 } },
+    ];
+  }
+  if (data.phase === 'max') {
+    // 最大の速さ（右向き・破線）。矢印は 1.0×10⁻⁶ px/(m/s) で 48 px。
+    // ラベルは矢印の先端から上の空きに置く（円の外なので重ならない）。
+    return [
+      { id: 'velocity', short: 'v=4.8×10⁷ m/s', color: '#d35400', vector: [d.vMaxMs * d.vScalePxPerMs, 0], dashed: true, labelDx: 6, labelDy: -8, from: { x: 200, y: 70 } },
+    ];
+  }
+  return []; // base・turns・radius・trap：矢印は drawBase が描く。
 }
 
 // ---- 円運動（M11）：水平面内の円運動と、鉛直面内のループ ----
@@ -3358,6 +3482,26 @@ function sceneFor(type, thetaDeg, mgPx, fPx, data) {
       forces: photoCapForces(data),
     };
   }
+  if (type === 'orbitTransfer') {
+    const d = orbitTransferDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      radiusM: data.radiusM, altitude1M: data.altitude1M, altitude2M: data.altitude2M, g0: data.g0 || 10,
+      derived: d,
+      center: { x: 200, y: 150 }, centerDot: false,
+      forces: orbitTransferForces(data),
+    };
+  }
+  if (type === 'cyclotron') {
+    const d = cyclotronDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      qC: data.qC, mKg: data.mKg, bT: data.bT, deeRM: data.deeRM, deeVKv: data.deeVKv,
+      derived: d,
+      center: { x: 200, y: 150 }, centerDot: false,
+      forces: cyclotronForces(data),
+    };
+  }
   if (type === 'slopePulley') {
     return {
       type, phase: (data && data.phase) || 'connected',
@@ -4276,6 +4420,55 @@ function validateScene(scene) {
     // 650 nm の光は仕事関数よりエネルギーが小さく、電子は出ない。限界波長は 620 nm。
     if (d.emitted650) return ['650 nm の光で電子が出ることになっています'];
     if (Math.abs(d.thresholdNm - d.hcEvNm / scene.workFunctionEv) > 1e-9) return ['限界波長が hc/φ と一致しません'];
+  }
+  if (scene.type === 'orbitTransfer') {
+    const d = scene.derived;
+    // 円軌道の条件：v² = GM/r（低軌道・静止軌道とも）。
+    if (Math.abs(d.v1 * d.v1 - d.GM / d.r1) / d.v1 > 1e-9) return ['低軌道の速さが √(GM/r) と一致しません'];
+    if (Math.abs(d.v2 * d.v2 - d.GM / d.r2) / d.v2 > 1e-9) return ['静止軌道の速さが √(GM/r) と一致しません'];
+    // ケプラーの第三法則：T² = 4π²r³/GM。
+    if (Math.abs(d.period1S * d.period1S - (4 * Math.PI * Math.PI * (d.r1 ** 3)) / d.GM) / (d.period1S * d.period1S) > 1e-9) return ['低軌道の周期がケプラーの第三法則と一致しません'];
+    if (Math.abs(d.period2S * d.period2S - (4 * Math.PI * Math.PI * (d.r2 ** 3)) / d.GM) / (d.period2S * d.period2S) > 1e-9) return ['静止軌道の周期がケプラーの第三法則と一致しません'];
+    // 遷移楕円：vp² = GM(2/r1 − 1/a)、va² = GM(2/r2 − 1/a)。
+    if (Math.abs(d.vp * d.vp - d.GM * (2 / d.r1 - 1 / d.a)) / d.vp > 1e-9) return ['近地点の速さが楕円軌道の式と一致しません'];
+    if (Math.abs(d.va * d.va - d.GM * (2 / d.r2 - 1 / d.a)) / d.va > 1e-9) return ['遠地点の速さが楕円軌道の式と一致しません'];
+    // Δv と遷移時間：遷移時間 = π√(a³/GM)。
+    if (Math.abs(d.dv1 - (d.vp - d.v1)) > 1e-9) return ['Δv1 が vp − v1 と一致しません'];
+    if (Math.abs(d.dv2 - (d.v2 - d.va)) > 1e-9) return ['Δv2 が v2 − va と一致しません'];
+    if (Math.abs(d.tTransferS - Math.PI * Math.sqrt((d.a ** 3) / d.GM)) / d.tTransferS > 1e-9) return ['遷移時間が π√(a³/GM) と一致しません'];
+    // エネルギー：E = −GM/(2r)（円軌道）、E = −GM/(2a)（楕円軌道）。KE + PE = E。
+    if (Math.abs(d.e1Jkg + d.GM / (2 * d.r1)) / Math.abs(d.e1Jkg) > 1e-9) return ['低軌道のエネルギーが −GM/(2r) と一致しません'];
+    if (Math.abs(d.etJkg + d.GM / (2 * d.a)) / Math.abs(d.etJkg) > 1e-9) return ['遷移楕円のエネルギーが −GM/(2a) と一致しません'];
+    if (Math.abs(d.e2Jkg + d.GM / (2 * d.r2)) / Math.abs(d.e2Jkg) > 1e-9) return ['静止軌道のエネルギーが −GM/(2r) と一致しません'];
+    if (Math.abs((d.kePeriJkg + d.pePeriJkg) - d.etJkg) / Math.abs(d.etJkg) > 1e-9) return ['近地点で KE + PE が楕円のエネルギーと一致しません'];
+    if (Math.abs((d.keApoJkg + d.peApoJkg) - d.etJkg) / Math.abs(d.etJkg) > 1e-9) return ['遠地点で KE + PE が楕円のエネルギーと一致しません'];
+    // 矢印の長さが縮尺どおりか（重力 35 px、速さ 62 px）。
+    if (byId.gravity && Math.abs(byId.gravity.vector[1] - d.g1 * d.gScalePxPerMs2) > 0.5) return ['重力の矢印が g の縮尺と一致しません'];
+    if (byId.velocity && Math.abs(byId.velocity.vector[0] - d.v1 * d.vScalePxPerMs) > 0.5) return ['速さの矢印が v の縮尺と一致しません'];
+  }
+  if (scene.type === 'cyclotron') {
+    const d = scene.derived;
+    // 周期：T = 2πm/qB。振動数 f = 1/T。
+    if (Math.abs(d.periodS - (2 * Math.PI * scene.mKg) / (scene.qC * scene.bT)) > 1e-12) return ['周期が 2πm/qB と一致しません'];
+    if (Math.abs(d.freqHz - 1 / d.periodS) / d.freqHz > 1e-9) return ['振動数が 1/T と一致しません'];
+    // 最大の速さ：v = qBR/m。運動エネルギー：KE = ½mv²。
+    if (Math.abs(d.vMaxMs - (scene.qC * scene.bT * scene.deeRM) / scene.mKg) / d.vMaxMs > 1e-9) return ['最大の速さが qBR/m と一致しません'];
+    if (Math.abs(d.keMaxJ - 0.5 * scene.mKg * d.vMaxMs * d.vMaxMs) / d.keMaxJ > 1e-9) return ['最大の運動エネルギーが ½mv² と一致しません'];
+    // 1周で得るエネルギー：2qV。周回数：KE/(2qV)。かかる時間：周回数×周期。
+    if (Math.abs(d.gainPerTurnJ - 2 * scene.qC * scene.deeVKv * 1000) / d.gainPerTurnJ > 1e-9) return ['1周で得るエネルギーが 2qV と一致しません'];
+    if (Math.abs(d.turns - d.keMaxJ / d.gainPerTurnJ) > 1e-9) return ['周回数が KE/(2qV) と一致しません'];
+    if (Math.abs(d.totalTimeS - d.turns * d.periodS) / d.totalTimeS > 1e-9) return ['かかる時間が 周回数×周期 と一致しません'];
+    // 半径：r = √(2m·KE)/(qB)。n 周後の KE = n×(2qV)。
+    for (const { n, rM } of d.rAfterTurns) {
+      const expected = Math.sqrt((2 * scene.mKg * n * d.gainPerTurnJ) / (scene.qC * scene.bT) ** 2);
+      if (Math.abs(rM - expected) / rM > 1e-9) return [n + ' 周後の半径が一致しません'];
+    }
+    // ローレンツ力は速度と直角（period 場面）。最大の速さの矢印は v の縮尺どおり（max 場面）。
+    if (byId.velocity && byId.lorentz) {
+      const dot = byId.velocity.vector[0] * byId.lorentz.vector[0] + byId.velocity.vector[1] * byId.lorentz.vector[1];
+      if (Math.abs(dot) > 0.5) return ['ローレンツ力が速度と直角になっていません'];
+    }
+    if (byId.velocity && scene.phase === 'max' && Math.abs(byId.velocity.vector[0] - d.vMaxMs * d.vScalePxPerMs) > 0.5) return ['最大の速さの矢印が v の縮尺と一致しません'];
   }
   if (scene.type === 'charged-circle') {
     const d = scene.derived;
@@ -6254,9 +6447,9 @@ function drawBase(svg, scene) {
       const tF = el('text', { x: 205, y: 207, fill: '#0066cc' }); tF.textContent = '摩擦力 2.0 N'; svg.appendChild(tF);
       svg.appendChild(el('line', { x1: 335, y1: 221, x2: 365, y2: 221, stroke: '#d35400', 'stroke-width': 2, 'stroke-dasharray': '5 4', 'marker-end': 'url(#fig-arrow)' }));
       const tV = el('text', { x: 305, y: 205, fill: '#d35400' }); tV.textContent = 'v=1.0 m/s'; svg.appendChild(tV);
-      const tN = el('text', { x: 40, y: 244, fill: '#555' }); tN.textContent = '摩擦力 2.0 N で減速：'; svg.appendChild(tN);
-      const tN2 = el('text', { x: 40, y: 266, fill: '#555' }); tN2.textContent = '0.75 m 進んだとき v=1.0 m/s'; svg.appendChild(tN2);
-      const tN3 = el('text', { x: 40, y: 288, fill: '#555' }); tN3.textContent = '止まるまでに 1.0 m、時間は 1.0 s'; svg.appendChild(tN3);
+      const tN = el('text', { x: 40, y: 256, fill: '#555' }); tN.textContent = '摩擦力 2.0 N で減速：'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 274, fill: '#555' }); tN2.textContent = '0.75 m 進んだとき v=1.0 m/s'; svg.appendChild(tN2);
+      const tN3 = el('text', { x: 40, y: 292, fill: '#555' }); tN3.textContent = '止まるまでに 1.0 m、時間は 1.0 s'; svg.appendChild(tN3);
     } else {
       // base・swing・collision：支点・糸・玉・床・ブロック。玉の位置は場面で決まる。
       // 支点 (200,124)、糸 100 px、玉の半径 12 px、床 y=240。
@@ -6405,6 +6598,197 @@ function drawBase(svg, scene) {
         const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = '陰極の仕事関数 2.0 eV、光の波長 400 nm'; svg.appendChild(tN);
         const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = '電子は陽極へ飛び、コンデンサにたまる'; svg.appendChild(tN2);
       }
+    }
+  } else if (scene.type === 'orbitTransfer') {
+    const d = scene.derived;
+    const tH = el('text', { x: 40, y: 36, fill: '#555' });
+    tH.textContent = scene.phase === 'low' ? '低軌道の速さと周期'
+      : scene.phase === 'transfer' ? '遷移楕円と Δv1'
+      : scene.phase === 'apogee' ? '遠地点で Δv2'
+      : scene.phase === 'energy' ? 'エネルギーのはしご'
+      : scene.phase === 'trap' ? '罠：速いのにエネルギーは小さい'
+      : '人工衛星の軌道遷移：低軌道から静止軌道へ';
+    svg.appendChild(tH);
+    if (scene.phase === 'energy') {
+      // エネルギーのはしご：負のエネルギーを、E=0 の線から左へ伸びる棒で描く（4 px/(MJ/kg)）。
+      // 低軌道 −30.1、遷移楕円 −8.36、静止軌道 −4.85 MJ/kg。
+      svg.appendChild(el('line', { x1: 340, y1: 80, x2: 340, y2: 225, stroke: '#333', 'stroke-width': 2 }));
+      const t0 = el('text', { x: 348, y: 78 }); t0.textContent = 'E=0'; svg.appendChild(t0);
+      const rows = [
+        ['低軌道 −30.1 MJ/kg', (-d.e1Jkg / 1e6) * 4, '#cfe3ff', 100],
+        ['遷移楕円 −8.36 MJ/kg', (-d.etJkg / 1e6) * 4, '#b3e6b3', 150],
+        ['静止軌道 −4.85 MJ/kg', (-d.e2Jkg / 1e6) * 4, '#ffd24d', 200],
+      ];
+      rows.forEach(([label, w, fill, y]) => {
+        const tL = el('text', { x: 60, y: y - 8 }); tL.textContent = label; svg.appendChild(tL);
+        svg.appendChild(el('rect', { x: 340 - w, y, width: w, height: 18, fill, stroke: '#333', 'stroke-width': 1.5 }));
+      });
+      const tN = el('text', { x: 40, y: 244, fill: '#555' }); tN.textContent = '低軌道・遷移楕円・静止軌道のエネルギー'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 266, fill: '#555' }); tN2.textContent = '−30.1 → −8.36 → −4.85 MJ/kg'; svg.appendChild(tN2);
+      const tN3 = el('text', { x: 40, y: 288, fill: '#555' }); tN3.textContent = 'エンジンは 21.8＋3.5 MJ/kg を与える'; svg.appendChild(tN3);
+    } else if (scene.phase === 'trap') {
+      // 棒グラフ：速さの比べ。低軌道 7.76 km/s、静止軌道 3.12 km/s（20 px/(km/s)）。
+      const rows = [
+        ['低軌道 7.76 km/s', (d.v1 / 1000) * 20, '#cfe3ff', '7.76'],
+        ['静止軌道 3.12 km/s', (d.v2 / 1000) * 20, '#b3e6b3', '3.12'],
+      ];
+      rows.forEach(([label, w, fill, val], i) => {
+        const y = 100 + i * 50;
+        const tL = el('text', { x: 60, y: y - 8 }); tL.textContent = label; svg.appendChild(tL);
+        svg.appendChild(el('rect', { x: 140, y, width: w, height: 18, fill, stroke: '#333', 'stroke-width': 1.5 }));
+        const tV = el('text', { x: 140 + w + 8, y: y + 15 }); tV.textContent = val; svg.appendChild(tV);
+      });
+      const tN = el('text', { x: 40, y: 244, fill: '#555' }); tN.textContent = '速いのは低軌道'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 266, fill: '#555' }); tN2.textContent = 'エネルギーが大きいのは静止軌道'; svg.appendChild(tN2);
+      const tN3 = el('text', { x: 40, y: 288, fill: '#555' }); tN3.textContent = '速さとエネルギーは逆になることがある'; svg.appendChild(tN3);
+    } else {
+      // 地球と軌道：中心 (200,150)、地球の半径 24 px、低軌道の半径 85 px、静止軌道の半径 100 px。
+      // 遷移楕円：中心 (192.5,150)、横半径 92.5 px、縦半径 60 px。近地点 (285,150)、遠地点 (100,150)。
+      const c = d.center;
+      svg.appendChild(el('circle', { cx: c.x, cy: c.y, r: d.earthPx, fill: '#9ecfff', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx: c.x, cy: c.y, r: d.lowPx, fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      if (scene.phase === 'base') {
+        // 静止軌道の円と遷移楕円も描く。
+        svg.appendChild(el('circle', { cx: c.x, cy: c.y, r: d.geoPx, fill: 'none', stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+        svg.appendChild(el('ellipse', { cx: d.ellipse.cx, cy: d.ellipse.cy, rx: d.ellipse.rx, ry: d.ellipse.ry, fill: 'none', stroke: '#d35400', 'stroke-width': 2, 'stroke-dasharray': '5 4' }));
+        // 衛星の点：低軌道の上端と静止軌道の右端。
+        svg.appendChild(el('circle', { cx: 200, cy: 65, r: 5, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+        svg.appendChild(el('circle', { cx: 290, cy: 150, r: 5, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+        const tE = el('text', { x: 184, y: 154 }); tE.textContent = '地球'; svg.appendChild(tE);
+        const tL = el('text', { x: 252, y: 58 }); tL.textContent = '低軌道'; svg.appendChild(tL);
+        const tG = el('text', { x: 40, y: 100 }); tG.textContent = '静止軌道'; svg.appendChild(tG);
+        const tT = el('text', { x: 56, y: 222 }); tT.textContent = '遷移楕円'; svg.appendChild(tT);
+        const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = '軌道の大きさは模式図（縮尺はちがう）'; svg.appendChild(tN);
+        const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = '低軌道 r=6800 km、静止軌道 r=42200 km'; svg.appendChild(tN2);
+      } else if (scene.phase === 'low') {
+        // 衛星は低軌道の上端。重力と速さの矢印は図描画シミュレータが描く。
+        svg.appendChild(el('circle', { cx: 200, cy: 65, r: 5, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+        const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = '低軌道の速さ v=√(GM/r)=7.76 km/s'; svg.appendChild(tN);
+        const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = '周期 T=2π√(r³/GM)=92 分、g=8.9 m/s²'; svg.appendChild(tN2);
+      } else if (scene.phase === 'transfer') {
+        // 遷移楕円と近地点の衛星。v1 の矢印（青・破線）と Δv1 の矢印（緑）を重ねる。
+        svg.appendChild(el('ellipse', { cx: d.ellipse.cx, cy: d.ellipse.cy, rx: d.ellipse.rx, ry: d.ellipse.ry, fill: 'none', stroke: '#d35400', 'stroke-width': 2, 'stroke-dasharray': '5 4' }));
+        svg.appendChild(el('circle', { cx: 285, cy: 150, r: 5, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+        svg.appendChild(el('line', { x1: 285, y1: 150, x2: 285, y2: 88, stroke: '#0066cc', 'stroke-width': 2, 'stroke-dasharray': '5 4', 'marker-end': 'url(#fig-arrow)' }));
+        svg.appendChild(el('line', { x1: 285, y1: 88, x2: 285, y2: 69, stroke: '#2e8b57', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+        const tD = el('text', { x: 294, y: 80, fill: '#2e8b57' }); tD.textContent = 'Δv1=2.42'; svg.appendChild(tD);
+        const tP = el('text', { x: 294, y: 112, fill: '#d35400' }); tP.textContent = 'vp=10.19'; svg.appendChild(tP);
+        const tV = el('text', { x: 294, y: 144, fill: '#0066cc' }); tV.textContent = 'v1=7.76 km/s'; svg.appendChild(tV);
+        const tA = el('text', { x: 30, y: 138 }); tA.textContent = '遠地点'; svg.appendChild(tA);
+        const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = '近地点でエンジンを噴いて 2.42 km/s 加速する'; svg.appendChild(tN);
+        const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = '速さは 7.76 → 10.19 km/s になる'; svg.appendChild(tN2);
+      } else {
+        // apogee：遷移楕円と遠地点の衛星。va と v2 の矢印を並べる。
+        svg.appendChild(el('ellipse', { cx: d.ellipse.cx, cy: d.ellipse.cy, rx: d.ellipse.rx, ry: d.ellipse.ry, fill: 'none', stroke: '#d35400', 'stroke-width': 2, 'stroke-dasharray': '5 4' }));
+        svg.appendChild(el('circle', { cx: 110, cy: 150, r: 5, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+        svg.appendChild(el('line', { x1: 110, y1: 150, x2: 110, y2: 163, stroke: '#d35400', 'stroke-width': 2, 'stroke-dasharray': '5 4', 'marker-end': 'url(#fig-arrow)' }));
+        svg.appendChild(el('line', { x1: 118, y1: 150, x2: 118, y2: 175, stroke: '#0066cc', 'stroke-width': 2, 'stroke-dasharray': '5 4', 'marker-end': 'url(#fig-arrow)' }));
+        const tA = el('text', { x: 6, y: 140, fill: '#d35400' }); tA.textContent = 'va=1.64 km/s'; svg.appendChild(tA);
+        const tV = el('text', { x: 6, y: 162, fill: '#0066cc' }); tV.textContent = 'v2=3.12 km/s'; svg.appendChild(tV);
+        const tF = el('text', { x: 30, y: 120 }); tF.textContent = '遠地点'; svg.appendChild(tF);
+        const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = '遠地点でエンジンを噴いて 1.47 km/s 加速する'; svg.appendChild(tN);
+        const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = '速さは 1.64 → 3.12 km/s になり静止軌道に乗る'; svg.appendChild(tN2);
+      }
+    }
+  } else if (scene.type === 'cyclotron') {
+    const d = scene.derived;
+    const tH = el('text', { x: 40, y: 36, fill: '#555' });
+    tH.textContent = scene.phase === 'period' ? '周期は速さによらない'
+      : scene.phase === 'max' ? '最大の速さとエネルギー'
+      : scene.phase === 'turns' ? '何周で 12 MeV か'
+      : scene.phase === 'radius' ? '半径は √n で大きくなる'
+      : scene.phase === 'trap' ? '罠：磁場は仕事をしない'
+      : 'サイクロトロン：電場で加速し、磁場で回す';
+    svg.appendChild(tH);
+    if (scene.phase === 'turns') {
+      // KE–周回数グラフ：KE = 0.020×n MeV の直線。横軸 n：0〜600（0.45 px/周）、縦軸 KE：0〜13 MeV（15 px/MeV）。
+      const xOf = (n) => 60 + n * 0.45;
+      const yOf = (ke) => 240 - ke * 15;
+      svg.appendChild(el('line', { x1: 60, y1: 240, x2: 340, y2: 240, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: 60, y1: 45, x2: 60, y2: 240, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: xOf(0), y1: yOf(0), x2: xOf(600), y2: yOf(12), stroke: '#0066cc', 'stroke-width': 2 }));
+      const tK = el('text', { x: 190, y: 72, fill: '#0066cc' }); tK.textContent = '600周で 12 MeV'; svg.appendChild(tK);
+      const t1 = el('text', { x: 100, y: 233, fill: '#0066cc' }); t1.textContent = '1周で 20 keV'; svg.appendChild(t1);
+      const tX = el('text', { x: 344, y: 244 }); tX.textContent = 'n'; svg.appendChild(tX);
+      const tY = el('text', { x: 40, y: 56 }); tY.textContent = 'KE'; svg.appendChild(tY);
+      const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = '1周で 20 keV、600周で 12 MeV'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = 'かかる時間は 600×65.5 ns=39 μs'; svg.appendChild(tN2);
+    } else if (scene.phase === 'radius') {
+      // r–周回数グラフ：r = 0.50√(n/600) の曲線。横軸 n：0〜600、縦軸 r：0〜0.55 m（350 px/m）。
+      const xOf = (n) => 60 + n * 0.45;
+      const yOf = (r) => 240 - r * 350;
+      svg.appendChild(el('line', { x1: 60, y1: 240, x2: 340, y2: 240, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: 60, y1: 48, x2: 60, y2: 240, stroke: '#333', 'stroke-width': 1.5 }));
+      // 線形の罠：r = 0.020×n（破線）はすぐに枠を出る。
+      svg.appendChild(el('line', { x1: xOf(0), y1: yOf(0), x2: xOf(27.5), y2: yOf(0.55), stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      const tTrap = el('text', { x: 80, y: 60 }); tTrap.textContent = '線形だと思ったら 12 m'; svg.appendChild(tTrap);
+      let path = '';
+      for (let n = 0; n <= 600; n += 20) {
+        const r = 0.5 * Math.sqrt(n / 600);
+        path += (path ? ' L ' : 'M ') + xOf(n).toFixed(1) + ' ' + yOf(r).toFixed(1);
+      }
+      svg.appendChild(el('path', { d: path, fill: 'none', stroke: '#0066cc', 'stroke-width': 2 }));
+      const t1 = el('text', { x: 78, y: 228 }); t1.textContent = '0.020 m'; svg.appendChild(t1);
+      const t100 = el('text', { x: 112, y: 182 }); t100.textContent = '0.20 m'; svg.appendChild(t100);
+      const t600 = el('text', { x: 285, y: 56 }); t600.textContent = '0.50 m'; svg.appendChild(t600);
+      const tX = el('text', { x: 344, y: 244 }); tX.textContent = 'n'; svg.appendChild(tX);
+      const tY = el('text', { x: 44, y: 56 }); tY.textContent = 'r'; svg.appendChild(tY);
+      const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = '半径は √n で大きくなる'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = '600周で 0.50 m、線形なら 12 m になる'; svg.appendChild(tN2);
+    } else if (scene.phase === 'trap') {
+      // 棒グラフ：速さがちがっても周期は同じ 65.5 ns（2 px/ns）。
+      const rows = [
+        ['v=1.0×10⁷ m/s', d.periodS * 1e9 * 2, '#cfe3ff', '65.5 ns'],
+        ['v=4.8×10⁷ m/s', d.periodS * 1e9 * 2, '#b3e6b3', '65.5 ns'],
+      ];
+      rows.forEach(([label, w, fill, val], i) => {
+        const y = 100 + i * 50;
+        const tL = el('text', { x: 60, y: y - 8 }); tL.textContent = label; svg.appendChild(tL);
+        svg.appendChild(el('rect', { x: 140, y, width: w, height: 18, fill, stroke: '#333', 'stroke-width': 1.5 }));
+        const tV = el('text', { x: 140 + w + 8, y: y + 15 }); tV.textContent = val; svg.appendChild(tV);
+      });
+      const tN = el('text', { x: 40, y: 244, fill: '#555' }); tN.textContent = '速さがちがっても周期は同じ 65.5 ns'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 266, fill: '#555' }); tN2.textContent = '磁場は仕事をしない'; svg.appendChild(tN2);
+      const tN3 = el('text', { x: 40, y: 288, fill: '#555' }); tN3.textContent = 'エネルギーを与えるのは電場だけ'; svg.appendChild(tN3);
+    } else if (scene.phase === 'base') {
+      // D電極：左右の半円（半径 80 px）と、中心からの渦巻きの軌道。
+      svg.appendChild(el('path', { d: 'M 200 70 A 80 80 0 0 0 200 230', fill: 'none', stroke: '#333', 'stroke-width': 2.5 }));
+      svg.appendChild(el('path', { d: 'M 200 70 A 80 80 0 0 1 200 230', fill: 'none', stroke: '#333', 'stroke-width': 2.5 }));
+      // 磁場の × 印（紙面の裏向き）。渦巻きの軌道と重ならないよう、対角の2か所に置く。
+      for (const [x, y] of [[150, 100], [244, 198]]) {
+        const tX = el('text', { x, y, fill: '#888' }); tX.textContent = '×'; svg.appendChild(tX);
+      }
+      // 渦巻き：r = 8 + θ×(52/4π)、θ は 0 から 4π まで。
+      let path = '';
+      for (let deg = 0; deg <= 720; deg += 15) {
+        const th = (deg * Math.PI) / 180;
+        const r = 8 + th * (52 / (4 * Math.PI));
+        const x = 200 + r * Math.cos(th), y = 150 + r * Math.sin(th);
+        path += (path ? ' L ' : 'M ') + x.toFixed(1) + ' ' + y.toFixed(1);
+      }
+      svg.appendChild(el('path', { d: path, fill: 'none', stroke: '#d35400', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx: 200, cy: 150, r: 4, fill: '#333' }));
+      const tD = el('text', { x: 105, y: 80 }); tD.textContent = 'D電極'; svg.appendChild(tD);
+      const tB = el('text', { x: 255, y: 80 }); tB.textContent = '磁場 B'; svg.appendChild(tB);
+      const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = 'D電極の中心にイオン源（陽子）がある'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = '磁場 B=1.0 T は紙面の裏向き（×）'; svg.appendChild(tN2);
+    } else if (scene.phase === 'period') {
+      // 円運動：半径 80 px の円、陽子は上端。速さとローレンツ力の矢印は図描画シミュレータが描く。
+      svg.appendChild(el('circle', { cx: 200, cy: 150, r: 80, fill: 'none', stroke: '#333', 'stroke-width': 2, 'stroke-dasharray': '5 4' }));
+      svg.appendChild(el('circle', { cx: 200, cy: 70, r: 6, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      const tC = el('text', { x: 208, y: 146 }); tC.textContent = '中心'; svg.appendChild(tC);
+      const tT = el('text', { x: 60, y: 58 }); tT.textContent = 'T=65.5 ns、f=15.3 MHz'; svg.appendChild(tT);
+      const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = '周期 T=2πm/qB=65.5 ns は速さによらない'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = '半周の時間は 32.7 ns（いつも同じ）'; svg.appendChild(tN2);
+    } else {
+      // max：D電極の半径 85 px の円（中心 (200,155)）、陽子は上端。半径の破線と速さの矢印を描く。
+      svg.appendChild(el('circle', { cx: 200, cy: 155, r: 85, fill: 'none', stroke: '#333', 'stroke-width': 2, 'stroke-dasharray': '5 4' }));
+      svg.appendChild(el('circle', { cx: 200, cy: 70, r: 6, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 200, y1: 155, x2: 200, y2: 70, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+      const tR = el('text', { x: 206, y: 130 }); tR.textContent = 'R=0.50 m'; svg.appendChild(tR);
+      const tK = el('text', { x: 256, y: 82, fill: '#d35400' }); tK.textContent = 'KE=12 MeV'; svg.appendChild(tK);
+      const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = '最大の速さ v=qBR/m=4.8×10⁷ m/s'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = '運動エネルギー KE=12 MeV'; svg.appendChild(tN2);
     }
   } else if (scene.type === 'capacitor') {
     const topY = 110, dPx = scene.dPx;
@@ -7547,4 +7931,4 @@ function renderAllFigures() {
   });
 }
 
-if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, capSpringGravDerived, capSpringGravForces, gasSpringCycleDerived, gasSpringCycleForces, slopeSpringDerived, slopeSpringForces, fallLoopDerived, fallLoopForces, beltSpringDerived, beltSpringForces, massSpecDerived, massSpecForces, coilHallDerived, coilHallForces, platformChargeDerived, platformChargeForces, pendulumCollideDerived, pendulumCollideForces, photoCapDerived, photoCapForces, sceneFor, validateScene, renderFigure };
+if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, capSpringGravDerived, capSpringGravForces, gasSpringCycleDerived, gasSpringCycleForces, slopeSpringDerived, slopeSpringForces, fallLoopDerived, fallLoopForces, beltSpringDerived, beltSpringForces, massSpecDerived, massSpecForces, coilHallDerived, coilHallForces, platformChargeDerived, platformChargeForces, pendulumCollideDerived, pendulumCollideForces, photoCapDerived, photoCapForces, orbitTransferDerived, orbitTransferForces, cyclotronDerived, cyclotronForces, sceneFor, validateScene, renderFigure };
