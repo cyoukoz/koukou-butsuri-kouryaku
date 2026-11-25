@@ -2413,7 +2413,8 @@ function drawBase(svg, scene) {
       tW.textContent = '波の振幅は見やすく誇張してある';
       svg.appendChild(tW);
     } else {
-      const ph = el('text', { x: 40, y: 36, fill: '#555' });
+      // 見出しは n=1 の準位線（y=36）と重ならないよう、上へ出す。
+      const ph = el('text', { x: 40, y: 20, fill: '#555' });
       ph.textContent = scene.phase === 'lyman' ? 'ライマン系列：n=2 → n=1' : 'エネルギー準位：E_n = −13.6/n² eV';
       svg.appendChild(ph);
       // 準位の横線：高さはエネルギー×15 px（E=0 が y=240）。
@@ -2471,11 +2472,16 @@ function renderFigure(svg, data, visibleIds) {
 
 // ページ内のすべての .fig を描く。data-show が空なら力は描かない。
 function renderAllFigures() {
+  // 1つの図が失敗しても、他の図や完了ボタンの登録まで巻き添えにしない。
   document.querySelectorAll('svg.fig').forEach((svg) => {
-    const dataEl = document.getElementById(svg.dataset.scene);
-    const data = dataEl ? JSON.parse(dataEl.textContent) : { type: svg.dataset.figure, thetaDeg: 23.2, mgPx: 60 };
-    const show = (svg.dataset.show || '').split(',').map((s) => s.trim()).filter(Boolean);
-    renderFigure(svg, data, show);
+    try {
+      const dataEl = document.getElementById(svg.dataset.scene);
+      const data = dataEl ? JSON.parse(dataEl.textContent) : { type: svg.dataset.figure, thetaDeg: 23.2, mgPx: 60 };
+      const show = (svg.dataset.show || '').split(',').map((s) => s.trim()).filter(Boolean);
+      renderFigure(svg, data, show);
+    } catch (err) {
+      console.error('figure failed for', svg.dataset.scene, err);
+    }
   });
 }
 
