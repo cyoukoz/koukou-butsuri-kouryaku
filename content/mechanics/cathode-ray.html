@@ -33,14 +33,14 @@ th, td { border: 1px solid #999; padding: 6px 8px; text-align: left; }
 <tr><td>罠・変えたら</td><td>比例関係</td><td>V0 を 2 倍にすると Y は半分</td><td>ステップ④⑤</td></tr>
 </table>
 <p>図：電子銃で加速した電子が、偏向板で曲がり、スクリーンに当たる。板の中では放物線、板の外では直線を進む。</p>
-<script type="application/json" class="scene-data" data-scene="cathodeRay">{"type":"cathodeRay","phase":"base"}</script>
-<div class="fig" data-fig="cathodeRay"></div>
+<script type="application/json" id="scene-cathode-ray-base">{"type":"cathodeRay","v0V":1000,"vdV":50,"plateLM":0.05,"plateDM":0.01,"driftM":0.2,"eC":1.6e-19,"mKg":9.11e-31,"g":10,"phase":"base"}</script>
+<svg class="fig" data-scene="scene-cathode-ray-base" data-show="" width="100%" role="img" aria-label="陰極線管：加速・偏向・スクリーン"></svg>
 </div>
 
 <div class="step">
 <p><b>ステップ① 加速：v≈1.9×10⁷ m/s</b></p>
-<script type="application/json" class="scene-data" data-scene="cathodeRay">{"type":"cathodeRay","phase":"accelerate"}</script>
-<div class="fig" data-fig="cathodeRay"></div>
+<script type="application/json" id="scene-cathode-ray-accelerate">{"type":"cathodeRay","v0V":1000,"vdV":50,"plateLM":0.05,"plateDM":0.01,"driftM":0.2,"eC":1.6e-19,"mKg":9.11e-31,"g":10,"phase":"accelerate"}</script>
+<svg class="fig" data-scene="scene-cathode-ray-accelerate" data-show="" width="100%" role="img" aria-label="加速：1000 V で 1.9×10⁷ m/s"></svg>
 <p>電子は 1000 V の電圧で加速される。得る運動エネルギーは KE = eV0 = 1000 eV = 1.6×10⁻¹⁶ J。</p>
 <p>速さは v = √(2eV0/m) = √(2×1.6×10⁻¹⁹×1000/9.11×10⁻³¹) ≈ 1.9×10⁷ m/s。光速の約 6% だ。</p>
 <p><label><input type="checkbox" class="check">① 加速が分かった</label></p>
@@ -49,8 +49,8 @@ th, td { border: 1px solid #999; padding: 6px 8px; text-align: left; }
 
 <div class="step" id="step2">
 <p><b>ステップ② 偏向板の中：y1=3.1 mm</b></p>
-<script type="application/json" class="scene-data" data-scene="cathodeRay">{"type":"cathodeRay","phase":"deflect"}</script>
-<div class="fig" data-fig="cathodeRay"></div>
+<script type="application/json" id="scene-cathode-ray-deflect">{"type":"cathodeRay","v0V":1000,"vdV":50,"plateLM":0.05,"plateDM":0.01,"driftM":0.2,"eC":1.6e-19,"mKg":9.11e-31,"g":10,"phase":"deflect"}</script>
+<svg class="fig" data-scene="scene-cathode-ray-deflect" data-show="" width="100%" role="img" aria-label="偏向板の中：放物線に曲がる"></svg>
 <p>偏向板の間の電場は E = Vd/d = 50/0.010 = 5000 V/m。電子にはたらく力は eE で、加速度は a = eE/m ≈ 8.8×10¹⁴ m/s²。</p>
 <p>板を通る時間は t = l/v = 0.050/1.9×10⁷ ≈ 2.7 ns。この間に下向きに y1 = ½at² ≈ 3.1 mm ずれる。縦の速さは vy = at ≈ 2.3×10⁶ m/s で、板を出るときの進む向きは tanθ = vy/v ≈ 0.125、θ ≈ 7.1° だ。</p>
 <p>板の中で増える運動エネルギーは ½m·vy² ≈ 15.6 eV。電場は仕事をするので、電子のエネルギーは増える。磁場だけでは速さは変わらない、というちがいを思い出そう。</p>
@@ -60,8 +60,8 @@ th, td { border: 1px solid #999; padding: 6px 8px; text-align: left; }
 
 <div class="step" id="step3">
 <p><b>ステップ③ スクリーン：Y=28 mm</b></p>
-<script type="application/json" class="scene-data" data-scene="cathodeRay">{"type":"cathodeRay","phase":"screen"}</script>
-<div class="fig" data-fig="cathodeRay"></div>
+<script type="application/json" id="scene-cathode-ray-screen">{"type":"cathodeRay","v0V":1000,"vdV":50,"plateLM":0.05,"plateDM":0.01,"driftM":0.2,"eC":1.6e-19,"mKg":9.11e-31,"g":10,"phase":"screen"}</script>
+<svg class="fig" data-scene="scene-cathode-ray-screen" data-show="" width="100%" role="img" aria-label="スクリーン：ずれは 28 mm"></svg>
 <p>板を出たあとは電場がないので、電子は θ=7.1° の向きに直進する。0.20 m 先のスクリーンまでのずれは y2 = D·tanθ = 0.20×0.125 = 25 mm。</p>
 <p>スクリーンでのずれの合計は Y = y1 + y2 = 3.1 + 25 ≈ 28 mm。まとめて書くと、Y = (Vd/V0)·(l²/4d + lD/2d) になる。</p>
 <p><label><input type="checkbox" class="check">③ スクリーンが分かった</label></p>
@@ -70,8 +70,8 @@ th, td { border: 1px solid #999; padding: 6px 8px; text-align: left; }
 
 <div class="step" id="step4">
 <p><b>ステップ④ 罠：加速電圧を 2 倍にすると、ずれは半分</b></p>
-<script type="application/json" class="scene-data" data-scene="cathodeRay">{"type":"cathodeRay","phase":"trap"}</script>
-<div class="fig" data-fig="cathodeRay"></div>
+<script type="application/json" id="scene-cathode-ray-trap">{"type":"cathodeRay","v0V":1000,"vdV":50,"plateLM":0.05,"plateDM":0.01,"driftM":0.2,"eC":1.6e-19,"mKg":9.11e-31,"g":10,"phase":"trap"}</script>
+<svg class="fig" data-scene="scene-cathode-ray-trap" data-show="" width="100%" role="img" aria-label="罠：加速電圧を上げると偏向は小さくなる"></svg>
 <p>加速電圧 V0 を 2 倍（2000 V）にすると、電子は速くなるので、板の中にいる時間が短くなり、ずれは小さくなる。Y = (Vd/V0)·(l²/4d + lD/2d) から、Y は V0 に反比例する。V0 を 2 倍にすると Y ≈ 14 mm、つまり半分になる。「速くなるからずれも大きくなる」はまちがいだ。</p>
 <p><label><input type="checkbox" class="check">④ 罠が分かった</label></p>
 <p><a class="next" href="#step5">次へ ↓</a></p>
@@ -79,8 +79,8 @@ th, td { border: 1px solid #999; padding: 6px 8px; text-align: left; }
 
 <div class="step" id="step5">
 <p><b>ステップ⑤ 変えたら</b></p>
-<script type="application/json" class="scene-data" data-scene="cathodeRay">{"type":"cathodeRay","phase":"vary"}</script>
-<div class="fig" data-fig="cathodeRay"></div>
+<script type="application/json" id="scene-cathode-ray-vary">{"type":"cathodeRay","v0V":1000,"vdV":50,"plateLM":0.05,"plateDM":0.01,"driftM":0.2,"eC":1.6e-19,"mKg":9.11e-31,"g":10,"phase":"vary"}</script>
+<svg class="fig" data-scene="scene-cathode-ray-vary" data-show="" width="100%" role="img" aria-label="変えたら：Vd=100 V・V0=4000 V・l=0.10 m"></svg>
 <p>偏向電圧 Vd を 100 V にすると、Y は 2 倍の約 56 mm になる。加速電圧 V0 を 4000 V にすると、Y は 1/4 の約 7.0 mm になる。板の長さ l を 0.10 m にすると、y1=12.5 mm、tanθ=0.25、y2=50 mm で、Y=62.5 mm になる。</p>
 <p><label><input type="checkbox" class="check">⑤ 変えたらが分かった</label></p>
 </div>
@@ -106,16 +106,16 @@ boxes.forEach(b => b.addEventListener('change', () => { doneBtn.disabled = !allC
 doneBtn.disabled = true;
 (async () => {
   try {
-    const saved = await idbGetProgress();
+    const saved = await loadProgress();
     if (saved && saved[doneKey]) { doneMsg.textContent = '完了済み ✓'; doneBtn.disabled = true; }
   } catch (e) { /* IndexedDB が使えない環境では無視 */ }
 })();
 doneBtn.addEventListener('click', async () => {
   if (!allChecked()) return;
   try {
-    const saved = await idbGetProgress();
+    const saved = await loadProgress();
     saved[doneKey] = true;
-    await idbSetProgress(saved);
+    await saveProgress(saved);
     doneMsg.textContent = '完了済み ✓';
     doneBtn.disabled = true;
   } catch (e) { doneMsg.textContent = '保存できませんでした（IndexedDB が使えません）。'; }

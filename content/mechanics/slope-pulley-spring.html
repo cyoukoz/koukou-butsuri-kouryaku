@@ -33,14 +33,14 @@ th, td { border: 1px solid #999; padding: 6px 8px; text-align: left; }
 <tr><td>罠・変えたら</td><td>振る質量</td><td>m1 だけでは 7.7 rad/s</td><td>ステップ④⑤</td></tr>
 </table>
 <p>図：斜面の上の m1 と、吊るした m2 と、ばね。糸はゆるまないので、m1 と m2 はいつも同じ速さで動く。</p>
-<script type="application/json" class="scene-data" data-scene="slopePulleySpring">{"type":"slopePulleySpring","phase":"base"}</script>
-<div class="fig" data-fig="slopePulleySpring"></div>
+<script type="application/json" id="scene-slope-pulley-spring-base">{"type":"slopePulleySpring","ampM":0.1,"g":10,"kNperM":120,"m1Kg":2.0,"m2Kg":1.0,"thetaDeg":30,"phase":"base"}</script>
+<svg class="fig" data-scene="scene-slope-pulley-spring-base" data-show="" width="100%" role="img" aria-label="斜面の上の m1 と、吊るした m2 と、ばね"></svg>
 </div>
 
 <div class="step">
 <p><b>ステップ① つり合い：m1 g sinθ = m2 g = 10 N</b></p>
-<script type="application/json" class="scene-data" data-scene="slopePulleySpring">{"type":"slopePulleySpring","phase":"equilibrium"}</script>
-<div class="fig" data-fig="slopePulleySpring"></div>
+<script type="application/json" id="scene-slope-pulley-spring-equilibrium">{"type":"slopePulleySpring","ampM":0.1,"g":10,"kNperM":120,"m1Kg":2.0,"m2Kg":1.0,"thetaDeg":30,"phase":"equilibrium"}</script>
+<svg class="fig" data-scene="scene-slope-pulley-spring-equilibrium" data-show="" width="100%" role="img" aria-label="つり合い：m1 g sinθ = m2 g = 10 N"></svg>
 <p>m1 の重力は 2.0×10=20 N。斜面に沿った成分は 20×sin30°=10 N、垂直抗力は 20×cos30°≈17 N になる。m2 の重力は 1.0×10=10 N。張力は両方 10 N で、m1 を斜面の上へ、m2 を上へ引く。</p>
 <p>ばねの力は 0 N。つり合っているので、ばねは自然長のままだ。図の矢印の長さは力の大きさに比例している（1.5 px/N）。重力 20 N の矢印が一番長い。</p>
 <p><label><input type="checkbox" class="check">① つり合いが分かった</label></p>
@@ -49,8 +49,8 @@ th, td { border: 1px solid #999; padding: 6px 8px; text-align: left; }
 
 <div class="step" id="step2">
 <p><b>ステップ② 単振動：周期は約 1.0 s</b></p>
-<script type="application/json" class="scene-data" data-scene="slopePulleySpring">{"type":"slopePulleySpring","phase":"oscillate"}</script>
-<div class="fig" data-fig="slopePulleySpring"></div>
+<script type="application/json" id="scene-slope-pulley-spring-oscillate">{"type":"slopePulleySpring","ampM":0.1,"g":10,"kNperM":120,"m1Kg":2.0,"m2Kg":1.0,"thetaDeg":30,"phase":"oscillate"}</script>
+<svg class="fig" data-scene="scene-slope-pulley-spring-oscillate" data-show="" width="100%" role="img" aria-label="単振動：周期は約 1.0 s"></svg>
 <p>おもりを 0.10 m 下に引いて放す。ばねが伸びて、ばねの力が復元力になる。m1 と m2 は糸でつながっているので、2 つ合わせて振る。振る質量は m1+m2=3.0 kg だ。</p>
 <p>ω = √(k/(m1+m2)) = √(120/3.0) = √40 ≈ 6.3 rad/s。T = 2π/ω ≈ 0.99 s ≈ 1.0 s。f ≈ 1.0 Hz。</p>
 <p>振幅 A=0.10 m で、最大の速さは v_max = ωA ≈ 0.63 m/s、最大の加速度は a_max = ω²A = 40×0.10 = 4.0 m/s²。</p>
@@ -61,8 +61,8 @@ th, td { border: 1px solid #999; padding: 6px 8px; text-align: left; }
 
 <div class="step" id="step3">
 <p><b>ステップ③ エネルギー：0.60 J のまま</b></p>
-<script type="application/json" class="scene-data" data-scene="slopePulleySpring">{"type":"slopePulleySpring","phase":"energy"}</script>
-<div class="fig" data-fig="slopePulleySpring"></div>
+<script type="application/json" id="scene-slope-pulley-spring-energy">{"type":"slopePulleySpring","ampM":0.1,"g":10,"kNperM":120,"m1Kg":2.0,"m2Kg":1.0,"thetaDeg":30,"phase":"energy"}</script>
+<svg class="fig" data-scene="scene-slope-pulley-spring-energy" data-show="" width="100%" role="img" aria-label="エネルギー：0.60 J のまま"></svg>
 <p>E = ½kA² = 0.5×120×0.10² = 0.60 J。中心ではすべて運動エネルギーになる：½×3.0×0.63² ≈ 0.60 J。ばねのエネルギーと運動エネルギーが入れかわる。</p>
 <p><label><input type="checkbox" class="check">③ エネルギーが分かった</label></p>
 <p><a class="next" href="#step4">次へ ↓</a></p>
@@ -70,8 +70,8 @@ th, td { border: 1px solid #999; padding: 6px 8px; text-align: left; }
 
 <div class="step" id="step4">
 <p><b>ステップ④ 罠：振る質量は m1+m2 だ</b></p>
-<script type="application/json" class="scene-data" data-scene="slopePulleySpring">{"type":"slopePulleySpring","phase":"trap"}</script>
-<div class="fig" data-fig="slopePulleySpring"></div>
+<script type="application/json" id="scene-slope-pulley-spring-trap">{"type":"slopePulleySpring","ampM":0.1,"g":10,"kNperM":120,"m1Kg":2.0,"m2Kg":1.0,"thetaDeg":30,"phase":"trap"}</script>
+<svg class="fig" data-scene="scene-slope-pulley-spring-trap" data-show="" width="100%" role="img" aria-label="罠：振る質量は m1+m2"></svg>
 <p>振る質量を m1 だけとすると、ω = √(120/2.0) ≈ 7.7 rad/s、T ≈ 0.81 s になってしまう。でも振るのは 2 つ合わせて 3.0 kg だ。くっついたあとは質量が増える、という罠と同じだ。</p>
 <p>「つり合っているから、ずらしても振動しない」もまちがい。つり合いは安定なつり合いで、ずらせば元に戻ろうとする力がはたらく。</p>
 <p><label><input type="checkbox" class="check">④ 罠が分かった</label></p>
@@ -80,8 +80,8 @@ th, td { border: 1px solid #999; padding: 6px 8px; text-align: left; }
 
 <div class="step" id="step5">
 <p><b>ステップ⑤ 変えたら</b></p>
-<script type="application/json" class="scene-data" data-scene="slopePulleySpring">{"type":"slopePulleySpring","phase":"vary"}</script>
-<div class="fig" data-fig="slopePulleySpring"></div>
+<script type="application/json" id="scene-slope-pulley-spring-vary">{"type":"slopePulleySpring","ampM":0.1,"g":10,"kNperM":120,"m1Kg":2.0,"m2Kg":1.0,"thetaDeg":30,"phase":"vary"}</script>
+<svg class="fig" data-scene="scene-slope-pulley-spring-vary" data-show="" width="100%" role="img" aria-label="変えたら：k を 4 倍・m1 を 5.0 kg"></svg>
 <p>k を 4 倍（480 N/m）にすると、ω = √(480/3.0) ≈ 12.6 rad/s、T ≈ 0.50 s、v_max ≈ 1.26 m/s、a_max = 16 m/s²、E = 2.4 J になる。周期は半分、エネルギーは 4 倍だ。</p>
 <p>m1 を 5.0 kg にすると、振る質量は 6.0 kg になり、ω ≈ 4.5 rad/s、T ≈ 1.40 s になる。つり合い位置は、ばねが 0.125 m 伸びたところにずれるが、ω は重力では決まらないので、つり合いのずれは周期に影響しない。</p>
 <p><label><input type="checkbox" class="check">⑤ 変えたらが分かった</label></p>
@@ -108,16 +108,16 @@ boxes.forEach(b => b.addEventListener('change', () => { doneBtn.disabled = !allC
 doneBtn.disabled = true;
 (async () => {
   try {
-    const saved = await idbGetProgress();
+    const saved = await loadProgress();
     if (saved && saved[doneKey]) { doneMsg.textContent = '完了済み ✓'; doneBtn.disabled = true; }
   } catch (e) { /* IndexedDB が使えない環境では無視 */ }
 })();
 doneBtn.addEventListener('click', async () => {
   if (!allChecked()) return;
   try {
-    const saved = await idbGetProgress();
+    const saved = await loadProgress();
     saved[doneKey] = true;
-    await idbSetProgress(saved);
+    await saveProgress(saved);
     doneMsg.textContent = '完了済み ✓';
     doneBtn.disabled = true;
   } catch (e) { doneMsg.textContent = '保存できませんでした（IndexedDB が使えません）。'; }
