@@ -1422,9 +1422,10 @@ function platformChargeForces(data) {
   }
   if (data.phase === 'collision') {
     // 衝突後の速さ（破線。力ではない）。玉は左へ、台車は右へ。
-    // 玉のラベルは台車の箱の中の空きに、台車のラベルは箱の右の空きに置く。
+    // 玉のラベルは破線の矢印の上に置く（下に置くと矢印の線と文字が重なるため）。
+    // v=0.20 m/s のラベルはさらに上にずらす。
     return [
-      { id: 'velocity1p', short: '玉 −0.12 m/s', color: '#d35400', vector: [-36, 0], dashed: true, labelDx: -60, labelDy: 14, from: { x: 280, y: 195 } },
+      { id: 'velocity1p', short: '玉 −0.12 m/s', color: '#d35400', vector: [-36, 0], dashed: true, labelDx: -104, labelDy: -10, from: { x: 280, y: 195 } },
       { id: 'velocity2p', short: '0.080 m/s', color: '#0066cc', vector: [24, 0], dashed: true, labelDx: 0, labelDy: -12, from: { x: 300, y: 222 } },
     ];
   }
@@ -6018,7 +6019,7 @@ function drawBase(svg, scene) {
       } else {
         // collision：壁に着くときの速さの矢印（破線）は玉の左の空きに描く。
         svg.appendChild(el('line', { x1: 210, y1: 195, x2: 270, y2: 195, stroke: '#d35400', 'stroke-width': 2, 'stroke-dasharray': '5 4', 'marker-end': 'url(#fig-arrow)' }));
-        const tV = el('text', { x: 140, y: 180, fill: '#d35400' }); tV.textContent = 'v=0.20 m/s'; svg.appendChild(tV);
+        const tV = el('text', { x: 140, y: 163, fill: '#d35400' }); tV.textContent = 'v=0.20 m/s'; svg.appendChild(tV);
         const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = '玉 −0.12 m/s、台車 +0.080 m/s'; svg.appendChild(tN);
         const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = '運動量 0.10 kg·m/s、運動エネルギー 0.010 J'; svg.appendChild(tN2);
       }
