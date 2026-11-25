@@ -236,6 +236,20 @@
 </div>
 
 <div class="card">
+  <h2>組み合わせ問題Y：人工衛星の軌道遷移</h2>
+  <p>高度 400 km の低軌道を回る人工衛星を、高度 35800 km の静止軌道に移す。低軌道の速さは 7.76 km/s、周期は約 92 分。遷移楕円に乗るために近地点で Δv1 = 2.42 km/s、遠地点で Δv2 = 1.47 km/s 加速し、遷移には約 5.2 時間かかる。エネルギーは −30.1 → −8.36 → −4.85 MJ/kg と上がる。速い低軌道ほどエネルギーは小さく、遠地点で加速しないと楕円のまま戻ってくる罠がある。橋渡し量は「速さ」と「エネルギー」。</p>
+  <p><a href="content/mechanics/orbit-transfer.html">人工衛星の軌道遷移のドリルを開く →</a></p>
+  <p id="progress-combo-orbit-transfer">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>組み合わせ問題Z：サイクロトロン</h2>
+  <p>陽子を磁場 B = 1.0 T、D電極の半径 0.50 m、電圧 10 kV のサイクロトロンで加速する。周期 65.5 ns は速さによらず、振動数は 15.3 MHz。最大の速さは 4.80×10⁷ m/s、エネルギーは 12.0 MeV。1 周で 20 keV ずつもらい、600 周で 12 MeV になり、かかる時間は約 39 μs。半径は √n で大きくなる。磁場は仕事をしない罠がある。橋渡し量は「周期」と「半径」と「エネルギー」。</p>
+  <p><a href="content/mechanics/cyclotron.html">サイクロトロンのドリルを開く →</a></p>
+  <p id="progress-combo-cyclotron">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
   <h2>第7問：気体＋ピストン</h2>
   <p>シリンダーにピストンがのっている。ピストンの力のつり合いから気体の圧力を、状態方程式から体積と高さを求める。加熱するとピストンが上がる等圧変化で、仕事・内部エネルギー・熱を区別しよう。</p>
   <p><a href="content/mechanics/gas-piston.html">気体＋ピストンのドリルを開く →</a></p>
@@ -502,6 +516,10 @@
       p.comboPendulumCollideDone ? '進捗：組み合わせ問題W・振り子＋弾性衝突＋摩擦を完了済み ✓' : '進捗：まだ組み合わせ問題W・振り子＋弾性衝突＋摩擦は未完了';
     document.getElementById('progress-combo-photo-cap').textContent =
       p.comboPhotoCapDone ? '進捗：組み合わせ問題X・光電効果＋コンデンサを完了済み ✓' : '進捗：まだ組み合わせ問題X・光電効果＋コンデンサは未完了';
+    document.getElementById('progress-combo-orbit-transfer').textContent =
+      p.comboOrbitTransferDone ? '進捗：組み合わせ問題Y・人工衛星の軌道遷移を完了済み ✓' : '進捗：まだ組み合わせ問題Y・人工衛星の軌道遷移は未完了';
+    document.getElementById('progress-combo-cyclotron').textContent =
+      p.comboCyclotronDone ? '進捗：組み合わせ問題Z・サイクロトロンを完了済み ✓' : '進捗：まだ組み合わせ問題Z・サイクロトロンは未完了';
     document.getElementById('progress-gas-piston').textContent =
       p.gasPistonDone ? '進捗：第7問・気体＋ピストンを完了済み ✓' : '進捗：まだ第7問・気体＋ピストンは未完了';
     document.getElementById('progress-young').textContent =
@@ -585,6 +603,8 @@
     document.getElementById('progress-combo-platform-charge').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-pendulum-collide').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-photo-cap').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-orbit-transfer').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-cyclotron').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-gas-piston').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-young').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-capacitor').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
