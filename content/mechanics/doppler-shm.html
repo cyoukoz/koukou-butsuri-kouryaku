@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題I：ドップラー＋単振動 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題I：ドップラー＋単振動</h1>
+<p><strong>問題：</strong>ばね（ばね定数 k = 100 N/m）についた質量 m = 1.0 kg のおもりに、振動数 f = 440 Hz の音源がついている。おもりは振幅 A = 0.20 m で単振動する。音速は V = 340 m/s とし、観測者は右側で静止している。(1) 音源の最大の速さと、単振動の周期を求めよ。(2) 音源が観測者へ向かう速さが最大のときの観測振動数を求めよ。(3) 折り返し点での観測振動数を求めよ。(4) 観測振動数は時間とともにどう変わるか。(5) 440 Hz の固定音源をもう1つ置くと、うなりは何 Hz になるか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v1.8、dopplerShm 型）が下の JSON データから計算して描く。音源の速度の矢印は 20 px/(m/s)、ばねの力の矢印は 2 px/N、振幅 0.20 m は 80 px で描く。</p>
+<script type="application/json" id="scene-ds-base">{"type":"dopplerShm","phase":"base","mKg":1,"kNm":100,"ampM":0.2,"freqHz":440,"soundSpeedMs":340}</script>
+<script type="application/json" id="scene-ds-approach">{"type":"dopplerShm","phase":"approach","mKg":1,"kNm":100,"ampM":0.2,"freqHz":440,"soundSpeedMs":340}</script>
+<script type="application/json" id="scene-ds-turn">{"type":"dopplerShm","phase":"turn","mKg":1,"kNm":100,"ampM":0.2,"freqHz":440,"soundSpeedMs":340}</script>
+<script type="application/json" id="scene-ds-graph">{"type":"dopplerShm","phase":"graph","mKg":1,"kNm":100,"ampM":0.2,"freqHz":440,"soundSpeedMs":340}</script>
+<script type="application/json" id="scene-ds-beat">{"type":"dopplerShm","phase":"beat","mKg":1,"kNm":100,"ampM":0.2,"freqHz":440,"soundSpeedMs":340}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。ここでは、音源の単振動の「いつか」で切る。音源の速度が変われば、ドップラーシフトも変わる。場面をつなぐのは、音源の速度 v_s だ。</p>
+  <table>
+    <tr><th>時間</th><th>系（どの音源か）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>つり合い位置を通るとき</td><td>音源（ばねについたおもり）</td><td><strong>速さ v_s = 2.0 m/s</strong></td><td>単振動の速さと周期（ステップ①）、シフト最大の観測振動数（ステップ②）</td></tr>
+    <tr><td>折り返し点</td><td>音源（いちばん端）</td><td><strong>速さ v_s = 0</strong></td><td>観測振動数は 440 Hz のまま（ステップ③）</td></tr>
+    <tr><td>1周期のあいだ</td><td>観測振動数 f′(t)</td><td>速さ v_s(t)</td><td>442.6 Hz と 437.4 Hz の間を往復する（ステップ④）</td></tr>
+    <tr><td>固定音源を重ねる</td><td>2つの音源</td><td>振動数の差</td><td>うなりは最大で約 2.6 Hz（ステップ⑤）</td></tr>
+  </table>
+  <p>音源が動くときのドップラー効果は f′ = f・V/(V − v_s) だ。v_s が時間で変われば、f′ も時間で変わる。単振動の式とドップラーの式を、v_s でつなぐのがこの問題だ。</p>
+  <svg class="fig" data-scene="scene-ds-base" data-show="" width="100%" role="img" aria-label="ばねについた音源と観測者"></svg>
+  <p>力を描く前の図はこれだけ。左の壁からばねでつながれた音源が、右の観測者に向かって音を出す。ここから下へ、1本ずつ足していく。</p>
+  <a class="next" href="#step1">次へ ↓ ①単振動の速さと周期</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 単振動の速さと周期</h2>
+  <svg class="fig" data-scene="scene-ds-approach" data-show="srcVel" width="100%" role="img" aria-label="つり合い位置で観測者へ向かう音源の速度"></svg>
+  <p>ばねの単振動では、角振動数は ω = √(k/m) = √(100/1.0) = <strong>10 rad/s</strong>。周期は T = 2π/ω = 2π/10 ≈ <strong>0.63 s</strong> だ。</p>
+  <p>つり合い位置での速さ（最大の速さ）は、v_max = ωA = 10 × 0.20 = <strong>2.0 m/s</strong>。最大の加速度は a_max = ω²A = 100 × 0.20 = 20 m/s²、ばねの力の最大値は kA = 100 × 0.20 = 20 N だ。音源の速さは、つり合い位置で最大になり、折り返し点で 0 になる。</p>
+  <label><input type="checkbox" class="check"> ω = 10 rad/s、周期 T ≈ 0.63 s、最大の速さ v_max = 2.0 m/s を求めた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②近づくときの観測振動数</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 近づくときの観測振動数</h2>
+  <svg class="fig" data-scene="scene-ds-approach" data-show="srcVel" width="100%" role="img" aria-label="音源が観測者へ向かうときのドップラーシフト"></svg>
+  <p>音源が観測者へ向かうときのドップラー効果は、f′ = f・V/(V − v_s) だ。v_s = 2.0 m/s を入れると、f′ = 440 × 340/(340 − 2.0) = 149600/338 ≈ <strong>442.6 Hz</strong>。静止時の 440 Hz より約 2.6 Hz 高い。</p>
+  <p>音源が近づくとき、前の波長は λ′ = (V − v_s)/f = 338/440 ≈ 0.77 m と、静止時の 0.77 m より少しだけ縮む。波長の変化は小さいが、振動数の変化として観測される。</p>
+  <label><input type="checkbox" class="check"> 近づくときの観測振動数 f′ ≈ 442.6 Hz を求めた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③折り返し点での観測振動数</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 折り返し点での観測振動数</h2>
+  <svg class="fig" data-scene="scene-ds-turn" data-show="springForce" width="100%" role="img" aria-label="折り返し点の音源：速度は0、ばねの力は最大"></svg>
+  <p>折り返し点では、音源の速さは v_s = 0 だ。ドップラーの式に v_s = 0 を入れると、f′ = 440 × 340/340 = <strong>440 Hz</strong>。シフトはない。</p>
+  <p>この瞬間、音源はいちばん端まで変位している（振幅 0.20 m の位置）。ばねの力は最大の 20 N ではたらいているが、速度が 0 なので、観測される音は静止時とまったく同じだ。変位が大きいことと、ドップラーシフトが大きいことは、別のはなしだ。</p>
+  <label><input type="checkbox" class="check"> 折り返し点では v_s = 0 なので観測振動数は 440 Hz のままであることを確かめた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④観測振動数の時間変化</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 観測振動数の時間変化</h2>
+  <svg class="fig" data-scene="scene-ds-graph" data-show="" width="100%" role="img" aria-label="観測振動数の時間変化のグラフ"></svg>
+  <p>音源の速度は、v_s(t) = 2.0 cos(10t) m/s と時間で変わる。だから観測振動数も、f′(t) = 440 × 340/(340 − 2.0 cos 10t) Hz と時間で変わる。</p>
+  <p>図のとおり、f′ は 1周期（約 0.63 s）のあいだに、最大の <strong>442.6 Hz</strong> と最小の <strong>437.4 Hz</strong>（遠ざかるとき、440 × 340/342）の間を往復する。ドップラーシフトは一定ではなく、ばねの周期で「うねる」。音の高さが、0.63 s ごとに上がったり下がったりして聞こえる。</p>
+  <label><input type="checkbox" class="check"> 観測振動数が 1周期で 442.6 Hz と 437.4 Hz の間を往復することを確かめた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤うなり</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ うなり</h2>
+  <svg class="fig" data-scene="scene-ds-beat" data-show="" width="100%" role="img" aria-label="うなりの包絡線のグラフ"></svg>
+  <p>440 Hz の固定音源をもう1つ置くと、2つの音の重ね合わせにうなりが出る。うなりの振動数は、2つの振動数の差だ。音源が観測者へ向かう速さが最大のとき、観測振動数は 442.6 Hz なので、うなりは |442.6 − 440| ≈ <strong>2.6 Hz</strong> になる。うなりの周期は 1/2.6 ≈ <strong>0.38 s</strong> だ。</p>
+  <p>ただし、うなりの振動数も時間で変わる。音源が遠ざかるときは観測振動数が 437.4 Hz になり、差は約 2.57 Hz。折り返し点では差が 0 になり、うなりは消える。うなりそのものが、ばねの周期で「うねる」のだ。</p>
+  <label><input type="checkbox" class="check"> うなりは最大で約 2.6 Hz（周期 約 0.38 s）で、時間とともに変わることを確かめた</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と系を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) ω = 10 rad/s、周期 T ≈ 0.63 s、最大の速さ v_max = 2.0 m/s。(2) 近づくとき f′ ≈ 442.6 Hz。(3) 折り返し点では f′ = 440 Hz。(4) 観測振動数は 1周期で 442.6 Hz と 437.4 Hz の間を往復する。(5) うなりは最大で約 2.6 Hz、周期 約 0.38 s。もとになった単体モデル：ドップラー効果は <a href="doppler.html">第18問：ドップラー効果</a>、単振動は <a href="shm.html">第11問：単振動・振り子</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboDopplerShmDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
