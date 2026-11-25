@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第23問：進行波・位相 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>第23問：進行波・位相</h1>
+<p><strong>問題：</strong>波の変位は、y = 0.10 sin 2π(t/0.50 − x/2.0) [m] で表される。振幅は 0.10 m である。(1) t = 0 の波形を描き、x = 0.50 m、1.0 m、1.5 m の変位を求めよ。(2) x = 0 の点の振動を求め、t = 0.125 s、0.25 s、0.375 s の変位を求めよ。(3) x = 0.50 m の点は、x = 0 の点より位相がどれだけ遅れるか。時間にするとどれだけ遅れるか。(4) 0.125 s 後に波はどれだけ進むか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js）が下の JSON データから計算して描いている。波形の横軸は x で 70 px/m（0〜4.0 m を 280 px）、振幅は 400 px/m（0.10 m → 40 px）になっている。ラベルは短い名前だけにして、枠からはみ出さないよう描画側で調整している。</p>
+<script type="application/json" id="scene-tw-shape">{"type":"travellingWave","phase":"shape","amplitudeM":0.1,"periodS":0.5,"wavelengthM":2.0,"xMarkM":0.5,"tS":0,"dtS":0.125}</script>
+<script type="application/json" id="scene-tw-vibration">{"type":"travellingWave","phase":"vibration","amplitudeM":0.1,"periodS":0.5,"wavelengthM":2.0,"xMarkM":0.5,"tS":0,"dtS":0.125}</script>
+<script type="application/json" id="scene-tw-phase">{"type":"travellingWave","phase":"phase","amplitudeM":0.1,"periodS":0.5,"wavelengthM":2.0,"xMarkM":0.5,"tS":0,"dtS":0.125}</script>
+<script type="application/json" id="scene-tw-moved">{"type":"travellingWave","phase":"moved","amplitudeM":0.1,"periodS":0.5,"wavelengthM":2.0,"xMarkM":0.5,"tS":0.125,"dtS":0.125}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：波の式は、波形と振動の両方を表す</h2>
+  <p>波の式 y = A sin 2π(t/T − x/λ) は、1つの式で 2 つのことを表している。t を固定すれば「ある時刻の波形」（横軸は位置 x）、x を固定すれば「ある点の振動」（横軸は時間 t）だ。同じ sin に見えるが、横軸が何かがまるで違う。ここを区別できないと、波の問題は解けない。</p>
+  <svg class="fig" data-scene="scene-tw-shape" data-show="" width="100%" role="img" aria-label="t=0 の波形"></svg>
+  <p>この波では、振幅 A = 0.10 m、周期 T = 0.50 s、波長 λ = 2.0 m だ。波の速さは、v = λ/T = 2.0 / 0.50 = <strong>4.0 m/s</strong>、振動数は f = 1/T = <strong>2.0 Hz</strong> になる。</p>
+  <a class="next" href="#step1">次へ ↓ ①t=0 の波形</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① t = 0 の波形：x = 0.50 m で −0.10 m、1.0 m で 0、1.5 m で +0.10 m</h2>
+  <svg class="fig" data-scene="scene-tw-shape" data-show="" width="100%" role="img" aria-label="t=0 の波形の各点の変位"></svg>
+  <p>t = 0 を式に入れると、y = 0.10 sin 2π(0 − x/2.0) = −0.10 sin(2πx/2.0) になる。x = 0.50 m では、sin(π/2) = 1 だから y = <strong>−0.10 m</strong>（山の下向きの最大）、x = 1.0 m では sin π = 0 だから y = <strong>0</strong>、x = 1.5 m では sin(3π/2) = −1 だから y = <strong>+0.10 m</strong> になる。</p>
+  <p>波形の山と谷のあいだの距離が、波長 λ = 2.0 m だ。x = 0 から x = 2.0 m までで、波はちょうど 1 波長分になる。図の横軸は x（位置）で、縦軸はその位置の変位 y だ。</p>
+  <label><input type="checkbox" class="check"> t=0 の波形の各点の変位が求まると分かった</label>
+  <br><a class="next" href="#step2">次へ ↓ ②x=0 の振動</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② x = 0 の振動：t = 0.125 s で +0.10 m、0.25 s で 0、0.375 s で −0.10 m</h2>
+  <svg class="fig" data-scene="scene-tw-vibration" data-show="" width="100%" role="img" aria-label="x=0 の点の振動（横軸は時間）"></svg>
+  <p>今度は x = 0 を式に入れる。y = 0.10 sin 2π(t/0.50) になる。t = 0.125 s では、2π × 0.125/0.50 = π/2 だから y = <strong>+0.10 m</strong>（上向きの最大）、t = 0.25 s では π だから y = <strong>0</strong>、t = 0.375 s では 3π/2 だから y = <strong>−0.10 m</strong>（下向きの最大）になる。</p>
+  <p>図は①の波形と同じ sin の形だが、横軸は時間 t だ。①は「ある時刻の、場所ごとの変位」、②は「ある場所の、時刻ごとの変位」だ。同じ曲線でも、横軸が x か t かで、読むものがまるで違う。ここがこの問題の中心の罠だ。</p>
+  <label><input type="checkbox" class="check"> 波形の図と振動の図は横軸が違うと分かった</label>
+  <br><a class="next" href="#step3">次へ ↓ ③位相の遅れ</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 位相の遅れ：x = 0.50 m の点は π/2（0.125 s）遅れる</h2>
+  <svg class="fig" data-scene="scene-tw-phase" data-show="" width="100%" role="img" aria-label="x=0 と x=0.50 m の点の位相の遅れ"></svg>
+  <p>波は右へ進むので、右の点は左の点より遅れて振動する。x = 0.50 m の点の位相は、x = 0 の点より 2πx/λ = 2π × 0.50/2.0 = <strong>π/2</strong> だけ遅れる。時間に直すと、遅れは x/v = 0.50/4.0 = <strong>0.125 s</strong> だ。つまり、x = 0.50 m の点は、x = 0 の点が 0.125 s 前にした振動を、今している。</p>
+  <p>確かめてみよう。x = 0 の点は t = 0.125 s に +0.10 m になった。x = 0.50 m の点は、それより 0.125 s 遅れて、t = 0.25 s に +0.10 m になる。式に入れると、y = 0.10 sin 2π(0.25/0.50 − 0.50/2.0) = 0.10 sin 2π(0.50 − 0.25) = 0.10 sin(π/2) = +0.10 m で、合っている。</p>
+  <label><input type="checkbox" class="check"> 右の点は位相が 2πx/λ、時間で x/v だけ遅れると分かった</label>
+  <br><a class="next" href="#step4">次へ ↓ ④波の移動</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 0.125 s 後に波は 0.50 m 右へ進む</h2>
+  <svg class="fig" data-scene="scene-tw-moved" data-show="" width="100%" role="img" aria-label="0.125 s 後の波形の移動"></svg>
+  <p>波が進む速さは v = 4.0 m/s だ。Δt = 0.125 s のあいだに、波形は vΔt = 4.0 × 0.125 = <strong>0.50 m</strong> 右へ進む。図の灰色の破線が t = 0 の波形、赤い線が t = 0.125 s の波形で、ちょうど 0.50 m ずれている。</p>
+  <p>ここで注意したいのは、波が進む速さ v と、媒質の点が振動する速さは別ものだということだ。波形は 4.0 m/s で右へ進むが、媒質の点はその場で上下に振動するだけで、右へは動かない。波が運ぶのは、媒質そのものではなく「振動のようす」だ。</p>
+  <label><input type="checkbox" class="check"> 波は vΔt だけ進み、媒質の点はその場で振動すると分かった</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ：波形と振動を区別し、定常波と比べる</h2>
+  <svg class="fig" data-scene="scene-tw-shape" data-show="" width="100%" role="img" aria-label="進行波のまとめの図"></svg>
+  <p>進行波の式 y = A sin 2π(t/T − x/λ) は、t を固定すれば波形、x を固定すれば振動になる。右の点は位相が 2πx/λ だけ遅れ、波形は v = λ/T の速さで進む。媒質の点はその場で振動するだけだ。</p>
+  <p>定常波は、この進行波が 2 つ重なったものだ。右へ進む波と左へ進む波が重なると、波形は進まずにその場で振動するだけになる。節と腹の位置は、<a href="standing-wave.html">第14問：定常波・共鳴</a>で確かめられる。振動そのものの速さや周期の考え方は、<a href="shm.html">第11問：単振動・振り子</a>でも確かめられる。</p>
+  <label><input type="checkbox" class="check"> 進行波と定常波の違いが分かると分かった</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) t=0 では x=0.50 m で −0.10 m、1.0 m で 0、1.5 m で +0.10 m。(2) x=0 では t=0.125 s で +0.10 m、0.25 s で 0、0.375 s で −0.10 m。(3) x=0.50 m の点は位相が π/2、時間で 0.125 s 遅れる。(4) 0.125 s で波は 0.50 m 右へ進む。定常波は <a href="standing-wave.html">第14問：定常波・共鳴</a>、振動は <a href="shm.html">第11問：単振動・振り子</a>でも確かめられる。</p>
+  <p>次は準備中です。<a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.travellingWaveDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>

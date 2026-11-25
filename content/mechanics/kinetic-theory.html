@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第22問：分子運動論 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>第22問：分子運動論</h1>
+<p><strong>問題：</strong>1辺 L = 0.10 m の立方体の箱に、窒素分子が n = 0.040 mol 入っている。温度は T = 300 K で、窒素分子 1 mol の質量は 0.028 kg である。(1) 1個の分子が壁にぶつかるときの運動量の変化と、1秒あたりに壁にぶつかる回数、1個の分子が壁を押す力を求めよ。(2) 分子全体が壁を押す力と圧力を求め、pV = (2/3)N・(平均運動エネルギー) と nRT からも確かめよ。(3) 体積を変えずに温度を 600 K にすると、圧力と分子の速さはどうなるか。(4) 温度と分子の数を変えずに体積を半分にすると、圧力はどうなるか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js）が下の JSON データから計算して描いている。箱の幅 240 px が L = 0.10 m で、速度の矢印は 0.10 px/(m/s)（v<sub>x</sub> ≈ 298 m/s → 約 30 px）になっている。ラベルは短い名前だけにして、枠からはみ出さないよう描画側で調整している。</p>
+<script type="application/json" id="scene-kt-one">{"type":"kineticTheory","phase":"one","boxLM":0.1,"nMol":0.04,"molarMassKg":0.028,"tempK":300,"rGas":8.31,"kB":1.38e-23,"nAvogadro":6.02e23}</script>
+<script type="application/json" id="scene-kt-many">{"type":"kineticTheory","phase":"many","boxLM":0.1,"nMol":0.04,"molarMassKg":0.028,"tempK":300,"rGas":8.31,"kB":1.38e-23,"nAvogadro":6.02e23}</script>
+<script type="application/json" id="scene-kt-hot">{"type":"kineticTheory","phase":"hot","boxLM":0.1,"nMol":0.04,"molarMassKg":0.028,"tempK":300,"rGas":8.31,"kB":1.38e-23,"nAvogadro":6.02e23}</script>
+<script type="application/json" id="scene-kt-half">{"type":"kineticTheory","phase":"half","boxLM":0.1,"nMol":0.04,"molarMassKg":0.028,"tempK":300,"rGas":8.31,"kB":1.38e-23,"nAvogadro":6.02e23}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：圧力は、分子が壁にぶつかる力だ</h2>
+  <p>気体の圧力は、見えない「力」ではない。箱の中の分子が、壁にぶつかって跳ね返るときに壁を押す力だ。1個の分子の力はとても小さいが、分子の数が 10²² 個もあるので、集まると 1000 N 近い力になる。圧力は、その力を壁の面積で割ったものだ。</p>
+  <svg class="fig" data-scene="scene-kt-many" data-show="" width="100%" role="img" aria-label="箱の中を飛び回る分子"></svg>
+  <p>分子はでたらめな向きに飛んでいる。壁にぶつかるたびに、壁に垂直な向きの速度だけが反転する。速さは変わらないが、運動量は変わる。その変化が、壁への力になる。</p>
+  <a class="next" href="#step1">次へ ↓ ①1個の分子</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 1個の分子：運動量変化 2mv<sub>x</sub>、1秒に約 1492 回ぶつかる</h2>
+  <svg class="fig" data-scene="scene-kt-one" data-show="vxIn,vxOut" width="100%" role="img" aria-label="1個の分子が壁にぶつかって跳ね返る図"></svg>
+  <p>まず、分子の速さを求める。二乗平均速度は、v<sub>rms</sub> = √(3RT/M) = √(3 × 8.31 × 300 / 0.028) ≈ <strong>517 m/s</strong> だ。壁に垂直な x 成分は、v<sub>x</sub> = v<sub>rms</sub>/√3 ≈ <strong>298 m/s</strong> になる。</p>
+  <p>分子が壁にぶつかると、x 成分の速度は +v<sub>x</sub> から −v<sub>x</sub> に反転する。運動量の変化は、Δp = 2mv<sub>x</sub> = 2 × 4.65×10⁻²⁶ × 298 ≈ <strong>2.78×10⁻²³ kg·m/s</strong> だ。1個の分子は、向かいの壁まで行って戻ってくるあいだに 2L = 0.20 m を進むので、1秒あたりに壁にぶつかる回数は、v<sub>x</sub>/2L = 298 / 0.20 ≈ <strong>1492 回</strong> になる。</p>
+  <p>力は、運動量の変化×回数だから、1個の分子が壁を押す力は、2.78×10⁻²³ × 1492 ≈ <strong>4.14×10⁻²⁰ N</strong> だ。1個では、ほとんど 0 に等しい。</p>
+  <label><input type="checkbox" class="check"> 1個の分子の力は、運動量変化 2mv<sub>x</sub> × 衝突頻度で求まると分かった</label>
+  <br><a class="next" href="#step2">次へ ↓ ②N個で圧力</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② N個で圧力：F ≈ 997 N、p ≈ 1.0×10⁵ Pa</h2>
+  <svg class="fig" data-scene="scene-kt-many" data-show="" width="100%" role="img" aria-label="たくさんの分子が壁を押す図"></svg>
+  <p>分子の数は、N = 0.040 × 6.02×10²³ ≈ <strong>2.41×10²² 個</strong> だ。全体が壁を押す力は、F = N × 4.14×10⁻²⁰ ≈ <strong>997 N</strong> になる。壁の面積は S = 0.10² = 0.010 m² だから、圧力は p = F/S ≈ <strong>1.0×10⁵ Pa</strong> だ。ほぼ 1 気圧になる。</p>
+  <p>同じ圧力が、別の式からも出る。1分子の平均運動エネルギーは、(3/2)kT = 1.5 × 1.38×10⁻²³ × 300 ≈ <strong>6.21×10⁻²¹ J</strong> で、pV = (2/3)N・(平均運動エネルギー) = (2/3) × 2.41×10²² × 6.21×10⁻²¹ ≈ 99.7 J になる。V = 1.0×10⁻³ m³ で割ると、p ≈ 1.0×10⁵ Pa だ。状態方程式 nRT = 0.040 × 8.31 × 300 ≈ 99.7 J とも一致する。3 通りの計算が同じ答えになる。</p>
+  <label><input type="checkbox" class="check"> 圧力は F/S と (2/3)(N/V)・平均運動エネルギーと nRT/V で一致すると分かった</label>
+  <br><a class="next" href="#step3">次へ ↓ ③温度を2倍に</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 温度を 2 倍に：速さは √2 倍、圧力は 2 倍</h2>
+  <svg class="fig" data-scene="scene-kt-hot" data-show="" width="100%" role="img" aria-label="温度が2倍の箱の分子"></svg>
+  <p>温度を 600 K にする（体積は変えない）。分子の速さは、v<sub>rms</sub> = √(3RT/M) だから、T が 2 倍になると速さは <strong>√2 倍</strong>（≈ 731 m/s）になる。2 倍ではない。速さは √T に比例する。</p>
+  <p>圧力はどうなるか。1回の衝突の運動量変化は速さに比例して √2 倍になり、衝突の回数も速さに比例して √2 倍になる。だから力は √2 × √2 = 2 倍になり、p ≈ <strong>2.0×10⁵ Pa</strong> になる。nRT/V からも、T が 2 倍なら p は 2 倍だ。温度とは、分子の平均運動エネルギー (3/2)kT のことだ。</p>
+  <label><input type="checkbox" class="check"> 温度2倍で速さは√2倍、圧力は2倍になると分かった</label>
+  <br><a class="next" href="#step4">次へ ↓ ④体積を半分に</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 体積を半分に：圧力は 2 倍。数だけでは決まらない</h2>
+  <svg class="fig" data-scene="scene-kt-half" data-show="" width="100%" role="img" aria-label="体積が半分の箱の分子"></svg>
+  <p>温度と分子の数を変えずに、体積を半分にする。分子の数は同じだが、箱が狭くなるので、分子は壁にぶつかるまでの距離が半分になり、衝突の回数が 2 倍になる。1回の運動量変化は変わらないので、力は 2 倍になり、p ≈ <strong>2.0×10⁵ Pa</strong> になる。</p>
+  <p>ここが罠だ。「分子の数が多いほど圧力が高い」とだけ覚えていると、体積を変えた問題で間違う。圧力は、分子の数 <strong>と</strong> 体積 <strong>と</strong> 温度の 3 つで決まる。p = (N/V)・kT の形を見れば、N/V（単位体積あたりの数）と T が決め手だと分かる。</p>
+  <label><input type="checkbox" class="check"> 圧力は分子の数だけでなく、体積と温度でも決まると分かった</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ：pV = (2/3)N・(平均運動エネルギー)</h2>
+  <svg class="fig" data-scene="scene-kt-many" data-show="" width="100%" role="img" aria-label="分子運動論のまとめの図"></svg>
+  <p>気体の圧力は、分子の衝突の集まりだ。1個の分子の力は「運動量変化 2mv<sub>x</sub> × 衝突頻度 v<sub>x</sub>/2L」で、N 個で F になり、面積で割ると p になる。まとめると、pV = (2/3)N・(平均運動エネルギー) で、平均運動エネルギー (3/2)kT を入れると pV = NkT = nRT になる。分子の世界の式と、気体の世界の式が、ここでつながる。</p>
+  <p>温度は、分子の平均運動エネルギーそのものだ。だから、温度を上げると分子は速くなり、壁を強く・たくさん押すので、圧力が上がる。気体の圧力・体積・温度の関係は、<a href="gas-piston.html">第7問：気体＋ピストン</a>や<a href="heat-cycle.html">第16問：熱サイクル・熱機関</a>でも確かめられる。</p>
+  <label><input type="checkbox" class="check"> 圧力は分子の衝突で、温度は平均運動エネルギーだと分かった</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 運動量変化は約 2.78×10⁻²³ kg·m/s、衝突は約 1492 回/s、1分子の力は約 4.14×10⁻²⁰ N。(2) 全体の力は約 997 N、圧力は約 1.0×10⁵ Pa。(3) 600 K では速さは約 731 m/s（√2 倍）、圧力は約 2.0×10⁵ Pa（2 倍）。(4) 体積を半分にすると圧力は約 2.0×10⁵ Pa（2 倍）。気体の圧力・体積・温度の関係は <a href="gas-piston.html">第7問：気体＋ピストン</a>や<a href="heat-cycle.html">第16問：熱サイクル・熱機関</a>でも確かめられる。</p>
+  <p>次は準備中です。<a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.kineticTheoryDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
