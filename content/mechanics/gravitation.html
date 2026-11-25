@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第13問：万有引力・人工衛星 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>第13問：万有引力・人工衛星</h1>
+<p><strong>問題：</strong>地球の半径 R = 6.4×10<sup>6</sup> m、地表での重力加速度 g<sub>0</sub> = 10 m/s² とする。人工衛星が地球のまわりを円軌道で回っている。(1) 地表すれすれの低軌道の速さと周期を求めよ。(2) 高度が地球半径に等しい軌道（r = 2R）の速さと周期、軌道上の重力を求めよ。(3) 周期が 24 時間の静止軌道の半径・速さ・軌道上の重力を求めよ。(4) ケプラーの第三法則と脱出速度を確認せよ。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js）が下の JSON データから計算して描いている。軌道半径はつねに 120px で、地球の半径は 120×R/r px と描く（場面ごとに縮尺が変わる）。速度の矢印は 0.01 px/(m/s)、重力の矢印は 6 px/(m/s²) だ。重力の矢印は中心向きで、向心力の役割を果たしている。</p>
+<script type="application/json" id="scene-grav-low">{"type":"gravitation","phase":"low","g0":10,"radiusM":6400000,"altitudeM":0}</script>
+<script type="application/json" id="scene-grav-mid">{"type":"gravitation","phase":"mid","g0":10,"radiusM":6400000,"altitudeM":6400000}</script>
+<script type="application/json" id="scene-grav-geo">{"type":"gravitation","phase":"geo","g0":10,"radiusM":6400000,"altitudeM":36200000}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：円軌道の条件は「重力＝向心力」</h2>
+  <p>人工衛星は落ち続けているのに、地表にぶつからない。重力が衛星を地球の中心へ引っ張り、その力が向心力になって衛星の進む向きを曲げ続けるからだ。だから円軌道の条件は、重力 = mv² / r だ。重力は、地球の中心からの距離 r が大きくなると弱くなる。地表の g<sub>0</sub> = 10 m/s² を、そのまま軌道上の重力として使ってはいけない。ここがこの問題の中心の罠だ。</p>
+  <svg class="fig" data-scene="scene-grav-low" data-show="" width="100%" role="img" aria-label="地球と低軌道（力はまだ描いていない）"></svg>
+  <p>図は地球とそのまわりの軌道だ。ここから下へ、高度を上げながら確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①低軌道</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 低軌道：v = 8000 m/s、周期 ≈ 84 分</h2>
+  <svg class="fig" data-scene="scene-grav-low" data-show="gravity,velocity" width="100%" role="img" aria-label="低軌道の重力と速度を描いた図"></svg>
+  <p>地表すれすれでは r = R なので、軌道上の重力は地表と同じ g = 10 m/s² だ。円軌道の条件 mg = mv² / r から、v = √(gR) = √(10 × 6.4×10<sup>6</sup>) = <strong>8000 m/s</strong>。周期は T = 2πr / v = 2π × 6.4×10<sup>6</sup> / 8000 ≈ <strong>5027 s（約 84 分）</strong>。地球を 1 周するのに 1 時間半もかからない。地表の g をそのまま使っていいのは、この低軌道だけだ。</p>
+  <label><input type="checkbox" class="check"> 低軌道の速さ 8000 m/s、周期 ≈ 84 分を求めた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②高度が地球半径分</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② r = 2R：重力は 1/4 になり、v ≈ 5700 m/s</h2>
+  <svg class="fig" data-scene="scene-grav-mid" data-show="gravity,velocity" width="100%" role="img" aria-label="r=2R の軌道の重力と速度を描いた図"></svg>
+  <p>高度が地球半径に等しいと、中心からの距離は r = 2R になる。万有引力は距離の 2 乗に反比例するので、軌道上の重力は g = g<sub>0</sub>(R/r)² = 10 × (1/2)² = <strong>2.5 m/s²</strong>。地表の 1/4 だ。速さは v = √(GM/r) で、GM = g<sub>0</sub>R² だから v = √(10 × 6.4×10<sup>6</sup> / 2) ≈ <strong>5657 m/s</strong>。周期は T = 2πr / v ≈ <strong>14217 s（約 237 分）</strong>。図でも、重力の矢印が低軌道のときの 1/4 の長さになっている。g = 10 のまま v = 8000 m/s とすると、速さも周期も間違う。</p>
+  <label><input type="checkbox" class="check"> r = 2R では重力が 2.5 m/s²（地表の 1/4）になり、速さ ≈ 5700 m/s と分かった</label>
+  <br><a class="next" href="#step3">次へ ↓ ③静止軌道</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 静止軌道：r ≈ 6.66R、v ≈ 3100 m/s、g ≈ 0.23 m/s²</h2>
+  <svg class="fig" data-scene="scene-grav-geo" data-show="gravity,velocity" width="100%" role="img" aria-label="静止軌道の重力と速度を描いた図"></svg>
+  <p>静止軌道は、周期が地球の自転と同じ 24 時間（86400 s）の軌道だ。ケプラーの第三法則 T² = 4π²r³ / GM から r を求めると、r ≈ <strong>4.26×10<sup>7</sup> m（約 6.66R、高度は約 3.62×10<sup>7</sup> m）</strong>。速さは v = 2πr / T ≈ <strong>3100 m/s</strong>。軌道上の重力は g = 10 × (1/6.66)² ≈ <strong>0.23 m/s²</strong> で、地表の約 1/44 だ。図では、地球が小さく見え、重力の矢印がほとんど見えないほど短い。それでも、その弱い重力が向心力になって、衛星を 24 時間かけて 1 周させている。</p>
+  <label><input type="checkbox" class="check"> 静止軌道の半径 ≈ 6.66R、速さ ≈ 3100 m/s、重力 ≈ 0.23 m/s² を求めた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④ケプラーの第三法則と脱出速度</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ ケプラーの第三法則と脱出速度</h2>
+  <svg class="fig" data-scene="scene-grav-geo" data-show="gravity,velocity" width="100%" role="img" aria-label="静止軌道のまとめの図"></svg>
+  <p>3つの軌道を比べると、r が大きいほど周期が長い。ケプラーの第三法則 T² ∝ r³ だ。低軌道の T ≈ 5027 s と r = R、静止軌道の T = 86400 s と r ≈ 6.66R で確かめると、(86400/5027)² ≈ 295、(6.66)³ ≈ 295 で一致する。なお、地球から無限に遠くへ逃げるには、脱出速度 v = √(2g<sub>0</sub>R) ≈ <strong>11300 m/s</strong> が要る。低軌道の速さ 8000 m/s の √2 倍だ。速さがこれを超えると、衛星は地球に戻ってこない。</p>
+  <label><input type="checkbox" class="check"> T² ∝ r³ が3つの軌道で成り立つことと、脱出速度 ≈ 11300 m/s を確かめた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ：重力は場所によって変わる</h2>
+  <svg class="fig" data-scene="scene-grav-mid" data-show="gravity,velocity" width="100%" role="img" aria-label="万有引力のまとめの図"></svg>
+  <p>万有引力の問題は、まず「重力はどこでの重力か」を決める。地表の g<sub>0</sub> は r = R での値でしかない。r が変われば g = g<sub>0</sub>(R/r)² で変わる。そのうえで、円軌道の条件「重力 = mv² / r」を立てる。g を固定値だと思い込むと、速さも周期も間違う。重力が向心力の役割を果たす、という点では <a href="circle.html">第10問：円運動</a> と同じ形だ。あちらは張力が向心力、こちらは重力が向心力だ。</p>
+  <label><input type="checkbox" class="check"> 重力は g<sub>0</sub>(R/r)² で変わること、円軌道の条件は重力 = mv² / r と分かった</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 低軌道 v = 8000 m/s、T ≈ 5027 s（約 84 分）。(2) r = 2R では g = 2.5 m/s²、v ≈ 5657 m/s、T ≈ 14217 s（約 237 分）。(3) 静止軌道 r ≈ 4.26×10<sup>7</sup> m、v ≈ 3100 m/s、g ≈ 0.23 m/s²。(4) T² ∝ r³、脱出速度 ≈ 11300 m/s。向心力の考え方は <a href="circle.html">第10問：円運動</a>、重力の落下は <a href="projectile.html">投げ上げ・斜方投射</a> でも確かめられる。</p>
+  <p>次は準備中です。<a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.gravitationDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>

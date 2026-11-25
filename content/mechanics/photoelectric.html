@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第15問：光電効果 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>第15問：光電効果</h1>
+<p><strong>問題：</strong>ある金属の仕事関数（電子を金属から引きはがすのに必要なエネルギー）は φ = 2.0 eV である。プランク定数 h = 4.14×10<sup>−15</sup> eV·s、光速 c = 3.0×10<sup>8</sup> m/s とする。(1) 波長 650 nm の赤い光を当てると、電子は飛び出すか。(2) 波長 400 nm の紫の光を当てると、飛び出す電子の最大の運動エネルギーと速さを求めよ。(3) (2) の光をもっと明るくすると、電子の速さはどうなるか。(4) 電子が飛び出す限界の振動数と波長を求めよ。波長 300 nm の光では、電子の最大の運動エネルギーと速さはいくらか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js）が下の JSON データから計算して描いている。破線の矢印が光、青い矢印が飛び出す電子だ。電子の矢印の長さは速さに比例している（8.0×10<sup>−5</sup> px/(m/s)）。光の矢印の本数が、光の明るさ（光子の数）を表している。</p>
+<script type="application/json" id="scene-photo-red">{"type":"photoelectric","phase":"red","wavelengthNm":650,"workFunctionEv":2.0,"hEvS":4.14e-15,"cMs":300000000,"intensity":1}</script>
+<script type="application/json" id="scene-photo-violet">{"type":"photoelectric","phase":"violet","wavelengthNm":400,"workFunctionEv":2.0,"hEvS":4.14e-15,"cMs":300000000,"intensity":1}</script>
+<script type="application/json" id="scene-photo-bright">{"type":"photoelectric","phase":"bright","wavelengthNm":400,"workFunctionEv":2.0,"hEvS":4.14e-15,"cMs":300000000,"intensity":3}</script>
+<script type="application/json" id="scene-photo-uv">{"type":"photoelectric","phase":"uv","wavelengthNm":300,"workFunctionEv":2.0,"hEvS":4.14e-15,"cMs":300000000,"intensity":1}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：光は「粒」としても働く</h2>
+  <p>金属に光を当てると、電子が飛び出すことがある。これが光電効果だ。光は波だが、電子を飛ばすときは、エネルギーの粒（光子）として働く。1 個の光子がもつエネルギーは E = hf で、振動数 f だけで決まる。電子を金属から引きはがすには、仕事関数 φ の分のエネルギーが必要だ。光子のエネルギーが φ より小さいと、電子は出ない。明るさは関係ない。</p>
+  <svg class="fig" data-scene="scene-photo-violet" data-show="" width="100%" role="img" aria-label="金属板と光源（光と電子はまだ描いていない）"></svg>
+  <p>図は金属板と光源だ。ここから下へ、光の色を変えながら確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①赤い光</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 赤い光（650 nm）：電子は出ない</h2>
+  <svg class="fig" data-scene="scene-photo-red" data-show="light1" width="100%" role="img" aria-label="赤い光が金属板に当たる図"></svg>
+  <p>波長 650 nm の光の振動数は f = c / λ = 3.0×10<sup>8</sup> / 650×10<sup>−9</sup> ≈ <strong>4.62×10<sup>14</sup> Hz</strong>。光子 1 個のエネルギーは E = hf ≈ 4.14×10<sup>−15</sup> × 4.62×10<sup>14</sup> ≈ <strong>1.91 eV</strong>。仕事関数 φ = 2.0 eV より小さいので、電子を引きはがすエネルギーが足りない。だから電子は出ない。光をいくら明るくしても、光子の数が増えるだけで、1 個の光子のエネルギーは 1.91 eV のままだから、電子は出ない。ここがこの問題の中心の罠だ。</p>
+  <label><input type="checkbox" class="check"> 赤い光の光子のエネルギーは約 1.91 eV で、φ = 2.0 eV より小さいので電子は出ないと分かった</label>
+  <br><a class="next" href="#step2">次へ ↓ ②紫の光</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 紫の光（400 nm）：K<sub>max</sub> = 1.10 eV、v ≈ 6.2×10<sup>5</sup> m/s</h2>
+  <svg class="fig" data-scene="scene-photo-violet" data-show="light1,electron1" width="100%" role="img" aria-label="紫の光で電子が飛び出す図"></svg>
+  <p>波長 400 nm の光の振動数は f = 3.0×10<sup>8</sup> / 400×10<sup>−9</sup> = <strong>7.50×10<sup>14</sup> Hz</strong>、光子のエネルギーは E = hf = <strong>3.10 eV</strong>。仕事関数 2.0 eV を引いた残りが、電子の最大の運動エネルギーになる。K<sub>max</sub> = hf − φ = 3.10 − 2.0 = <strong>1.10 eV</strong>。速さは K<sub>max</sub> = (1/2)mv² から、v = √(2K<sub>max</sub> / m) ≈ <strong>6.2×10<sup>5</sup> m/s</strong>。図の青い矢印が、その速さの電子だ。</p>
+  <label><input type="checkbox" class="check"> 紫の光では K<sub>max</sub> = 1.10 eV、速さ ≈ 6.2×10<sup>5</sup> m/s を求めた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③もっと明るくすると</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ もっと明るい紫の光：速さは変わらない、数が増えるだけ</h2>
+  <svg class="fig" data-scene="scene-photo-bright" data-show="light1,light2,light3,electron1,electron2" width="100%" role="img" aria-label="明るい紫の光で電子がたくさん飛び出す図"></svg>
+  <p>同じ 400 nm の光を 3 倍明るくすると、光子の数が 3 倍になる。でも、1 個の光子のエネルギーは 3.10 eV のままだ。だから電子 1 個の最大の運動エネルギーは <strong>1.10 eV のまま</strong>で、速さも 6.2×10<sup>5</sup> m/s のままだ。図でも、電子の矢印の長さは②と同じで、本数だけが増えている。変わるのは、飛び出す電子の数（＝電流の大きさ）だけだ。「明るいほど速い電子が出る」は誤解だ。明るさは数、振動数は速さを決める。</p>
+  <label><input type="checkbox" class="check"> 明るくしても K<sub>max</sub> と速さは変わらず、電子の数だけが増えると分かった</label>
+  <br><a class="next" href="#step4">次へ ↓ ④限界振動数と波長</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 限界振動数 f<sub>0</sub> ≈ 4.83×10<sup>14</sup> Hz、限界波長 λ<sub>0</sub> ≈ 621 nm</h2>
+  <svg class="fig" data-scene="scene-photo-uv" data-show="light1,electron1" width="100%" role="img" aria-label="300 nm の光で電子が速く飛び出す図"></svg>
+  <p>電子がちょうど飛び出せる境目は、hf = φ となるときだ。限界振動数は f<sub>0</sub> = φ / h = 2.0 / 4.14×10<sup>−15</sup> ≈ <strong>4.83×10<sup>14</sup> Hz</strong>、限界波長は λ<sub>0</sub> = c / f<sub>0</sub> ≈ <strong>621 nm</strong>。これより波長が短い（振動数が大きい）光なら電子が出て、長い光なら出ない。波長 300 nm の光では、E = 4.14 eV、K<sub>max</sub> = 4.14 − 2.0 = <strong>2.14 eV</strong>、速さは v ≈ <strong>8.7×10<sup>5</sup> m/s</strong>。図の電子の矢印が、400 nm のときより長い（約 1.4 倍）。速さの比は √(2.14 / 1.10) ≈ 1.39 で、エネルギーの比そのものではないことに注意しよう。</p>
+  <label><input type="checkbox" class="check"> 限界振動数 ≈ 4.83×10<sup>14</sup> Hz、限界波長 ≈ 621 nm、300 nm では K<sub>max</sub> = 2.14 eV と分かった</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ：振動数が速さ、明るさが数を決める</h2>
+  <svg class="fig" data-scene="scene-photo-violet" data-show="light1,electron1" width="100%" role="img" aria-label="光電効果のまとめの図"></svg>
+  <p>光電効果の問題は、まず光子 1 個のエネルギー E = hf を求める。次に、K<sub>max</sub> = hf − φ を立てる。hf が φ より小さければ、電子は出ない。明るさは光子の数で、電子の数を決めるだけだ。光を波として扱う <a href="young.html">第8問：ヤングの干渉</a> とは逆に、ここでは光を粒として扱う。同じ光でも、問うものが違えばモデルが違う。振動数 f の意味は <a href="shm.html">第11問：単振動・振り子</a> でも出てくる。</p>
+  <label><input type="checkbox" class="check"> 振動数が速さを、明るさが電子の数を決めると分かった</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 650 nm では E ≈ 1.91 eV &lt; φ なので電子は出ない。(2) 400 nm では K<sub>max</sub> = 1.10 eV、v ≈ 6.2×10<sup>5</sup> m/s。(3) 明るくしても K<sub>max</sub> と速さは変わらず、電子の数だけが増える。(4) f<sub>0</sub> ≈ 4.83×10<sup>14</sup> Hz、λ<sub>0</sub> ≈ 621 nm。300 nm では K<sub>max</sub> = 2.14 eV、v ≈ 8.7×10<sup>5</sup> m/s。光の波の性質は <a href="young.html">第8問：ヤングの干渉</a>、振動数は <a href="shm.html">第11問：単振動・振り子</a> で確かめられる。</p>
+  <p>次は準備中です。<a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.photoelectricDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
