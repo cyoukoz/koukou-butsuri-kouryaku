@@ -1,4 +1,4 @@
-// 高校物理攻略 — 図描画シミュレータ（試作 v1.1：単一モデル 直流回路・屈折・レンズ・ボーア模型 追加）
+// 高校物理攻略 — 図描画シミュレータ（試作 v1.2：単一モデル 分子運動論・進行波・クーロン・電場 追加）
 // 方針：図は手書きの座標を直書きしない。入力は JSON の「物理データ」だけ。
 // 描画側が角度・つり合いから矢印の向きと長さを計算する。
 // だから mg sinθ が mg と同じ長さになる、θ が消える、ラベルが切れる、
@@ -1025,6 +1025,146 @@ function bohrForces(data) {
   return []; // ド・ブロイの場面：波は drawBase で円周に沿って描く
 }
 
+// ---- 分子運動論（T4）：箱の中の分子の衝突が圧力をつくる ----
+// 具体値（検算済み）：1辺 L=0.10 m の立方体の箱、V=1.0×10⁻³ m³、S=1.0×10⁻² m²、
+//   N₂ 分子 n=0.040 mol（N=2.41×10²² 個）、M=0.028 kg/mol、T=300 K、R=8.31、k=1.38×10⁻²³
+//   v_rms=√(3RT/M)≈517 m/s、v_x=v_rms/√3≈298 m/s、1分子の平均運動エネルギー (3/2)kT≈6.21×10⁻²¹ J
+//   p=(2/3)(N/V)・KĒ≈1.0×10⁵ Pa（nRT/V とも、F/S とも一致）
+//   1分子：壁への衝突で運動量変化 2mv_x≈2.78×10⁻²³ kg·m/s、衝突頻度 v_x/2L≈1492 回/s、
+//     1分子の力 ≈4.14×10⁻²⁰ N、全体 F≈997 N、p=F/S≈1.0×10⁵ Pa
+//   T=600 K（V一定）→ v_rms は√2 倍、p は 2 倍（≈2.0×10⁵ Pa）。
+//   V を半分に（N, T 一定）→ p は 2 倍（≈2.0×10⁵ Pa）。圧力は分子の数だけでは決まらない。
+// 罠：圧力は N/V と温度（平均運動エネルギー）の両方で決まる。数だけ見てはいけない。
+//   また温度を 2 倍にしても速さは 2 倍ではなく √2 倍になる（速さは √T に比例）。
+// 図の縮尺：箱の幅 240 px が L=0.10 m。速度の矢印は 0.10 px/(m/s)（v_x≈298 m/s → 約 30 px）。
+function kineticTheoryDerived(data) {
+  const L = data.boxLM, V = L * L * L, S = L * L;
+  const N = data.nMol * data.nAvogadro;
+  const m = data.molarMassKg / data.nAvogadro;
+  const R = data.rGas, kB = data.kB, T = data.tempK;
+  const vRms = Math.sqrt((3 * R * T) / data.molarMassKg);
+  const vxRms = vRms / Math.sqrt(3);
+  const meanKE_J = 1.5 * kB * T;
+  const pressurePa = (2 / 3) * (N / V) * meanKE_J;
+  const pIdealPa = (data.nMol * R * T) / V;
+  const collFreq = vxRms / (2 * L);
+  const dpPerHit = 2 * m * vxRms;
+  const forcePerMolN = dpPerHit * collFreq;
+  const totalForceN = N * forcePerMolN;
+  const pFromForcePa = totalForceN / S;
+  const vRmsHot = Math.sqrt((3 * R * 600) / data.molarMassKg);
+  const pHotPa = (data.nMol * R * 600) / V;
+  const pHalfPa = (data.nMol * R * T) / (V / 2);
+  return {
+    N, m, vRms, vxRms, meanKE_J, pressurePa, pIdealPa,
+    collFreq, dpPerHit, forcePerMolN, totalForceN, pFromForcePa,
+    vRmsHot, pHotPa, pHalfPa, boxV: V, boxS: S,
+  };
+}
+
+function kineticTheoryForces(data) {
+  const d = kineticTheoryDerived(data);
+  const vScale = 0.10; // px/(m/s)
+  const vxPx = d.vxRms * vScale;
+  if (data.phase === 'one') {
+    // 1個の分子が右の壁にぶつかる：来るとき v_x、跳ね返るとき −v_x。
+    return [
+      { id: 'vxIn', short: 'v_x', color: '#d35400', vector: [vxPx, 0], dashed: false, labelDx: 6, labelDy: -8, from: { x: 260, y: 160 } },
+      { id: 'vxOut', short: '−v_x', color: 'blue', vector: [-vxPx, 0], dashed: false, labelDx: -6, labelDy: -8, from: { x: 290, y: 160 } },
+    ];
+  }
+  return [];
+}
+
+// ---- 進行波・位相（W1）：波の式 y=A sin 2π(t/T − x/λ) ----
+// 具体値（検算済み）：A=0.10 m、T=0.50 s、λ=2.0 m、v=λ/T=4.0 m/s、f=2.0 Hz
+//   t=0 の波形 y=−A sin(2πx/λ)：x=0 で 0、x=0.50 m で −A、x=1.0 m で 0、x=1.5 m で +A
+//   x=0 の振動 y=A sin(2πt/T)：t=0.125 s で +A、t=0.25 s で 0、t=0.375 s で −A
+//   x=0.50 m の点は x=0 より位相が π/2（2πx/λ）遅れ、時間にすると 0.125 s 遅れる。
+//   Δt=0.125 s で波は vΔt=0.50 m 右へ進む（y(0.5, 0.125)=y(0, 0)=0）。
+// 罠：t を固定した式は「ある時刻の波形」、x を固定した式は「ある点の振動」。
+//   波形の図と振動の図は同じ sin に見えるが、横軸が x か t かで意味がまるで違う。
+//   また、波が進む速さ v と、媒質の点が振動する速さ（dy/dt）は別もの。
+// 図の縮尺：x は 70 px/m（0〜4.0 m を 280 px）、振幅は 400 px/m（0.10 m → 40 px）。
+//   振動の図の横軸は t で 280 px/s（0〜1.0 s を 280 px）。
+function travellingWaveDerived(data) {
+  const A = data.amplitudeM, T = data.periodS, lam = data.wavelengthM;
+  const freqHz = 1 / T, speedMs = lam / T;
+  const y = (x, t) => A * Math.sin(2 * Math.PI * (t / T - x / lam));
+  const yAt = (x, t) => y(x, t);
+  const phaseLag05 = (2 * Math.PI * data.xMarkM) / lam; // x=0.50 m の位相の遅れ
+  const timeLag05 = data.xMarkM / speedMs;
+  const moveDistM = speedMs * data.dtS;
+  return {
+    freqHz, speedMs, yAt,
+    y00: y(0, 0), y05_0: y(0.5, 0), y10_0: y(1.0, 0), y15_0: y(1.5, 0),
+    y0_0125: y(0, 0.125), y0_025: y(0, 0.25), y0_0375: y(0, 0.375),
+    phaseLag05, timeLag05, moveDistM,
+    x0Px: 60, spanPx: 280, yMid: 180, ampPx: A * 400, pxPerM: 70,
+  };
+}
+
+function travellingWaveForces(data) {
+  return []; // 波形は drawBase で式から描く。力の矢印はない。
+}
+
+// ---- クーロンの法則・電場（E1）：点電荷の電場・電気力・電位 ----
+// 具体値（検算済み、k=9.0×10⁹ N·m²/C²、Q=+2.0 μC）：
+//   r=0.10 m：E=kQ/r²=1.8×10⁶ N/C、r=0.20 m：E=4.5×10⁵ N/C（距離 2 倍で 1/4）
+//   試験電荷 q=+1.0 μC を r=0.10 m に置くと F=qE=1.8 N。q を 2 倍にしても E は変わらず、F だけ 3.6 N になる。
+//   双極子（+2.0 μC と −2.0 μC を 0.30 m 離す）の中点：
+//     E1=E2=kQ/(0.15)²=8.0×10⁵ N/C、向きは両方とも +→−（右向き）で、合計 E=1.6×10⁶ N/C。
+//     電位はスカラーの和：V1=+1.2×10⁵ V、V2=−1.2×10⁵ V、合計 V=0 V。電位は 0 でも電場は 0 ではない。
+// 罠：電場 E は「置く電荷 q がなくても決まる量」で、電気力 F=qE は q をかけたもの。
+//   q を変えても E は変わらない。電位はスカラー（和はただの足し算）、電場はベクトル（向きつきの和）。
+// 図の縮尺：電場の矢印は 30 px/(1.0×10⁶ N/C)（1.8×10⁶ → 54 px、4.5×10⁵ → 13.5 px、1.6×10⁶ → 48 px）。
+//   距離は 700 px/m（0.10 m → 70 px）。電気力の矢印は 20 px/N（1.8 N → 36 px）。
+function coulombFieldDerived(data) {
+  const k = data.kConst, Q1 = data.q1C, Q2 = data.q2C;
+  const eNear = (k * Q1) / (data.r1M * data.r1M);
+  const eFar = (k * Q1) / (data.r2M * data.r2M);
+  const fTest = data.testQC * eNear;
+  const fTest2 = 2 * data.testQC * eNear;
+  const rMid = data.sepM / 2;
+  const eMid1 = (k * Q1) / (rMid * rMid);
+  const eMid2 = (k * Math.abs(Q2)) / (rMid * rMid);
+  const eMidTotal = eMid1 + eMid2;
+  const vMid1 = (k * Q1) / rMid;
+  const vMid2 = (k * Q2) / rMid;
+  const vMidTotal = vMid1 + vMid2;
+  return {
+    eNear, eFar, fTest, fTest2, rMid,
+    eMid1, eMid2, eMidTotal, vMid1, vMid2, vMidTotal,
+  };
+}
+
+function coulombFieldForces(data) {
+  const d = coulombFieldDerived(data);
+  const eScale = 30 / 1e6; // px/(N/C)
+  if (data.phase === 'single') {
+    // 2つの矢印が近いので、ラベルは上下にずらす（近いは上、遠いは下）。遠いのを上に置くと枠をはみ出す。
+    return [
+      { id: 'eNear', short: '1.8×10⁶', color: '#b00', vector: [d.eNear * eScale, 0], dashed: false, labelDx: 6, labelDy: -8, from: { x: 210, y: 180 } },
+      { id: 'eFar', short: '4.5×10⁵', color: '#b00', vector: [d.eFar * eScale, 0], dashed: false, labelDx: 6, labelDy: 16, from: { x: 280, y: 180 } },
+    ];
+  }
+  if (data.phase === 'force') {
+    return [
+      { id: 'eField', short: 'E（qなし）', color: '#b00', vector: [d.eNear * eScale, 0], dashed: true, labelDx: 6, labelDy: -8, from: { x: 210, y: 140 } },
+      { id: 'fTest', short: 'F=qE=1.8 N', color: 'blue', vector: [d.fTest * 20, 0], dashed: false, labelDx: 6, labelDy: -8, from: { x: 210, y: 180 } },
+    ];
+  }
+  if (data.phase === 'dipole') {
+    // E1・E2 は中点で同じ向き。重ねて描くと見えないので、少し上下にずらして描く。
+    return [
+      { id: 'e1', short: 'E1', color: '#b00', vector: [d.eMid1 * eScale, 0], dashed: false, labelDx: 6, labelDy: -8, from: { x: 210, y: 165 } },
+      { id: 'eTotal', short: 'E=1.6×10⁶', color: '#b00', vector: [d.eMidTotal * eScale, 0], dashed: false, labelDx: 6, labelDy: -8, from: { x: 210, y: 180 } },
+      { id: 'e2', short: 'E2', color: '#b00', vector: [d.eMid2 * eScale, 0], dashed: false, labelDx: 6, labelDy: -8, from: { x: 210, y: 195 } },
+    ];
+  }
+  return []; // 電気力線の場面：線は drawBase で描く
+}
+
 function sceneFor(type, thetaDeg, mgPx, fPx, data) {
   if (type === 'dcCircuit') {
     const d = dcCircuitDerived(data);
@@ -1057,6 +1197,39 @@ function sceneFor(type, thetaDeg, mgPx, fPx, data) {
       derived: d,
       center: { x: 200, y: 180 }, centerDot: false,
       forces: bohrForces(data),
+    };
+  }
+  if (type === 'kineticTheory') {
+    const d = kineticTheoryDerived(data);
+    return {
+      type, phase: data.phase || 'one',
+      boxLM: data.boxLM, nMol: data.nMol, molarMassKg: data.molarMassKg,
+      tempK: data.tempK, rGas: data.rGas, kB: data.kB, nAvogadro: data.nAvogadro,
+      derived: d,
+      center: { x: 200, y: 160 }, centerDot: false,
+      forces: kineticTheoryForces(data),
+    };
+  }
+  if (type === 'travellingWave') {
+    const d = travellingWaveDerived(data);
+    return {
+      type, phase: data.phase || 'shape',
+      amplitudeM: data.amplitudeM, periodS: data.periodS, wavelengthM: data.wavelengthM,
+      xMarkM: data.xMarkM, tS: data.tS || 0, dtS: data.dtS || 0.125,
+      derived: d,
+      center: { x: 200, y: 180 }, centerDot: false,
+      forces: travellingWaveForces(data),
+    };
+  }
+  if (type === 'coulombField') {
+    const d = coulombFieldDerived(data);
+    return {
+      type, phase: data.phase || 'single',
+      kConst: data.kConst, q1C: data.q1C, q2C: data.q2C, sepM: data.sepM,
+      r1M: data.r1M, r2M: data.r2M, testQC: data.testQC,
+      derived: d,
+      center: { x: 200, y: 180 }, centerDot: false,
+      forces: coulombFieldForces(data),
     };
   }
   if (type === 'heatCycle') {
@@ -1770,6 +1943,67 @@ function validateScene(scene) {
     if (byId.trans32 && Math.abs(-byId.trans32.vector[1] - d.dE32 * 15) > 0.5) return ['3→2 の矢印が ΔE×15 px と一致しません'];
     if (byId.trans21 && Math.abs(-byId.trans21.vector[1] - d.dE21 * 15) > 0.5) return ['2→1 の矢印が ΔE×15 px と一致しません'];
   }
+  if (scene.type === 'kineticTheory') {
+    const d = scene.derived;
+    // 二乗平均速度：v_rms=√(3RT/M)、x 成分は v_rms/√3。
+    if (Math.abs(d.vRms - Math.sqrt((3 * scene.rGas * scene.tempK) / scene.molarMassKg)) > 1e-9) return ['二乗平均速度が √(3RT/M) と一致しません'];
+    if (Math.abs(d.vxRms - d.vRms / Math.sqrt(3)) > 1e-9) return ['x 成分の速度が v_rms/√3 と一致しません'];
+    // 1分子の平均運動エネルギー：(3/2)kT。
+    if (Math.abs(d.meanKE_J - 1.5 * scene.kB * scene.tempK) > 1e-30) return ['平均運動エネルギーが (3/2)kT と一致しません'];
+    // 圧力の 3 通りの計算が一致する：(2/3)(N/V)KĒ、nRT/V、F/S。
+    if (Math.abs(d.pressurePa - d.pIdealPa) / d.pIdealPa > 0.001) return ['圧力が (2/3)(N/V)KĒ と nRT/V で一致しません'];
+    if (Math.abs(d.pFromForcePa - d.pIdealPa) / d.pIdealPa > 0.001) return ['圧力が F/S と nRT/V で一致しません'];
+    // 1分子の力：運動量変化 2mv_x × 衝突頻度 v_x/2L。
+    if (Math.abs(d.collFreq - d.vxRms / (2 * scene.boxLM)) > 1e-9) return ['衝突頻度が v_x/2L と一致しません'];
+    if (Math.abs(d.dpPerHit - 2 * d.m * d.vxRms) > 1e-30) return ['1回の衝突の運動量変化が 2mv_x と一致しません'];
+    if (Math.abs(d.forcePerMolN - d.dpPerHit * d.collFreq) > 1e-30) return ['1分子の力が 2mv_x×頻度と一致しません'];
+    if (Math.abs(d.totalForceN - d.N * d.forcePerMolN) / d.totalForceN > 1e-9) return ['全体の力が N×1分子の力と一致しません'];
+    // T を 2 倍にすると p は 2 倍、v_rms は √2 倍。V を半分にすると p は 2 倍。
+    if (Math.abs(d.pHotPa - 2 * d.pIdealPa) / d.pIdealPa > 0.001) return ['600 K の圧力が 300 K の 2 倍になっていません'];
+    if (Math.abs(d.vRmsHot - d.vRms * Math.sqrt(2)) > 1e-9) return ['600 K の速さが √2 倍になっていません'];
+    if (Math.abs(d.pHalfPa - 2 * d.pIdealPa) / d.pIdealPa > 0.001) return ['体積を半分にした圧力が 2 倍になっていません'];
+    // 速度の矢印の長さが 0.10 px/(m/s) どおりか。
+    if (byId.vxIn && Math.abs(byId.vxIn.vector[0] - d.vxRms * 0.10) > 0.5) return ['v_x の矢印が縮尺と一致しません'];
+    if (byId.vxOut && Math.abs(-byId.vxOut.vector[0] - d.vxRms * 0.10) > 0.5) return ['跳ね返りの矢印が縮尺と一致しません'];
+  }
+  if (scene.type === 'travellingWave') {
+    const d = scene.derived;
+    // 波の速さ v=λ/T、振動数 f=1/T。
+    if (Math.abs(d.speedMs - scene.wavelengthM / scene.periodS) > 1e-9) return ['波の速さが λ/T と一致しません'];
+    if (Math.abs(d.freqHz - 1 / scene.periodS) > 1e-9) return ['振動数が 1/T と一致しません'];
+    // t=0 の波形の値：y=A sin(−2πx/λ)。
+    if (Math.abs(d.y05_0 - (-scene.amplitudeM)) > 1e-9) return ['x=0.50 m・t=0 の変位が −A と一致しません'];
+    if (Math.abs(d.y10_0) > 1e-9) return ['x=1.0 m・t=0 の変位が 0 と一致しません'];
+    if (Math.abs(d.y15_0 - scene.amplitudeM) > 1e-9) return ['x=1.5 m・t=0 の変位が +A と一致しません'];
+    // x=0 の振動の値：y=A sin(2πt/T)。
+    if (Math.abs(d.y0_0125 - scene.amplitudeM) > 1e-9) return ['x=0・t=0.125 s の変位が +A と一致しません'];
+    if (Math.abs(d.y0_025) > 1e-9) return ['x=0・t=0.25 s の変位が 0 と一致しません'];
+    if (Math.abs(d.y0_0375 - (-scene.amplitudeM)) > 1e-9) return ['x=0・t=0.375 s の変位が −A と一致しません'];
+    // 位相の遅れ：2πx/λ、時間の遅れ：x/v。
+    if (Math.abs(d.phaseLag05 - (2 * Math.PI * scene.xMarkM) / scene.wavelengthM) > 1e-9) return ['位相の遅れが 2πx/λ と一致しません'];
+    if (Math.abs(d.timeLag05 - scene.xMarkM / d.speedMs) > 1e-9) return ['時間の遅れが x/v と一致しません'];
+    // Δt 後の移動距離：vΔt。
+    if (Math.abs(d.moveDistM - d.speedMs * scene.dtS) > 1e-9) return ['波の移動距離が vΔt と一致しません'];
+  }
+  if (scene.type === 'coulombField') {
+    const d = scene.derived;
+    // 点電荷の電場：E=kQ/r²。距離 2 倍で 1/4。
+    if (Math.abs(d.eNear - (scene.kConst * scene.q1C) / (scene.r1M * scene.r1M)) > 1e-9) return ['r=0.10 m の電場が kQ/r² と一致しません'];
+    if (Math.abs(d.eFar - (scene.kConst * scene.q1C) / (scene.r2M * scene.r2M)) > 1e-9) return ['r=0.20 m の電場が kQ/r² と一致しません'];
+    if (Math.abs(d.eFar / d.eNear - 0.25) > 1e-9) return ['距離 2 倍の電場が 1/4 になっていません'];
+    // 電気力：F=qE。q を 2 倍にしても E は変わらず、F だけ 2 倍。
+    if (Math.abs(d.fTest - scene.testQC * d.eNear) > 1e-9) return ['電気力が qE と一致しません'];
+    if (Math.abs(d.fTest2 - 2 * d.fTest) > 1e-9) return ['q を 2 倍にした電気力が 2 倍になっていません'];
+    // 双極子の中点：電場はベクトル和（両方とも +→− で 2 倍）、電位はスカラー和で 0。
+    if (Math.abs(d.eMid1 - (scene.kConst * scene.q1C) / (d.rMid * d.rMid)) > 1e-9) return ['中点の E1 が kQ/r² と一致しません'];
+    if (Math.abs(d.eMidTotal - (d.eMid1 + d.eMid2)) > 1e-9) return ['中点の電場が E1+E2 と一致しません'];
+    if (Math.abs(d.vMidTotal) > 1e-9) return ['中点の電位が 0 になっていません'];
+    // 電場の矢印の長さが 30 px/(1.0×10⁶ N/C) どおりか。
+    if (byId.eNear && Math.abs(byId.eNear.vector[0] - d.eNear * 30 / 1e6) > 0.5) return ['近くの電場の矢印が縮尺と一致しません'];
+    if (byId.eFar && Math.abs(byId.eFar.vector[0] - d.eFar * 30 / 1e6) > 0.5) return ['遠くの電場の矢印が縮尺と一致しません'];
+    if (byId.eTotal && Math.abs(byId.eTotal.vector[0] - d.eMidTotal * 30 / 1e6) > 0.5) return ['中点の電場の矢印が縮尺と一致しません'];
+    if (byId.fTest && Math.abs(byId.fTest.vector[0] - d.fTest * 20) > 0.5) return ['電気力の矢印が 20 px/N の縮尺と一致しません'];
+  }
   return [];
 }
 
@@ -2426,6 +2660,166 @@ function drawBase(svg, scene) {
       svg.appendChild(el('line', { x1: 80, y1: 240, x2: 200, y2: 240, stroke: '#888', 'stroke-width': 2, 'stroke-dasharray': '5 4' }));
       const t0 = el('text', { x: 210, y: 244 }); t0.textContent = 'E = 0（イオン化）'; svg.appendChild(t0);
     }
+  } else if (scene.type === 'kineticTheory') {
+    const d = scene.derived;
+    const boxW = scene.phase === 'half' ? 120 : 240;
+    const x0 = 80, y0 = 90, boxH = 140;
+    // 箱：幅 240 px が L=0.10 m。half の場面は幅 120 px（体積は半分）。
+    svg.appendChild(el('rect', { x: x0, y: y0, width: boxW, height: boxH, fill: '#f2f6ff', stroke: '#333', 'stroke-width': 2 }));
+    if (scene.phase === 'half') {
+      // もとの箱の大きさを破線で残す（半分に縮んだことが分かる）。
+      svg.appendChild(el('rect', { x: x0, y: y0, width: 240, height: boxH, fill: 'none', stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+    }
+    const tT = el('text', { x: x0, y: 76, fill: '#555' });
+    tT.textContent = scene.phase === 'hot' ? 'T = 600 K（2 倍の温度）' : 'T = 300 K';
+    svg.appendChild(tT);
+    const tB = el('text', { x: x0 + boxW + 8, y: y0 + 20 }); tB.textContent = '壁'; svg.appendChild(tB);
+    if (scene.phase === 'one') {
+      // 1個の分子：右の壁に向かう。速度の矢印は forces（v_x / −v_x）で描く。
+      svg.appendChild(el('circle', { cx: 260, cy: 160, r: 7, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      const tM = el('text', { x: 244, y: 140 }); tM.textContent = '分子'; svg.appendChild(tM);
+      const tN = el('text', { x: x0, y: 272, fill: '#555' });
+      tN.textContent = '分子は壁にぶつかって跳ね返る（速さは変わらない）';
+      svg.appendChild(tN);
+    } else {
+      // 分子の集まり：位置と向きは固定（計算で決めたもの）。hot では矢印が √2 倍長い。
+      const len = scene.phase === 'hot' ? 42 : 30;
+      // 分子の位置は箱の幅に対する割合で決める（half では箱が狭いので自動的に密集する）。
+      const fracs = [[0.10, 0.25, 30], [0.30, 0.75, -40], [0.55, 0.30, 120], [0.85, 0.75, 200], [0.40, 0.50, 80], [0.70, 0.20, -120]];
+      for (const [fx, fy, ang] of fracs) {
+        const px = x0 + fx * boxW, py = y0 + fy * boxH;
+        const rad = deg2rad(ang);
+        svg.appendChild(el('line', { x1: px, y1: py, x2: (px + len * Math.cos(rad)).toFixed(1), y2: (py + len * Math.sin(rad)).toFixed(1), stroke: '#d35400', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+        svg.appendChild(el('circle', { cx: px, cy: py, r: 5, fill: '#ffd24d', stroke: '#333', 'stroke-width': 1.5 }));
+      }
+      const tN = el('text', { x: x0, y: 272, fill: '#555' });
+      tN.textContent = scene.phase === 'hot'
+        ? '速さは √2 倍、壁にぶつかる回数も増える'
+        : scene.phase === 'half'
+          ? '体積は半分、分子の数は同じ（ぎゅうぎゅう）'
+          : '分子はでたらめな向きに飛んでいる';
+      svg.appendChild(tN);
+    }
+  } else if (scene.type === 'travellingWave') {
+    const d = scene.derived;
+    const x0 = d.x0Px, span = d.spanPx, yMid = d.yMid, amp = d.ampPx;
+    // 横軸：波形の場面は x（m）、振動の場面は t（s）。
+    svg.appendChild(el('line', { x1: 40, y1: yMid, x2: 360, y2: yMid, stroke: '#333', 'stroke-width': 1.5 }));
+    if (scene.phase === 'vibration') {
+      for (let k = 0; k <= 4; k++) {
+        const x = x0 + k * (span / 4);
+        svg.appendChild(el('line', { x1: x, y1: yMid - 4, x2: x, y2: yMid + 4, stroke: '#333', 'stroke-width': 1.5 }));
+        const t = el('text', { x: x - 8, y: yMid + 22 }); t.textContent = ['0', '0.25', '0.5', '0.75', '1.0'][k]; svg.appendChild(t);
+      }
+      const tA = el('text', { x: 330, y: yMid + 40 }); tA.textContent = 't（s）'; svg.appendChild(tA);
+      // x=0 の点の振動 y=A sin(2πt/T)：t=0〜1.0 s（2 周期）。
+      let p = '';
+      for (let i = 0; i <= 120; i++) {
+        const t = i / 120;
+        const x = (x0 + t * span).toFixed(1);
+        const y = (yMid - amp * Math.sin(2 * Math.PI * t / scene.periodS)).toFixed(1);
+        p += (p ? ' L ' : 'M ') + x + ' ' + y;
+      }
+      svg.appendChild(el('path', { d: p, fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
+      for (const [t, label, lx, ly] of [[0.125, 't=0.125 s：y=+A', 100, 128], [0.25, 't=0.25 s：y=0', 118, 160], [0.375, 't=0.375 s：y=−A', 168, 248]]) {
+        const x = x0 + t * span, y = yMid - amp * Math.sin(2 * Math.PI * t / scene.periodS);
+        svg.appendChild(el('circle', { cx: x, cy: y, r: 4, fill: '#b00' }));
+        const tt = el('text', { x: lx, y: ly, fill: '#b00' }); tt.textContent = label; svg.appendChild(tt);
+      }
+      const tN = el('text', { x: 40, y: 36, fill: '#555' }); tN.textContent = 'x=0 の点の振動（横軸は時間）'; svg.appendChild(tN);
+    } else {
+      for (let k = 0; k <= 4; k++) {
+        const x = x0 + k * (span / 4);
+        svg.appendChild(el('line', { x1: x, y1: yMid - 4, x2: x, y2: yMid + 4, stroke: '#333', 'stroke-width': 1.5 }));
+        const t = el('text', { x: x - 3, y: yMid + 22 }); t.textContent = String(k); svg.appendChild(t);
+      }
+      const tA = el('text', { x: 330, y: yMid + 40 }); tA.textContent = 'x（m）'; svg.appendChild(tA);
+      // 波形 y=A sin 2π(t/T − x/λ)。t は JSON の tS。
+      const wavePath = (t) => {
+        let p = '';
+        for (let i = 0; i <= 120; i++) {
+          const x = (i / 120) * 4.0;
+          const px = (x0 + (x / 4.0) * span).toFixed(1);
+          const py = (yMid - amp * Math.sin(2 * Math.PI * (t / scene.periodS - x / scene.wavelengthM))).toFixed(1);
+          p += (p ? ' L ' : 'M ') + px + ' ' + py;
+        }
+        return p;
+      };
+      if (scene.phase === 'moved') {
+        // t=0 の波形を灰色の破線で残し、t=0.125 s の波形を赤で描く。
+        svg.appendChild(el('path', { d: wavePath(0), fill: 'none', stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+        svg.appendChild(el('path', { d: wavePath(scene.tS), fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
+        svg.appendChild(el('line', { x1: 60, y1: 120, x2: 95, y2: 120, stroke: '#333', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+        const tM = el('text', { x: 60, y: 108 }); tM.textContent = '0.50 m 右へ'; svg.appendChild(tM);
+        const tN = el('text', { x: 40, y: 36, fill: '#555' }); tN.textContent = 'Δt=0.125 s で波は 0.50 m 進む'; svg.appendChild(tN);
+      } else {
+        svg.appendChild(el('path', { d: wavePath(scene.tS), fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
+        if (scene.phase === 'phase') {
+          // x=0 と x=0.50 m と x=1.0 m の点を打つ。
+          for (const [xm, label, lx, ly] of [[0, 'x=0：y=0', 48, 160], [0.5, 'x=0.50 m：y=−A', 100, 248], [1.0, 'x=1.0 m：y=0', 120, 160]]) {
+            const px = x0 + (xm / 4.0) * span;
+            const py = yMid - amp * Math.sin(2 * Math.PI * (scene.tS / scene.periodS - xm / scene.wavelengthM));
+            svg.appendChild(el('circle', { cx: px, cy: py, r: 4, fill: '#b00' }));
+            const tt = el('text', { x: lx, y: ly, fill: '#b00' }); tt.textContent = label; svg.appendChild(tt);
+          }
+          const tN = el('text', { x: 40, y: 36, fill: '#555' }); tN.textContent = 't=0 の波形（横軸は位置）'; svg.appendChild(tN);
+        } else {
+          const tN = el('text', { x: 40, y: 36, fill: '#555' }); tN.textContent = 't=0 の波形：y=−A sin(2πx/λ)'; svg.appendChild(tN);
+        }
+      }
+    }
+  } else if (scene.type === 'coulombField') {
+    const d = scene.derived;
+    if (scene.phase === 'lines') {
+      // 電気力線：＋から出て−に入る 3 本の曲線。
+      const tH = el('text', { x: 40, y: 36, fill: '#555' }); tH.textContent = '電気力線：＋から出て−に入る'; svg.appendChild(tH);
+      const cx1 = 120, cx2 = 300, cy = 180;
+      svg.appendChild(el('circle', { cx: cx1, cy, r: 14, fill: '#ffcccc', stroke: '#b00', 'stroke-width': 2 }));
+      const tP = el('text', { x: cx1 - 5, y: cy + 5, fill: '#b00', 'font-size': 16 }); tP.textContent = '+'; svg.appendChild(tP);
+      svg.appendChild(el('circle', { cx: cx2, cy, r: 14, fill: '#cfe3ff', stroke: 'blue', 'stroke-width': 2 }));
+      const tM = el('text', { x: cx2 - 5, y: cy + 5, fill: 'blue', 'font-size': 16 }); tM.textContent = '−'; svg.appendChild(tM);
+      for (const bulge of [-55, 0, 55]) {
+        let p = '';
+        for (let i = 0; i <= 60; i++) {
+          const t = i / 60;
+          const x = (cx1 + t * (cx2 - cx1)).toFixed(1);
+          const y = (cy + bulge * Math.sin(Math.PI * t)).toFixed(1);
+          p += (p ? ' L ' : 'M ') + x + ' ' + y;
+        }
+        svg.appendChild(el('path', { d: p, fill: 'none', stroke: '#b00', 'stroke-width': 1.5 }));
+      }
+      const tN = el('text', { x: 170, y: 280, fill: '#555' }); tN.textContent = '電場の向きは線の接線方向'; svg.appendChild(tN);
+    } else if (scene.phase === 'dipole') {
+      // ＋と−を 0.30 m（180 px）離す。中点に点を打つ。
+      svg.appendChild(el('circle', { cx: 120, cy: 180, r: 14, fill: '#ffcccc', stroke: '#b00', 'stroke-width': 2 }));
+      const tP = el('text', { x: 115, y: 185, fill: '#b00', 'font-size': 16 }); tP.textContent = '+'; svg.appendChild(tP);
+      svg.appendChild(el('circle', { cx: 300, cy: 180, r: 14, fill: '#cfe3ff', stroke: 'blue', 'stroke-width': 2 }));
+      const tM = el('text', { x: 295, y: 185, fill: 'blue', 'font-size': 16 }); tM.textContent = '−'; svg.appendChild(tM);
+      svg.appendChild(el('circle', { cx: 210, cy: 180, r: 4, fill: '#333' }));
+      const tC = el('text', { x: 196, y: 152 }); tC.textContent = '中点'; svg.appendChild(tC);
+      const tL1 = el('text', { x: 108, y: 212, fill: '#555' }); tL1.textContent = '+2.0 μC'; svg.appendChild(tL1);
+      const tL2 = el('text', { x: 288, y: 212, fill: '#555' }); tL2.textContent = '−2.0 μC'; svg.appendChild(tL2);
+      const tD = el('text', { x: 40, y: 36, fill: '#555' }); tD.textContent = '2つの電荷の中点（0.15 m ずつ）'; svg.appendChild(tD);
+    } else {
+      // 点電荷 ＋2.0 μC と、r=0.10 m・0.20 m の目印。
+      svg.appendChild(el('line', { x1: 100, y1: 180, x2: 360, y2: 180, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('circle', { cx: 140, cy: 180, r: 14, fill: '#ffcccc', stroke: '#b00', 'stroke-width': 2 }));
+      const tP = el('text', { x: 135, y: 185, fill: '#b00', 'font-size': 16 }); tP.textContent = '+'; svg.appendChild(tP);
+      const tQ = el('text', { x: 128, y: 212, fill: '#555' }); tQ.textContent = '+2.0 μC'; svg.appendChild(tQ);
+      for (const [x, label] of [[210, 'r=0.10 m'], [280, 'r=0.20 m']]) {
+        svg.appendChild(el('line', { x1: x, y1: 174, x2: x, y2: 186, stroke: '#333', 'stroke-width': 1.5 }));
+        // 距離のラベルは下へ出して、遠くの電場ラベル（矢印の下側）と重ならないようにする。
+        const t = el('text', { x: x - 26, y: 224, fill: '#555' }); t.textContent = label; svg.appendChild(t);
+      }
+      if (scene.phase === 'force') {
+        // 試験電荷 q を r=0.10 m の位置に置く。
+        svg.appendChild(el('circle', { cx: 210, cy: 180, r: 8, fill: '#cfe3ff', stroke: 'blue', 'stroke-width': 2 }));
+        const tQ2 = el('text', { x: 207, y: 184, fill: 'blue' }); tQ2.textContent = 'q'; svg.appendChild(tQ2);
+        const tN = el('text', { x: 40, y: 36, fill: '#555' }); tN.textContent = '電場 E は q を置く前からある'; svg.appendChild(tN);
+      } else {
+        const tN = el('text', { x: 40, y: 36, fill: '#555' }); tN.textContent = '点電荷のまわりの電場（距離で 1/r²）'; svg.appendChild(tN);
+      }
+    }
   } else if (scene.type === 'ladder') {
     svg.appendChild(el('line', { x1: 80, y1: 20, x2: 80, y2: 260, stroke: '#333', 'stroke-width': 3 }));
     svg.appendChild(el('line', { x1: 80, y1: 260, x2: 380, y2: 260, stroke: '#333', 'stroke-width': 3 }));
@@ -2485,4 +2879,4 @@ function renderAllFigures() {
   });
 }
 
-if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, sceneFor, validateScene, renderFigure };
+if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, sceneFor, validateScene, renderFigure };
