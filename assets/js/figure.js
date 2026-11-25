@@ -987,8 +987,8 @@ function gasSpringCycleForces(data) {
     // 状態A：気体 1100 N（上）＝ 大気圧 1000 N ＋ 重力 100 N（下）。ばねは自然長で力は 0。
     // ラベルは矢印の先端の右では壁・ばねのジグザグと重なるため、気体の空きに置く。
     return [
-      { id: 'gasForce', short: '気体の力', color: '#d35400', vector: [0, -(gasN(d.pAPa) / fScale)], dashed: false, labelDx: -20, labelDy: 95, from: { x: 150, y: d.pistonYA } },
-      { id: 'atmForce', short: '大気圧', color: 'purple', vector: [0, (gasN(data.p0Pa) / fScale)], dashed: false, labelDx: -70, labelDy: 6, from: { x: 250, y: d.pistonYA } },
+      { id: 'gasForce', short: '気体の力', color: '#d35400', vector: [0, -(gasN(d.pAPa) / fScale)], dashed: false, labelDx: -20, labelDy: 125, from: { x: 150, y: d.pistonYA } },
+      { id: 'atmForce', short: '大気圧', color: 'purple', vector: [0, (gasN(data.p0Pa) / fScale)], dashed: false, labelDx: -70, labelDy: -2, from: { x: 250, y: d.pistonYA } },
       { id: 'gravity', short: '重力 mg', color: 'red', vector: [0, d.mgN / fScale], dashed: false, labelDx: -70, labelDy: 16, from: { x: 200, y: d.pistonYA } },
     ];
   }
@@ -996,8 +996,8 @@ function gasSpringCycleForces(data) {
     // 状態B：気体 1200 N（上）＝ 大気圧 1000 N ＋ 重力 100 N ＋ ばね 100 N（下）。
     const springN = data.kNm * (d.hB - data.hNatM);
     return [
-      { id: 'gasForce', short: '気体の力', color: '#d35400', vector: [0, -(gasN(d.pBPa) / fScale)], dashed: false, labelDx: -20, labelDy: 95, from: { x: 150, y: d.pistonYB } },
-      { id: 'atmForce', short: '大気圧', color: 'purple', vector: [0, (gasN(data.p0Pa) / fScale)], dashed: false, labelDx: -70, labelDy: 6, from: { x: 250, y: d.pistonYB } },
+      { id: 'gasForce', short: '気体の力', color: '#d35400', vector: [0, -(gasN(d.pBPa) / fScale)], dashed: false, labelDx: -20, labelDy: 125, from: { x: 150, y: d.pistonYB } },
+      { id: 'atmForce', short: '大気圧', color: 'purple', vector: [0, (gasN(data.p0Pa) / fScale)], dashed: false, labelDx: -70, labelDy: -2, from: { x: 250, y: d.pistonYB } },
       { id: 'gravity', short: '重力 mg', color: 'red', vector: [0, d.mgN / fScale], dashed: false, labelDx: -70, labelDy: 16, from: { x: 200, y: d.pistonYB } },
       { id: 'spring', short: 'ばねの力', color: 'green', vector: [0, springN / fScale], dashed: false, labelDx: 6, labelDy: -22, from: { x: 220, y: d.pistonYB - 6 } },
     ];
@@ -1007,8 +1007,8 @@ function gasSpringCycleForces(data) {
     // つり合っていない分（467 N）は留め具が支える。
     const springN = data.kNm * (d.hB - data.hNatM);
     return [
-      { id: 'gasForce', short: '気体の力', color: '#d35400', vector: [0, -(gasN(d.pCPa) / fScale)], dashed: false, labelDx: -20, labelDy: 95, from: { x: 150, y: d.pistonYB } },
-      { id: 'atmForce', short: '大気圧', color: 'purple', vector: [0, (gasN(data.p0Pa) / fScale)], dashed: false, labelDx: -70, labelDy: 6, from: { x: 250, y: d.pistonYB } },
+      { id: 'gasForce', short: '気体の力', color: '#d35400', vector: [0, -(gasN(d.pCPa) / fScale)], dashed: false, labelDx: -20, labelDy: 125, from: { x: 150, y: d.pistonYB } },
+      { id: 'atmForce', short: '大気圧', color: 'purple', vector: [0, (gasN(data.p0Pa) / fScale)], dashed: false, labelDx: -70, labelDy: -2, from: { x: 250, y: d.pistonYB } },
       { id: 'gravity', short: '重力 mg', color: 'red', vector: [0, d.mgN / fScale], dashed: false, labelDx: -70, labelDy: 16, from: { x: 200, y: d.pistonYB } },
       { id: 'spring', short: 'ばねの力', color: 'green', vector: [0, springN / fScale], dashed: false, labelDx: 6, labelDy: -22, from: { x: 220, y: d.pistonYB - 6 } },
     ];
@@ -4684,7 +4684,8 @@ function drawBase(svg, scene) {
       // 安定なつり合い（d1）と不安定なつり合い（d_u）の目印。
       for (const [dMm, label, lx, ly] of [
         [d.d1M * 1e3, '安定 d≈3.2 mm', xOf(d.d1M * 1e3) + 6, yOf(0) - 12],
-        [d.dUnstableM * 1e3, '不安定 d≈2.0 mm', xOf(d.dUnstableM * 1e3) + 6, yOf(0) + 22],
+        // 「不安定」は曲線が下がってくる右側と重ならないよう、曲線の腹の下の空きに短く置く（値は下の注記にある）。
+        [d.dUnstableM * 1e3, '不安定', xOf(d.dUnstableM * 1e3) + 6, yOf(0) + 50],
       ]) {
         svg.appendChild(el('circle', { cx: xOf(dMm), cy: yOf(0), r: 4, fill: '#b00', stroke: '#333', 'stroke-width': 1 }));
         const tL = el('text', { x: lx, y: ly, fill: '#b00' }); tL.textContent = label; svg.appendChild(tL);
