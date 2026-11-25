@@ -1,4 +1,4 @@
-// 高校物理攻略 — 図描画シミュレータ（試作 v3.1：組み合わせAI 水素のスペクトル＋光電効果＋磁場円運動・組み合わせAJ オットーサイクル 追加）
+// 高校物理攻略 — 図描画シミュレータ（試作 v3.2：組み合わせAK 回転コイル発電機・組み合わせAL 空中で分裂する斜方投射 追加）
 // 方針：図は手書きの座標を直書きしない。入力は JSON の「物理データ」だけ。
 // 描画側が角度・つり合いから矢印の向きと長さを計算する。
 // だから mg sinθ が mg と同じ長さになる、θ が消える、ラベルが切れる、
@@ -2259,6 +2259,106 @@ function ottoCycleDerived(data) {
 }
 function ottoCycleForces(data) { return []; }
 
+// ---- 回転コイル発電機（組み合わせAK）：電磁誘導＋交流実効値＋仕事・エネルギー ----
+// 具体値（検算済み）：N=100、S=0.010 m²、B=0.50 T、f=50 Hz、R=100 Ω。
+//   Φ_max = NBS = 0.50 Wb、ω = 2πf ≈ 314 rad/s、ε_max = NBSω ≈ 157 V、ε_eff = ε_max/√2 ≈ 111 V、
+//   I_max ≈ 1.57 A、I_eff ≈ 1.11 A、P = ε_eff²/R ≈ 123 W、10 s で 1230 J、
+//   回すトルクの平均 ≈ 0.39 N·m、周期 T = 0.020 s。
+//   罠：ε_max を実効値とすると P ≈ 247 W（2倍）。N を忘れると ε_max = 1.57 V、P ≈ 0.012 W。
+//   変えたら：f=60 Hz → ε_max ≈ 188 V、P ≈ 178 W。B=1.0 T → ε_max ≈ 314 V、P ≈ 494 W。
+function generatorACDerived(data) {
+  const N = data.nTurns, S = data.sM2, B = data.bT, f = data.freqHz, R = data.rOhm;
+  const omega = 2 * Math.PI * f;
+  const phiMaxWb = N * B * S;
+  const eMaxV = phiMaxWb * omega;
+  const eEffV = eMaxV / Math.SQRT2;
+  const iMaxA = eMaxV / R;
+  const iEffA = eEffV / R;
+  const powerW = (eEffV * eEffV) / R;
+  const energy10J = powerW * (data.tS || 10);
+  const torqueAvgNm = powerW / omega;
+  const periodS = 1 / f;
+  // 罠：ε_max を実効値とまちがえる、N を忘れる。
+  const trapP1W = (eMaxV * eMaxV) / R;
+  const eMaxNoN = B * S * omega;
+  const trapP2W = Math.pow(eMaxNoN / Math.SQRT2, 2) / R;
+  // 変えたら：f=60 Hz、B=1.0 T。
+  const omega60 = 2 * Math.PI * 60;
+  const eMax60V = phiMaxWb * omega60;
+  const eEff60V = eMax60V / Math.SQRT2;
+  const power60W = (eEff60V * eEff60V) / R;
+  const eMaxB2V = N * (2 * B) * S * omega;
+  const eEffB2V = eMaxB2V / Math.SQRT2;
+  const powerB2W = (eEffB2V * eEffB2V) / R;
+  // Φ(t) と ε(t) の点列（t 0→T を 9 点）。validateScene で Φ = Φ_max cos ωt、ε = ε_max sin ωt を確かめる。
+  const ts = [0, 1 / 8, 2 / 8, 3 / 8, 4 / 8, 5 / 8, 6 / 8, 7 / 8, 1].map((fr) => fr * periodS);
+  const phiCurve = ts.map((t) => [t, phiMaxWb * Math.cos(omega * t)]);
+  const eCurve = ts.map((t) => [t, eMaxV * Math.sin(omega * t)]);
+  return {
+    N, S, B, f, R, omega, phiMaxWb, eMaxV, eEffV, iMaxA, iEffA,
+    powerW, energy10J, torqueAvgNm, periodS,
+    trapP1W, eMaxNoN, trapP2W,
+    omega60, eMax60V, eEff60V, power60W, eMaxB2V, eEffB2V, powerB2W,
+    phiCurve, eCurve,
+  };
+}
+function generatorACForces(data) { return []; }
+
+// ---- 空中で分裂する斜方投射（組み合わせAL）：斜方投射＋運動量・爆発＋重心 ----
+// 具体値（検算済み）：m=2.0 kg、v0=20 m/s、θ=60°、g=10。
+//   v0x=10、v0y≈17.3 m/s、頂点 t1≈1.73 s、H=15 m、x1≈17.3 m、射程 34.6 m。
+//   頂点の運動量 20 kg·m/s、KE=100 J。分裂（各 1.0 kg）：A は vx=0、B は vx=20 m/s。
+//   落下時間 t2≈1.73 s。A は x=17.3 m に速さ 17.3 m/s、B は x=52.0 m に速さ 26.5 m/s で着地。
+//   重心は 34.6 m に着地。分裂後 KE=200 J、爆発で 100 J 加わった。
+//   変えたら：A が vx=−10 m/s、B が vx=30 m/s なら、A は 0 m に、B は 69.3 m に着地。重心は 34.6 m のまま。
+//   分裂後 KE=500 J、爆発で 400 J 加わった。
+function explodeProjectileDerived(data) {
+  const g = data.g || 10;
+  const m = data.mKg, v0 = data.v0Ms, thetaRad = deg2rad(data.thetaDeg);
+  const v0x = v0 * Math.cos(thetaRad);
+  const v0y = v0 * Math.sin(thetaRad);
+  const t1S = v0y / g;
+  const hM = (v0y * v0y) / (2 * g);
+  const x1M = v0x * t1S;
+  const rangeM = (v0 * v0 * Math.sin(2 * thetaRad)) / g;
+  const pApex = m * v0x;
+  const keApexJ = 0.5 * m * v0x * v0x;
+  const mHalf = m / 2;
+  const vAxMs = 0, vBxMs = 2 * v0x; // 運動量保存：m·v0x = (m/2)·0 + (m/2)·vB
+  const t2S = Math.sqrt(2 * hM / g);
+  const xAM = x1M;
+  const xBM = x1M + vBxMs * t2S;
+  const vLandAMs = Math.sqrt(vAxMs * vAxMs + (g * t2S) * (g * t2S));
+  const vLandBMs = Math.sqrt(vBxMs * vBxMs + (g * t2S) * (g * t2S));
+  const keAfterJ = 0.5 * mHalf * vBxMs * vBxMs; // A は頂点で速さ 0
+  const addedJ = keAfterJ - keApexJ;
+  const comM = (xAM + xBM) / 2;
+  // 変えたら：A が vx=−10 m/s、B が vx=30 m/s（運動量は 1.0×(−10)+1.0×30=20 で保存）。
+  const vAx2Ms = -10, vBx2Ms = 30;
+  const xA2M = x1M + vAx2Ms * t2S;
+  const xB2M = x1M + vBx2Ms * t2S;
+  const keAfter2J = 0.5 * mHalf * vAx2Ms * vAx2Ms + 0.5 * mHalf * vBx2Ms * vBx2Ms;
+  const added2J = keAfter2J - keApexJ;
+  const vLandA2Ms = Math.sqrt(vAx2Ms * vAx2Ms + (g * t2S) * (g * t2S));
+  const vLandB2Ms = Math.sqrt(vBx2Ms * vBx2Ms + (g * t2S) * (g * t2S));
+  // 軌道の点列（x 0→射程を 9 点）。validateScene で y = x tanθ − gx²/(2v0x²) を確かめる。
+  const traj = [0, 1 / 8, 2 / 8, 3 / 8, 4 / 8, 5 / 8, 6 / 8, 7 / 8, 1].map((fr) => {
+    const x = fr * rangeM;
+    return [x, x * Math.tan(thetaRad) - (g * x * x) / (2 * v0x * v0x)];
+  });
+  // 図の縮尺：横 6 px/m（射程 34.6 m → 208 px）、縦 6 px/m（H 15 m → 90 px）。
+  const pxPerM = 6, originX = 60, groundY = 240;
+  // 頂点の B の矢印の長さ（5 px/(m/s)）。
+  const apexArrowPx = vBxMs * 5;
+  return {
+    g, m, v0, thetaRad, v0x, v0y, t1S, hM, x1M, rangeM, pApex, keApexJ,
+    mHalf, vAxMs, vBxMs, t2S, xAM, xBM, vLandAMs, vLandBMs, keAfterJ, addedJ, comM,
+    vAx2Ms, vBx2Ms, xA2M, xB2M, keAfter2J, added2J, vLandA2Ms, vLandB2Ms,
+    traj, pxPerM, originX, groundY, apexArrowPx,
+  };
+}
+function explodeProjectileForces(data) { return []; }
+
 // p-V 図の座標：V 0→1.0 L を x 60→340 px、log10(p) 1e5→1e7 Pa を y 220→50 px。
 function ottoX(vM3) { return 60 + 280 * (vM3 / 0.001); }
 function ottoY(pPa) { return 220 - 85 * (Math.log10(pPa) - 5); }
@@ -4206,6 +4306,26 @@ function sceneFor(type, thetaDeg, mgPx, fPx, data) {
       forces: ottoCycleForces(data),
     };
   }
+  if (type === 'generatorAC') {
+    const d = generatorACDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      nTurns: data.nTurns, sM2: data.sM2, bT: data.bT, freqHz: data.freqHz, rOhm: data.rOhm, tS: data.tS || 10, g: data.g || 10,
+      derived: d,
+      center: { x: 200, y: 150 }, centerDot: false,
+      forces: generatorACForces(data),
+    };
+  }
+  if (type === 'explodeProjectile') {
+    const d = explodeProjectileDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      mKg: data.mKg, v0Ms: data.v0Ms, thetaDeg: data.thetaDeg, g: data.g || 10,
+      derived: d,
+      center: { x: 200, y: 150 }, centerDot: false,
+      forces: explodeProjectileForces(data),
+    };
+  }
   if (type === 'slopePulley') {
     return {
       type, phase: (data && data.phase) || 'connected',
@@ -5458,6 +5578,75 @@ function validateScene(scene) {
     for (const [v, p] of d.cdCurve) {
       if (Math.abs(p * Math.pow(v, scene.gamma) - cCD) / cCD > 1e-9) return ['C→D の断熱曲線が pV^γ = 一定と一致しません'];
     }
+  }
+  if (scene.type === 'generatorAC') {
+    const d = scene.derived;
+    // 磁束と起電力：Φ_max = NBS、ω = 2πf、ε_max = NBSω、ε_eff = ε_max/√2。
+    if (Math.abs(d.phiMaxWb - d.N * d.B * d.S) > 1e-9) return ['磁束の最大値が NBS と一致しません'];
+    if (Math.abs(d.omega - 2 * Math.PI * d.f) > 1e-9) return ['角振動数が 2πf と一致しません'];
+    if (Math.abs(d.eMaxV - d.phiMaxWb * d.omega) > 1e-9) return ['起電力の最大値が NBSω と一致しません'];
+    if (Math.abs(d.eEffV - d.eMaxV / Math.SQRT2) > 1e-9) return ['実効値が最大値/√2 と一致しません'];
+    // 電流と電力：I = ε/R、P = ε_eff²/R = I_eff²R。
+    if (Math.abs(d.iMaxA - d.eMaxV / d.R) > 1e-9) return ['電流の最大値が ε_max/R と一致しません'];
+    if (Math.abs(d.iEffA - d.eEffV / d.R) > 1e-9) return ['実効電流が ε_eff/R と一致しません'];
+    if (Math.abs(d.powerW - (d.eEffV * d.eEffV) / d.R) > 1e-9) return ['電力が ε_eff²/R と一致しません'];
+    if (Math.abs(d.powerW - d.iEffA * d.iEffA * d.R) > 1e-9) return ['電力が I_eff²R と一致しません'];
+    if (Math.abs(d.energy10J - d.powerW * 10) > 1e-9) return ['10 s のエネルギーが P×10 s と一致しません'];
+    if (Math.abs(d.torqueAvgNm - d.powerW / d.omega) > 1e-9) return ['トルクの平均が P/ω と一致しません'];
+    if (Math.abs(d.periodS - 1 / d.f) > 1e-9) return ['周期が 1/f と一致しません'];
+    // 罠：ε_max を実効値とすると P = ε_max²/R、N を忘れると ε_max = BSω。
+    if (Math.abs(d.trapP1W - (d.eMaxV * d.eMaxV) / d.R) > 1e-9) return ['罠の電力が ε_max²/R と一致しません'];
+    if (Math.abs(d.eMaxNoN - d.B * d.S * d.omega) > 1e-9) return ['N を忘れた起電力が BSω と一致しません'];
+    if (Math.abs(d.trapP2W - Math.pow(d.eMaxNoN / Math.SQRT2, 2) / d.R) > 1e-9) return ['N を忘れた電力が一致しません'];
+    // 変えたら：f=60 Hz、B=1.0 T。
+    if (Math.abs(d.eMax60V - d.phiMaxWb * d.omega60) > 1e-9) return ['f=60 Hz の起電力が一致しません'];
+    if (Math.abs(d.power60W - (d.eEff60V * d.eEff60V) / d.R) > 1e-9) return ['f=60 Hz の電力が一致しません'];
+    if (Math.abs(d.eMaxB2V - d.N * (2 * d.B) * d.S * d.omega) > 1e-9) return ['B=1.0 T の起電力が一致しません'];
+    if (Math.abs(d.powerB2W - (d.eEffB2V * d.eEffB2V) / d.R) > 1e-9) return ['B=1.0 T の電力が一致しません'];
+    // グラフの点列：Φ = Φ_max cos ωt、ε = ε_max sin ωt。
+    for (const [t, phi] of d.phiCurve) {
+      if (Math.abs(phi - d.phiMaxWb * Math.cos(d.omega * t)) > 1e-9) return ['磁束の曲線が Φ_max cos ωt と一致しません'];
+    }
+    for (const [t, e] of d.eCurve) {
+      if (Math.abs(e - d.eMaxV * Math.sin(d.omega * t)) > 1e-9) return ['起電力の曲線が ε_max sin ωt と一致しません'];
+    }
+  }
+  if (scene.type === 'explodeProjectile') {
+    const d = scene.derived;
+    // 斜方投射：v0x = v0 cosθ、v0y = v0 sinθ、頂点 t1 = v0y/g、H = v0y²/2g、射程 = v0² sin2θ/g。
+    if (Math.abs(d.v0x - d.v0 * Math.cos(d.thetaRad)) > 1e-9) return ['水平成分が v0 cosθ と一致しません'];
+    if (Math.abs(d.v0y - d.v0 * Math.sin(d.thetaRad)) > 1e-9) return ['鉛直成分が v0 sinθ と一致しません'];
+    if (Math.abs(d.t1S - d.v0y / d.g) > 1e-9) return ['頂点までの時間が v0y/g と一致しません'];
+    if (Math.abs(d.hM - (d.v0y * d.v0y) / (2 * d.g)) > 1e-9) return ['最高点が v0y²/2g と一致しません'];
+    if (Math.abs(d.x1M - d.v0x * d.t1S) > 1e-9) return ['頂点の x が v0x·t1 と一致しません'];
+    if (Math.abs(d.rangeM - (d.v0 * d.v0 * Math.sin(2 * d.thetaRad)) / d.g) > 1e-9) return ['射程が v0² sin2θ/g と一致しません'];
+    // 頂点の運動量と運動エネルギー。
+    if (Math.abs(d.pApex - d.m * d.v0x) > 1e-9) return ['頂点の運動量が m·v0x と一致しません'];
+    if (Math.abs(d.keApexJ - 0.5 * d.m * d.v0x * d.v0x) > 1e-9) return ['頂点の運動エネルギーが ½m·v0x² と一致しません'];
+    // 分裂：運動量保存（A は 0、B は 2·v0x）、落下時間、着地点、重心。
+    if (Math.abs((d.mHalf * d.vAxMs + d.mHalf * d.vBxMs) - d.pApex) > 1e-9) return ['分裂の前後で運動量が保存していません'];
+    if (Math.abs(d.t2S - Math.sqrt(2 * d.hM / d.g)) > 1e-9) return ['落下時間が √(2H/g) と一致しません'];
+    if (Math.abs(d.xAM - d.x1M) > 1e-9) return ['A の着地点が頂点の真下と一致しません'];
+    if (Math.abs(d.xBM - (d.x1M + d.vBxMs * d.t2S)) > 1e-9) return ['B の着地点が x1 + vB·t2 と一致しません'];
+    if (Math.abs(d.comM - d.rangeM) > 1e-9) return ['重心の着地点が射程と一致しません'];
+    if (Math.abs(d.comM - (d.xAM + d.xBM) / 2) > 1e-9) return ['重心の着地点が (xA + xB)/2 と一致しません'];
+    // 着地の速さとエネルギー：爆発で加わったエネルギー。
+    if (Math.abs(d.vLandAMs - Math.sqrt(d.vAxMs * d.vAxMs + (d.g * d.t2S) * (d.g * d.t2S))) > 1e-9) return ['A の着地の速さが一致しません'];
+    if (Math.abs(d.vLandBMs - Math.sqrt(d.vBxMs * d.vBxMs + (d.g * d.t2S) * (d.g * d.t2S))) > 1e-9) return ['B の着地の速さが一致しません'];
+    if (Math.abs(d.keAfterJ - 0.5 * d.mHalf * d.vBxMs * d.vBxMs) > 1e-9) return ['分裂後の運動エネルギーが一致しません'];
+    if (Math.abs(d.addedJ - (d.keAfterJ - d.keApexJ)) > 1e-9) return ['爆発で加わったエネルギーが一致しません'];
+    // 変えたら：A が −10 m/s、B が 30 m/s（運動量は保存、重心は射程のまま）。
+    if (Math.abs((d.mHalf * d.vAx2Ms + d.mHalf * d.vBx2Ms) - d.pApex) > 1e-9) return ['変えたらの運動量が保存していません'];
+    if (Math.abs(d.xA2M - (d.x1M + d.vAx2Ms * d.t2S)) > 1e-9) return ['変えたらの A の着地点が一致しません'];
+    if (Math.abs(d.xB2M - (d.x1M + d.vBx2Ms * d.t2S)) > 1e-9) return ['変えたらの B の着地点が一致しません'];
+    if (Math.abs((d.xA2M + d.xB2M) / 2 - d.rangeM) > 1e-9) return ['変えたらの重心の着地点が射程と一致しません'];
+    if (Math.abs(d.keAfter2J - (0.5 * d.mHalf * d.vAx2Ms * d.vAx2Ms + 0.5 * d.mHalf * d.vBx2Ms * d.vBx2Ms)) > 1e-9) return ['変えたらの分裂後の運動エネルギーが一致しません'];
+    // 軌道の点列：y = x tanθ − gx²/(2v0x²)。
+    for (const [x, y] of d.traj) {
+      if (Math.abs(y - (x * Math.tan(d.thetaRad) - (d.g * x * x) / (2 * d.v0x * d.v0x))) > 1e-9) return ['軌道の点が放物線と一致しません'];
+    }
+    // 頂点の B の矢印の長さ：5 px/(m/s)。
+    if (Math.abs(d.apexArrowPx - d.vBxMs * 5) > 0.5) return ['頂点の B の矢印が 5 px/(m/s) と一致しません'];
   }
   if (scene.type === 'charged-circle') {
     const d = scene.derived;
@@ -8881,6 +9070,219 @@ function drawBase(svg, scene) {
         note(294, 'p-V 図の面積が正味の仕事になる');
       }
     }
+  } else if (scene.type === 'generatorAC') {
+    const d = scene.derived;
+    const phase = scene.phase;
+    const tH = el('text', { x: 40, y: 36, fill: '#333' });
+    tH.textContent = phase === 'flux' ? '磁束と起電力：1周期 0.020 s'
+      : phase === 'eff' ? '実効値：最大値の 1/√2 倍'
+      : phase === 'energy' ? '電力とエネルギー'
+      : phase === 'trap' ? '罠：実効値と最大値をまちがえる'
+      : phase === 'vary' ? '変えたら：f=60 Hz・B=1.0 T'
+      : '回転コイル発電機：N=100、f=50 Hz';
+    svg.appendChild(tH);
+    const note = (y, text) => { const t = el('text', { x: 60, y, fill: '#333' }); t.textContent = text; svg.appendChild(t); };
+    const barRows = (rows) => {
+      rows.forEach((r, i) => {
+        const y = 75 + i * 45;
+        const tN = el('text', { x: 60, y: y - 8 }); tN.textContent = r.name; svg.appendChild(tN);
+        svg.appendChild(el('rect', { x: 140, y, width: r.w, height: 18, fill: r.color, stroke: '#333', 'stroke-width': 1 }));
+        const tV = el('text', { x: 140 + r.w + 8, y: y + 15 }); tV.textContent = r.val; svg.appendChild(tV);
+      });
+    };
+    if (phase === 'base') {
+      // 磁石の N 極・S 極と、磁場の矢印（コイルの裏を通る）。
+      svg.appendChild(el('rect', { x: 40, y: 100, width: 30, height: 80, fill: '#ffb3b3', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('rect', { x: 330, y: 100, width: 30, height: 80, fill: '#b3d9ff', stroke: '#333', 'stroke-width': 2 }));
+      const tN = el('text', { x: 50, y: 148 }); tN.textContent = 'N'; svg.appendChild(tN);
+      const tS = el('text', { x: 340, y: 148 }); tS.textContent = 'S'; svg.appendChild(tS);
+      [120, 145, 170].forEach((y) => {
+        svg.appendChild(el('line', { x1: 75, y1: y, x2: 325, y2: y, stroke: '#888', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+      });
+      // コイル（25° 傾けた長方形）。磁場の矢印の上に描く。
+      const gEl = el('g', { transform: 'rotate(25 200 140)' });
+      gEl.appendChild(el('rect', { x: 150, y: 112, width: 100, height: 56, fill: '#cfe3ff', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(gEl);
+      const tB = el('text', { x: 85, y: 195, fill: '#555' }); tB.textContent = 'B=0.50 T'; svg.appendChild(tB);
+      const tR = el('text', { x: 250, y: 85 }); tR.textContent = '回転 f=50 Hz'; svg.appendChild(tR);
+      const tC = el('text', { x: 140, y: 212 }); tC.textContent = 'コイル'; svg.appendChild(tC);
+      // コイルの下辺の真ん中から抵抗へ。抵抗はジグザグ。
+      svg.appendChild(el('line', { x1: 212, y1: 165, x2: 212, y2: 225, stroke: '#333', 'stroke-width': 2 }));
+      let zx = 212;
+      let zp = `M ${zx} 225`;
+      for (let i = 1; i <= 6; i++) { zx += 80 / 6; zp += ` L ${zx.toFixed(1)} ${i % 2 === 1 ? 219 : 231}`; }
+      svg.appendChild(el('path', { d: zp, fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      const tRe = el('text', { x: 298, y: 232 }); tRe.textContent = 'R=100 Ω'; svg.appendChild(tRe);
+      note(258, 'コイルが回ると磁束が変わる');
+      note(276, '磁束の変化が起電力を生む');
+      note(294, 'N=100 巻き、S=0.010 m²');
+    } else if (phase === 'flux') {
+      // Φ(t) と ε(t) のグラフ。横軸は t 0→T、縦軸の 0 は y=150。
+      svg.appendChild(el('line', { x1: 60, y1: 60, x2: 60, y2: 235, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 60, y1: 235, x2: 350, y2: 235, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 60, y1: 150, x2: 350, y2: 150, stroke: '#888', 'stroke-width': 1, 'stroke-dasharray': '4 3' }));
+      const gx = (t) => 60 + (280 * t) / d.periodS;
+      const phiY = (phi) => 150 - phi * 120;
+      const eY = (e) => 150 - e * (60 / d.eMaxV);
+      const poly = (pts, color) => {
+        const dAttr = pts.map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`).join(' ');
+        svg.appendChild(el('path', { d: dAttr, fill: 'none', stroke: color, 'stroke-width': 2 }));
+      };
+      const phiPts = [], ePts = [];
+      for (let i = 0; i <= 24; i++) {
+        const t = (i / 24) * d.periodS;
+        phiPts.push([gx(t), phiY(d.phiMaxWb * Math.cos(d.omega * t))]);
+        ePts.push([gx(t), eY(d.eMaxV * Math.sin(d.omega * t))]);
+      }
+      poly(phiPts, 'blue');
+      poly(ePts, '#b00');
+      [['0', 60], ['T/4', 130], ['T/2', 200], ['3T/4', 270], ['T', 340]].forEach(([label, x]) => {
+        const t = el('text', { x, y: 228, fill: '#555', 'text-anchor': 'middle' }); t.textContent = label; svg.appendChild(t);
+      });
+      const tP = el('text', { x: 70, y: 78, fill: 'blue' }); tP.textContent = 'Φ 最大 0.50 Wb'; svg.appendChild(tP);
+      const tE = el('text', { x: 250, y: 78, fill: '#b00' }); tE.textContent = 'ε 最大 157 V'; svg.appendChild(tE);
+      note(258, 't=0：Φ は最大、ε は 0');
+      note(276, 't=T/4：Φ は 0、ε は最大');
+      note(294, 'ε は Φ の変化の速さ');
+    } else if (phase === 'eff') {
+      // 実効値の棒グラフ（1 px/V）。2行なので y=75 と 120 になる。
+      barRows([
+        { name: '最大 157 V', w: d.eMaxV, val: '157 V', color: '#ffb3b3' },
+        { name: '実効 111 V', w: d.eEffV, val: '111 V', color: '#b3e6b3' },
+      ]);
+      note(258, 'I_eff = ε_eff/R = 1.11 A');
+      note(276, 'P = ε_eff²/R = 123 W');
+      note(294, '最大値をそのまま使うと 2 倍になる');
+    } else if (phase === 'energy') {
+      // 電力の棒（1 px/W）と、10 s のエネルギーの棒（0.15 px/J）。
+      barRows([
+        { name: '電力 123 W', w: d.powerW, val: '123 W', color: '#b3e6b3' },
+        { name: '10 s のエネルギー 1230 J', w: d.energy10J * 0.15, val: '1230 J', color: '#ffd24d' },
+      ]);
+      note(258, 'P=123 W の電力を 10 s 出す');
+      note(276, '回すトルクは平均 0.39 N·m');
+      note(294, '機械の仕事が電気エネルギーになる');
+    } else if (phase === 'trap') {
+      // 電力の棒グラフ（0.8 px/W）。
+      barRows([
+        { name: '正しい 123 W', w: d.powerW * 0.8, val: '123 W', color: '#b3e6b3' },
+        { name: '罠 247 W', w: d.trapP1W * 0.8, val: '247 W', color: '#ffb3b3' },
+      ]);
+      note(258, 'N を忘れると P=0.012 W');
+      note(276, '実効値 = 最大値 ÷ √2');
+      note(294, 'コイルの巻き数 N を忘れない');
+    } else if (phase === 'vary') {
+      // 電力の棒グラフ（0.4 px/W）。
+      barRows([
+        { name: 'f=50 Hz（もと）123 W', w: d.powerW * 0.4, val: '123 W', color: '#b3e6b3' },
+        { name: 'f=60 Hz 178 W', w: d.power60W * 0.4, val: '178 W', color: '#cfe3ff' },
+        { name: 'B=1.0 T 494 W', w: d.powerB2W * 0.4, val: '494 W', color: '#ffd24d' },
+      ]);
+      note(258, 'f を 1.2 倍にすると P は 1.44 倍');
+      note(276, 'B を 2 倍にすると P は 4 倍');
+      note(294, 'P は f² と B² に比例する');
+    }
+  } else if (scene.type === 'explodeProjectile') {
+    const d = scene.derived;
+    const phase = scene.phase;
+    const tH = el('text', { x: 40, y: 36, fill: '#333' });
+    tH.textContent = phase === 'apex' ? '頂点で分裂：運動量は保存する'
+      : phase === 'land' ? '着地：A は 17.3 m、B は 52.0 m'
+      : phase === 'trap' ? '罠：分裂しても重心は元の放物線'
+      : phase === 'vary' ? '変えたら：A が後ろ向きに −10 m/s'
+      : '斜方投射：v0=20 m/s、60°';
+    svg.appendChild(tH);
+    const note = (y, text) => { const t = el('text', { x: 60, y, fill: '#333' }); t.textContent = text; svg.appendChild(t); };
+    const px = (xM) => d.originX + xM * d.pxPerM;
+    const py = (yM) => d.groundY - yM * d.pxPerM;
+    const trajPts = d.traj.map(([x, y]) => [px(x), py(y)]);
+    const poly = (pts, color, width, dashed) => {
+      const attrs = { d: pts.map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`).join(' '), fill: 'none', stroke: color, 'stroke-width': width };
+      if (dashed) attrs['stroke-dasharray'] = '5 4';
+      svg.appendChild(el('path', attrs));
+    };
+    if (phase === 'base') {
+      svg.appendChild(el('line', { x1: 40, y1: d.groundY, x2: 390, y2: d.groundY, stroke: '#333', 'stroke-width': 2 }));
+      poly(trajPts, '#333', 2);
+      // 打ち出しの速度の矢印（v0×3 px、60°）。
+      svg.appendChild(el('line', { x1: px(0), y1: py(0), x2: px(0) + 30, y2: py(0) - 52, stroke: '#d35400', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+      svg.appendChild(el('circle', { cx: px(0), cy: py(0), r: 3, fill: '#333' }));
+      svg.appendChild(el('circle', { cx: px(d.x1M), cy: py(d.hM), r: 3, fill: '#333' }));
+      svg.appendChild(el('circle', { cx: px(d.rangeM), cy: py(0), r: 3, fill: '#333' }));
+      const tV = el('text', { x: 85, y: 222, fill: '#d35400' }); tV.textContent = 'v0=20 m/s'; svg.appendChild(tV);
+      const tT = el('text', { x: 172, y: 138 }); tT.textContent = '頂点 H=15 m'; svg.appendChild(tT);
+      const tL = el('text', { x: 275, y: 232 }); tL.textContent = '着地点 34.6 m'; svg.appendChild(tL);
+      note(258, '頂点では vy=0、vx=10 m/s のまま');
+      note(276, '落下時間は上昇時間と同じ 1.73 s');
+      note(294, '射程は 34.6 m');
+    } else if (phase === 'apex') {
+      // 頂点のまわりの放物線（破線）と、分裂したあとの矢印。
+      const near = [];
+      for (let dx = -8; dx <= 8; dx += 2) {
+        near.push([200 + dx * d.pxPerM, 150 + 0.3 * dx * dx]);
+      }
+      poly(near, '#888', 2, true);
+      svg.appendChild(el('circle', { cx: 200, cy: 150, r: 4, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      // A は真下に落ちる（破線の下向き矢印）。
+      svg.appendChild(el('line', { x1: 200, y1: 150, x2: 200, y2: 185, stroke: '#b00', 'stroke-width': 2, 'stroke-dasharray': '4 3', 'marker-end': 'url(#fig-arrow)' }));
+      // B は右向き 20 m/s の矢印（5 px/(m/s)）。
+      svg.appendChild(el('line', { x1: 200, y1: 150, x2: 200 + d.apexArrowPx, y2: 150, stroke: '#d35400', 'stroke-width': 3, 'marker-end': 'url(#fig-arrow)' }));
+      const tB = el('text', { x: 252, y: 128, fill: '#d35400' }); tB.textContent = 'B：20 m/s'; svg.appendChild(tB);
+      const tA = el('text', { x: 140, y: 195, fill: '#b00' }); tA.textContent = 'A：0'; svg.appendChild(tA);
+      note(258, '分裂の前：運動量 20 kg·m/s、KE 100 J');
+      note(276, '分裂の後：A は 0、B は 20 m/s');
+      note(294, '運動量は 1.0×0 + 1.0×20 = 20 で保存');
+    } else if (phase === 'land') {
+      svg.appendChild(el('line', { x1: 40, y1: d.groundY, x2: 390, y2: d.groundY, stroke: '#333', 'stroke-width': 2 }));
+      // 分裂しなかったときの軌道（破線）。
+      poly(trajPts, '#888', 2, true);
+      // A は頂点から真下に落ちる（赤い実線）。
+      svg.appendChild(el('line', { x1: px(d.x1M), y1: py(d.hM), x2: px(d.xAM), y2: py(0), stroke: '#b00', 'stroke-width': 2 }));
+      // B の軌道（青い実線）：頂点から vx=20 m/s で落ちる。
+      const bPts = [];
+      for (let i = 0; i <= 8; i++) {
+        const dx = (i / 8) * (d.xBM - d.x1M);
+        bPts.push([px(d.x1M + dx), py(d.hM - 0.0125 * dx * dx)]);
+      }
+      poly(bPts, 'blue', 2);
+      svg.appendChild(el('circle', { cx: px(d.x1M), cy: py(d.hM), r: 3, fill: '#333' }));
+      svg.appendChild(el('circle', { cx: px(d.xAM), cy: py(0), r: 3, fill: '#b00' }));
+      svg.appendChild(el('circle', { cx: px(d.xBM), cy: py(0), r: 3, fill: 'blue' }));
+      svg.appendChild(el('circle', { cx: px(d.comM), cy: py(0), r: 3, fill: '#333' }));
+      const tA = el('text', { x: 172, y: 232, fill: '#b00' }); tA.textContent = 'A'; svg.appendChild(tA);
+      const tB = el('text', { x: 380, y: 232, fill: 'blue' }); tB.textContent = 'B'; svg.appendChild(tB);
+      const tC = el('text', { x: 262, y: 222, 'text-anchor': 'end' }); tC.textContent = '重心'; svg.appendChild(tC);
+      note(258, 'A は頂点の真下 17.3 m に落ちる');
+      note(276, 'B は 52.0 m、重心は 34.6 m に着地');
+      note(294, '重心は分裂しなかったときの着地点と同じ');
+    } else if (phase === 'trap') {
+      // 運動エネルギーの棒グラフ（1 px/J）。
+      const rows = [
+        { name: '分裂前 KE 100 J', w: d.keApexJ, val: '100 J', color: '#cfe3ff' },
+        { name: '分裂後 KE 200 J', w: d.keAfterJ, val: '200 J', color: '#ffb3b3' },
+      ];
+      rows.forEach((r, i) => {
+        const y = 90 + i * 60;
+        const tN = el('text', { x: 60, y: y - 8 }); tN.textContent = r.name; svg.appendChild(tN);
+        svg.appendChild(el('rect', { x: 140, y, width: r.w, height: 18, fill: r.color, stroke: '#333', 'stroke-width': 1 }));
+        const tV = el('text', { x: 140 + r.w + 8, y: y + 15 }); tV.textContent = r.val; svg.appendChild(tV);
+      });
+      note(258, '爆発で 100 J 加わった');
+      note(276, 'B は元の 2 倍の 69.3 m には落ちない');
+      note(294, 'エネルギー保存は爆発の前後では使えない');
+    } else if (phase === 'vary') {
+      // 着地点の数直線（4.5 px/m）。A は 0 m、重心は 34.6 m、B は 69.3 m。
+      const vx = (xM) => 60 + xM * 4.5;
+      svg.appendChild(el('line', { x1: 40, y1: 200, x2: 390, y2: 200, stroke: '#333', 'stroke-width': 2 }));
+      [[0, 'A・0 m', 'start'], [d.comM, '重心 34.6 m', 'middle'], [d.xB2M, 'B 69.3 m', 'end']].forEach(([xM, label, anchor]) => {
+        svg.appendChild(el('line', { x1: vx(xM), y1: 195, x2: vx(xM), y2: 205, stroke: '#333', 'stroke-width': 2 }));
+        svg.appendChild(el('circle', { cx: vx(xM), cy: 200, r: 3, fill: '#333' }));
+        const t = el('text', { x: vx(xM), y: 185, 'text-anchor': anchor }); t.textContent = label; svg.appendChild(t);
+      });
+      note(258, 'A は打ち出し点 0 m に戻る');
+      note(276, 'B は 69.3 m、重心は 34.6 m のまま');
+      note(294, '爆発で加わったのは 400 J');
+    }
   } else if (scene.type === 'capacitor') {
     const topY = 110, dPx = scene.dPx;
     // 2枚の極板（水平）。上板が +、下板が −。
@@ -10022,4 +10424,4 @@ function renderAllFigures() {
   });
 }
 
-if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, capSpringGravDerived, capSpringGravForces, gasSpringCycleDerived, gasSpringCycleForces, slopeSpringDerived, slopeSpringForces, fallLoopDerived, fallLoopForces, beltSpringDerived, beltSpringForces, massSpecDerived, massSpecForces, coilHallDerived, coilHallForces, platformChargeDerived, platformChargeForces, pendulumCollideDerived, pendulumCollideForces, photoCapDerived, photoCapForces, orbitTransferDerived, orbitTransferForces, cyclotronDerived, cyclotronForces, slopeSpringFricDerived, slopeSpringFricForces, projWallDerived, projWallForces, railSpringDampDerived, railSpringDampForces, pendulumSpringDerived, pendulumSpringForces, gasPistonOscDerived, gasPistonOscForces, photoCircleDerived, photoCircleForces, earthTunnelDerived, earthTunnelForces, heaterGasDerived, heaterGasForces, specPhotoCircleDerived, specPhotoCircleForces, ottoCycleDerived, ottoCycleForces, sceneFor, validateScene, renderFigure };
+if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, capSpringGravDerived, capSpringGravForces, gasSpringCycleDerived, gasSpringCycleForces, slopeSpringDerived, slopeSpringForces, fallLoopDerived, fallLoopForces, beltSpringDerived, beltSpringForces, massSpecDerived, massSpecForces, coilHallDerived, coilHallForces, platformChargeDerived, platformChargeForces, pendulumCollideDerived, pendulumCollideForces, photoCapDerived, photoCapForces, orbitTransferDerived, orbitTransferForces, cyclotronDerived, cyclotronForces, slopeSpringFricDerived, slopeSpringFricForces, projWallDerived, projWallForces, railSpringDampDerived, railSpringDampForces, pendulumSpringDerived, pendulumSpringForces, gasPistonOscDerived, gasPistonOscForces, photoCircleDerived, photoCircleForces, earthTunnelDerived, earthTunnelForces, heaterGasDerived, heaterGasForces, specPhotoCircleDerived, specPhotoCircleForces, ottoCycleDerived, ottoCycleForces, generatorACDerived, generatorACForces, explodeProjectileDerived, explodeProjectileForces, sceneFor, validateScene, renderFigure };
