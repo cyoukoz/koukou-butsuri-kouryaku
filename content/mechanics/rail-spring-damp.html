@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題AC：レール＋ばね＋電磁誘導 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題AC：レール＋ばね＋電磁誘導</h1>
+<p><strong>問題：</strong>2本のレールの上に、質量 m = 0.50 kg の棒がのっている。レールの幅は L = 1.0 m、一様な磁場 B = 1.0 T が紙面の裏向きにかかっている。棒はばね（ばね定数 k = 50 N/m）で壁につながれ、回路の抵抗は R = 2.0 Ω だ。棒をつり合い位置から 0.20 m 左に引いて、静かに放した。重力加速度は g = 10 m/s² とする。(1) 放した瞬間のばねの力と加速度を求めよ。(2) はじめてつり合い位置を通るときの速さ・誘導起電力・電流・磁場の力を求めよ。(3) 振幅の時間変化を求めよ。1周期後、5周期後の振幅はいくらか。(4) はじめのエネルギーと、1周期のあいだにジュール熱になるエネルギーを求めよ。(5) 誘導を無視したら、振幅はどうなるか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v2.8、railSpringDamp 型）が下の JSON データから計算して描く。棒の位置は、つり合い位置からの変位 x(t) = 0.20 e^(−0.5t) cos(9.99t) m で決まる。縮尺は 400 px/m（0.20 m は 80 px）だ。</p>
+<script type="application/json" id="scene-rail-spring-damp-base">{"type":"railSpringDamp","mKg":0.5,"bT":1.0,"railLengthM":1.0,"resistanceOhm":2.0,"kNperM":50,"x0M":0.2,"g":10,"phase":"base"}</script>
+<script type="application/json" id="scene-rail-spring-damp-pull">{"type":"railSpringDamp","mKg":0.5,"bT":1.0,"railLengthM":1.0,"resistanceOhm":2.0,"kNperM":50,"x0M":0.2,"g":10,"phase":"pull"}</script>
+<script type="application/json" id="scene-rail-spring-damp-cross">{"type":"railSpringDamp","mKg":0.5,"bT":1.0,"railLengthM":1.0,"resistanceOhm":2.0,"kNperM":50,"x0M":0.2,"g":10,"phase":"cross"}</script>
+<script type="application/json" id="scene-rail-spring-damp-decay">{"type":"railSpringDamp","mKg":0.5,"bT":1.0,"railLengthM":1.0,"resistanceOhm":2.0,"kNperM":50,"x0M":0.2,"g":10,"phase":"decay"}</script>
+<script type="application/json" id="scene-rail-spring-damp-energy">{"type":"railSpringDamp","mKg":0.5,"bT":1.0,"railLengthM":1.0,"resistanceOhm":2.0,"kNperM":50,"x0M":0.2,"g":10,"phase":"energy"}</script>
+<script type="application/json" id="scene-rail-spring-damp-trap">{"type":"railSpringDamp","mKg":0.5,"bT":1.0,"railLengthM":1.0,"resistanceOhm":2.0,"kNperM":50,"x0M":0.2,"g":10,"phase":"trap"}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。放した瞬間と、つり合い位置を通るときと、その後の振動では、使える式がちがう。3つをつなぐのは、棒の速さとエネルギーだ。</p>
+  <table>
+    <tr><th>時間</th><th>系（何を見るか）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>はじめ（引いたところ）</td><td>棒＋ばね</td><td>—</td><td>ばねの力だけがはたらく（はじめに）</td></tr>
+    <tr><td>放した瞬間</td><td>棒</td><td><strong>ばねの力 10 N、加速度 20 m/s²</strong></td><td>v = 0 なので誘導起電力は 0（ステップ①）</td></tr>
+    <tr><td>つり合い位置を初めて通る</td><td>棒＋回路</td><td><strong>速さ 1.85 m/s、ε ≈ 1.85 V、I ≈ 0.92 A</strong></td><td>速さから起電力、起電力から電流（ステップ②）</td></tr>
+    <tr><td>その後の振動</td><td>棒＋ばね＋回路</td><td><strong>振幅 0.20 e^(−0.5t) m</strong></td><td>振幅は指数で減る（ステップ③）</td></tr>
+    <tr><td>エネルギー</td><td>棒＋ばね＋回路</td><td><strong>1.00 J → 0.53 J、熱 0.47 J</strong></td><td>減った分はジュール熱になる（ステップ④⑤）</td></tr>
+  </table>
+  <p>棒が動くと、レールと棒と抵抗でできた回路を貫く磁束が変わり、誘導起電力が生じる。起電力で電流が流れ、電流が磁場から力を受ける。この力が棒の動きを邪魔するので、振動はだんだん小さくなる。ばねだけなら単振動、磁場だけなら減速だが、両方あると<strong>減衰振動</strong>になる。</p>
+  <svg class="fig" data-scene="scene-rail-spring-damp-base" data-show="" width="100%" role="img" aria-label="レール＋ばね＋電磁誘導の全体図。レール、棒、ばね、抵抗、磁場"></svg>
+  <p>運動方程式は mẍ = −kx − cẋ で、c = B²L²/R = 1.0 × 1.0 / 2.0 = <strong>0.50 kg/s</strong> が制動の係数だ。γ = c/(2m) = 0.50 /s、ω0 = √(k/m) = 10 rad/s、ω' = √(ω0² − γ²) ≈ 9.99 rad/s、周期 T' ≈ 0.63 s になる。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①0.20 m 引いて放す</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 0.20 m 引いて放す</h2>
+  <svg class="fig" data-scene="scene-rail-spring-damp-pull" data-show="spring" width="100%" role="img" aria-label="放す瞬間。棒は 0.20 m 左に引かれ、ばねの力 10 N が右向きにはたらく"></svg>
+  <p>放した瞬間、棒は止まっている（v = 0）。ばねはつり合い位置から 0.20 m 伸びているので、ばねの力は k × 0.20 = 50 × 0.20 = <strong>10 N</strong> で、つり合い位置の向き（右向き）にはたらく。</p>
+  <p>v = 0 なので、誘導起電力は ε = BLv = 0、電流も 0、磁場の力も 0 だ。棒にはたらく力はばねの力だけなので、加速度は a = F/m = 10 / 0.50 = <strong>20 m/s²</strong>（右向き）になる。</p>
+  <p>ばねの力が最大のとき、磁場の力は 0 だ。逆に、つり合い位置ではばねの力が 0 で、磁場の力が最大になる。2つの力は、場所がちがうところで最大になる。</p>
+  <label><input type="checkbox" class="check"> 放した瞬間はばねの力 10 N だけではたらき、加速度は 20 m/s² で、誘導起電力は 0 であることを求めた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②つり合い位置を初めて通る</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② つり合い位置を初めて通る</h2>
+  <svg class="fig" data-scene="scene-rail-spring-damp-cross" data-show="velocity,magForce" width="100%" role="img" aria-label="つり合い位置を初めて通るとき。速さ 1.85 m/s、磁場の力 0.92 N"></svg>
+  <p>棒の位置は x(t) = 0.20 e^(−0.5t) cos(9.99t) m で表される。はじめてつり合い位置（x = 0）を通るのは、cos(9.99t) = 0 になるときで、t = (π/2)/9.99 ≈ <strong>0.157 s</strong> だ。</p>
+  <p>このときの速さは、x(t) を微分して v = 0.20 × e^(−0.5×0.157) × 9.99 ≈ <strong>1.85 m/s</strong> になる。減衰がなければ ω0 × 0.20 = 2.0 m/s のところ、磁場の力で少し遅くなっている。</p>
+  <p>つり合い位置ではばねの力は 0 だ。代わりに、誘導起電力が最大になる。ε = BLv = 1.0 × 1.0 × 1.85 ≈ <strong>1.85 V</strong>、電流は I = ε/R = 1.85 / 2.0 ≈ <strong>0.92 A</strong>、磁場の力は F = BIL = 1.0 × 0.92 × 1.0 ≈ <strong>0.92 N</strong> で、速度と逆向き（左向き）にはたらく。</p>
+  <label><input type="checkbox" class="check"> つり合い位置を 0.157 s で速さ 1.85 m/s で通り、ε ≈ 1.85 V、I ≈ 0.92 A、磁場の力 ≈ 0.92 N を求めた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③振幅は指数で減る</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 振幅は指数で減る</h2>
+  <svg class="fig" data-scene="scene-rail-spring-damp-decay" data-show="" width="100%" role="img" aria-label="x–t グラフ。振幅は 0.20 e^(−0.5t) m で指数関数的に減る"></svg>
+  <p>振幅は A(t) = 0.20 e^(−0.5t) m で減る。1周期（T' ≈ 0.63 s）後には、0.20 × e^(−0.5×0.63) = 0.20 × e^(−0.315) ≈ <strong>0.146 m</strong> になる。</p>
+  <p>5周期（約 3.15 s）後には、0.20 × e^(−0.5×3.15) = 0.20 × e^(−1.57) ≈ <strong>0.041 m</strong> になる。振幅が半分になる時間は、e^(−0.5t) = 1/2 から、t = ln2 / 0.5 ≈ <strong>1.39 s</strong>（約 2.2 周期）だ。</p>
+  <p>組み合わせAAのクーロン摩擦では、振幅は半周期ごとに 0.040 m ずつ等差数列で減り、有限の時間で止まった。ここでは指数関数で減るので、振幅は 0 にはならないが、どんどん小さくなる。摩擦の種類がちがうと、減り方がちがう。</p>
+  <label><input type="checkbox" class="check"> 振幅は 0.20 e^(−0.5t) m で減り、1周期後 0.146 m、5周期後 0.041 m、半分になるまで 1.39 s であることを求めた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④エネルギー</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ エネルギー</h2>
+  <svg class="fig" data-scene="scene-rail-spring-damp-energy" data-show="" width="100%" role="img" aria-label="エネルギーの棒グラフ。はじめ 1.00 J、1周期後 0.53 J、5周期後 0.043 J、1周期の熱 0.47 J"></svg>
+  <p>はじめのエネルギーは、ばねのエネルギーだけだ。(1/2)k×0.20² = 0.5 × 50 × 0.04 = <strong>1.00 J</strong> になる。</p>
+  <p>1周期後、振幅は 0.146 m なので、エネルギーは (1/2)×50×0.146² ≈ <strong>0.53 J</strong> になる。減った 1.00 − 0.53 = <strong>0.47 J</strong> は、1周期のあいだにジュール熱になった。5周期後には 0.043 J しか残らない。</p>
+  <p>振幅が 0 になれば、1.00 J はそっくりジュール熱になる。磁場の力がする仕事の分だけ、棒とばねのエネルギーが熱に変わる。エネルギーが消えるのではなく、形が変わるだけだ。</p>
+  <label><input type="checkbox" class="check"> はじめ 1.00 J、1周期後 0.53 J、1周期で 0.47 J がジュール熱になることを求めた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤罠：誘導を無視すると減衰しない</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ 罠：誘導を無視すると減衰しない</h2>
+  <svg class="fig" data-scene="scene-rail-spring-damp-trap" data-show="" width="100%" role="img" aria-label="振幅の比べ。誘導を無視すると 0.20 m のまま、本当は 1周期後 0.146 m"></svg>
+  <p>罠は、ばねの単振動だけを見て、振幅は 0.20 m のままだと思うことだ。棒が動くたびに誘導起電力が生じ、電流が流れ、ジュール熱が出る。だから振幅は減る。誘導を無視すると、1周期後の振幅も 0.20 m のままだが、本当は 0.146 m になる。</p>
+  <p>もう一つの罠は、ばねがなければどうなるかだ。ばねがなければ、初速 2.0 m/s で放した棒は、磁場の力だけで減速する。速度は v(t) = 2.0 e^(−t) m/s で減り、進む距離は m×v0/c = 0.50 × 2.0 / 0.50 = <strong>2.0 m</strong> で、そこで止まる。ばねがあるから、振動しながら減衰するのだ。</p>
+  <p>減衰の速さは、磁場が強いほど、レールが広いほど、抵抗が小さいほど速くなる。c = B²L²/R が大きいほど、γ = c/(2m) が大きくなり、振幅は速く減る。</p>
+  <label><input type="checkbox" class="check"> 誘導を無視すると振幅は減らず、ばねがなければ 2.0 m 進んで止まることを確かめた</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と系を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) ばねの力 10 N、加速度 20 m/s²、誘導起電力は 0。(2) t ≈ 0.157 s、v ≈ 1.85 m/s、ε ≈ 1.85 V、I ≈ 0.92 A、磁場の力 ≈ 0.92 N。(3) 振幅 0.20 e^(−0.5t) m、1周期後 0.146 m、5周期後 0.041 m、半分になるまで 1.39 s。(4) はじめ 1.00 J、1周期後 0.53 J、1周期で 0.47 J がジュール熱になる。(5) 誘導を無視すると振幅は 0.20 m のまま。もとになった単体モデル：レール上の棒は <a href="rail-rod.html">第17問：レール上の棒</a>、単振動は <a href="shm.html">第11問：単振動・振り子</a>、電磁誘導は <a href="induction.html">第32問：電磁誘導</a>、レール＋コンデンサ＋コイルは <a href="rail-cap-coil.html">組み合わせ問題N：レール＋コンデンサ＋コイル</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboRailSpringDampDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
