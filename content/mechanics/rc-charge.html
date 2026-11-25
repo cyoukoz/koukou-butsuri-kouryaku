@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>組み合わせ問題AP：RC回路の充電とエネルギー</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body { max-width: 760px; margin: 0 auto; padding: 16px; font-family: sans-serif; line-height: 1.8; }
+h1 { font-size: 22px; }
+.step { border-top: 2px solid #eee; padding: 18px 0; }
+.fig { margin: 12px 0; }
+.fig svg { width: 100%; height: auto; display: block; }
+.check { font-size: 18px; margin-right: 8px; }
+.next { display: inline-block; margin-top: 8px; }
+.toplink { position: fixed; right: 12px; bottom: 12px; background: #fff; border: 1px solid #ccc; padding: 6px 10px; border-radius: 6px; text-decoration: none; }
+.donebox { border: 2px solid #4a4; padding: 14px; margin: 20px 0; }
+table { border-collapse: collapse; margin: 10px 0; }
+th, td { border: 1px solid #999; padding: 6px 8px; text-align: left; }
+</style>
+</head>
+<body id="top">
+<h1>組み合わせ問題AP：RC回路の充電とエネルギー</h1>
+<p>起電力 12 V の電池に、抵抗 100 Ω とコンデンサ 100 μF を直列につなぎ、スイッチを入れて充電する。(1) 電気量 q(t) と時定数を求めよ。(2) コンデンサにたまるエネルギーと、電池のした仕事、ジュール熱を求めよ。(3) t=τ のときの内訳を求めよ。(4) 電池の仕事が全部コンデンサにたまるとするとどうなるか。(5) R を 200 Ω にする、C を 200 μF にする、E を 24 V にするとどうなるか。</p>
+
+<div class="step">
+<p><b>はじめに：どう切り分けるか</b></p>
+<p>充電 → エネルギー → t=τ の内訳 → 罠 → 変えたら、の順に区切る。橋渡し量は「電気量とエネルギー」だ。</p>
+<table>
+<tr><th>いつ</th><th>何が起きるか</th><th>橋渡し量</th><th>どこで解くか</th></tr>
+<tr><td>はじめ</td><td>充電</td><td>τ=10 ms、Q=1.2 mC</td><td>ステップ①</td></tr>
+<tr><td>たまる</td><td>エネルギー</td><td>たまるのは 7.2 mJ</td><td>ステップ②</td></tr>
+<tr><td>途中</td><td>t=τ の内訳</td><td>熱はすでに 6.2 mJ</td><td>ステップ③</td></tr>
+<tr><td>罠・変えたら</td><td>半分は熱</td><td>全部たまる、はまちがい</td><td>ステップ④⑤</td></tr>
+</table>
+<p>図：電池・抵抗・コンデンサの直列回路。スイッチを入れると電流が流れ、コンデンサに電気がたまっていく。</p>
+<script type="application/json" id="scene-rc-charge-base">{"type":"rcCharge","capF":0.0001,"emfV":12,"rOhm":100,"phase":"base"}</script>
+<svg class="fig" data-scene="scene-rc-charge-base" data-show="" width="100%" role="img" aria-label="RC回路：電池・抵抗・コンデンサ"></svg>
+</div>
+
+<div class="step">
+<p><b>ステップ① 充電：q(t) のグラフ</b></p>
+<script type="application/json" id="scene-rc-charge-charge">{"type":"rcCharge","capF":0.0001,"emfV":12,"rOhm":100,"phase":"charge"}</script>
+<svg class="fig" data-scene="scene-rc-charge-charge" data-show="" width="100%" role="img" aria-label="充電：q(t) のグラフ"></svg>
+<p>電気量は q(t) = Q∞(1 − e^(−t/τ)) で増える。時定数は τ = RC = 100×100×10⁻⁶ = 0.010 s = 10 ms。</p>
+<p>最終の電気量は Q∞ = CE = 100×10⁻⁶×12 = 1.2 mC。初めの電流は I0 = E/R = 12/100 = 0.12 A = 120 mA。コンデンサの電圧は Vc(t) = E(1 − e^(−t/τ))。</p>
+<p>t=τ では、q = 0.76 mC、Vc = 7.6 V、I = 44 mA。t=3τ では、q = 1.14 mC、Vc = 11.4 V、I = 6.0 mA。τ で 63%、3τ で 95% たまる。</p>
+<p><label><input type="checkbox" class="check">① 充電が分かった</label></p>
+<p><a class="next" href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<p><b>ステップ② エネルギー：半分は熱になる</b></p>
+<script type="application/json" id="scene-rc-charge-energy">{"type":"rcCharge","capF":0.0001,"emfV":12,"rOhm":100,"phase":"energy"}</script>
+<svg class="fig" data-scene="scene-rc-charge-energy" data-show="" width="100%" role="img" aria-label="エネルギー：半分は熱になる"></svg>
+<p>コンデンサにたまるエネルギーは U∞ = ½CE² = 0.5×100×10⁻⁶×12² = 7.2 mJ。</p>
+<p>電池のした仕事は W = Q∞E = 1.2×10⁻³×12 = 14.4 mJ。たまるエネルギーの 2 倍だ。差し引きすると、ジュール熱は W − U∞ = 7.2 mJ。電池の仕事のちょうど半分が、抵抗で熱になる。</p>
+<p><label><input type="checkbox" class="check">② エネルギーが分かった</label></p>
+<p><a class="next" href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<p><b>ステップ③ t=τ のときの内訳</b></p>
+<script type="application/json" id="scene-rc-charge-energyTau">{"type":"rcCharge","capF":0.0001,"emfV":12,"rOhm":100,"phase":"energyTau"}</script>
+<svg class="fig" data-scene="scene-rc-charge-energyTau" data-show="" width="100%" role="img" aria-label="t=τ のときの内訳"></svg>
+<p>t=τ では、q = 0.76 mC、Vc = 7.6 V、I = 44 mA。たまるエネルギーは U = ½q²/C ≈ 2.9 mJ。電池の仕事は W = Eq ≈ 9.1 mJ。ジュール熱は 9.1 − 2.9 = 6.2 mJ。</p>
+<p>熱はすでに全体の 6.2/7.2 ≈ 86% が出ている。電流が大きい初めのうちに、ほとんどの熱が出てしまう。</p>
+<p><label><input type="checkbox" class="check">③ t=τ の内訳が分かった</label></p>
+<p><a class="next" href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<p><b>ステップ④ 罠：全部たまると思い込む</b></p>
+<script type="application/json" id="scene-rc-charge-trap">{"type":"rcCharge","capF":0.0001,"emfV":12,"rOhm":100,"phase":"trap"}</script>
+<svg class="fig" data-scene="scene-rc-charge-trap" data-show="" width="100%" role="img" aria-label="罠：全部たまると思い込む"></svg>
+<p>電池の仕事 14.4 mJ が全部コンデンサにたまるとすると、U = 14.4 mJ になってしまう（正しい値の 2 倍）。実際は半分の 7.2 mJ がたまり、残りは抵抗で熱になる。</p>
+<p>「ジュール熱は 0」もまちがい。電流が抵抗を流れるとき、必ず熱が出る。エネルギーはどこかへ行くので、電池の仕事とたまるエネルギーが等しくなることはない。</p>
+<p><label><input type="checkbox" class="check">④ 罠が分かった</label></p>
+<p><a class="next" href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<p><b>ステップ⑤ 変えたら</b></p>
+<script type="application/json" id="scene-rc-charge-vary">{"type":"rcCharge","capF":0.0001,"emfV":12,"rOhm":100,"phase":"vary"}</script>
+<svg class="fig" data-scene="scene-rc-charge-vary" data-show="" width="100%" role="img" aria-label="変えたら：R・C・E を変える"></svg>
+<p>R を 200 Ω にすると、τ = 20 ms になる（遅くなるだけ）。最終の電気量もたまるエネルギーも変わらない。U = 7.2 mJ のままだ。</p>
+<p>C を 200 μF にすると、τ = 20 ms、Q∞ = 2.4 mC、U = 14.4 mJ、熱も 14.4 mJ になる。E を 24 V にすると、τ = 10 ms のまま、Q∞ = 2.4 mC、U = 28.8 mJ（4 倍）、熱も 28.8 mJ、I0 = 240 mA になる。</p>
+<p><label><input type="checkbox" class="check">⑤ 変えたらが分かった</label></p>
+</div>
+
+<div class="donebox">
+<p id="done-message">5つのチェックをすべて入れると完了になります。</p>
+<button id="done-btn">完了にする</button>
+<p>答え：τ=10 ms、Q∞=1.2 mC、U∞=7.2 mJ、電池の仕事 14.4 mJ、ジュール熱 7.2 mJ。コンデンサは<a href="capacitor.html">第9問：コンデンサ</a>、直流回路は<a href="dc-circuit.html">第19問：直流回路</a>、過渡現象は<a href="transient.html">第30問：RL・RC回路の過渡現象</a>、コンデンサ＋ばねは<a href="cap-spring.html">組み合わせ問題J：コンデンサ＋ばね</a>に戻って確認しよう。</p>
+<p><a href="conical-pendulum.html">← 組み合わせ問題AO：円錐振り子＋糸が切れる＋斜方投射</a></p>
+</div>
+
+<a class="toplink" href="#top">↑ TOP</a>
+<script src="../../assets/js/figure.js"></script>
+<script src="../../assets/js/idb.js"></script>
+<script>
+renderAllFigures();
+const boxes = Array.from(document.querySelectorAll('.check'));
+const doneBtn = document.getElementById('done-btn');
+const doneMsg = document.getElementById('done-message');
+const doneKey = 'comboRcChargeDone';
+const allChecked = () => boxes.every(b => b.checked);
+boxes.forEach(b => b.addEventListener('change', () => { doneBtn.disabled = !allChecked(); }));
+doneBtn.disabled = true;
+(async () => {
+  try {
+    const saved = await loadProgress();
+    if (saved && saved[doneKey]) { doneMsg.textContent = '完了済み ✓'; doneBtn.disabled = true; }
+  } catch (e) { /* IndexedDB が使えない環境では無視 */ }
+})();
+doneBtn.addEventListener('click', async () => {
+  if (!allChecked()) return;
+  try {
+    const saved = await loadProgress();
+    saved[doneKey] = true;
+    await saveProgress(saved);
+    doneMsg.textContent = '完了済み ✓';
+    doneBtn.disabled = true;
+  } catch (e) { doneMsg.textContent = '保存できませんでした（IndexedDB が使えません）。'; }
+});
+</script>
+</body>
+</html>

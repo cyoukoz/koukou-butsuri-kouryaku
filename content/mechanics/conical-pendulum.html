@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>組み合わせ問題AO：円錐振り子＋糸が切れる＋斜方投射</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body { max-width: 760px; margin: 0 auto; padding: 16px; font-family: sans-serif; line-height: 1.8; }
+h1 { font-size: 22px; }
+.step { border-top: 2px solid #eee; padding: 18px 0; }
+.fig { margin: 12px 0; }
+.fig svg { width: 100%; height: auto; display: block; }
+.check { font-size: 18px; margin-right: 8px; }
+.next { display: inline-block; margin-top: 8px; }
+.toplink { position: fixed; right: 12px; bottom: 12px; background: #fff; border: 1px solid #ccc; padding: 6px 10px; border-radius: 6px; text-decoration: none; }
+.donebox { border: 2px solid #4a4; padding: 14px; margin: 20px 0; }
+table { border-collapse: collapse; margin: 10px 0; }
+th, td { border: 1px solid #999; padding: 6px 8px; text-align: left; }
+</style>
+</head>
+<body id="top">
+<h1>組み合わせ問題AO：円錐振り子＋糸が切れる＋斜方投射</h1>
+<p>質量 1.0 kg の玉を長さ 1.0 m の糸でつるし、糸が鉛直となす角 37° を保ちながら、玉が水平面で等速円運動をしている。支点は地面から 2.0 m の高さにある。重力加速度は g=10 m/s² とする。(1) 玉にはたらく力と、回転の周期を求めよ。(2) 糸が切れた瞬間、玉はどう動くか。(3) 玉が地面に着くまでの時間、着地点、着地の速さを求めよ。(4) 単振り子の周期の式をそのまま使うとどうなるか。(5) 角を 53° にする、糸の長さを 2.0 m にするとどうなるか。</p>
+
+<div class="step">
+<p><b>はじめに：どう切り分けるか</b></p>
+<p>円錐振り子 → 糸が切れる → 斜方投射 → 罠 → 変えたら、の順に区切る。橋渡し量は「速さと周期」だ。</p>
+<table>
+<tr><th>いつ</th><th>何が起きるか</th><th>橋渡し量</th><th>どこで解くか</th></tr>
+<tr><td>はじめ</td><td>円錐振り子</td><td>T=12.5 N、周期 1.78 s</td><td>ステップ①</td></tr>
+<tr><td>切れる</td><td>糸が切れる</td><td>v=2.1 m/s はそのまま</td><td>ステップ②</td></tr>
+<tr><td>切れたあと</td><td>水平投射</td><td>着地まで 1.04 m</td><td>ステップ③</td></tr>
+<tr><td>罠・変えたら</td><td>周期と速さ</td><td>単振り子では 2.0 s</td><td>ステップ④⑤</td></tr>
+</table>
+<p>図：糸でつるした玉が水平面で回る。糸が切れると、玉はそのときの速さをもったまま飛び出す。</p>
+<script type="application/json" id="scene-conical-pendulum-base">{"type":"conicalPendulum","g":10,"lM":1.0,"mKg":1.0,"pivotHM":2.0,"thetaDeg":37,"phase":"base"}</script>
+<svg class="fig" data-scene="scene-conical-pendulum-base" data-show="" width="100%" role="img" aria-label="円錐振り子：水平面で回る"></svg>
+</div>
+
+<div class="step">
+<p><b>ステップ① 円錐振り子：張力の分解と周期</b></p>
+<script type="application/json" id="scene-conical-pendulum-circle">{"type":"conicalPendulum","g":10,"lM":1.0,"mKg":1.0,"pivotHM":2.0,"thetaDeg":37,"phase":"circle"}</script>
+<svg class="fig" data-scene="scene-conical-pendulum-circle" data-show="" width="100%" role="img" aria-label="円錐振り子：張力の分解"></svg>
+<p>玉にはたらく力は重力 mg=10 N と張力 T だけだ。鉛直方向はつり合っているので、T cosθ = mg。cos37°≈0.80 だから、T = 10/0.80 ≈ 12.5 N。</p>
+<p>水平方向は、張力の水平成分 T sinθ が向心力になる。T sinθ = 12.5×0.60 = 7.5 N。mv²/r = 7.5 で、r = L sinθ = 0.60 m だから、v² = 7.5×0.60 = 4.5、v ≈ 2.1 m/s。</p>
+<p>角振動数は ω = v/r ≈ 3.5 rad/s。周期は T = 2π/ω ≈ 1.78 s。まとめて書くと、T = 2π√(L cosθ/g) = 2π√0.080 ≈ 1.78 s になる。</p>
+<p><label><input type="checkbox" class="check">① 円錐振り子が分かった</label></p>
+<p><a class="next" href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<p><b>ステップ② 糸が切れる：速さはそのまま</b></p>
+<script type="application/json" id="scene-conical-pendulum-cut">{"type":"conicalPendulum","g":10,"lM":1.0,"mKg":1.0,"pivotHM":2.0,"thetaDeg":37,"phase":"cut"}</script>
+<svg class="fig" data-scene="scene-conical-pendulum-cut" data-show="" width="100%" role="img" aria-label="糸が切れる：速さはそのまま"></svg>
+<p>糸が切れた瞬間、玉はそのときの速さ 2.1 m/s をもったまま、接線の向きに飛び出す。糸がなくなっても、速さは急に 0 にならない。</p>
+<p>張力がなくなると、向心力もなくなる。だから円運動は終わり、玉は重力だけを受けて飛ぶ。切れた瞬間の速さと向きが、次の運動の出発点になる。</p>
+<p><label><input type="checkbox" class="check">② 糸が切れる瞬間が分かった</label></p>
+<p><a class="next" href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<p><b>ステップ③ 切れたあと：水平投射で着地</b></p>
+<script type="application/json" id="scene-conical-pendulum-projectile">{"type":"conicalPendulum","g":10,"lM":1.0,"mKg":1.0,"pivotHM":2.0,"thetaDeg":37,"phase":"projectile"}</script>
+<svg class="fig" data-scene="scene-conical-pendulum-projectile" data-show="" width="100%" role="img" aria-label="切れたあと：水平投射"></svg>
+<p>切れたときの玉の高さは、2.0 − 1.0×cos37° = 2.0 − 0.80 = 1.2 m。水平投射になるので、落下時間は t = √(2h/g) = √0.24 ≈ 0.49 s。</p>
+<p>水平には等速で進むので、着地点は x = vt ≈ 2.1×0.49 ≈ 1.04 m。切れた点の真下から 1.04 m 進んだところに着地する。</p>
+<p>着地のとき、縦の速さは vy = gt ≈ 4.9 m/s。着地の速さは √(2.1² + 4.9²) ≈ 5.3 m/s。エネルギーで確かめると、mgh + ½mv² = 12 + 2.3 = 14.3 J で、½m×5.3² ≈ 14.3 J と一致する。</p>
+<p><label><input type="checkbox" class="check">③ 切れたあとの運動が分かった</label></p>
+<p><a class="next" href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<p><b>ステップ④ 罠：振り子の周期をそのまま使うと</b></p>
+<script type="application/json" id="scene-conical-pendulum-trap">{"type":"conicalPendulum","g":10,"lM":1.0,"mKg":1.0,"pivotHM":2.0,"thetaDeg":37,"phase":"trap"}</script>
+<svg class="fig" data-scene="scene-conical-pendulum-trap" data-show="" width="100%" role="img" aria-label="罠：振り子の周期をそのまま使うと"></svg>
+<p>単振り子の周期 2π√(L/g) ≈ 2.0 s をそのまま使うとまちがい。円錐振り子は 2π√(L cosθ/g) ≈ 1.78 s だ。cosθ を忘れると、周期が長くなってしまう。</p>
+<p>「切れたあと真下に落ちる」もまちがい。玉は水平の速さ 2.1 m/s をもったまま進むので、真下ではなく 1.04 m 先に着地する。</p>
+<p><label><input type="checkbox" class="check">④ 罠が分かった</label></p>
+<p><a class="next" href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<p><b>ステップ⑤ 変えたら</b></p>
+<script type="application/json" id="scene-conical-pendulum-vary">{"type":"conicalPendulum","g":10,"lM":1.0,"mKg":1.0,"pivotHM":2.0,"thetaDeg":37,"phase":"vary"}</script>
+<svg class="fig" data-scene="scene-conical-pendulum-vary" data-show="" width="100%" role="img" aria-label="変えたら：θ=53°・L=2.0 m"></svg>
+<p>角を 53° にすると、r = 0.80 m、T = 10/cos53° ≈ 16.6 N、v ≈ 3.3 m/s、周期 ≈ 1.54 s になる。玉の高さは 1.40 m で、着地点は約 1.72 m、着地の速さは約 6.2 m/s になる。</p>
+<p>糸の長さを 2.0 m にする（角は 37° のまま）と、周期は約 2.51 s、v ≈ 3.0 m/s になる。張力は 12.5 N のままだ。張力は T = mg/cosθ で、角だけで決まり、糸の長さでは決まらない。</p>
+<p><label><input type="checkbox" class="check">⑤ 変えたらが分かった</label></p>
+</div>
+
+<div class="donebox">
+<p id="done-message">5つのチェックをすべて入れると完了になります。</p>
+<button id="done-btn">完了にする</button>
+<p>答え：T≈12.5 N、v≈2.1 m/s、周期≈1.78 s、落下時間≈0.49 s、着地点 1.04 m、着地の速さ≈5.3 m/s。円運動は<a href="circle.html">第10問：円運動</a>、振り子は<a href="shm.html">第11問：単振動・振り子</a>、空中での分裂と着地点は<a href="explode-projectile.html">組み合わせ問題AL：空中で分裂する斜方投射</a>に戻って確認しよう。</p>
+<p><a href="rc-charge.html">次：組み合わせ問題AP：RC回路の充電とエネルギー →</a></p>
+</div>
+
+<a class="toplink" href="#top">↑ TOP</a>
+<script src="../../assets/js/figure.js"></script>
+<script src="../../assets/js/idb.js"></script>
+<script>
+renderAllFigures();
+const boxes = Array.from(document.querySelectorAll('.check'));
+const doneBtn = document.getElementById('done-btn');
+const doneMsg = document.getElementById('done-message');
+const doneKey = 'comboConicalPendulumDone';
+const allChecked = () => boxes.every(b => b.checked);
+boxes.forEach(b => b.addEventListener('change', () => { doneBtn.disabled = !allChecked(); }));
+doneBtn.disabled = true;
+(async () => {
+  try {
+    const saved = await loadProgress();
+    if (saved && saved[doneKey]) { doneMsg.textContent = '完了済み ✓'; doneBtn.disabled = true; }
+  } catch (e) { /* IndexedDB が使えない環境では無視 */ }
+})();
+doneBtn.addEventListener('click', async () => {
+  if (!allChecked()) return;
+  try {
+    const saved = await loadProgress();
+    saved[doneKey] = true;
+    await saveProgress(saved);
+    doneMsg.textContent = '完了済み ✓';
+    doneBtn.disabled = true;
+  } catch (e) { doneMsg.textContent = '保存できませんでした（IndexedDB が使えません）。'; }
+});
+</script>
+</body>
+</html>
