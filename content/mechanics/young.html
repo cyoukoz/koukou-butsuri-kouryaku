@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第8問：ヤングの干渉 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>第8問：ヤングの干渉</h1>
+<p><strong>問題：</strong>波長 λ = 600 nm の光を、間隔 d = 0.20 mm の二重スリットにあてる。スリットからスクリーンまでの距離は L = 1.0 m である。スクリーンにできる明線の間隔を求めよ。また、中央から 3 番目の明線の位置と、その点での 2 つの光の光路差を求めよ。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js）が下の JSON データから計算して描いている。2 本の光路の長さは三平方の定理から計算され、光路差の目印も計算で打たれている。ラベルは短い名前だけにして、枠からはみ出さないよう描画側で調整している。</p>
+<script type="application/json" id="scene-young">{"type":"young","lambdaNm":600,"dMm":0.2,"lM":1.0,"n":3}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：装置を見る</h2>
+  <p>光源から出た光は、二重スリットの 2 つのすき間を通って、スクリーンに届く。2 つのすき間は、波長が同じ 2 つの新しい光源だと思えばよい。スクリーンには明るい縞と暗い縞が交互に並ぶ。</p>
+  <svg class="fig" data-scene="scene-young" data-show="" width="100%" role="img" aria-label="二重スリットの装置（光路はまだ描いていない）"></svg>
+  <p>図はこれだけ。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①明るい縞の条件</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 明るい縞の条件（光路差 = nλ）</h2>
+  <svg class="fig" data-scene="scene-young" data-show="ray1,ray2" width="100%" role="img" aria-label="2本の光路と光路差を描いた図"></svg>
+  <p>スクリーン上の 1 点に、2 つのすき間から光が届く。2 つの光路の長さの差（光路差）が、波長の整数倍 nλ のとき、2 つの波は山と山が重なって強め合い、明るくなる。図の赤い目印が光路差で、n = 3 の点では光路差は 3λ になっている。光路差そのものではなく、光路差が波長の何倍かが決め手だ。</p>
+  <label><input type="checkbox" class="check"> 明るい縞の条件は「光路差 = nλ」だと分かった</label>
+  <br><a class="next" href="#step2">次へ ↓ ②縞間隔</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 縞間隔 Δx = λL / d</h2>
+  <svg class="fig" data-scene="scene-young" data-show="ray1,ray2" width="100%" role="img" aria-label="縞間隔を示した図"></svg>
+  <p>光路差は、スクリーン上の位置 x を使うと d・x / L と書ける（x が L よりずっと小さいときの近似）。これが nλ に等しいとすると、n 番目の明線の位置は x = nλL / d。隣り合う明線の間隔は Δx = λL / d = 600×10<sup>−9</sup> × 1.0 / 0.20×10<sup>−3</sup> = <strong>3.0×10<sup>−3</sup> m（3.0 mm）</strong>。図のスクリーン上の赤い目印は 3.0 mm ごとに並んでいる。</p>
+  <label><input type="checkbox" class="check"> 縞間隔 Δx = λL / d = 3.0 mm を求めた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③n=3 の明線</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ n = 3 の明線の位置と光路差</h2>
+  <svg class="fig" data-scene="scene-young" data-show="ray1,ray2" width="100%" role="img" aria-label="n=3 の明線の位置を示した図"></svg>
+  <p>中央から 3 番目の明線の位置は x = 3Δx = <strong>9.0 mm</strong>。その点での光路差は d・x / L = 0.20×10<sup>−3</sup> × 9.0×10<sup>−3</sup> / 1.0 = 1.8×10<sup>−6</sup> m = <strong>3λ</strong>。n = 3 だから光路差は 3λ で、条件と一致する。図では、上の光路（約 212px）と下の光路（約 228px）の差が光路差だ。</p>
+  <label><input type="checkbox" class="check"> n = 3 の明線は x = 9.0 mm、光路差は 3λ だと分かった</label>
+  <br><a class="next" href="#step4">次へ ↓ ④暗い縞の条件</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 暗い縞の条件（光路差 = (n + 1/2)λ）</h2>
+  <svg class="fig" data-scene="scene-young" data-show="ray1,ray2" width="100%" role="img" aria-label="暗い縞の条件を示した図"></svg>
+  <p>光路差が波長の半端な倍数 (n + 1/2)λ のとき、2 つの波は山と谷が重なって打ち消し合い、暗くなる。中央に一番近い暗線は、光路差が λ/2 の点で、位置は x = (1/2)Δx = <strong>1.5 mm</strong>。明線と暗線の条件を取り違えないこと。暗線も明線と同じ間隔（3.0 mm）で並ぶ。</p>
+  <label><input type="checkbox" class="check"> 暗い縞の条件は「光路差 = (n + 1/2)λ」で、最初の暗線は x = 1.5 mm だと分かった</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤波長が変わると</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ 波長が変わるとどうなるか</h2>
+  <svg class="fig" data-scene="scene-young" data-show="ray1,ray2" width="100%" role="img" aria-label="波長と縞間隔の関係を示した図"></svg>
+  <p>縞間隔 Δx = λL / d は、波長 λ に比例する。λ が 2 倍になれば縞間隔も 2 倍、λ が小さくなれば縞間隔も狭くなる。だから赤い光（λ が大きい）のほうが青い光より縞が広い。d を大きくしたり L を短くしたりすると、縞間隔は逆に狭くなる。式を丸暗記するのではなく、λ・L・d のどれが分子でどれが分母かを見て判断しよう。</p>
+  <label><input type="checkbox" class="check"> 縞間隔は λ に比例し、d に反比例すると分かった</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：縞間隔 Δx = 3.0 mm、n = 3 の明線は x = 9.0 mm、光路差は 3λ。暗線の条件は光路差 = (n + 1/2)λ。</p>
+  <p>次は準備中です。<a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.youngDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>

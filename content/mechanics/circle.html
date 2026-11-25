@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第10問：円運動 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>第10問：円運動</h1>
+<p><strong>問題：</strong>(1) なめらかな水平面の上で、質量 m = 1.0 kg の物体を長さ r = 0.50 m の糸でつないで、速さ v = 2.0 m/s で等速円運動させる。糸の張力 T、角速度 ω、周期 T を求めよ。(2) 鉛直面内の半径 R = 0.50 m のループを、同じ物体が回る。頂点でレールから離れずに回るための最小の速さと、そのときの速さで最下点を通るときの垂直抗力 N を求めよ。g = 10 m/s² とする。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js）が下の JSON データから計算して描いている。力の矢印の長さは力の大きさに比例している（2.5 px/N）。「必要な向心力」の矢印は破線で、力ではなく要請の目印だ。重力の矢印と重ならないよう、少し横にずらして描いてある。</p>
+<script type="application/json" id="scene-circle-h">{"type":"circle","phase":"horizontal","mKg":1,"rM":0.5,"vMs":2.0,"loopR":0.5,"g":10,"fScalePxPerN":2.5,"vScalePxPerMs":15,"rScalePxPerM":200}</script>
+<script type="application/json" id="scene-circle-top">{"type":"circle","phase":"top","mKg":1,"rM":0.5,"vMs":2.0,"loopR":0.5,"g":10,"fScalePxPerN":2.5,"vScalePxPerMs":15,"rScalePxPerM":200}</script>
+<script type="application/json" id="scene-circle-bottom">{"type":"circle","phase":"bottom","mKg":1,"rM":0.5,"vMs":2.0,"loopR":0.5,"g":10,"fScalePxPerN":2.5,"vScalePxPerMs":15,"rScalePxPerM":200}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：円運動は「曲がる」運動</h2>
+  <p>等速円運動では、速さは変わらないのに速度の向きが変わり続ける。向きを変えるには、つねに中心向きの力が要る。その力を向心力という。ただし、向心力は新しい力の名前ではない。糸の張力や垂直抗力、重力のうち、中心を向いたものがその役割を果たす。ここがこの問題の中心の罠だ。</p>
+  <svg class="fig" data-scene="scene-circle-h" data-show="" width="100%" role="img" aria-label="水平面内の円運動の軌道（力はまだ描いていない）"></svg>
+  <p>図は真上から見た円の軌道だ。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①水平面内の円運動</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 水平面内の円運動：張力 T = mv² / r</h2>
+  <svg class="fig" data-scene="scene-circle-h" data-show="tension,velocity,radius" width="100%" role="img" aria-label="張力と速度を描いた水平円運動の図"></svg>
+  <p>中心向きの力は、糸の張力 T だけだ。向心力の式 mv² / r に数を入れると、T = 1.0 × 2.0² / 0.50 = <strong>8.0 N</strong>。角速度は ω = v / r = 2.0 / 0.50 = <strong>4.0 rad/s</strong>、周期は T = 2π / ω ≈ <strong>1.57 s</strong>。速度の矢印は破線で、円の接線方向を向いている。重力と垂直抗力はつり合っていて、図には出てこない。</p>
+  <label><input type="checkbox" class="check"> 張力 T = 8.0 N、角速度 ω = 4.0 rad/s、周期 ≈ 1.57 s を求めた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②向心力は新しい力ではない</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 向心力は新しい力ではない</h2>
+  <svg class="fig" data-scene="scene-circle-h" data-show="tension,velocity" width="100%" role="img" aria-label="張力だけが中心を向いている図"></svg>
+  <p>力の図示に「向心力」という矢印を1本足してはいけない。働いている力は張力 T だけで、それが中心を向いているから向心力の役割を果たしている、というだけだ。張力と向心力を両方数えると二重計算になる。Q1 の分解と同じ罠で、「成分」と「もとの力」を二重に数えてはいけないのと同じことだ。</p>
+  <label><input type="checkbox" class="check"> 向心力は張力そのもので、新しい力ではないと分かった</label>
+  <br><a class="next" href="#step3">次へ ↓ ③ループの頂点</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ ループの頂点：N = 0、重力だけが向心力</h2>
+  <svg class="fig" data-scene="scene-circle-top" data-show="gravity,velocity,required" width="100%" role="img" aria-label="ループの頂点での力の図"></svg>
+  <p>頂点では、重力 mg = 10 N が下向き（中心向き）で、垂直抗力 N はレールから物体を押す力だ。速さがちょうどいいと、重力だけで向心力がまかなえて、N = 0 になる。その速さは mv² / R = mg から、v = √(gR) = √(10 × 0.50) ≈ <strong>2.24 m/s</strong>。これより遅いと、重力だけでは曲がりきれず、物体はレールから離れて落ちる。破線の「必要な向心力」の矢印は、重力の矢印と同じ長さ（10 N）で、重力だけで足りていることが分かる。</p>
+  <label><input type="checkbox" class="check"> 頂点の最小の速さ ≈ 2.24 m/s で、N = 0 になると分かった</label>
+  <br><a class="next" href="#step4">次へ ↓ ④ループの最下点</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ ループの最下点：N = 60 N</h2>
+  <svg class="fig" data-scene="scene-circle-bottom" data-show="gravity,normal,velocity,required" width="100%" role="img" aria-label="ループの最下点での力の図"></svg>
+  <p>頂点から最下点まで落ちると、速さは増える。エネルギー保存から、v² = v<sub>頂点</sub>² + 4gR = 5.0 + 20 = 25 なので、最下点の速さは <strong>5.0 m/s</strong>。最下点では、垂直抗力 N が上向き（中心向き）で、重力 mg が下向きだ。中心向きの力の差が向心力になる：N − mg = mv² / R なので、N = 10 + 1.0 × 25 / 0.50 = <strong>60 N</strong>。重力の 6 倍だ。だからループの最下点では、体が重く感じる。</p>
+  <label><input type="checkbox" class="check"> 最下点の速さ 5.0 m/s、垂直抗力 N = 60 N を求めた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ：中心向きの力を探す</h2>
+  <svg class="fig" data-scene="scene-circle-top" data-show="gravity,velocity" width="100%" role="img" aria-label="円運動のまとめの図"></svg>
+  <p>円運動の問題は、まず「中心はどこか」を決める。次に、働く力のうち中心を向いたものを集めて、mv² / r と等しいと置く。中心を向いていない力は、向心力にはならない。速さが足りないと N = 0 になって落ちる、というのも、式を立ててから分かることだ。向心力を新しい力として足すのだけは、しないこと。</p>
+  <label><input type="checkbox" class="check"> 中心を決めて、中心向きの力だけを mv² / r と等しいと置くと分かった</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 張力 T = 8.0 N、角速度 ω = 4.0 rad/s、周期 ≈ 1.57 s。(2) 頂点の最小の速さ ≈ 2.24 m/s（N = 0）、最下点の速さ 5.0 m/s、垂直抗力 N = 60 N。円運動の考え方は <a href="charged-circle.html">単元をまたぐ組み合わせC：荷電粒子＋円運動</a> でも使う。ローレンツ力が向心力の役割を果たす、同じ形の問題だ。</p>
+  <p>次は準備中です。<a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.circleDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>

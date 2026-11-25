@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題B：衝突＋ばね — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  button { margin: .2em .5em .2em 0; }
+  table { border-collapse: collapse; margin: 1em 0; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; vertical-align: top; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題B：衝突＋ばね</h1>
+<p><strong>問題：</strong>なめらかな水平な床の上で、質量 m1 = 2.0 kg の物体Aが速さ v0 = 4.0 m/s で右向きにすべってくる。右側には、壁についたばね（ばね定数 k = 100 N/m）にくっついた質量 m2 = 2.0 kg の物体Bが静止している。ばねは自然長の状態である。AはBに衝突し、2物体はくっついて一体となって動き、その後ばねを押し縮めながら振動する。ただし衝突は完全非弾性衝突（くっついて離れないもの）とする。床はなめらかで、重力と床からの垂直抗力はつり合っている。g = 10 m/s² とする（水平方向の運動には使わない）。(1) 衝突直後の2物体の速さ v′、(2) ばねの最大の縮み（振動の振幅）A、(3) その後の振動の周期 T を求めよ。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v0.5、collision-spring 型）が下の JSON データから計算して描く。速度の矢印は 15 px / (m/s) で、v0 = 4.0 m/s が 60、v′ = 2.0 m/s が 30 になる。ばねの力の矢印は 1.5 px / N で、最大 40 N が 60 になる。縮みの矢印は 100 px / m で、A = 0.40 m が 40 になる。ラベルは短い名前だけにして、枠からはみ出さないよう描画側で調整している。力と速度はすべて水平なので、角度の弧はない。</p>
+<script type="application/json" id="scene-cs-before">{"type":"collision-spring","phase":"before","m1Kg":2,"m2Kg":2,"v0":4,"k":100,"g":10,"naturalPx":120,"vScalePxPerMs":15,"fScalePxPerN":1.5,"xScalePxPerM":100}</script>
+<script type="application/json" id="scene-cs-after">{"type":"collision-spring","phase":"after","m1Kg":2,"m2Kg":2,"v0":4,"k":100,"g":10,"naturalPx":120,"vScalePxPerMs":15,"fScalePxPerN":1.5,"xScalePxPerM":100}</script>
+<script type="application/json" id="scene-cs-max">{"type":"collision-spring","phase":"max","m1Kg":2,"m2Kg":2,"v0":4,"k":100,"g":10,"naturalPx":120,"vScalePxPerMs":15,"fScalePxPerN":1.5,"xScalePxPerM":100}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ（まずここで切る）</h2>
+  <p>組み合わせ問題は、いきなり1本の式で解こうとすると間違える。先に<strong>時間で切り、系で切り、橋渡し量を決める</strong>。この問題の切り分けは次の表のとおり。</p>
+  <table>
+    <tr><th>時間</th><th>系（どの物体か）</th><th>使う法則</th><th>橋渡し量</th></tr>
+    <tr><td>衝突前</td><td>Aだけが動く。Bは静止、ばねは自然長</td><td>運動量・運動エネルギーの確認</td><td>Aの運動量 m1 v0 = 8.0 kg·m/s</td></tr>
+    <tr><td>衝突の瞬間</td><td>A＋Bの2物体（外力なし）</td><td>運動量保存だけ。エネルギー保存は使わない</td><td>衝突直後の速さ v′ = 2.0 m/s</td></tr>
+    <tr><td>衝突後</td><td>くっついたA＋B（質量 M = 4.0 kg）とばね</td><td>単振動・力学的エネルギー保存</td><td>最大の縮み（振幅）A = 0.40 m、周期 T = 1.26 s</td></tr>
+  </table>
+  <p>いちばんの罠は、<strong>エネルギー保存を衝突の瞬間をまたいで使うこと</strong>。衝突は完全非弾性で、運動エネルギーは 16 J から 8 J に減る。失われた 8 J は、衝突の変形や熱などになって、ばねには届かない。だから衝突の前後でエネルギーをつなげてはいけない。エネルギー保存は「衝突直後」から始める。</p>
+  <svg class="fig" data-scene="scene-cs-before" data-show="" width="100%" role="img" aria-label="衝突前の配置：動く物体Aと、ばねについた静止した物体B（矢印はまだ描いていない）"></svg>
+  <p>力を描く前の図はこれだけ。左が動くA、右がばねについたB。ばねはまだ自然長だ。ここから下へ、1つずつ進んでいく。</p>
+  <a class="next" href="#step1">次へ ↓ ①衝突前</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 衝突前：動いているのはAだけ</h2>
+  <svg class="fig" data-scene="scene-cs-before" data-show="velocity1" width="100%" role="img" aria-label="衝突前の図：物体Aの速度 v0 の矢印"></svg>
+  <p>Aの運動量は m1 v0 = 2.0 × 4.0 = 8.0 kg·m/s、運動エネルギーは (1/2) m1 v0² = 16 J。Bは静止していて、ばねは自然長だから、ばねの力は 0。速度の矢印は破線で描く（力ではない）。矢印の長さは 60 で、v′ の矢印（30）の2倍ある。</p>
+  <label><input type="checkbox" class="check"> 衝突前はAだけが動き、Bは静止、ばねは自然長（ばねの力は 0）と分かった</label>
+  <br><a class="next" href="#step2">次へ ↓ ②衝突の瞬間</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 衝突の瞬間：運動量保存で v′ を求める</h2>
+  <svg class="fig" data-scene="scene-cs-after" data-show="velocityAfter" width="100%" role="img" aria-label="衝突直後の図：くっついた2物体の速度 v′ の矢印"></svg>
+  <p>衝突の瞬間は短く、床はなめらかで外からの力積はないから、A＋Bの運動量は保存される。衝突前 m1 v0 = 8.0、衝突直後 (m1 + m2) v′ = 4.0 × v′。よって v′ = 8.0 / 4.0 = <strong>2.0 m/s</strong>。速度の矢印は 30 で、衝突前の 60 の半分になった。質量が2倍になった分、速さは半分になる。</p>
+  <p class="note">ここでエネルギー保存を使ってはいけない。衝突直後の運動エネルギーは (1/2) × 4.0 × 2.0² = 8 J で、衝突前の 16 J より 8 J 少ない。完全非弾性衝突では運動エネルギーは減る。16 J のまま計算すると、縮みが大きく出すぎる。</p>
+  <label><input type="checkbox" class="check"> 運動量保存 m1 v0 = (m1 + m2) v′ から v′ = 2.0 m/s を求めた。エネルギー保存を衝突の瞬間に使っていない</label>
+  <br><a class="next" href="#step3">次へ ↓ ③衝突後</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 衝突後：くっついた2物体の単振動が始まる</h2>
+  <svg class="fig" data-scene="scene-cs-after" data-show="velocityAfter" width="100%" role="img" aria-label="衝突直後の図：くっついた2物体が速さ v′ で動き始める"></svg>
+  <p>衝突直後、2物体は一体となって速さ v′ = 2.0 m/s で動き出す。ばねはまだ自然長だから、この瞬間のばねの力は 0。ここからばねが縮み始め、2物体は減速していく。ここが単振動の「初速度 v′、変位 0」の出発点になる。エネルギー保存は<strong>ここから</strong>始める。衝突前の 16 J ではなく、衝突直後の 8 J が出発点だ。</p>
+  <label><input type="checkbox" class="check"> 衝突後の出発点は「速さ v′ = 2.0 m/s、ばねは自然長」で、エネルギー保存はここから始めると分かった</label>
+  <br><a class="next" href="#step4">次へ ↓ ④最大の縮み</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 最大の縮み：エネルギー保存（衝突後だけ）</h2>
+  <svg class="fig" data-scene="scene-cs-max" data-show="springForce,compression" width="100%" role="img" aria-label="最大の縮みの図：ばねの力と縮み A の矢印、速度は 0"></svg>
+  <p>ばねが最も縮んだところでは、2物体は一瞬止まる（v = 0）。衝突直後の運動エネルギーが、すべてばねの弾性エネルギーに変わる。(1/2) M v′² = (1/2) k A² に数を入れると、(1/2) × 4.0 × 2.0² = (1/2) × 100 × A²。左辺は 8 J だから、50 A² = 8、A² = 0.16。よって最大の縮み（振幅）は <strong>A = 0.40 m</strong>。図では、2物体が 40 だけ右へずれ、ばねは 120 から 80 に縮んでいる。ばねの力は最大で kA = 40 N（矢印の長さ 60）になる。</p>
+  <label><input type="checkbox" class="check"> (1/2) M v′² = (1/2) k A² から A = 0.40 m を求めた。8 J を出発点にしている（16 J ではない）</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤周期</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ 周期：質量は2物体の合計で考える</h2>
+  <svg class="fig" data-scene="scene-cs-max" data-show="springForce,compression" width="100%" role="img" aria-label="最大の縮みの図：ばねの力と縮み A"></svg>
+  <p>衝突後の振動は、質量 M = m1 + m2 = 4.0 kg の物体がばね定数 k = 100 N/m のばねについた単振動だ。角振動数 ω = √(k / M) = √(100 / 4.0) = 5.0 rad/s。周期は T = 2π / ω = 2π / 5.0 ≈ <strong>1.26 s</strong>。質量を m1 だけや m2 だけで計算すると間違う。くっついて一緒に動くから、質量は合計 4.0 kg だ。なお、最大の加速度の大きさは ω²A = 25 × 0.40 = 10 m/s² で、kA / M = 40 / 4.0 = 10 m/s² と一致する。</p>
+  <label><input type="checkbox" class="check"> 周期は T = 2π√(M / k)（M は2物体の合計 4.0 kg）から T = 1.26 s と求めた</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで「時間・系・橋渡し量」を分けたことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 衝突直後の速さ v′ = 2.0 m/s、(2) 最大の縮み（振幅）A = 0.40 m、(3) 周期 T = 1.26 s（ω = 5.0 rad/s、最大のばねの力 40 N）。ばねの考え方は <a href="spring.html">第5問：ばねのつり合い</a> でも確かめられる。なお、運動量・衝突の単体モデルのページはまだないので、衝突の部分はこのページの②で扱った運動量保存をそのまま使うこと。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboCollisionSpringDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>

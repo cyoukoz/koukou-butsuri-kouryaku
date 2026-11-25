@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題D：LC回路＋単振動 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  button { margin: .2em .5em .2em 0; }
+  table { border-collapse: collapse; margin: 1em 0; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; vertical-align: top; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題D：LC回路＋単振動</h1>
+<p><strong>問題：</strong>インダクタンス L = 0.10 H のコイルと、電気容量 C = 100 μF のコンデンサだけをつないだ回路がある。はじめコンデンサに電荷 Q<sub>0</sub> = 1.0 × 10<sup>−3</sup> C をため、スイッチを入れて回路を閉じる。抵抗はないものとする。(1) 電荷の振動の角振動数 ω と周期 T、振動数 f、(2) 最大電流 I<sub>0</sub> とはじめのコンデンサの電圧 V<sub>0</sub>、(3) エネルギーの移り変わり、(4) ばね・質量の単振動との対応を求めよ。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v0.6、lc 型）が下の JSON データから回路図を描く。電流の矢印は破線で描く（向きだけを示し、大きさの縮尺ではない）。ラベルは短い名前だけにして、枠からはみ出さないよう描画側で調整している。</p>
+<script type="application/json" id="scene-lc-qmax">{"type":"lc","phase":"qmax","inductanceH":0.1,"capacitanceF":0.0001,"charge0C":0.001}</script>
+<script type="application/json" id="scene-lc-imax">{"type":"lc","phase":"imax","inductanceH":0.1,"capacitanceF":0.0001,"charge0C":0.001}</script>
+<script type="application/json" id="scene-lc-qmin">{"type":"lc","phase":"qmin","inductanceH":0.1,"capacitanceF":0.0001,"charge0C":0.001}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ（まずここで切る）</h2>
+  <p>組み合わせ問題は、いきなり1本の式で解こうとすると間違える。先に<strong>時間で切り、系で切り、橋渡し量を決める</strong>。この問題の切り分けは次の表のとおり。</p>
+  <table>
+    <tr><th>時間</th><th>系（回路の状態）</th><th>使う法則</th><th>橋渡し量</th></tr>
+    <tr><td>t = 0</td><td>コンデンサに電荷 Q<sub>0</sub>、電流は 0</td><td>Q = CV</td><td>Q<sub>0</sub> = 1.0 mC、V<sub>0</sub> = 10 V、電気エネルギー 5.0 mJ</td></tr>
+    <tr><td>t = T / 4</td><td>電荷は 0、電流が最大</td><td>エネルギー保存</td><td>最大電流 I<sub>0</sub> ≈ 0.32 A、磁気エネルギー 5.0 mJ</td></tr>
+    <tr><td>t = T / 2</td><td>電荷は −Q<sub>0</sub>、電流は 0</td><td>電荷の符号が逆になる</td><td>Q = −1.0 mC、電気エネルギー 5.0 mJ</td></tr>
+    <tr><td>t = 3T / 4</td><td>電荷は 0、電流は −I<sub>0</sub></td><td>エネルギー保存</td><td>電流の向きが逆になる</td></tr>
+    <tr><td>t = T</td><td>もとの状態に戻る</td><td>周期運動</td><td>1周期 T ≈ 0.020 s</td></tr>
+  </table>
+  <p>いちばんの罠は、<strong>エネルギーが「消える」と思うこと</strong>。この回路に抵抗はないから、エネルギーは失われない。電気エネルギーと磁気エネルギーのあいだを行ったり来たりするだけだ。電荷が 0 になった瞬間、エネルギーは 0 ではなく、全部コイルの磁気エネルギーになっている。</p>
+  <svg class="fig" data-scene="scene-lc-qmax" data-show="" width="100%" role="img" aria-label="LC回路の図：左にコンデンサ、右にコイル（矢印はまだ描いていない）"></svg>
+  <p>図はこれだけ。左がコンデンサ、右がコイルで、1つの輪になっている。ここから下へ、1つずつ進んでいく。</p>
+  <a class="next" href="#step1">次へ ↓ ①t = 0</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① t = 0：コンデンサに電荷がたまっている</h2>
+  <svg class="fig" data-scene="scene-lc-qmax" data-show="" width="100%" role="img" aria-label="t = 0 の回路図：コンデンサの上板が +、下板が −"></svg>
+  <p>はじめ、コンデンサの上板は +、下板は − で、電荷は Q<sub>0</sub> = 1.0 × 10<sup>−3</sup> C。電圧は V<sub>0</sub> = Q<sub>0</sub> / C = 1.0 × 10<sup>−3</sup> / 1.0 × 10<sup>−4</sup> = <strong>10 V</strong>。電気エネルギーは (1/2) Q<sub>0</sub>² / C = 0.5 × (1.0 × 10<sup>−3</sup>)² / 1.0 × 10<sup>−4</sup> = <strong>5.0 × 10<sup>−3</sup> J（5.0 mJ）</strong>。電流はまだ 0。ばねでいえば「いちばん伸ばしたところで、速度が 0」の状態だ。コイルにはまだエネルギーはない。</p>
+  <label><input type="checkbox" class="check"> t = 0 では Q = Q<sub>0</sub>、I = 0、V<sub>0</sub> = 10 V、電気エネルギー 5.0 mJ と分かった</label>
+  <br><a class="next" href="#step2">次へ ↓ ②対応表</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 対応表：ばね・質量の単振動と同じ式</h2>
+  <svg class="fig" data-scene="scene-lc-imax" data-show="currentTop,currentBottom" width="100%" role="img" aria-label="t = T/4 の回路図：電流が最大で流れている"></svg>
+  <p>この回路の電荷 Q は、L d²Q / dt² + Q / C = 0 という式に従う。ばね・質量の単振動の式 m d²x / dt² + kx = 0 と形が同じだ。対応は次の表のとおり。</p>
+  <table>
+    <tr><th>LC回路</th><th>ばね・質量</th><th>意味</th></tr>
+    <tr><td>電荷 Q</td><td>変位 x</td><td>振動する量そのもの</td></tr>
+    <tr><td>電流 I = dQ / dt</td><td>速度 v = dx / dt</td><td>変化の速さ</td></tr>
+    <tr><td>インダクタンス L</td><td>質量 m</td><td>変化しにくさ（慣性）</td></tr>
+    <tr><td>1 / C</td><td>ばね定数 k</td><td>もとに戻そうとする強さ</td></tr>
+    <tr><td>(1/2) Q² / C</td><td>(1/2) kx²</td><td>たまっているエネルギー</td></tr>
+    <tr><td>(1/2) LI²</td><td>(1/2) mv²</td><td>動いているエネルギー</td></tr>
+  </table>
+  <p>図は t = T / 4 の状態で、電流の矢印が上の導線を右向き、下の導線を左向きに流れている。コイルは「電流の変化を嫌う」はたらきで、ばね・質量でいう質量の役目をする。だから電流は急には止まれず、振動が続く。</p>
+  <label><input type="checkbox" class="check"> Q ↔ x、I ↔ v、L ↔ m、1/C ↔ k の対応が分かった。式の形が同じと分かった</label>
+  <br><a class="next" href="#step3">次へ ↓ ③角振動数と周期</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 角振動数と周期：ω = 1 / √(LC)</h2>
+  <svg class="fig" data-scene="scene-lc-imax" data-show="currentTop,currentBottom" width="100%" role="img" aria-label="t = T/4 の回路図：電流が最大で流れている"></svg>
+  <p>ばね・質量では ω = √(k / m) だった。対応表で k → 1/C、m → L と置き換えると、ω = √(1 / LC) = 1 / √(LC) になる。数を入れると、ω = 1 / √(0.10 × 1.0 × 10<sup>−4</sup>) = 1 / √(1.0 × 10<sup>−5</sup>) ≈ <strong>316 rad/s</strong>。周期は T = 2π / ω ≈ <strong>0.020 s（19.9 ms）</strong>、振動数は f = 1 / T ≈ <strong>50 Hz</strong>。罠は、ω の式に Q<sub>0</sub> を入れてしまうこと。周期ははじめの電荷の大きさには依らない（ばねの周期が振幅に依らないのと同じ）。</p>
+  <label><input type="checkbox" class="check"> ω = 1 / √(LC) ≈ 316 rad/s、T ≈ 0.020 s、f ≈ 50 Hz を求めた。周期が Q<sub>0</sub> に依らないと分かった</label>
+  <br><a class="next" href="#step4">次へ ↓ ④最大電流とエネルギー</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 最大電流とエネルギーの交換</h2>
+  <svg class="fig" data-scene="scene-lc-imax" data-show="currentTop,currentBottom" width="100%" role="img" aria-label="t = T/4 の回路図：電流が最大で流れている"></svg>
+  <p>t = T / 4 では、コンデンサの電荷は 0 になり、電流が最大になる。最大電流は I<sub>0</sub> = ωQ<sub>0</sub> = 316 × 1.0 × 10<sup>−3</sup> ≈ <strong>0.32 A</strong>。このときの磁気エネルギーは (1/2) LI<sub>0</sub>² = 0.5 × 0.10 × 0.32² ≈ 5.0 × 10<sup>−3</sup> J（5.0 mJ）で、はじめの電気エネルギー 5.0 mJ と一致する。エネルギーは消えていない。電気から磁気へ、そっくり移っただけだ。ばねでいえば「つり合い位置を通るとき、速度が最大で、運動エネルギーが最大」の状態だ。</p>
+  <label><input type="checkbox" class="check"> I<sub>0</sub> = ωQ<sub>0</sub> ≈ 0.32 A を求めた。t = T / 4 で電気エネルギーが磁気エネルギー 5.0 mJ に移ると分かった</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤符号が逆になる</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ t = T / 2 と 3T / 4：符号が逆になる</h2>
+  <svg class="fig" data-scene="scene-lc-qmin" data-show="" width="100%" role="img" aria-label="t = T/2 の回路図：コンデンサの上板が −、下板が +"></svg>
+  <p>t = T / 2 では、コイルの電流がコンデンサを逆向きに充電し終えて、電荷は Q = −Q<sub>0</sub>、電流は 0 になる。図では上板が −、下板が + に入れ替わっている。電気エネルギーは (1/2) Q² / C で、Q が2乗されるから、符号が逆でも 5.0 mJ のままだ。t = 3T / 4 では、電荷は 0 に戻り、電流は −I<sub>0</sub>（向きが逆）で磁気エネルギーが 5.0 mJ になる。t = T で、はじめの状態に戻る。1周期で、電荷は +Q<sub>0</sub> → 0 → −Q<sub>0</sub> → 0 → +Q<sub>0</sub> と1周する。</p>
+  <label><input type="checkbox" class="check"> t = T / 2 で Q = −Q<sub>0</sub>、I = 0 になり、エネルギーは 5.0 mJ のままと分かった。t = 3T / 4 で電流の向きが逆になると分かった</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで「時間・系・橋渡し量」を分けたことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) ω = 1 / √(LC) ≈ 316 rad/s、T ≈ 0.020 s、f ≈ 50 Hz、(2) I<sub>0</sub> = ωQ<sub>0</sub> ≈ 0.32 A、V<sub>0</sub> = Q<sub>0</sub> / C = 10 V、(3) エネルギーは電気 5.0 mJ と磁気 5.0 mJ のあいだを行ったり来たりする（抵抗がないので失われない）、(4) 対応は Q ↔ x、I ↔ v、L ↔ m、1/C ↔ k。ばねの単振動の考え方は <a href="spring.html">第5問：ばねのつり合い</a> と <a href="collision-spring.html">組み合わせ問題B：衝突＋ばね</a> でも確かめられる。なお、コイル・コンデンサの単体モデルのページはまだないので、このページの②で扱った対応表をそのまま使うこと。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.crossLCDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第7問：気体＋ピストン — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>第7問：気体＋ピストン</h1>
+<p><strong>問題：</strong>断面積 S = 1.0×10<sup>−2</sup> m<sup>2</sup> のシリンダーに、質量 50 kg のピストンがのっている。シリンダーの中の気体は n = 0.12 mol、温度 300 K で、大気圧は p<sub>0</sub> = 1.0×10<sup>5</sup> Pa である。気体の圧力と体積を求めよ。次に、ピストンが自由に動ける状態で気体を 375 K まで加熱したとき、気体がした仕事・内部エネルギーの変化・吸収した熱を求めよ。g = 10 m/s<sup>2</sup>、気体定数 R = 8.31 J/(mol・K) とする。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js）が下の JSON データから計算して描いている。気体の力 pS は 1500 N、大気圧の力は 1000 N、ピストンの重力は 500 N で、矢印の長さは力の大きさに比例している。ラベルは短い名前だけにして、枠からはみ出さないよう描画側で調整している。</p>
+<script type="application/json" id="scene-gas-before">{"type":"gas-piston","phase":"before","p0Pa":100000,"areaM2":0.01,"pistonKg":50,"g":10,"nMol":0.12,"rGas":8.31,"tK":300}</script>
+<script type="application/json" id="scene-gas-after">{"type":"gas-piston","phase":"after","p0Pa":100000,"areaM2":0.01,"pistonKg":50,"g":10,"nMol":0.12,"rGas":8.31,"tK":375}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：対象を決める</h2>
+  <p>対象は<strong>「ピストン」</strong>。気体そのものではない。ピストンに働く力を考えるのが先で、気体の状態方程式はそのあとだ。</p>
+  <svg class="fig" data-scene="scene-gas-before" data-show="" width="100%" role="img" aria-label="シリンダーとピストン（力はまだ描いていない）"></svg>
+  <p>力を描く前の図はこれだけ。ここから下へ、1本ずつ足していく。</p>
+  <a class="next" href="#step1">次へ ↓ ①気体の力</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 気体の力（上向き）</h2>
+  <svg class="fig" data-scene="scene-gas-before" data-show="gasForce" width="100%" role="img" aria-label="気体の力を描いた図"></svg>
+  <p>気体はピストンを<strong>上向き</strong>に押す。力の大きさは圧力×面積で pS。まだ p は分からないので、ここでは向きだけ確かめる。</p>
+  <label><input type="checkbox" class="check"> 気体の力はピストンを上向きに押す、と分かった</label>
+  <br><a class="next" href="#step2">次へ ↓ ②大気圧の力と重力</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 大気圧の力と重力（下向き）</h2>
+  <svg class="fig" data-scene="scene-gas-before" data-show="gasForce,atmForce,gravity" width="100%" role="img" aria-label="気体の力、大気圧の力、重力を描いた図"></svg>
+  <p>ピストンの上には大気があるから、大気圧の力 p<sub>0</sub>S = 1.0×10<sup>5</sup> × 1.0×10<sup>−2</sup> = 1000 N が<strong>下向き</strong>に働く。さらにピストン自身の重力 mg = 50 × 10 = 500 N も下向きだ。大気圧を忘れると、圧力が 5.0×10<sup>4</sup> Pa だけずれる。</p>
+  <label><input type="checkbox" class="check"> 下向きの力は大気圧の力（1000 N）と重力（500 N）の2本だと分かった</label>
+  <br><a class="next" href="#step3">次へ ↓ ③力のつり合い</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 力のつり合い → 圧力 p を求める</h2>
+  <svg class="fig" data-scene="scene-gas-before" data-show="gasForce,atmForce,gravity" width="100%" role="img" aria-label="ピストンの力のつり合いを描いた図"></svg>
+  <p>ピストンは静止しているから、力はつり合う。上向き＝下向きより pS = p<sub>0</sub>S + mg。pS = 1000 + 500 = 1500 N だから、p = 1500 / 1.0×10<sup>−2</sup> = <strong>1.5×10<sup>5</sup> Pa</strong>。図でも、上向きの矢印（60px）が下向きの2本の和（40px＋20px）と等しくなっている。</p>
+  <label><input type="checkbox" class="check"> 力のつり合いから p = 1.5×10<sup>5</sup> Pa を求めた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④状態方程式</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 状態方程式 → 体積 V と高さ h を求める</h2>
+  <svg class="fig" data-scene="scene-gas-before" data-show="gasForce,atmForce,gravity,height" width="100%" role="img" aria-label="気体の高さを示した図"></svg>
+  <p>圧力が分かったら、こんどは気体側の式を使う。pV = nRT より V = nRT / p = 0.12 × 8.31 × 300 / 1.5×10<sup>5</sup> ≈ <strong>2.0×10<sup>−3</sup> m<sup>3</sup></strong>（約 2.0 L）。気体の高さは h = V / S ≈ <strong>0.20 m</strong>。ピストンの力のつり合いと状態方程式、2つの式を両方書くのがこの問題の肝だ。</p>
+  <label><input type="checkbox" class="check"> 状態方程式から V ≈ 2.0×10<sup>−3</sup> m<sup>3</sup>、h ≈ 0.20 m を求めた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤加熱する</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ 加熱する（等圧変化）</h2>
+  <svg class="fig" data-scene="scene-gas-after" data-show="gasForce,atmForce,gravity,height" width="100%" role="img" aria-label="加熱後のシリンダーとピストン"></svg>
+  <p>ピストンが自由に動けるから、加熱しても圧力は 1.5×10<sup>5</sup> Pa のまま（等圧変化）。温度が 300 K から 375 K へ 1.25 倍になると、体積も 1.25 倍で V ≈ 2.5×10<sup>−3</sup> m<sup>3</sup>、高さは h ≈ 0.25 m になる。図でもピストンが上がっている。</p>
+  <p>気体が外にした仕事は W = pΔV = 1.5×10<sup>5</sup> × (2.5 − 2.0)×10<sup>−3</sup> ≈ <strong>75 J</strong>。内部エネルギーの増加は、単原子分子の理想気体として ΔU = (3/2)nRΔT = 1.5 × 0.12 × 8.31 × 75 ≈ <strong>112 J</strong>。吸収した熱は、熱力学第一法則 Q = ΔU + W より Q ≈ <strong>187 J</strong>。W と ΔU と Q を取り違えないこと。仕事は p–V グラフの面積でもある。</p>
+  <label><input type="checkbox" class="check"> 加熱は等圧変化で、W ≈ 75 J、ΔU ≈ 112 J、Q ≈ 187 J を区別して求めた</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>対象を「ピストン」にしたことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：気体の圧力 p = 1.5×10<sup>5</sup> Pa、体積 V ≈ 2.0×10<sup>−3</sup> m<sup>3</sup>、高さ h ≈ 0.20 m。加熱後は W ≈ 75 J、ΔU ≈ 112 J、Q ≈ 187 J。</p>
+  <p>次は準備中です。<a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.gasPistonDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
