@@ -789,9 +789,10 @@ function heatCycleForces(data) {
   });
   return [
     edge('processAD', 'A→D', 'red', c.A, c.D, 8, -6),
-    edge('processDC', 'D→C', 'red', c.D, c.C, -20, -10),
+    // 過程ラベルは辺の中ほどに出し、角の点ラベル C・A と重ならないようにする。
+    edge('processDC', 'D→C', 'red', c.D, c.C, -70, -10),
     edge('processCB', 'C→B', 'blue', c.C, c.B, 8, -6),
-    edge('processBA', 'B→A', 'blue', c.B, c.A, -24, 16),
+    edge('processBA', 'B→A', 'blue', c.B, c.A, 70, 16),
   ];
 }
 
@@ -832,8 +833,9 @@ function railRodForces(data) {
   return [
     { id: 'velocity', short: 'v', color: '#d35400', vector: [d.v * 15, 0], dashed: false, labelDx: 6, labelDy: -8, from: { x: 200, y: 160 } },
     { id: 'current', short: 'I', color: 'blue', vector: [0, -d.currentA * 100], dashed: false, labelDx: 6, labelDy: -8, from: { x: 200, y: 200 } },
-    { id: 'magForce', short: '磁場の力', color: 'purple', vector: [-d.fMagN * 500, 0], dashed: false, labelDx: -34, labelDy: -8, from: { x: 200, y: 160 } },
-    { id: 'extForce', short: '引く力', color: 'green', vector: [data.extForceN * 500, 0], dashed: false, labelDx: 6, labelDy: -14, from: { x: 200, y: 130 } },
+    // 「磁場の力」は矢印の下・左側に出して棒と重ならないようにする。「引く力」は矢印の左上に置く。
+    { id: 'magForce', short: '磁場の力', color: 'purple', vector: [-d.fMagN * 500, 0], dashed: false, labelDx: -60, labelDy: 16, from: { x: 200, y: 160 } },
+    { id: 'extForce', short: '引く力', color: 'green', vector: [data.extForceN * 500, 0], dashed: false, labelDx: -40, labelDy: -20, from: { x: 200, y: 130 } },
   ];
 }
 
