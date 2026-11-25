@@ -3076,7 +3076,8 @@ function drawBase(svg, scene) {
       svg.appendChild(el('path', { d: `M ${x0} ${y0} L ${xFlat.toFixed(1)} ${y0} L ${x1} ${y1}`, fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
       const tY = el('text', { x: 40, y: 124 }); tY.textContent = 'T'; svg.appendChild(tY);
       const t0 = el('text', { x: 28, y: 244 }); t0.textContent = '0°C'; svg.appendChild(t0);
-      const tF = el('text', { x: 175, y: 260, fill: '#555' }); tF.textContent = 'とけるだけ（0°C のまま）'; svg.appendChild(tF);
+      // 下の説明は短くして、Q 軸ラベルと重ならないようにする。
+      const tF = el('text', { x: 160, y: 260, fill: '#555' }); tF.textContent = 'とけるだけ（0°C）'; svg.appendChild(tF);
       const tQ = el('text', { x: 348, y: 258, fill: '#555' }); tQ.textContent = 'Q'; svg.appendChild(tQ);
     }
   } else if (scene.type === 'drag') {
@@ -3086,7 +3087,8 @@ function drawBase(svg, scene) {
       const x0 = 60, x1 = 340, y0 = 240;
       const tx = (t) => x0 + t * 28;
       const vy = (v) => y0 - v * 5;
-      const tH = el('text', { x: 40, y: 36, fill: '#555' }); tH.textContent = 'v–t グラフ：重い玉のほうが速くなる'; svg.appendChild(tH);
+      // 見出しは短くして、右上の「重い玉 40 m/s」ラベルと重ならないようにする。
+      const tH = el('text', { x: 40, y: 36, fill: '#555' }); tH.textContent = 'v–t グラフ：重い玉が速い'; svg.appendChild(tH);
       svg.appendChild(el('line', { x1: x0, y1: y0, x2: x1, y2: y0, stroke: '#333', 'stroke-width': 1.5 }));
       svg.appendChild(el('line', { x1: x0, y1: 40, x2: x0, y2: y0, stroke: '#333', 'stroke-width': 1.5 }));
       // 終端速度の破線。
@@ -3123,7 +3125,8 @@ function drawBase(svg, scene) {
       svg.appendChild(tH);
       svg.appendChild(el('line', { x1: 40, y1: 270, x2: 360, y2: 270, stroke: '#333', 'stroke-width': 2 }));
       svg.appendChild(el('circle', { cx: 200, cy: 120, r: 12, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
-      const tB = el('text', { x: 186, y: 96 }); tB.textContent = '玉'; svg.appendChild(tB);
+      // 「玉」は玉の左側に出し、空気抵抗の矢印と重ならないようにする。
+      const tB = el('text', { x: 160, y: 124 }); tB.textContent = '玉'; svg.appendChild(tB);
       const tG = el('text', { x: 40, y: 288, fill: '#555' }); tG.textContent = '地面'; svg.appendChild(tG);
     }
   } else if (scene.type === 'decay') {
@@ -3163,8 +3166,9 @@ function drawBase(svg, scene) {
       }
       svg.appendChild(el('path', { d: p, fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
       // 半減期ごとの点（ラベルは曲線や見出しと重ならない位置に置く）。
+      // 目盛りラベルは縦に離して置き、「1.3×10⁵」と「6.3×10⁴」が重ならないようにする。
       const labels = ['1.0×10⁶', '5.0×10⁵', '2.5×10⁵', '1.3×10⁵', '6.3×10⁴'];
-      const labelPos = [[66, 56], [120, 130], [190, 180], [252, 205], [240, 217]];
+      const labelPos = [[66, 56], [120, 130], [190, 180], [252, 200], [240, 228]];
       for (let i = 0; i <= 4; i++) {
         const t = i * scene.halfLifeDays;
         const n = scene.n0 * d.fracs[i];
@@ -3172,7 +3176,8 @@ function drawBase(svg, scene) {
         const tt = el('text', { x: labelPos[i][0], y: labelPos[i][1] }); tt.textContent = labels[i]; svg.appendChild(tt);
       }
       const tA = el('text', { x: 320, y: y0 + 22 }); tA.textContent = 't（日）'; svg.appendChild(tA);
-      const tN = el('text', { x: 36, y: 48 }); tN.textContent = 'N'; svg.appendChild(tN);
+      // N 軸ラベルは見出しと重ならないよう、下へ出す。
+      const tN = el('text', { x: 30, y: 60 }); tN.textContent = 'N'; svg.appendChild(tN);
     }
   } else if (scene.type === 'ladder') {
     svg.appendChild(el('line', { x1: 80, y1: 20, x2: 80, y2: 260, stroke: '#333', 'stroke-width': 3 }));
