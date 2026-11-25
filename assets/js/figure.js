@@ -1,4 +1,4 @@
-// 高校物理攻略 — 図描画シミュレータ（試作 v2.7：組み合わせAA 斜面上のばね振り子＋摩擦・組み合わせAB 斜方投射＋壁との衝突 追加）
+// 高校物理攻略 — 図描画シミュレータ（試作 v2.8：組み合わせAC レール＋ばね＋電磁誘導・組み合わせAD 振り子＋弾性衝突＋ばね 追加）
 // 方針：図は手書きの座標を直書きしない。入力は JSON の「物理データ」だけ。
 // 描画側が角度・つり合いから矢印の向きと長さを計算する。
 // だから mg sinθ が mg と同じ長さになる、θ が消える、ラベルが切れる、
@@ -1776,6 +1776,141 @@ function projWallDerived(data) {
 
 function projWallForces(data) {
   // 壁の場面の矢印は drawBase が描く（衝突前後の2本の矢印を上下に分けるため）。
+  return [];
+}
+
+// ---- レール＋ばね＋電磁誘導（組み合わせAC）：減衰振動 ----
+// 具体値（検算済み）：m=0.50 kg、B=1.0 T、レール幅 L=1.0 m、R=2.0 Ω、k=50 N/m、x0=0.20 m、g=10。
+//   制動の係数 c = B²L²/R = 0.50 kg/s、γ = c/(2m) = 0.50 /s、ω0 = √(k/m) = 10 rad/s、
+//   ω' = √(ω0²−γ²) ≈ 9.99 rad/s、T' ≈ 0.63 s。x(t) = x0 e^(−γt) cos ω't。
+//   はじめのつり合い位置通過：t≈0.157 s、v≈1.85 m/s、ε=BLv≈1.85 V、I≈0.92 A、磁場の力≈0.92 N。
+//   1周期後の振幅 0.146 m、エネルギー 1.00 J→0.53 J、ジュール熱 0.47 J。振幅は 1.39 s で半分になる。
+//   罠：誘導を無視すると振幅は 0.20 m のまま。ばねがなければ棒は 2.0 m 進んで止まる。
+// 図の配置：上面図。レール y=120・y=200、x=60〜340。抵抗は左端。ばねは棒の右側、壁は x=340。
+function railSpringDampDerived(data) {
+  const m = data.mKg, B = data.bT, L = data.railLengthM, R = data.resistanceOhm, k = data.kNperM, x0 = data.x0M;
+  const c = (B * B * L * L) / R;
+  const omega0 = Math.sqrt(k / m);
+  const gamma = c / (2 * m);
+  const omegaP = Math.sqrt(omega0 * omega0 - gamma * gamma);
+  const periodS = (2 * Math.PI) / omegaP;
+  const tCrossS = Math.PI / (2 * omegaP);
+  const vCrossMs = x0 * Math.exp(-gamma * tCrossS) * omegaP;
+  const emfV = B * L * vCrossMs;
+  const currentA = emfV / R;
+  const fMagN = B * currentA * L;
+  const springF0N = k * x0;
+  const amp1M = x0 * Math.exp(-gamma * periodS);
+  const e0J = 0.5 * k * x0 * x0;
+  const e1J = 0.5 * k * amp1M * amp1M;
+  const heat1J = e0J - e1J;
+  const tHalfS = Math.LN2 / gamma;
+  const amp5M = x0 * Math.exp(-gamma * 5 * periodS);
+  const e5J = 0.5 * k * amp5M * amp5M;
+  // 図の座標：棒の中心 x = 200 + x(m)×400。つり合い位置 200、引いた位置 120。
+  const pxPerM = 400;
+  const rodEqX = 200, rodPullX = 200 - x0 * pxPerM; // 120
+  const wallX = 340, rodY = 160;
+  return {
+    c, omega0, gamma, omegaP, periodS, tCrossS, vCrossMs, emfV, currentA, fMagN,
+    springF0N, amp1M, e0J, e1J, heat1J, tHalfS, amp5M, e5J,
+    pxPerM, rodEqX, rodPullX, wallX, rodY,
+    xAt: (t) => x0 * Math.exp(-gamma * t) * Math.cos(omegaP * t),
+    ampAt: (t) => x0 * Math.exp(-gamma * t),
+  };
+}
+
+function railSpringDampForces(data) {
+  const d = railSpringDampDerived(data);
+  if (data.phase === 'pull') {
+    // 放す瞬間：ばねの力 10 N（右向き）。v=0 なので磁場の力はない。
+    // 矢印は下のレールの下（y=210）に描く（ばねのジグザグと重ならないよう）。
+    return [
+      { id: 'spring', short: 'ばねの力 10 N', color: '#2e8b57', vector: [d.springF0N * 15, 0], dashed: false, labelDx: -20, labelDy: 20, from: { x: d.rodPullX, y: 210 } },
+    ];
+  }
+  if (data.phase === 'cross') {
+    // はじめのつり合い位置通過：速度 1.85 m/s（右向き、破線）と磁場の力 0.92 N（左向き）。
+    // 速度の矢印は棒の上の端から描く（ばねのジグザグと重ならないよう）。
+    // 速度のラベルは上のレールの上に置く（壁をはみ出さないよう、矢印の左側に置く）。
+    return [
+      { id: 'velocity', short: 'v≈1.85 m/s', color: '#d35400', vector: [d.vCrossMs * 30, 0], dashed: true, labelDx: -140, labelDy: -14, from: { x: d.rodEqX, y: 125 } },
+      { id: 'magForce', short: '磁場の力 0.92 N', color: 'purple', vector: [-d.fMagN * 40, 0], dashed: false, labelDx: -40, labelDy: 62, from: { x: d.rodEqX, y: d.rodY } },
+    ];
+  }
+  return [];
+}
+
+// ---- 振り子＋弾性衝突＋ばね（組み合わせAD）：振り子・衝突・単振動 ----
+// 具体値（検算済み）：m=M=1.0 kg、L=1.0 m、h=0.20 m、k=100 N/m、g=10。
+//   cosθ=0.80、θ≈36.9°、最下点 v=√(2gh)=2.0 m/s、KE=2.0 J、振り子の周期 ≈2.0 s、T/4≈0.50 s。
+//   弾性衝突（等質量）：玉 0、ブロック 2.0 m/s、運動量 2.0 kg·m/s・KE 2.0 J が保存。
+//   ばね：ω=√(k/M)=10 rad/s、T≈0.63 s、振幅 A=v/ω=0.20 m、最大の力 20 N、最大の加速度 20 m/s²、
+//   最大の縮みまで T/4≈0.16 s。
+//   罠（くっついたら）：v′=1.0 m/s、KE′=1.0 J。くっついたあとの角振動数は ω′=√(k/(m+M))≈7.1 rad/s
+//   （振る質量が 2.0 kg になるので、ブロックだけの ω=10 rad/s ではない）。振幅 A′=v′/ω′≈0.141 m、最大の力 kA′≈14 N。
+// 図の配置：支点 (150,124)、糸 100 px、玉の半径 12 px、床 y=240。ブロックは x=180〜220、壁は x=330。
+function pendulumSpringDerived(data) {
+  const g = data.g || 10;
+  const m = data.mKg, M = data.blockMKg, L = data.lengthM, h = data.heightM, k = data.kNperM;
+  const cosT = 1 - h / L;
+  const thetaRad = Math.acos(cosT);
+  const vBottomMs = Math.sqrt(2 * g * h);
+  const keJ = 0.5 * m * vBottomMs * vBottomMs;
+  const pBefore = m * vBottomMs;
+  const vBlockMs = ((2 * m) / (m + M)) * vBottomMs; // 弾性衝突：等質量なら玉は止まり、ブロックが v をもらう
+  const vBallAfterMs = ((m - M) / (m + M)) * vBottomMs;
+  const omega = Math.sqrt(k / M);
+  const periodS = (2 * Math.PI) / omega;
+  const ampM = vBlockMs / omega;
+  const fMaxN = k * ampM;
+  const aMaxMs2 = omega * omega * ampM;
+  const tMaxS = periodS / 4;
+  const pendPeriodS = 2 * Math.PI * Math.sqrt(L / g);
+  const vStickMs = (m * vBottomMs) / (m + M);
+  const keStickJ = 0.5 * (m + M) * vStickMs * vStickMs;
+  // くっついたあとは質量 m+M が振るので、角振動数は ω′=√(k/(m+M))（ブロックだけの ω ではない）。
+  const omegaStick = Math.sqrt(k / (m + M));
+  const periodStickS = (2 * Math.PI) / omegaStick;
+  const ampStickM = vStickMs / omegaStick;
+  const fMaxStickN = k * ampStickM;
+  const aMaxStickMs2 = omegaStick * omegaStick * ampStickM;
+  // 図の座標：支点 (150,124)。玉の位置は場面で決まる。
+  const pivot = { x: 150, y: 124 };
+  const ballStart = { x: pivot.x - L * 100 * Math.sin(thetaRad), y: pivot.y + L * 100 * cosT };
+  const ballBottom = { x: pivot.x, y: pivot.y + L * 100 };
+  const blockX0 = 180, blockW = 40, blockY = 210, wallX = 330;
+  const pxPerM = 200; // ばねの縮み 0.20 m = 40 px
+  return {
+    g, cosT, thetaRad, vBottomMs, keJ, pBefore, vBlockMs, vBallAfterMs,
+    omega, periodS, ampM, fMaxN, aMaxMs2, tMaxS, pendPeriodS,
+    vStickMs, keStickJ, omegaStick, periodStickS, ampStickM, fMaxStickN, aMaxStickMs2,
+    pivot, ballStart, ballBottom, blockX0, blockW, blockY, wallX, pxPerM,
+  };
+}
+
+function pendulumSpringForces(data) {
+  const d = pendulumSpringDerived(data);
+  if (data.phase === 'swing') {
+    // 最下点の速さ 2.0 m/s（右向き、破線）。矢印は玉の中心から 30 px（15 px/(m/s)）。
+    // ラベルはブロックの上の空きに置く。
+    return [
+      { id: 'velocity', short: 'v=2.0 m/s', color: '#d35400', vector: [d.vBottomMs * 15, 0], dashed: true, labelDx: 36, labelDy: -20, from: d.ballBottom },
+    ];
+  }
+  if (data.phase === 'collision') {
+    // 衝突直後のブロックの速さ 2.0 m/s（右向き、破線）。矢印はブロックの中心から 30 px。
+    return [
+      { id: 'velocity', short: 'v=2.0 m/s', color: '#d35400', vector: [d.vBlockMs * 15, 0], dashed: true, labelDx: 0, labelDy: -14, from: { x: 210, y: 224 } },
+    ];
+  }
+  if (data.phase === 'spring') {
+    // 最大の縮み：ばねの力 20 N（左向き）。矢印はブロックの中心から 60 px（3 px/N）。
+    // ラベルは矢印の先端の上に置く（糸と重ならないよう）。
+    return [
+      { id: 'spring', short: 'ばねの力 20 N', color: '#2e8b57', vector: [-d.fMaxN * 3, 0], dashed: false, labelDx: 0, labelDy: -20, from: { x: 240, y: 224 } },
+    ];
+  }
   return [];
 }
 
@@ -3637,6 +3772,26 @@ function sceneFor(type, thetaDeg, mgPx, fPx, data) {
       forces: projWallForces(data),
     };
   }
+  if (type === 'railSpringDamp') {
+    const d = railSpringDampDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      mKg: data.mKg, bT: data.bT, railLengthM: data.railLengthM, resistanceOhm: data.resistanceOhm, kNperM: data.kNperM, x0M: data.x0M, g: data.g || 10,
+      derived: d,
+      center: { x: 200, y: 160 }, centerDot: false,
+      forces: railSpringDampForces(data),
+    };
+  }
+  if (type === 'pendulumSpring') {
+    const d = pendulumSpringDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      mKg: data.mKg, blockMKg: data.blockMKg, lengthM: data.lengthM, heightM: data.heightM, kNperM: data.kNperM, g: data.g || 10,
+      derived: d,
+      center: d.ballBottom, centerDot: false,
+      forces: pendulumSpringForces(data),
+    };
+  }
   if (type === 'slopePulley') {
     return {
       type, phase: (data && data.phase) || 'connected',
@@ -4650,6 +4805,62 @@ function validateScene(scene) {
     if (Math.abs(d.lossJ - ((1 - scene.restitution * scene.restitution) * d.keWallBeforeJ)) > 1e-9) return ['失われるエネルギーが (1−e²)×水平の運動エネルギー と一致しません'];
     if (Math.abs(d.keLandJ - (d.keWallAfterJ + d.peWallJ)) > 1e-9) return ['着地の運動エネルギーが 壁のあとの KE + PE と一致しません'];
     if (Math.abs((d.keWallBeforeJ + d.peWallJ) - d.ke0J) > 1e-9) return ['壁の前で KE + PE がはじめのエネルギーと一致しません'];
+  }
+  if (scene.type === 'railSpringDamp') {
+    const d = scene.derived;
+    // 制動の係数：c = B²L²/R。減衰率 γ = c/(2m)。角振動数 ω' = √(ω0²−γ²)。
+    if (Math.abs(d.c - (scene.bT * scene.bT * scene.railLengthM * scene.railLengthM) / scene.resistanceOhm) > 1e-9) return ['制動の係数が B²L²/R と一致しません'];
+    if (Math.abs(d.gamma - d.c / (2 * scene.mKg)) > 1e-9) return ['減衰率が c/(2m) と一致しません'];
+    if (Math.abs(d.omega0 - Math.sqrt(scene.kNperM / scene.mKg)) > 1e-9) return ['固有角振動数が √(k/m) と一致しません'];
+    if (Math.abs(d.omegaP - Math.sqrt(d.omega0 * d.omega0 - d.gamma * d.gamma)) > 1e-9) return ['減衰振動の角振動数が √(ω0²−γ²) と一致しません'];
+    if (Math.abs(d.periodS - (2 * Math.PI) / d.omegaP) > 1e-9) return ['周期が 2π/ω′ と一致しません'];
+    // はじめのつり合い位置通過：t = (π/2)/ω'、v = x0·e^(−γt)·ω'。
+    if (Math.abs(d.tCrossS - (Math.PI / 2) / d.omegaP) > 1e-9) return ['はじめのつり合い位置通過の時刻が (π/2)/ω′ と一致しません'];
+    if (Math.abs(d.vCrossMs - (scene.x0M * Math.exp(-d.gamma * d.tCrossS) * d.omegaP)) > 1e-9) return ['はじめのつり合い位置通過の速さが x0·e^(−γt)·ω′ と一致しません'];
+    // 誘導起電力・電流・磁場の力：ε = BLv、I = ε/R、F = BIL。
+    if (Math.abs(d.emfV - (scene.bT * scene.railLengthM * d.vCrossMs)) > 1e-9) return ['誘導起電力が BLv と一致しません'];
+    if (Math.abs(d.currentA - d.emfV / scene.resistanceOhm) > 1e-9) return ['電流が ε/R と一致しません'];
+    if (Math.abs(d.fMagN - (scene.bT * d.currentA * scene.railLengthM)) > 1e-9) return ['磁場の力が BIL と一致しません'];
+    // ばねの力とエネルギー：放す瞬間は k·x0。1周期後の振幅は x0·e^(−γT')。
+    if (Math.abs(d.springF0N - (scene.kNperM * scene.x0M)) > 1e-9) return ['放す瞬間のばねの力が k·x0 と一致しません'];
+    if (Math.abs(d.amp1M - (scene.x0M * Math.exp(-d.gamma * d.periodS))) > 1e-9) return ['1周期後の振幅が x0·e^(−γT′) と一致しません'];
+    if (Math.abs(d.e0J - (0.5 * scene.kNperM * scene.x0M * scene.x0M)) > 1e-9) return ['はじめのエネルギーが ½kx0² と一致しません'];
+    if (Math.abs(d.e1J - (0.5 * scene.kNperM * d.amp1M * d.amp1M)) > 1e-9) return ['1周期後のエネルギーが ½kA1² と一致しません'];
+    if (Math.abs(d.heat1J - (d.e0J - d.e1J)) > 1e-9) return ['1周期のジュール熱がエネルギーの減りと一致しません'];
+    if (Math.abs(d.tHalfS - (Math.LN2 / d.gamma)) > 1e-9) return ['振幅が半分になる時間が ln2/γ と一致しません'];
+    // 矢印の長さが縮尺どおりか（ばねの力 15 px/N、速度 30 px/(m/s)、磁場の力 40 px/N）。
+    if (byId.spring && Math.abs(Math.hypot(byId.spring.vector[0], byId.spring.vector[1]) - d.springF0N * 15) > 0.5) return ['ばねの力の矢印が 15 px/N と一致しません'];
+    if (byId.velocity && Math.abs(Math.hypot(byId.velocity.vector[0], byId.velocity.vector[1]) - d.vCrossMs * 30) > 0.5) return ['速度の矢印が 30 px/(m/s) と一致しません'];
+    if (byId.magForce && Math.abs(Math.hypot(byId.magForce.vector[0], byId.magForce.vector[1]) - d.fMagN * 40) > 0.5) return ['磁場の力の矢印が 40 px/N と一致しません'];
+  }
+  if (scene.type === 'pendulumSpring') {
+    const d = scene.derived;
+    // 振り子：cosθ = 1−h/L、最下点 v = √(2gh)、KE = ½mv²。
+    if (Math.abs(d.cosT - (1 - scene.heightM / scene.lengthM)) > 1e-9) return ['cosθ が 1−h/L と一致しません'];
+    if (Math.abs(d.vBottomMs - Math.sqrt(2 * d.g * scene.heightM)) > 1e-9) return ['最下点の速さが √(2gh) と一致しません'];
+    if (Math.abs(d.keJ - (0.5 * scene.mKg * d.vBottomMs * d.vBottomMs)) > 1e-9) return ['最下点の運動エネルギーが ½mv² と一致しません'];
+    // 弾性衝突（等質量）：玉は止まり、ブロックが v をもらう。運動量・KE が保存する。
+    if (Math.abs(d.vBallAfterMs) > 1e-9) return ['弾性衝突のあと玉の速さが 0 になっていません'];
+    if (Math.abs(d.vBlockMs - d.vBottomMs) > 1e-9) return ['弾性衝突のあとブロックの速さが最下点の速さと一致しません'];
+    if (Math.abs((scene.mKg * d.vBallAfterMs + scene.blockMKg * d.vBlockMs) - d.pBefore) > 1e-9) return ['衝突の前後で運動量が保存していません'];
+    if (Math.abs((0.5 * scene.mKg * d.vBallAfterMs * d.vBallAfterMs + 0.5 * scene.blockMKg * d.vBlockMs * d.vBlockMs) - d.keJ) > 1e-9) return ['衝突の前後で運動エネルギーが保存していません'];
+    // ばね：ω = √(k/M)、振幅 A = v/ω、最大の力 kA、最大の加速度 ω²A、T/4 で最大の縮み。
+    if (Math.abs(d.omega - Math.sqrt(scene.kNperM / scene.blockMKg)) > 1e-9) return ['ばねの角振動数が √(k/M) と一致しません'];
+    if (Math.abs(d.periodS - (2 * Math.PI) / d.omega) > 1e-9) return ['ばねの周期が 2π/ω と一致しません'];
+    if (Math.abs(d.ampM - (d.vBlockMs / d.omega)) > 1e-9) return ['振幅が v/ω と一致しません'];
+    if (Math.abs(d.fMaxN - (scene.kNperM * d.ampM)) > 1e-9) return ['最大のばねの力が kA と一致しません'];
+    if (Math.abs(d.aMaxMs2 - (d.omega * d.omega * d.ampM)) > 1e-9) return ['最大の加速度が ω²A と一致しません'];
+    if (Math.abs(d.tMaxS - d.periodS / 4) > 1e-9) return ['最大の縮みまでの時間が T/4 と一致しません'];
+    // 罠（くっついたら）：v′ = mv/(m+M)、KE′ = ½(m+M)v′²、ω′ = √(k/(m+M))、振幅 v′/ω′、最大の力 kA′。
+    if (Math.abs(d.vStickMs - ((scene.mKg * d.vBottomMs) / (scene.mKg + scene.blockMKg))) > 1e-9) return ['くっついたときの速さが mv/(m+M) と一致しません'];
+    if (Math.abs(d.keStickJ - (0.5 * (scene.mKg + scene.blockMKg) * d.vStickMs * d.vStickMs)) > 1e-9) return ['くっついたときの運動エネルギーが ½(m+M)v′² と一致しません'];
+    if (Math.abs(d.omegaStick - Math.sqrt(scene.kNperM / (scene.mKg + scene.blockMKg))) > 1e-9) return ['くっついたときの角振動数が √(k/(m+M)) と一致しません'];
+    if (Math.abs(d.ampStickM - (d.vStickMs / d.omegaStick)) > 1e-9) return ['くっついたときの振幅が v′/ω′ と一致しません'];
+    if (Math.abs(d.fMaxStickN - (scene.kNperM * d.ampStickM)) > 1e-9) return ['くっついたときの最大のばねの力が kA′ と一致しません'];
+    if (Math.abs(0.5 * scene.kNperM * d.ampStickM * d.ampStickM - d.keStickJ) > 1e-9) return ['くっついたときのばねのエネルギーが KE′ と一致しません'];
+    // 矢印の長さが縮尺どおりか（速度 15 px/(m/s)、ばねの力 3 px/N）。
+    if (byId.velocity && Math.abs(Math.hypot(byId.velocity.vector[0], byId.velocity.vector[1]) - 2.0 * 15) > 0.5) return ['速度の矢印が 15 px/(m/s) と一致しません'];
+    if (byId.spring && Math.abs(Math.hypot(byId.spring.vector[0], byId.spring.vector[1]) - d.fMaxN * 3) > 0.5) return ['ばねの力の矢印が 3 px/N と一致しません'];
   }
   if (scene.type === 'charged-circle') {
     const d = scene.derived;
@@ -7229,6 +7440,225 @@ function drawBase(svg, scene) {
         const tN3 = el('text', { x: 40, y: 292, fill: '#555' }); tN3.textContent = '反発係数 e=0.80'; svg.appendChild(tN3);
       }
     }
+  } else if (scene.type === 'railSpringDamp') {
+    const d = scene.derived;
+    const tH = el('text', { x: 40, y: 36, fill: '#555' });
+    tH.textContent = scene.phase === 'pull' ? '0.20 m 左に引いて放す：ばねの力 10 N'
+      : scene.phase === 'cross' ? 'つり合い位置を v≈1.85 m/s で通る'
+      : scene.phase === 'decay' ? '振幅は指数で減る'
+      : scene.phase === 'energy' ? 'エネルギー：1.00 J はジュール熱になる'
+      : scene.phase === 'trap' ? '罠：誘導を無視すると減衰しない'
+      : 'レール＋ばね＋電磁誘導：減衰振動';
+    svg.appendChild(tH);
+    if (scene.phase === 'decay') {
+      // x–t グラフ：x(t) = 0.20 e^(−0.5t) cos ω't。横軸 t：0〜3.0 s、縦軸 x：−0.25〜+0.25 m。
+      const xOf = (t) => 60 + t * 90;
+      const yOf = (x) => 150 - x * 360;
+      svg.appendChild(el('line', { x1: 60, y1: 240, x2: 340, y2: 240, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: 60, y1: 60, x2: 60, y2: 240, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: 60, y1: 150, x2: 340, y2: 150, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      // 振幅の包絡線（指数で減る）。上側 +A(t)、下側 −A(t)。
+      let envTop = '', envBot = '';
+      for (let t = 0; t <= 3.0; t += 0.05) {
+        envTop += (envTop ? ' L ' : 'M ') + xOf(t).toFixed(1) + ' ' + yOf(d.ampAt(t)).toFixed(1);
+        envBot += (envBot ? ' L ' : 'M ') + xOf(t).toFixed(1) + ' ' + yOf(-d.ampAt(t)).toFixed(1);
+      }
+      svg.appendChild(el('path', { d: envTop, fill: 'none', stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      svg.appendChild(el('path', { d: envBot, fill: 'none', stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      // 振動の曲線：x(t) = 0.20 e^(−γt) cos ω't。
+      let path = '';
+      for (let t = 0; t <= 3.0; t += 0.01) {
+        path += (path ? ' L ' : 'M ') + xOf(t).toFixed(1) + ' ' + yOf(d.xAt(t)).toFixed(1);
+      }
+      svg.appendChild(el('path', { d: path, fill: 'none', stroke: '#0066cc', 'stroke-width': 2 }));
+      const tE = el('text', { x: 180, y: 90 }); tE.textContent = '振幅は指数で減る'; svg.appendChild(tE);
+      const tA = el('text', { x: 54, y: 82, 'text-anchor': 'end' }); tA.textContent = '0.20'; svg.appendChild(tA);
+      const tB = el('text', { x: 54, y: 226, 'text-anchor': 'end' }); tB.textContent = '－0.20'; svg.appendChild(tB);
+      const t0 = el('text', { x: 54, y: 154, 'text-anchor': 'end' }); t0.textContent = '0'; svg.appendChild(t0);
+      const tX = el('text', { x: 54, y: 66, 'text-anchor': 'end' }); tX.textContent = 'x'; svg.appendChild(tX);
+      const tT = el('text', { x: 344, y: 244 }); tT.textContent = 't'; svg.appendChild(tT);
+      const tN = el('text', { x: 40, y: 256, fill: '#555' }); tN.textContent = '振幅は 1.39 s で半分になる'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 274, fill: '#555' }); tN2.textContent = '1周期後 0.146 m、5周期後 0.041 m'; svg.appendChild(tN2);
+      const tN3 = el('text', { x: 40, y: 292, fill: '#555' }); tN3.textContent = '減衰は指数関数（摩擦とはちがう）'; svg.appendChild(tN3);
+    } else if (scene.phase === 'energy') {
+      // エネルギーの棒グラフ：はじめ 1.00 J、1周期後 0.53 J、5周期後 0.043 J、1周期の熱 0.47 J（150 px/J）。
+      const rows = [
+        ['はじめ 1.00 J', 150, '#cfe3ff', '1.00 J'],
+        ['1周期後 0.53 J', 80, '#b3e6b3', '0.53 J'],
+        ['5周期後 0.043 J', 6, '#ffd24d', '0.043 J'],
+        ['熱 1周期 0.47 J', 71, '#ffb3b3', '0.47 J'],
+      ];
+      rows.forEach(([label, w, fill, val], i) => {
+        const y = 75 + i * 45;
+        const tL = el('text', { x: 60, y: y - 8 }); tL.textContent = label; svg.appendChild(tL);
+        svg.appendChild(el('rect', { x: 140, y, width: w, height: 18, fill, stroke: '#333', 'stroke-width': 1.5 }));
+        const tV = el('text', { x: 140 + w + 8, y: y + 15 }); tV.textContent = val; svg.appendChild(tV);
+      });
+      const tN = el('text', { x: 40, y: 256, fill: '#555' }); tN.textContent = 'はじめの 1.00 J はそっくりジュール熱になる'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 274, fill: '#555' }); tN2.textContent = '1周期で 0.47 J が熱になる'; svg.appendChild(tN2);
+      const tN3 = el('text', { x: 40, y: 292, fill: '#555' }); tN3.textContent = '振幅が 0 になれば熱は 1.00 J'; svg.appendChild(tN3);
+    } else if (scene.phase === 'trap') {
+      // 振幅の比べ：1周期後の振幅。誘導を無視すると 0.20 m のまま、本当は 0.146 m（800 px/m）。
+      const rows = [
+        ['誘導を無視 0.20 m', 160, '#ffb3b3', '0.20 m'],
+        ['本当は 0.146 m', 117, '#b3e6b3', '0.146 m'],
+      ];
+      rows.forEach(([label, w, fill, val], i) => {
+        const y = 100 + i * 60;
+        const tL = el('text', { x: 60, y: y - 8 }); tL.textContent = label; svg.appendChild(tL);
+        svg.appendChild(el('rect', { x: 140, y, width: w, height: 18, fill, stroke: '#333', 'stroke-width': 1.5 }));
+        const tV = el('text', { x: 140 + w + 8, y: y + 15 }); tV.textContent = val; svg.appendChild(tV);
+      });
+      const tN = el('text', { x: 40, y: 256, fill: '#555' }); tN.textContent = '誘導を無視すると振幅は減らない'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 274, fill: '#555' }); tN2.textContent = 'ばねがなければ 2.0 m 進んで止まる'; svg.appendChild(tN2);
+      const tN3 = el('text', { x: 40, y: 292, fill: '#555' }); tN3.textContent = '減衰するのはジュール熱になるから'; svg.appendChild(tN3);
+    } else {
+      // 上面図：磁場（×印）、2本のレール、左端の抵抗、右端の壁、ばね、棒。
+      for (let gx = 110; gx <= 320; gx += 42) {
+        for (const gy of [145, 184]) {
+          const t = el('text', { x: gx, y: gy, fill: '#888', 'font-size': 16 }); t.textContent = '×'; svg.appendChild(t);
+        }
+      }
+      const tB = el('text', { x: 60, y: 104, fill: '#555' }); tB.textContent = '磁場 B'; svg.appendChild(tB);
+      svg.appendChild(el('line', { x1: 60, y1: 120, x2: 340, y2: 120, stroke: '#333', 'stroke-width': 3 }));
+      svg.appendChild(el('line', { x1: 60, y1: 200, x2: 340, y2: 200, stroke: '#333', 'stroke-width': 3 }));
+      svg.appendChild(el('rect', { x: 52, y: 148, width: 16, height: 44, fill: '#fff', stroke: '#333', 'stroke-width': 2 }));
+      const tRe = el('text', { x: 4, y: 176 }); tRe.textContent = '抵抗'; svg.appendChild(tRe);
+      svg.appendChild(el('line', { x1: d.wallX, y1: 110, x2: d.wallX, y2: 210, stroke: '#333', 'stroke-width': 3 }));
+      // ばねのジグザグ：棒の右端から壁まで、y=158 を中心に ±7 px ふる（×印と重ならないよう）。
+      const rodX = scene.phase === 'pull' ? d.rodPullX : d.rodEqX;
+      const springPath = (x1, x2) => {
+        const n = Math.max(4, Math.round((x2 - x1) / 12));
+        let path = `M ${x1} 158`;
+        for (let i = 1; i <= n; i++) {
+          const x = x1 + ((x2 - x1) * i) / n;
+          const off = (i === n) ? 0 : (i % 2 === 1 ? -7 : 7);
+          path += ` L ${x.toFixed(1)} ${(158 + off).toFixed(1)}`;
+        }
+        return path;
+      };
+      svg.appendChild(el('path', { d: springPath(rodX + 8, d.wallX), fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      // 棒：レールの上にまたがる縦の板。ラベルは上レールの上に置く（レールの線と重ならないよう）。
+      svg.appendChild(el('rect', { x: rodX - 8, y: 120, width: 16, height: 80, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      const tRod = el('text', { x: rodX + 20, y: 112 }); tRod.textContent = '棒'; svg.appendChild(tRod);
+      if (scene.phase === 'base') {
+        const tN = el('text', { x: 40, y: 256, fill: '#555' }); tN.textContent = 'm=0.50 kg、B=1.0 T、L=1.0 m、R=2.0 Ω'; svg.appendChild(tN);
+        const tN2 = el('text', { x: 40, y: 274, fill: '#555' }); tN2.textContent = 'k=50 N/m、つり合い位置でばねは自然長'; svg.appendChild(tN2);
+        const tN3 = el('text', { x: 40, y: 292, fill: '#555' }); tN3.textContent = '棒を 0.20 m 左に引いて放す'; svg.appendChild(tN3);
+      } else if (scene.phase === 'pull') {
+        const tN = el('text', { x: 40, y: 256, fill: '#555' }); tN.textContent = '0.20 m 左に引いた（ばねは 0.20 m 伸びた）'; svg.appendChild(tN);
+        const tN2 = el('text', { x: 40, y: 274, fill: '#555' }); tN2.textContent = 'ばねの力 k×0.20 = 10 N'; svg.appendChild(tN2);
+        const tN3 = el('text', { x: 40, y: 292, fill: '#555' }); tN3.textContent = 'v=0 なので誘導起電力は 0'; svg.appendChild(tN3);
+      } else {
+        // cross：つり合い位置を右向きに通る。
+        const tN = el('text', { x: 40, y: 256, fill: '#555' }); tN.textContent = 'つり合い位置を v≈1.85 m/s で通る'; svg.appendChild(tN);
+        const tN2 = el('text', { x: 40, y: 274, fill: '#555' }); tN2.textContent = 'ε=BLv≈1.85 V、I≈0.92 A'; svg.appendChild(tN2);
+        const tN3 = el('text', { x: 40, y: 292, fill: '#555' }); tN3.textContent = '磁場の力 BIL≈0.92 N（速度と逆向き）'; svg.appendChild(tN3);
+      }
+    }
+  } else if (scene.type === 'pendulumSpring') {
+    const d = scene.derived;
+    const tH = el('text', { x: 40, y: 36, fill: '#555' });
+    tH.textContent = scene.phase === 'swing' ? '最下点：速さ 2.0 m/s'
+      : scene.phase === 'collision' ? '弾性衝突：玉は止まり、ブロックが 2.0 m/s'
+      : scene.phase === 'spring' ? 'ばね：最大の縮み 0.20 m'
+      : scene.phase === 'energy' ? 'エネルギー：2.0 J のまま'
+      : scene.phase === 'trap' ? '罠：くっついたら 1.0 J しか残らない'
+      : '振り子＋弾性衝突＋ばね';
+    svg.appendChild(tH);
+    if (scene.phase === 'energy') {
+      // エネルギーの棒グラフ：はじめ 2.0 J、衝突後 2.0 J、ばね最大 2.0 J、くっついたら 1.0 J（80 px/J）。
+      const rows = [
+        ['はじめ KE 2.0 J', 160, '#cfe3ff', '2.0 J'],
+        ['衝突後 KE 2.0 J', 160, '#b3e6b3', '2.0 J'],
+        ['ばね最大 PE 2.0 J', 160, '#ffd24d', '2.0 J'],
+        ['くっついたら KE 1.0 J', 80, '#ffb3b3', '1.0 J'],
+      ];
+      rows.forEach(([label, w, fill, val], i) => {
+        const y = 75 + i * 45;
+        const tL = el('text', { x: 60, y: y - 8 }); tL.textContent = label; svg.appendChild(tL);
+        svg.appendChild(el('rect', { x: 140, y, width: w, height: 18, fill, stroke: '#333', 'stroke-width': 1.5 }));
+        const tV = el('text', { x: 140 + w + 8, y: y + 15 }); tV.textContent = val; svg.appendChild(tV);
+      });
+      const tN = el('text', { x: 40, y: 256, fill: '#555' }); tN.textContent = 'エネルギーは 2.0 J のまま（弾性衝突）'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 274, fill: '#555' }); tN2.textContent = 'ばねの最大のエネルギーは 2.0 J'; svg.appendChild(tN2);
+      const tN3 = el('text', { x: 40, y: 292, fill: '#555' }); tN3.textContent = 'くっついたら 1.0 J しか残らない'; svg.appendChild(tN3);
+    } else if (scene.phase === 'trap') {
+      // 振幅の比べ：弾性 0.20 m、くっついたら 0.14 m（800 px/m、計算値から描く）。
+      const rows = [
+        ['弾性 0.20 m', d.ampM * 800, '#b3e6b3', '0.20 m'],
+        ['くっついたら ' + d.ampStickM.toFixed(2) + ' m', d.ampStickM * 800, '#ffb3b3', d.ampStickM.toFixed(2) + ' m'],
+      ];
+      rows.forEach(([label, w, fill, val], i) => {
+        const y = 100 + i * 60;
+        const tL = el('text', { x: 60, y: y - 8 }); tL.textContent = label; svg.appendChild(tL);
+        svg.appendChild(el('rect', { x: 140, y, width: w, height: 18, fill, stroke: '#333', 'stroke-width': 1.5 }));
+        const tV = el('text', { x: 140 + w + 8, y: y + 15 }); tV.textContent = val; svg.appendChild(tV);
+      });
+      const tN = el('text', { x: 40, y: 256, fill: '#555' }); tN.textContent = 'くっついたら速さは 1.0 m/s'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 274, fill: '#555' }); tN2.textContent = '振幅は ' + d.ampStickM.toFixed(2) + ' m、最大の力は ' + d.fMaxStickN.toFixed(0) + ' N'; svg.appendChild(tN2);
+      const tN3 = el('text', { x: 40, y: 292, fill: '#555' }); tN3.textContent = '衝突で 1.0 J が失われる'; svg.appendChild(tN3);
+    } else {
+      // 支点・糸・玉・床・ブロック・ばね・壁。玉の位置は場面で決まる。
+      svg.appendChild(el('line', { x1: 120, y1: 124, x2: 180, y2: 124, stroke: '#333', 'stroke-width': 2 }));
+      const bob = scene.phase === 'base' ? d.ballStart : d.ballBottom;
+      svg.appendChild(el('line', { x1: d.pivot.x, y1: d.pivot.y, x2: bob.x, y2: bob.y, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx: d.pivot.x, cy: d.pivot.y, r: 4, fill: '#333' }));
+      svg.appendChild(el('circle', { cx: bob.x, cy: bob.y, r: 12, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 40, y1: 240, x2: 390, y2: 240, stroke: '#333', 'stroke-width': 2 }));
+      // ブロックとばねと壁。ブロックの位置は場面で決まる（base・swing：180、collision：190、spring：220）。
+      const blockX = scene.phase === 'collision' ? 190 : scene.phase === 'spring' ? 220 : d.blockX0;
+      svg.appendChild(el('rect', { x: blockX, y: d.blockY, width: d.blockW, height: 30, fill: '#cfe3ff', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: d.wallX, y1: 180, x2: d.wallX, y2: 240, stroke: '#333', 'stroke-width': 3 }));
+      // ばねのジグザグ：ブロックの右端から壁まで、y=225 を中心に ±8 px ふる。
+      const springPath = (x1, x2) => {
+        const n = Math.max(4, Math.round((x2 - x1) / 12));
+        let path = `M ${x1} 225`;
+        for (let i = 1; i <= n; i++) {
+          const x = x1 + ((x2 - x1) * i) / n;
+          const off = (i === n) ? 0 : (i % 2 === 1 ? -8 : 8);
+          path += ` L ${x.toFixed(1)} ${(225 + off).toFixed(1)}`;
+        }
+        return path;
+      };
+      svg.appendChild(el('path', { d: springPath(blockX + d.blockW, d.wallX), fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      if (scene.phase === 'base') {
+        // θ の弧：支点から、鉛直下向きと糸のあいだ。ラベルは弧の左に置く
+        // （糸が斜めなので、弧の下に置くと糸がラベルの底辺に迫る）。
+        let arc = '';
+        for (let deg = 0; deg <= 37; deg += 5) {
+          const r = deg2rad(deg);
+          const x = (d.pivot.x - 25 * Math.sin(r)).toFixed(1), y = (d.pivot.y + 25 * Math.cos(r)).toFixed(1);
+          arc += (arc ? ' L ' : 'M ') + x + ' ' + y;
+        }
+        svg.appendChild(el('path', { d: arc, fill: 'none', stroke: '#333', 'stroke-width': 1.5 }));
+        const tTh = el('text', { x: 60, y: 144 }); tTh.textContent = 'θ≈37°'; svg.appendChild(tTh);
+        // 高さの目盛り：玉の中心の高さから最下点の玉の中心の高さまで（玉の左に置く）。
+        svg.appendChild(el('line', { x1: 70, y1: d.ballStart.y, x2: 70, y2: d.ballBottom.y, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+        svg.appendChild(el('line', { x1: 64, y1: d.ballStart.y, x2: 76, y2: d.ballStart.y, stroke: '#888', 'stroke-width': 1.5 }));
+        svg.appendChild(el('line', { x1: 64, y1: d.ballBottom.y, x2: 76, y2: d.ballBottom.y, stroke: '#888', 'stroke-width': 1.5 }));
+        const tHm = el('text', { x: 20, y: 190 }); tHm.textContent = 'h=0.20 m'; svg.appendChild(tHm);
+        const tM = el('text', { x: d.blockX0, y: 204 }); tM.textContent = 'M=1.0 kg'; svg.appendChild(tM);
+        const tN = el('text', { x: 40, y: 256, fill: '#555' }); tN.textContent = '玉 m=1.0 kg、高さ 0.20 m から放す'; svg.appendChild(tN);
+        const tN2 = el('text', { x: 40, y: 274, fill: '#555' }); tN2.textContent = 'ブロック M=1.0 kg、ばね k=100 N/m'; svg.appendChild(tN2);
+        const tN3 = el('text', { x: 40, y: 292, fill: '#555' }); tN3.textContent = '最下点で玉はブロックに当たる'; svg.appendChild(tN3);
+      } else if (scene.phase === 'swing') {
+        // 「M=1.0 kg」のラベルは base 場面に置いてある。ここに置くと速度のラベルと重なるので置かない。
+        const tN = el('text', { x: 40, y: 256, fill: '#555' }); tN.textContent = '最下点の速さ v=√(2gh)=2.0 m/s'; svg.appendChild(tN);
+        const tN2 = el('text', { x: 40, y: 274, fill: '#555' }); tN2.textContent = '運動エネルギー 2.0 J'; svg.appendChild(tN2);
+        const tN3 = el('text', { x: 40, y: 292, fill: '#555' }); tN3.textContent = '振り子の周期 ≈2.0 s、T/4≈0.50 s'; svg.appendChild(tN3);
+      } else if (scene.phase === 'collision') {
+        const tN = el('text', { x: 40, y: 256, fill: '#555' }); tN.textContent = '弾性衝突（等質量）：玉は止まる'; svg.appendChild(tN);
+        const tN2 = el('text', { x: 40, y: 274, fill: '#555' }); tN2.textContent = 'ブロックは 2.0 m/s でもらう'; svg.appendChild(tN2);
+        const tN3 = el('text', { x: 40, y: 292, fill: '#555' }); tN3.textContent = '運動量 2.0、KE 2.0 J が保存する'; svg.appendChild(tN3);
+      } else {
+        // spring：最大の縮み。振幅のラベルはばねの力のラベルの上に置く（重ならないよう）。
+        const tA = el('text', { x: 250, y: 170 }); tA.textContent = 'A=0.20 m'; svg.appendChild(tA);
+        const tN = el('text', { x: 40, y: 256, fill: '#555' }); tN.textContent = '最大の縮み 0.20 m、ばねの力 20 N'; svg.appendChild(tN);
+        const tN2 = el('text', { x: 40, y: 274, fill: '#555' }); tN2.textContent = 'ω=10 rad/s、T≈0.63 s、T/4≈0.16 s'; svg.appendChild(tN2);
+        const tN3 = el('text', { x: 40, y: 292, fill: '#555' }); tN3.textContent = '最大の加速度 20 m/s²'; svg.appendChild(tN3);
+      }
+    }
   } else if (scene.type === 'capacitor') {
     const topY = 110, dPx = scene.dPx;
     // 2枚の極板（水平）。上板が +、下板が −。
@@ -8370,4 +8800,4 @@ function renderAllFigures() {
   });
 }
 
-if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, capSpringGravDerived, capSpringGravForces, gasSpringCycleDerived, gasSpringCycleForces, slopeSpringDerived, slopeSpringForces, fallLoopDerived, fallLoopForces, beltSpringDerived, beltSpringForces, massSpecDerived, massSpecForces, coilHallDerived, coilHallForces, platformChargeDerived, platformChargeForces, pendulumCollideDerived, pendulumCollideForces, photoCapDerived, photoCapForces, orbitTransferDerived, orbitTransferForces, cyclotronDerived, cyclotronForces, slopeSpringFricDerived, slopeSpringFricForces, projWallDerived, projWallForces, sceneFor, validateScene, renderFigure };
+if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, capSpringGravDerived, capSpringGravForces, gasSpringCycleDerived, gasSpringCycleForces, slopeSpringDerived, slopeSpringForces, fallLoopDerived, fallLoopForces, beltSpringDerived, beltSpringForces, massSpecDerived, massSpecForces, coilHallDerived, coilHallForces, platformChargeDerived, platformChargeForces, pendulumCollideDerived, pendulumCollideForces, photoCapDerived, photoCapForces, orbitTransferDerived, orbitTransferForces, cyclotronDerived, cyclotronForces, slopeSpringFricDerived, slopeSpringFricForces, projWallDerived, projWallForces, railSpringDampDerived, railSpringDampForces, pendulumSpringDerived, pendulumSpringForces, sceneFor, validateScene, renderFigure };
