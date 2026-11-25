@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第9問：コンデンサ — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>第9問：コンデンサ</h1>
+<p><strong>問題：</strong>面積 S = 0.020 m<sup>2</sup> の平行板コンデンサーがある。極板間隔 d = 1.0 mm のとき、10 V の電池につないだ。電気容量 C、蓄えられる電荷 Q、静電エネルギー U を求めよ。次に、(a) 電池につないだまま極板間隔を 2.0 mm に広げたとき、(b) 電池を切り離してから極板間隔を 2.0 mm に広げたとき、それぞれ C・Q・V・U がどう変わるか求めよ。ε<sub>0</sub> = 8.85×10<sup>−12</sup> F/m とする。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js）が下の JSON データから計算して描いている。電場の矢印の長さは電場の強さに、引力の矢印の長さは極板間の引力に比例している。ラベルは短い名前だけにして、枠からはみ出さないよう描画側で調整している。</p>
+<script type="application/json" id="scene-cap-initial">{"type":"capacitor","phase":"initial","eps0":8.85e-12,"areaM2":0.02,"dMm":1.0,"vV":10,"q0C":1.77e-9}</script>
+<script type="application/json" id="scene-cap-connected">{"type":"capacitor","phase":"connected","eps0":8.85e-12,"areaM2":0.02,"dMm":2.0,"vV":10,"q0C":1.77e-9}</script>
+<script type="application/json" id="scene-cap-disconnected">{"type":"capacitor","phase":"disconnected","eps0":8.85e-12,"areaM2":0.02,"dMm":2.0,"vV":10,"q0C":1.77e-9}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：コンデンサの形を見る</h2>
+  <p>コンデンサは、2 枚の金属の板をすき間をあけて向かい合わせたものだ。上の板にはプラスの電荷が、下の板にはマイナスの電荷がたまる。2 枚の板のあいだには、一様な電場ができる。</p>
+  <svg class="fig" data-scene="scene-cap-initial" data-show="" width="100%" role="img" aria-label="平行板コンデンサ（矢印はまだ描いていない）"></svg>
+  <p>図はこれだけ。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①C・Q・U を求める</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① C = εS / d、Q = CV、U = ½CV²</h2>
+  <svg class="fig" data-scene="scene-cap-initial" data-show="field1,field2,field3" width="100%" role="img" aria-label="コンデンサの電場を描いた図"></svg>
+  <p>電気容量は C = ε<sub>0</sub>S / d = 8.85×10<sup>−12</sup> × 0.020 / 1.0×10<sup>−3</sup> = <strong>177 pF</strong>。蓄えられる電荷は Q = CV = 177×10<sup>−12</sup> × 10 = <strong>1.77 nC</strong>。静電エネルギーは U = ½CV² = 0.5 × 177×10<sup>−12</sup> × 100 = <strong>8.85 nJ</strong>。電場の矢印は 3 本とも同じ長さで、極板のあいだで電場が一様なことが分かる。</p>
+  <label><input type="checkbox" class="check"> C = 177 pF、Q = 1.77 nC、U = 8.85 nJ を求めた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②電場と引力</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 電場 E と極板間の引力</h2>
+  <svg class="fig" data-scene="scene-cap-initial" data-show="field1,field2,field3,attractTop,attractBottom" width="100%" role="img" aria-label="電場と極板間の引力を描いた図"></svg>
+  <p>極板間の電場は E = V / d = 10 / 1.0×10<sup>−3</sup> = <strong>1.0×10<sup>4</sup> V/m</strong>。プラスとマイナスの板は引き合う。その引力は F = Q² / (2εS) = <strong>8.85×10<sup>−6</sup> N</strong>。引力は電荷の 2 乗に比例するから、Q が半分になると引力は 4 分の 1 になる。ここが次のステップの分かれ道だ。</p>
+  <label><input type="checkbox" class="check"> 電場は極板間で一様で、引力は Q² に比例すると分かった</label>
+  <br><a class="next" href="#step3">次へ ↓ ③電池につないだまま</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ (a) 電池につないだまま d を 2 倍に（V 一定）</h2>
+  <svg class="fig" data-scene="scene-cap-connected" data-show="field1,field2,field3,attractTop" width="100%" role="img" aria-label="電池につないだまま極板間隔を2倍にした図"></svg>
+  <p>電池につないだままなら、電圧 V は 10 V のまま変わらない。d が 2 倍になると C = εS / d は半分で <strong>88.5 pF</strong>、Q = CV は半分で <strong>0.885 nC</strong>、U = ½CV² は半分で <strong>4.43 nJ</strong> になる。電場は E = V / d で半分の <strong>5.0×10<sup>3</sup> V/m</strong> になるから、図の電場の矢印も半分の長さだ。引力は Q が半分なので 4 分の 1 の <strong>2.21×10<sup>−6</sup> N</strong> になる。減った分の電荷は電池に戻り、減った分のエネルギーは電池が受け取る。</p>
+  <label><input type="checkbox" class="check"> 電池接続時は V が一定で、C・Q・U が半分になると分かった</label>
+  <br><a class="next" href="#step4">次へ ↓ ④電池を切り離してから</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ (b) 電池を切り離してから d を 2 倍に（Q 一定）</h2>
+  <svg class="fig" data-scene="scene-cap-disconnected" data-show="field1,field2,field3,attractTop" width="100%" role="img" aria-label="電池を切り離してから極板間隔を2倍にした図"></svg>
+  <p>電池を切り離すと、電荷はどこへも逃げられない。だから Q は <strong>1.77 nC のまま</strong>変わらない。d が 2 倍になると C は半分で <strong>88.5 pF</strong> だが、V = Q / C は 2 倍の <strong>20 V</strong> になる。U = ½QV は 2 倍の <strong>17.7 nJ</strong> になる。エネルギーが増えた分は、引力に逆らって板を引いた外の人がした仕事だ。電場は E = Q / (εS) で、Q が変わらないから <strong>1.0×10<sup>4</sup> V/m のまま</strong>で、図の電場の矢印の長さも変わらない。引力も Q が変わらないから <strong>8.85×10<sup>−6</sup> N のまま</strong>だ。</p>
+  <label><input type="checkbox" class="check"> 切り離し時は Q が一定で、V は 2 倍、U は 2 倍、E は変わらないと分かった</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ：何が一定かがすべてを決める</h2>
+  <svg class="fig" data-scene="scene-cap-disconnected" data-show="field1,field2,field3" width="100%" role="img" aria-label="コンデンサのまとめの図"></svg>
+  <p>2 つの場合の違いは、最初に何が一定かを決めることだけだ。電池につないだままなら V が一定、切り離したら Q が一定。そこから C = εS / d、Q = CV、U = ½CV² を使えば、あとは全部決まる。d を変えたあとに Q = CV を使うとき、Q と V のどちらが一定だったかを間違えると、答えが逆になる。まず「V 一定か、Q 一定か」を言ってから計算しよう。</p>
+  <label><input type="checkbox" class="check"> 「V 一定か、Q 一定か」を先に決める、と分かった</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：はじめは C = 177 pF、Q = 1.77 nC、U = 8.85 nJ。(a) 電池接続のまま d を 2 倍にすると C = 88.5 pF、Q = 0.885 nC、U = 4.43 nJ。(b) 切り離してから d を 2 倍にすると C = 88.5 pF、V = 20 V、U = 17.7 nJ。コンデンサのエネルギーの行き来は <a href="lc.html">組み合わせD：LC回路＋単振動</a> でも使う。</p>
+  <p>次は準備中です。<a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.capacitorDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>

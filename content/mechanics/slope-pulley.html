@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題A：斜面＋滑車＋摩擦（糸が切れる前後） — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題A：斜面＋滑車＋摩擦（糸が切れる前後）</h1>
+<p><strong>問題：</strong>傾き 37° の粗い斜面の上に質量 mA = 4.0 kg の物体 A を置き、斜面の頂上の滑車を介して糸で質量 mB = 5.0 kg の物体 B をつるす。糸は斜面に平行で、糸と滑車の質量は無視できる。斜面と A の間の摩擦係数は μ = 0.25、g = 10 m/s² とする。静かに手を離すと 2物体は動き出す。A が斜面を 4.0 m 上がったところで糸が切れた。(1) 糸がつながっている間の加速度の大きさと糸の張力を求めよ。(2) 糸が切れた瞬間の速さを求めよ。(3) 糸が切れたあと、A はさらに何 m 上がって止まるか。また止まるまでの時間を求めよ。</p>
+<p>θ = 37° では sinθ = 0.60、cosθ = 0.80 として計算する（高校物理の慣用値）。このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v0.5、slopePulley 型）が下の JSON データから計算して描く。矢印の縮尺は 1.5 px/N。A の重力 40 N は 60、B の重力 50 N は 75、張力 40 N は 60、垂直抗力 32 N は 48、摩擦力 8 N は 12 になる。ラベルは短い名前だけにして、枠からはみ出さないよう描画側で調整している。θ の弧は斜面の下端に描く。</p>
+<script type="application/json" id="scene-slope-pulley">{"type":"slopePulley","phase":"connected","thetaDeg":37,"sinTheta":0.6,"cosTheta":0.8,"mAKg":4,"mBKg":5,"mu":0.25,"g":10,"scalePxPerN":1.5}</script>
+<script type="application/json" id="scene-slope-pulley-after">{"type":"slopePulley","phase":"after","thetaDeg":37,"sinTheta":0.6,"cosTheta":0.8,"mAKg":4,"mBKg":5,"mu":0.25,"g":10,"scalePxPerN":1.5}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。糸が切れる前と後では、働く力が変わる。2つの場面をつなぐのは、切れた瞬間の速さだ。</p>
+  <table>
+    <tr><th>時間</th><th>系（どの物体か）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>糸がつながっている間（0〜2.0 s）</td><td>A と B の2物体</td><td>—</td><td>加速度 a = 2.0 m/s²、張力 T = 40 N（ステップ①②）</td></tr>
+    <tr><td>糸が切れた瞬間（t = 2.0 s）</td><td>A も B も速さ 4.0 m/s</td><td><strong>速さ v = 4.0 m/s</strong></td><td>切れた瞬間の速さ（ステップ③）。これを次の場面の初速度にする</td></tr>
+    <tr><td>糸が切れたあと</td><td>A だけ（B は自由落下）</td><td>v = 4.0 m/s を初速度として使う</td><td>A は減速して止まるまで 0.5 s、さらに 1.0 m 上がる（ステップ④⑤）</td></tr>
+  </table>
+  <p>保存則を境界をまたいで使わないこと。糸が切れる前後で、運動エネルギーが保存されるわけではない。</p>
+  <svg class="fig" data-scene="scene-slope-pulley" data-show="" width="100%" role="img" aria-label="粗い斜面の上の物体Aと滑車を介してつるされた物体B（力はまだ描いていない）"></svg>
+  <p>力を描く前の図はこれだけ。左が斜面上の A、右がつるされた B。ここから下へ、1本ずつ足していく。</p>
+  <a class="next" href="#step1">次へ ↓ ①つながっている間の力</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 糸がつながっている間の力の図示</h2>
+  <svg class="fig" data-scene="scene-slope-pulley" data-show="gravityA,normalA,frictionA,tensionA,gravityB,tensionB" width="100%" role="img" aria-label="2物体の重力・垂直抗力・摩擦力・張力を描いた図"></svg>
+  <p>A には重力 mAg = 40 N、垂直抗力 N = mAg cosθ = 32 N、摩擦力 f = μN = 8 N、張力 T が働く。B には重力 mBg = 50 N と張力 T が働く。張力は同じ糸なら両側で等しい。A の摩擦力は、A が斜面を上がる動きを止めようとして<strong>斜面沿い・下向き</strong>になる。A が滑り落ちる場合と向きが逆になるので注意。</p>
+  <label><input type="checkbox" class="check"> A の4本（重力・垂直抗力・摩擦力・張力）と B の2本（重力・張力）を描いた。摩擦力は A の動きと逆向き（斜面沿い・下向き）</label>
+  <br><a class="next" href="#step2">次へ ↓ ②加速度と張力</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 加速度と張力を求める（つながっている間）</h2>
+  <svg class="fig" data-scene="scene-slope-pulley" data-show="gravityA,normalA,frictionA,tensionA,gravityB,tensionB,accA,accB" width="100%" role="img" aria-label="2物体の力と加速度の向きを破線で描いた図"></svg>
+  <p class="note">加速度の矢印は破線です。力ではありません。B が下へ、A が斜面を上へ動く。大きさは同じ a だ。</p>
+  <p>B が下向きに加速するから、下向きを正として B の式を立てる。mBg − T = mBa。A は斜面を上向きに加速するから、斜面沿い・上向きを正として A の式を立てる。T − mAg sinθ − f = mAa。数を入れると、B は 50 − T = 5.0a、A は T − 24 − 8 = 4.0a。2本の式を足すと張力が消えて、50 − 24 − 8 = 9.0a となり、<strong>a = 2.0 m/s²</strong>。B の式に戻すと T = 50 − 5.0 × 2.0 = <strong>40 N</strong>。A の式でも確かめられる：40 − 24 − 8 = 8 = 4.0 × 2.0。</p>
+  <label><input type="checkbox" class="check"> 2物体の式を立てて、a = 2.0 m/s²、T = 40 N を求め、A の式でも確かめた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③切れた瞬間の速さ</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 糸が切れた瞬間の速さ（橋渡し量）</h2>
+  <svg class="fig" data-scene="scene-slope-pulley" data-show="gravityA,normalA,frictionA,tensionA,gravityB,tensionB,accA,accB" width="100%" role="img" aria-label="切れる直前の2物体の力と加速度を描いた図"></svg>
+  <p>静かに手を離したので初速度は 0。加速度 a = 2.0 m/s² で 4.0 m 進んだときの速さは、v² − v0² = 2as から v² = 2 × 2.0 × 4.0 = 16 となり、<strong>v = 4.0 m/s</strong>。時間でも確かめられる：v = at から t = 4.0 / 2.0 = 2.0 s で、s = (1/2)at² = (1/2) × 2.0 × 2.0² = 4.0 m と一致する。この v = 4.0 m/s が、切れたあとの A の初速度になる。ここが2つの場面のつなぎ目だ。</p>
+  <label><input type="checkbox" class="check"> 切れた瞬間の速さ v = 4.0 m/s（t = 2.0 s）を求め、s = 4.0 m と一致することを確かめた。この速さが次の場面の初速度になる</label>
+  <br><a class="next" href="#step4">次へ ↓ ④切れたあとの A</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 切れたあとの A：減速して止まるまで</h2>
+  <svg class="fig" data-scene="scene-slope-pulley-after" data-show="gravityA,normalA,frictionA,decompSinA,decompCosA,accAfterA" width="100%" role="img" aria-label="糸が切れたあとの物体Aの力と減速の向きを描いた図"></svg>
+  <p class="note">分解の矢印は破線です。糸が切れたので、張力はもうない。A には重力・垂直抗力・摩擦力の3本だけが働く。</p>
+  <p>A は初速度 4.0 m/s で斜面を上がり続けるが、重力の斜面成分 mAg sinθ = 24 N と、動きと逆向きの摩擦力 f = 8 N が、どちらも斜面沿い・下向きに働く。斜面沿い・下向きを正として、合力は 24 + 8 = 32 N。加速度の大きさは a' = 32 / 4.0 = <strong>8.0 m/s²</strong>（下向き）。止まるまでの時間は t = v / a' = 4.0 / 8.0 = <strong>0.5 s</strong>。さらに上がる距離は、v² = 2a's' から s' = 16 / (2 × 8.0) = <strong>1.0 m</strong>。切れた瞬間の速さを使わずに、この場面は解けない。</p>
+  <label><input type="checkbox" class="check"> 切れたあとは張力がなく、重力の斜面成分 24 N と摩擦力 8 N がどちらも下向きになることを確かめた。a' = 8.0 m/s²、止まるまで 0.5 s、さらに 1.0 m 上がる</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤切れたあとの B と、A のその後</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ 切れたあとの B と、A のその後</h2>
+  <svg class="fig" data-scene="scene-slope-pulley-after" data-show="gravityA,normalA,frictionA,accAfterA" width="100%" role="img" aria-label="糸が切れたあとの物体Aの力を描いた図"></svg>
+  <p>B は糸が切れた瞬間から自由落下する。初速度は下向き 4.0 m/s、加速度は g = 10 m/s² だ。切れてから 1.0 s 後には、速さは 4.0 + 10 × 1.0 = 14 m/s、落下距離は 4.0 × 1.0 + (1/2) × 10 × 1.0² = 9.0 m になる。</p>
+  <p>A は止まったあと、そのまま静止するわけではない。止まった瞬間、重力の斜面成分 24 N が摩擦力 8 N より大きいから、A は斜面を下向きに滑り出す。下向きを正とすると、合力は 24 − 8 = 16 N、加速度は 16 / 4.0 = <strong>4.0 m/s²</strong> だ。摩擦力の向きは、A が上がるときと下がるときで逆になる。向きを固定したまま計算すると、ここを間違える。</p>
+  <label><input type="checkbox" class="check"> B は初速度 4.0 m/s の自由落下になること、A は止まったあと 4.0 m/s² で斜面を滑り戻ること（摩擦力の向きが逆になること）を確かめた</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と系を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) a = 2.0 m/s²、T = 40 N。(2) 切れた瞬間の速さ v = 4.0 m/s（t = 2.0 s）。(3) 切れたあと、A はさらに 1.0 m 上がって 0.5 s 後に止まる。その後 A は 4.0 m/s² で斜面を滑り戻り、B は自由落下する。もとになった単体モデル：斜面の分解と摩擦は <a href="slope.html">第1問：斜面のドリル</a>、摩擦力の向きと垂直抗力は <a href="pull.html">第3問：斜めに引く力のドリル</a>、2物体の連結と張力は <a href="pulley.html">第6問：滑車・連結体</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboSlopePulleyDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>

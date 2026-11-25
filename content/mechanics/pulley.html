@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第6問：滑車・連結体 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>第6問：滑車・連結体</h1>
+<p><strong>問題：</strong>なめらかな滑車に糸をかけ、質量 m1 = 3.0 kg の物体（左）と質量 m2 = 1.0 kg の物体（右）をつるす。糸と滑車の質量は無視できる。静かに手を離すと、2物体は動き出す。加速度の大きさと糸の張力を求めよ。g = 10 m/s² とする。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js）が下の JSON データから計算して描いている。重力は m1 が 30 N（60）、m2 が 10 N（20）、張力は両側とも 15 N（30）になる。ラベルは短い名前だけにして、枠からはみ出さないよう描画側で調整している。糸はすべて鉛直なので、角度の弧はない。</p>
+<script type="application/json" id="scene-pulley">{"type":"pulley","m1Kg":3,"m2Kg":1,"g":10,"scalePxPerN":2}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：対象を決める</h2>
+  <p>対象は<strong>「2つの物体」</strong>。1つだけではない。糸でつながっているから、片方だけ見ても解けない。2物体それぞれについて、力を描いて式を立てる。</p>
+  <svg class="fig" data-scene="scene-pulley" data-show="" width="100%" role="img" aria-label="滑車に糸をかけた2つの物体（力はまだ描いていない）"></svg>
+  <p>力を描く前の図はこれだけ。左が重い m1、右が軽い m2。ここから下へ、1本ずつ足していく。</p>
+  <a class="next" href="#step1">次へ ↓ ①重力</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 重力（2物体分）</h2>
+  <svg class="fig" data-scene="scene-pulley" data-show="gravity1,gravity2" width="100%" role="img" aria-label="2物体の重力を描いた図"></svg>
+  <p>重力は2物体それぞれに働く。m1 の重力は m1g = 30 N（長さ 60）、m2 の重力は m2g = 10 N（長さ 20）。重いほうの矢印が長い。忘れやすいのは軽いほうの重力で、m2 の式を書くときに必要になる。</p>
+  <label><input type="checkbox" class="check"> 重力を2物体それぞれに描いた（m1g = 30 N、m2g = 10 N）</label>
+  <br><a class="next" href="#step2">次へ ↓ ②張力</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 張力 T（両側で等しい）</h2>
+  <svg class="fig" data-scene="scene-pulley" data-show="gravity1,gravity2,tension1,tension2" width="100%" role="img" aria-label="重力と張力を描いた図"></svg>
+  <p>糸の張力は、同じ糸なら<strong>両側で等しい</strong>。左の物体を引く張力も、右の物体を引く張力も、同じ T。大きさは 15 N（長さ 30）で、両側とも上向きだ。糸が伸び縮みしないから、張力は糸を伝わってそのまま届く。</p>
+  <label><input type="checkbox" class="check"> 張力は両側で等しい（T = 15 N）と分かった</label>
+  <br><a class="next" href="#step3">次へ ↓ ③加速度</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 加速度（大きさは同じ、向きは逆）</h2>
+  <svg class="fig" data-scene="scene-pulley" data-show="gravity1,gravity2,tension1,tension2,acc1,acc2" width="100%" role="img" aria-label="加速度の向きを破線で描いた図"></svg>
+  <p class="note">加速度の矢印は破線です。力ではありません。糸でつながっているから、2物体の加速度の大きさは同じ a。重い m1 が下へ、軽い m2 が上へ動く。大きさは a = 5.0 m/s² だ。片方だけ加速する、ということはない。</p>
+  <label><input type="checkbox" class="check"> 加速度の大きさは両側で同じ a で、m1 は下向き、m2 は上向きと分かった</label>
+  <br><a class="next" href="#step4">次へ ↓ ④m1 の式</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ m1 の式（重いほう）</h2>
+  <svg class="fig" data-scene="scene-pulley" data-show="gravity1,gravity2,tension1,tension2,acc1,acc2" width="100%" role="img" aria-label="2物体の力と加速度を描いた図"></svg>
+  <p>m1 は下向きに加速するから、下向きを正として式を立てる。m1g − T = m1a。数を入れると 30 − 15 = 3.0 × 5.0。左辺 15、右辺 15 で一致する。</p>
+  <label><input type="checkbox" class="check"> m1 の式 m1g − T = m1a を立てた（30 − 15 = 3.0 × 5.0）</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤m2 の式</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ m2 の式（軽いほう）</h2>
+  <svg class="fig" data-scene="scene-pulley" data-show="gravity1,gravity2,tension1,tension2,acc1,acc2" width="100%" role="img" aria-label="2物体の力と加速度を描いた図"></svg>
+  <p>m2 は上向きに加速するから、上向きを正として式を立てる。T − m2g = m2a。数を入れると 15 − 10 = 1.0 × 5.0。左辺 5、右辺 5 で一致する。m2 の式を書き忘れると、T と a の2つの未知数に対して式が1本しかなく、解けない。</p>
+  <label><input type="checkbox" class="check"> m2 の式 T − m2g = m2a を立てた（15 − 10 = 1.0 × 5.0）</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>対象を「2つの物体」にしたことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：加速度の大きさ a = 5.0 m/s²、糸の張力 T = 15 N。張力は糸に沿う、という考え方は <a href="hang.html">第4問：三力のつり合い</a> でも、力の図示の基本は <a href="slope.html">第1問：斜面のドリル</a> でも確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.pulleyDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>

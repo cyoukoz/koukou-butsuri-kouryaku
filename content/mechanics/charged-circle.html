@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題C：荷電粒子＋円運動 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  button { margin: .2em .5em .2em 0; }
+  table { border-collapse: collapse; margin: 1em 0; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; vertical-align: top; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題C：荷電粒子＋円運動</h1>
+<p><strong>問題：</strong>正の電荷 q = +1.6 × 10<sup>−19</sup> C、質量 m = 3.2 × 10<sup>−26</sup> kg の粒子が、速さ v = 2.0 × 10<sup>5</sup> m/s で、紙面の裏向きの一様な磁場 B = 0.50 T の領域に垂直に入る。重力は無視できるものとする。(1) 粒子の軌道の半径 r、(2) 1周の周期 T と振動数 f、(3) 半径 r から質量 m を求める式とその値、(4) 粒子に働くローレンツ力の大きさを求めよ。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v0.6、charged-circle 型）が下の JSON データから計算して描く。半径 0.080 m が 80（1000 px / m）、速度 2.0 × 10<sup>5</sup> m/s が 80、ローレンツ力 1.6 × 10<sup>−14</sup> N が 60 になる。速度の矢印は破線で描く（力ではない）。ラベルは短い名前だけにして、枠からはみ出さないよう描画側で調整している。</p>
+<script type="application/json" id="scene-cc-entry">{"type":"charged-circle","phase":"entry","mKg":3.2e-26,"qC":1.6e-19,"vMs":2.0e5,"bT":0.5,"rM":0.08,"rScalePxPerM":1000,"vScalePxPerMs":0.0004,"fScalePxPerN":3.75e15}</script>
+<script type="application/json" id="scene-cc-top">{"type":"charged-circle","phase":"top","mKg":3.2e-26,"qC":1.6e-19,"vMs":2.0e5,"bT":0.5,"rM":0.08,"rScalePxPerM":1000,"vScalePxPerMs":0.0004,"fScalePxPerN":3.75e15}</script>
+<script type="application/json" id="scene-cc-exit">{"type":"charged-circle","phase":"exit","mKg":3.2e-26,"qC":1.6e-19,"vMs":2.0e5,"bT":0.5,"rM":0.08,"rScalePxPerM":1000,"vScalePxPerMs":0.0004,"fScalePxPerN":3.75e15}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ（まずここで切る）</h2>
+  <p>組み合わせ問題は、いきなり1本の式で解こうとすると間違える。先に<strong>時間で切り、系で切り、橋渡し量を決める</strong>。この問題の切り分けは次の表のとおり。</p>
+  <table>
+    <tr><th>時間</th><th>系（どこにいるか）</th><th>使う法則</th><th>橋渡し量</th></tr>
+    <tr><td>磁場に入る前</td><td>磁場の外。力は働かない</td><td>等速直線運動</td><td>速さ v = 2.0 × 10<sup>5</sup> m/s（場に入っても変わらない）</td></tr>
+    <tr><td>磁場の中</td><td>荷電粒子＋磁場</td><td>ローレンツ力＝向心力</td><td>半径 r = 0.080 m、周期 T ≈ 2.5 μs</td></tr>
+    <tr><td>磁場を出た後</td><td>磁場の外。力は働かない</td><td>等速直線運動</td><td>出ていく速さは入ったときと同じ大きさ</td></tr>
+  </table>
+  <p>いちばんの罠は、<strong>ローレンツ力を「磁場の向き」や「速度の向き」と同じ向きだと思うこと</strong>。ローレンツ力は速度にも磁場にも直角で、つねに円の中心を向く。だから粒子は曲がり続け、円運動になる。力の向きが変わり続けるのに、力の大きさは変わらない。</p>
+  <svg class="fig" data-scene="scene-cc-entry" data-show="" width="100%" role="img" aria-label="磁場の領域と、左から入ってくる粒子（矢印はまだ描いていない）"></svg>
+  <p>図はこれだけ。× 印のところが磁場（紙面の裏向き）で、左から粒子が入ってくる。ここから下へ、1つずつ進んでいく。</p>
+  <a class="next" href="#step1">次へ ↓ ①入る前</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 入る前：速さは変わらない</h2>
+  <svg class="fig" data-scene="scene-cc-entry" data-show="velocity" width="100%" role="img" aria-label="入射直後の図：粒子の速度 v の矢印"></svg>
+  <p>磁場に入る前、粒子に働く力はないから、等速直線運動をする。速さは v = 2.0 × 10<sup>5</sup> m/s のまま、磁場の中へ入る。速度の矢印は破線で描く（力ではない）。磁場に入った瞬間からローレンツ力が働き始めるが、ローレンツ力は速度と直角だから、<strong>速さの大きさは変えない</strong>。変えるのは向きだけだ。</p>
+  <label><input type="checkbox" class="check"> 磁場に入る前は等速直線運動で、速さは v のまま入ると分かった</label>
+  <br><a class="next" href="#step2">次へ ↓ ②ローレンツ力の向き</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② ローレンツ力の向き：つねに中心向き</h2>
+  <svg class="fig" data-scene="scene-cc-entry" data-show="velocity,lorentz" width="100%" role="img" aria-label="入射直後の図：速度 v とローレンツ力の矢印"></svg>
+  <p>正の電荷が右向きに動き、磁場が紙面の裏向きのとき、ローレンツ力は<strong>上向き</strong>に働く（フレミングの左手の法則、または v × B の向き）。入射点では、ローレンツ力の矢印は上向きで、長さは 60 になる。粒子はこの力で上向きに曲がり始める。電荷が負なら力の向きは逆になる。符号を忘れると、曲がる向きが逆になる。</p>
+  <p class="note">ローレンツ力の大きさは qvB = 1.6 × 10<sup>−19</sup> × 2.0 × 10<sup>5</sup> × 0.50 = 1.6 × 10<sup>−14</sup> N。重力は mg ≈ 3.1 × 10<sup>−25</sup> N で、ローレンツ力の約 5 × 10<sup>10</sup> 分の1しかない。だから重力は無視してよい。</p>
+  <label><input type="checkbox" class="check"> ローレンツ力は速度にも磁場にも直角で、入射点では上向き、と分かった</label>
+  <br><a class="next" href="#step3">次へ ↓ ③半径</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 半径 r = mv / qB</h2>
+  <svg class="fig" data-scene="scene-cc-top" data-show="velocity,lorentz,radius" width="100%" role="img" aria-label="半円の頂点の図：速度、ローレンツ力、半径の矢印"></svg>
+  <p>円運動では、中心向きの力が向心力 mv² / r になる。ここではその力がローレンツ力 qvB だ。qvB = mv² / r を解くと、r = mv / qB。数を入れると、r = 3.2 × 10<sup>−26</sup> × 2.0 × 10<sup>5</sup> / (1.6 × 10<sup>−19</sup> × 0.50) = 6.4 × 10<sup>−21</sup> / 8.0 × 10<sup>−20</sup> = <strong>0.080 m（8.0 cm）</strong>。図では、半円の頂点で速度は上向き、ローレンツ力は左向き（中心向き）、半径の破線は中心まで 80 になっている。3本の矢印はどれも直角の関係にある。</p>
+  <label><input type="checkbox" class="check"> qvB = mv² / r から r = mv / qB = 0.080 m を求めた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④周期</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 周期：速さには依らない</h2>
+  <svg class="fig" data-scene="scene-cc-top" data-show="velocity,lorentz" width="100%" role="img" aria-label="半円の頂点の図：速度とローレンツ力の矢印"></svg>
+  <p>1周の長さは 2πr、速さは v だから、周期は T = 2πr / v。r = mv / qB を入れると、T = 2πm / qB になる。v が消える。つまり、<strong>速い粒子も遅い粒子も、1周にかかる時間は同じ</strong>。速い粒子は半径が大きくなる分、1周の道のりも長くなるからだ。数を入れると、T = 2π × 3.2 × 10<sup>−26</sup> / (1.6 × 10<sup>−19</sup> × 0.50) ≈ <strong>2.5 × 10<sup>−6</sup> s（2.5 μs）</strong>、振動数は f = 1 / T ≈ <strong>4.0 × 10<sup>5</sup> Hz</strong>。罠は「速いほど周期が短い」と思い込むこと。速さは半径にも入るので、周期には残らない。</p>
+  <label><input type="checkbox" class="check"> T = 2πm / qB ≈ 2.5 μs、f ≈ 4.0 × 10<sup>5</sup> Hz を求めた。周期が速さに依らないと分かった</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤質量を求める</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ 質量分析計：半径から質量を求める</h2>
+  <svg class="fig" data-scene="scene-cc-exit" data-show="velocity,lorentz,radius" width="100%" role="img" aria-label="出射直前の図：速度、ローレンツ力、半径の矢印"></svg>
+  <p>r = mv / qB を質量について解くと、m = qBr / v。半径を測れば、目に見えない粒子の質量が分かる。これが質量分析計の仕組みだ。数を入れると、m = 1.6 × 10<sup>−19</sup> × 0.50 × 0.080 / 2.0 × 10<sup>5</sup> = <strong>3.2 × 10<sup>−26</sup> kg</strong>。図では、粒子は半円を描き終えて、上の端から左向きに出ていく。速さの大きさは入ったときと同じ 2.0 × 10<sup>5</sup> m/s で、向きだけが逆になっている。ローレンツ力はここでも中心向き（下向き）だ。</p>
+  <label><input type="checkbox" class="check"> m = qBr / v から m = 3.2 × 10<sup>−26</sup> kg を求めた。出ていく速さの大きさは入ったときと同じと分かった</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで「時間・系・橋渡し量」を分けたことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 半径 r = mv / qB = 0.080 m、(2) 周期 T = 2πm / qB ≈ 2.5 μs、振動数 f ≈ 4.0 × 10<sup>5</sup> Hz、(3) 質量 m = qBr / v = 3.2 × 10<sup>−26</sup> kg、(4) ローレンツ力 qvB = 1.6 × 10<sup>−14</sup> N（運動量 p = mv = 6.4 × 10<sup>−21</sup> kg·m/s）。なお、円運動と荷電粒子の単体モデルのページはまだないので、このページの②③で扱ったローレンツ力と円運動をそのまま使うこと。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.crossChargedCircleDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第11問：単振動・振り子 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  button { margin: .2em .5em .2em 0; }
+  canvas { border: 1px solid #333; width: 100%; background: #f8f8f8; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>第11問：単振動・振り子</h1>
+<p><strong>問題：</strong>(1) なめらかな水平面の上で、質量 m = 1.0 kg の物体をばね定数 k = 100 N/m のばねにつなぐ。物体を振幅 A = 0.10 m だけ引いて静かにはなす。角振動数 ω、周期 T、振動数 f、最大の速さ v<sub>max</sub>、最大の加速度 a<sub>max</sub> を求めよ。振幅を 0.20 m にすると、周期はどうなるか。(2) 長さ L = 1.0 m の単振り子を、振れ角 5° だけ傾けて静かにはなす。周期 T、最大の速さ、はじめの張力と接線方向の力を求めよ。g = 10 m/s² とする。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js）が下の JSON データから計算して描いている。力の矢印の長さは力の大きさに比例している（6 px/N）。下の動きの部分は motion.js の計算（x = A cos ωt）でループ再生している。</p>
+<script type="application/json" id="scene-shm-max">{"type":"shm","phase":"spring-max","mKg":1,"k":100,"amplitudeM":0.1,"lengthM":1.0,"thetaDeg":5,"g":10}</script>
+<script type="application/json" id="scene-shm-eq">{"type":"shm","phase":"spring-eq","mKg":1,"k":100,"amplitudeM":0.1,"lengthM":1.0,"thetaDeg":5,"g":10}</script>
+<script type="application/json" id="scene-shm-pendulum">{"type":"shm","phase":"pendulum","mKg":1,"k":100,"amplitudeM":0.1,"lengthM":1.0,"thetaDeg":5,"g":10}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：単振動は「行ったり来たり」</h2>
+  <p>ばねにつないだ物体を引いてはなすと、つり合い位置を行ったり来たりする。振り子も同じだ。どちらも、変位に比例してつり合い位置へ戻る力が働く運動で、式は同じ形になる。速さはつり合い位置で最大、端では 0 になる。ここから下へ、1つずつ確かめていく。</p>
+  <svg class="fig" data-scene="scene-shm-max" data-show="" width="100%" role="img" aria-label="ばねにつないだ物体（力はまだ描いていない）"></svg>
+  <p>図はばねと物体だけ。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①角振動数と周期</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 角振動数 ω = √(k / m) と周期 T</h2>
+  <svg class="fig" data-scene="scene-shm-max" data-show="springForce,amplitude" width="100%" role="img" aria-label="最大の変位でのばねの力を描いた図"></svg>
+  <p>ばねの単振動では、角振動数は ω = √(k / m) = √(100 / 1.0) = <strong>10 rad/s</strong>。周期は T = 2π / ω ≈ <strong>0.63 s</strong>、振動数は f = 1 / T ≈ <strong>1.59 Hz</strong>。ω の式には振幅 A が入っていない。ここがこの問題の肝で、周期は振幅に依らない。</p>
+  <label><input type="checkbox" class="check"> ω = 10 rad/s、T ≈ 0.63 s、f ≈ 1.59 Hz を求めた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②最大の変位</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 最大の変位：v = 0、ばねの力は最大</h2>
+  <svg class="fig" data-scene="scene-shm-max" data-show="springForce,amplitude" width="100%" role="img" aria-label="最大の変位でのばねの力と振幅の図"></svg>
+  <p>引いた端（x = A = 0.10 m）では、物体は一瞬止まる。速さは <strong>0</strong> だ。ばねの力は F = kA = 100 × 0.10 = <strong>10 N</strong> で最大になる。加速度も a = ω²A = 100 × 0.10 = <strong>10 m/s²</strong> で最大になり、つり合い位置へ向かう。端では速さが 0 なのに加速度が最大、というのが単振動の見どころだ。</p>
+  <label><input type="checkbox" class="check"> 端では v = 0、ばねの力は 10 N、加速度は 10 m/s² で最大と分かった</label>
+  <br><a class="next" href="#step3">次へ ↓ ③つり合い位置</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ つり合い位置：v は最大、ばねの力は 0</h2>
+  <svg class="fig" data-scene="scene-shm-eq" data-show="velocity" width="100%" role="img" aria-label="つり合い位置での速度を描いた図"></svg>
+  <p>つり合い位置（x = 0）では、ばねは自然長で力は <strong>0</strong> だ。でも速さは最大になる。エネルギー保存（½kA² = ½mv²）から、v<sub>max</sub> = ωA = 10 × 0.10 = <strong>1.0 m/s</strong>。速さが最大のところで力が 0、力が最大のところで速さが 0。この入れ替わりが、単振動のエネルギー（運動エネルギーと弾性エネルギーの交換）そのものだ。</p>
+  <label><input type="checkbox" class="check"> つり合い位置では v = 1.0 m/s で最大、ばねの力は 0 と分かった</label>
+  <br><a class="next" href="#step4">次へ ↓ ④振幅を変えても周期は変わらない</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 振幅を変えても周期は変わらない（動きで見る）</h2>
+  <canvas id="cv" width="720" height="240"></canvas>
+  <p>
+    振幅 <select id="amp"><option value="0.1">0.10 m</option><option value="0.2">0.20 m</option></select>
+    <button id="play">一時停止</button>
+    <button id="restart">はじめから</button>
+  </p>
+  <p id="readout">t = 0.00 s</p>
+  <p class="note">理論値：ω = 10 rad/s、周期 T ≈ 0.63 s（振幅に依らない）。振幅 0.10 m では v<sub>max</sub> = 1.0 m/s、振幅 0.20 m では v<sub>max</sub> = 2.0 m/s。振幅を変えても、1往復にかかる時間は同じだ。速度の矢印（青）は 1 m/s = 30px。単振動は周期運動なので、ループ再生は 1 周期の終わりで最初に戻る。</p>
+  <label><input type="checkbox" class="check"> 振幅を 0.20 m にしても周期は ≈ 0.63 s のままで、v<sub>max</sub> だけが 2.0 m/s になると分かった</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤単振り子</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ 単振り子：T = 2π√(L / g)</h2>
+  <svg class="fig" data-scene="scene-shm-pendulum" data-show="gravity,tension,tangential" width="100%" role="img" aria-label="振り子の重力・張力・接線方向の力を描いた図"></svg>
+  <p>振り子も、振れ角が小さいときは単振動になる。周期は T = 2π√(L / g) = 2π√(1.0 / 10) ≈ <strong>1.99 s（約 2.0 s）</strong>。角振動数は ω = √(g / L) ≈ 3.16 rad/s。振れ角 5° では、弧の長さは Lθ ≈ 0.087 m で、最大の速さは v<sub>max</sub> = ω × 0.087 ≈ <strong>0.28 m/s</strong>。重力を分解すると、糸に沿う成分は張力とつり合って T = mg cosθ ≈ <strong>9.96 N</strong>、接線方向の成分 mg sinθ ≈ <strong>0.87 N</strong> が、おもりをつり合い位置へ戻す力になる。図では接線方向の矢印はとても短いが、それが正しい長さだ（5° では sinθ ≈ 0.087 だから）。この分解が成り立つのは、振れ角が小さいときだけだ。大きく振ると、周期は振幅に依らなくなる。</p>
+  <label><input type="checkbox" class="check"> 振り子の周期 ≈ 2.0 s、張力 ≈ 9.96 N、戻す力 mg sinθ ≈ 0.87 N を求めた</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) ω = 10 rad/s、T ≈ 0.63 s、f ≈ 1.59 Hz、v<sub>max</sub> = 1.0 m/s、a<sub>max</sub> = 10 m/s²。振幅を 0.20 m にしても T は ≈ 0.63 s のままで、v<sub>max</sub> = 2.0 m/s になる。(2) 振り子の周期 ≈ 2.0 s、v<sub>max</sub> ≈ 0.28 m/s、張力 ≈ 9.96 N、戻す力 ≈ 0.87 N。ばねのつり合いは <a href="spring.html">第5問：ばねのつり合い</a>、単振動の考え方は <a href="lc.html">組み合わせD：LC回路＋単振動</a> と <a href="collision-spring.html">組み合わせ問題B：衝突＋ばね</a> でも使う。</p>
+  <p>次は準備中です。<a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script src="../../assets/js/motion.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.shmDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+  // 単振動のループ再生：x = A cos ωt。振幅を変えても周期は同じ。
+  const cv = document.getElementById('cv');
+  const ctx = cv.getContext('2d');
+  const OMEGA = 10;
+  let t = 0, playing = true, last = null;
+  function draw() {
+    const A = Number(document.getElementById('amp').value);
+    const st = shmAt(OMEGA, A, t);
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    const OX = 360, OY = 120, PXPM = 400; // 1m = 400px。A=0.20 m なら 80px。
+    // 壁とつり合い位置
+    ctx.beginPath(); ctx.moveTo(60, 40); ctx.lineTo(60, 200); ctx.strokeStyle = '#333'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = '#333'; ctx.fillText('壁', 30, 32);
+    ctx.beginPath(); ctx.moveTo(OX, OY - 40); ctx.lineTo(OX, OY + 40); ctx.strokeStyle = '#888'; ctx.lineWidth = 1; ctx.setLineDash([4, 3]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = '#888'; ctx.fillText('つり合い位置', OX - 34, OY + 56);
+    const massX = OX + st.x * PXPM;
+    // ばね：壁からおもりまで、コイルをジグザグで描く。
+    ctx.beginPath(); ctx.moveTo(60, OY);
+    const steps = 10;
+    for (let i = 1; i <= steps; i++) {
+      const x = 60 + ((massX - 20 - 60) * i) / steps;
+      const y = i === steps ? OY : (i % 2 === 1 ? OY - 12 : OY + 12);
+      ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = '#333'; ctx.lineWidth = 2; ctx.stroke();
+    // おもり
+    ctx.fillStyle = '#cfe3ff'; ctx.fillRect(massX - 20, OY - 20, 40, 40);
+    ctx.strokeStyle = '#333'; ctx.strokeRect(massX - 20, OY - 20, 40, 40);
+    // 速度ベクトル（青）：1 m/s = 30px。重力はこの図には出てこない（水平面）。
+    ctx.beginPath(); ctx.moveTo(massX, OY); ctx.lineTo(massX + st.v * 30, OY); ctx.strokeStyle = 'blue'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = 'blue'; ctx.fillText('速度 v', massX + st.v * 30 + 6, OY - 6);
+    document.getElementById('readout').textContent =
+      't = ' + st.t.toFixed(2) + ' s　変位 x = ' + st.x.toFixed(2) + ' m　速度 v = ' + st.v.toFixed(2) + ' m/s　周期 T ≈ 0.63 s';
+  }
+  function frame(ts) {
+    if (last === null) last = ts;
+    const dt = Math.min(0.05, (ts - last) / 1000);
+    last = ts;
+    if (playing) {
+      t += dt;
+      if (t >= shmPeriod(OMEGA)) t -= shmPeriod(OMEGA); // 1周期で最初に戻る（ループ再生）
+    }
+    draw();
+    requestAnimationFrame(frame);
+  }
+  document.getElementById('amp').onchange = () => { t = 0; };
+  document.getElementById('play').onclick = (e) => { playing = !playing; e.target.textContent = playing ? '一時停止' : '再生'; last = null; };
+  document.getElementById('restart').onclick = () => { t = 0; };
+  requestAnimationFrame(frame);
+</script>
+</body>
+</html>

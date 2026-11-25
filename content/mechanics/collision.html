@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第12問：運動量・衝突 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>第12問：運動量・衝突</h1>
+<p><strong>問題：</strong>なめらかな水平面の上で、質量 m1 = 2.0 kg の物体 A が速さ v1 = 3.0 m/s で、静止している質量 m2 = 1.0 kg の物体 B に衝突する。(1) 弾性衝突のとき、衝突後の A と B の速さを求めよ。(2) A と B がくっついて一体となって動くとき（完全非弾性衝突）、衝突後の速さと、失われる運動エネルギーを求めよ。外力の力積はないものとする。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js）が下の JSON データから計算して描いている。速度の矢印の長さは速さに比例している（15 px/(m/s)）。速度の矢印は破線で、力ではない。</p>
+<script type="application/json" id="scene-col-before">{"type":"collision","phase":"before","m1Kg":2,"m2Kg":1,"v1Ms":3.0,"vScalePxPerMs":15}</script>
+<script type="application/json" id="scene-col-elastic">{"type":"collision","phase":"elastic","m1Kg":2,"m2Kg":1,"v1Ms":3.0,"vScalePxPerMs":15}</script>
+<script type="application/json" id="scene-col-stick">{"type":"collision","phase":"stick","m1Kg":2,"m2Kg":1,"v1Ms":3.0,"vScalePxPerMs":15}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：衝突は「瞬間」で切り分ける</h2>
+  <p>衝突は、ほんの一瞬の出来事だ。その瞬間だけを切り取ると、運動量保存が使える。衝突の前と後では、別の法則が使える。運動エネルギーは、弾性衝突のときだけ保存する。合体すると、エネルギーは失われる。まず衝突の前を見よう。</p>
+  <svg class="fig" data-scene="scene-col-before" data-show="velocity1" width="100%" role="img" aria-label="衝突前の2つの物体の図"></svg>
+  <p>物体 A が速さ 3.0 m/s で右向きに進み、物体 B は止まっている。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①弾性衝突の速さ</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 弾性衝突：A は 1.0 m/s、B は 4.0 m/s</h2>
+  <svg class="fig" data-scene="scene-col-elastic" data-show="velocity1p,velocity2p" width="100%" role="img" aria-label="弾性衝突後の2つの物体の図"></svg>
+  <p>弾性衝突では、運動量保存とエネルギー保存の2つの式が使える。連立すると、v1' = (m1 − m2) / (m1 + m2) × v1 = (1/3) × 3.0 = <strong>1.0 m/s</strong>、v2' = 2m1 / (m1 + m2) × v1 = (4/3) × 3.0 = <strong>4.0 m/s</strong>。重い A が軽い B を押すと、A は遅くなって前に進み続け、B は A より速く飛び出す。図でも、B の速度の矢印のほうがずっと長い。</p>
+  <label><input type="checkbox" class="check"> 弾性衝突の速さは A が 1.0 m/s、B が 4.0 m/s と求めた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②弾性：運動量もエネルギーも保存</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 弾性：運動量もエネルギーも保存</h2>
+  <svg class="fig" data-scene="scene-col-elastic" data-show="velocity1p,velocity2p" width="100%" role="img" aria-label="弾性衝突後の運動量とエネルギーの図"></svg>
+  <p>運動量は、衝突前 2.0 × 3.0 = <strong>6.0 kg·m/s</strong>、衝突後 2.0 × 1.0 + 1.0 × 4.0 = <strong>6.0 kg·m/s</strong> で変わらない。運動エネルギーも、衝突前 ½ × 2.0 × 9.0 = <strong>9.0 J</strong>、衝突後 ½ × 2.0 × 1.0 + ½ × 1.0 × 16 = 1.0 + 8.0 = <strong>9.0 J</strong> で変わらない。弾性衝突とは、エネルギーが失われない衝突のことだ。</p>
+  <label><input type="checkbox" class="check"> 弾性衝突では運動量 6.0 とエネルギー 9.0 J がどちらも保存すると分かった</label>
+  <br><a class="next" href="#step3">次へ ↓ ③合体：速さは 2.0 m/s</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 合体：速さは 2.0 m/s、運動量は保存</h2>
+  <svg class="fig" data-scene="scene-col-stick" data-show="velocityStick" width="100%" role="img" aria-label="合体した後の物体の図"></svg>
+  <p>2つの物体がくっつくと、1つの物体（質量 3.0 kg）になって動く。運動量保存だけを使えば、v' = m1v1 / (m1 + m2) = 6.0 / 3.0 = <strong>2.0 m/s</strong>。運動量は、衝突前 6.0、衝突後 3.0 × 2.0 = 6.0 で変わらない。合体しても、運動量は保存する。ここまでは弾性衝突と同じだ。</p>
+  <label><input type="checkbox" class="check"> 合体後の速さは 2.0 m/s で、運動量は 6.0 のまま保存すると分かった</label>
+  <br><a class="next" href="#step4">次へ ↓ ④合体：エネルギーは失われる</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 合体：エネルギーは 3.0 J 失われる</h2>
+  <svg class="fig" data-scene="scene-col-stick" data-show="velocityStick" width="100%" role="img" aria-label="合体後のエネルギーの図"></svg>
+  <p>合体後の運動エネルギーは ½ × 3.0 × 4.0 = <strong>6.0 J</strong>。衝突前の 9.0 J より <strong>3.0 J 少ない</strong>。失われたエネルギーは、物体の変形や熱になった。だから、合体の問題でエネルギー保存を使ってはいけない。運動量は保存、エネルギーは保存しない。ここがこの問題の中心の罠だ。エネルギー保存を衝突の瞬間をまたいで使うと、答えが変わってしまう。</p>
+  <label><input type="checkbox" class="check"> 合体ではエネルギーが 9.0 J から 6.0 J になり、3.0 J 失われると分かった</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ：保存則を使う場面を間違えない</h2>
+  <svg class="fig" data-scene="scene-col-before" data-show="velocity1" width="100%" role="img" aria-label="衝突のまとめの図"></svg>
+  <p>衝突の問題は、まず「弾性か、合体か」を決める。運動量保存は、衝突の瞬間にはいつでも使える（外力の力積がなければ）。エネルギー保存は、弾性衝突のときだけ使える。合体のときは、エネルギーは失われる。速度の向きにも注意しよう。運動量はベクトルで、向きを逆にすると符号が変わる。</p>
+  <label><input type="checkbox" class="check"> 運動量はいつでも保存、エネルギーは弾性のときだけ保存、と分かった</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 弾性衝突では A が 1.0 m/s、B が 4.0 m/s。運動量 6.0 kg·m/s、エネルギー 9.0 J はどちらも保存する。(2) 合体では速さ 2.0 m/s、運動量は 6.0 のまま保存するが、エネルギーは 9.0 J から 6.0 J になり、3.0 J 失われる。衝突のあとにばねを押し縮める問題は <a href="collision-spring.html">組み合わせ問題B：衝突＋ばね</a> で扱う。橋渡し量は衝突直後の速さ v' = 2.0 m/s だ。</p>
+  <p>次は準備中です。<a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.collisionDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
