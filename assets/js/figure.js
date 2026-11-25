@@ -1,4 +1,4 @@
-// 高校物理攻略 — 図描画シミュレータ（試作 v1.3：単一モデル 熱量・比熱・空気抵抗・終端速度・放射性崩壊 追加）
+// 高校物理攻略 — 図描画シミュレータ（試作 v1.4：単一モデル 剛体のモーメント・ソレノイド・RL/RC過渡現象 追加）
 // 方針：図は手書きの座標を直書きしない。入力は JSON の「物理データ」だけ。
 // 描画側が角度・つり合いから矢印の向きと長さを計算する。
 // だから mg sinθ が mg と同じ長さになる、θ が消える、ラベルが切れる、
@@ -1282,6 +1282,92 @@ function decayForces(data) {
   return []; // 崩壊曲線と年代の棒は drawBase で式から描く。力の矢印はない。
 }
 
+// ---- 剛体のモーメント（M15）：てこのつり合い。モーメント = 力 × 支点からの距離 ----
+// 具体値（検算済み）：板の長さ 4.0 m、質量 10 kg（重さ 100 N）、支点は左端から 1.5 m。
+//   子ども 20 kg（200 N）が左端にのる。板の重心は支点から右へ 0.5 m、右端は支点から 2.5 m。
+//   子どものモーメント 200×1.5=300 N·m（反時計回り）、板の重さのモーメント 100×0.5=50 N·m（時計回り）。
+//   つり合うには右端で F×2.5=300−50=250 → F=100 N（下向き）。
+//   支点の垂直抗力 N=200+100+100=400 N（上向き）。
+// 罠：力の大きさだけでは決まらない。支点からの距離（うで）がモーメントを決める。
+//   子どもが支点に近づけば、同じ 200 N でもモーメントは小さくなる。
+function momentDerived(data) {
+  const g = data.g;
+  const childN = data.childMassKg * g;
+  const boardN = data.boardMassKg * g;
+  const childArmM = data.pivotFromLeftM;
+  const boardArmM = data.boardLengthM / 2 - data.pivotFromLeftM;
+  const rightArmM = data.boardLengthM - data.pivotFromLeftM;
+  const momentChild = childN * childArmM;
+  const momentBoard = boardN * boardArmM;
+  const netMoment = momentChild - momentBoard;
+  const fN = netMoment / rightArmM;
+  const normalN = childN + boardN + fN;
+  return { childN, boardN, childArmM, boardArmM, rightArmM, momentChild, momentBoard, netMoment, fN, normalN };
+}
+
+function momentForces(data) {
+  const d = momentDerived(data);
+  const fScale = 0.25; // px/N
+  return [
+    { id: 'child', short: '200 N', color: '#d35400', vector: [0, d.childN * fScale], dashed: false, labelDx: 6, labelDy: -6, from: { x: 60, y: 210 } },
+    { id: 'board', short: '100 N', color: 'red', vector: [0, d.boardN * fScale], dashed: false, labelDx: 6, labelDy: -6, from: { x: 200, y: 210 } },
+    { id: 'push', short: 'F=100 N', color: 'blue', vector: [0, d.fN * fScale], dashed: false, labelDx: -70, labelDy: -6, from: { x: 340, y: 210 } },
+    { id: 'normal', short: 'N=400 N', color: 'green', vector: [0, -d.normalN * fScale], dashed: false, labelDx: 6, labelDy: -6, from: { x: 165, y: 210 } },
+  ];
+}
+
+// ---- ソレノイド・コイルの磁場（E8）：B=μ0nI、1 巻きのコイルの中心 B=μ0I/2r ----
+// 具体値（検算済み、μ0=4π×10⁻⁷）：巻き数密度 n=1000 /m（全 200 回、長さ 0.20 m）、I=2.0 A。
+//   ソレノイド内部 B=μ0nI≈2.5×10⁻³ T（2.5 mT）。電流を 4.0 A にすると B≈5.0 mT（2 倍）。
+//   1 巻きのコイル（r=0.050 m）の中心 B=μ0I/2r≈2.5×10⁻⁵ T（25 μT）。ソレノイドは約 100 倍強い。
+// 罠：B は巻き数そのものではなく、単位長さあたりの巻き数 n で決まる。長さを 2 倍にして
+//   巻き数を同じにすると n は半分になり、B も半分になる。
+function solenoidDerived(data) {
+  const mu0 = 4 * Math.PI * 1e-7;
+  const bT = mu0 * data.turnsPerM * data.currentA;
+  const nFromTotal = data.totalTurns / data.lengthM;
+  const bDoubleI = mu0 * data.turnsPerM * (2 * data.currentA);
+  const coilB = mu0 * data.currentA / (2 * data.coilRadiusM);
+  const ratio = bT / coilB;
+  return { mu0, bT, nFromTotal, bDoubleI, coilB, ratio };
+}
+
+function solenoidForces(data) {
+  const d = solenoidDerived(data);
+  const bScale = 30000; // px/T（2.5 mT → 約 75 px）
+  return [
+    { id: 'field', short: 'B≈' + (d.bT * 1000).toFixed(1) + ' mT', color: '#b00', vector: [d.bT * bScale, 0], dashed: false, labelDx: 6, labelDy: -50, from: { x: 120, y: 150 } },
+  ];
+}
+
+// ---- RL・RC 回路の過渡現象（E7）：時定数 τ=RC・L/R、指数関数的な変化 ----
+// 具体値（検算済み）：RC は E=10 V、R=1000 Ω、C=100 μF → τ=RC=0.10 s。充電：
+//   Vc(τ)=10(1−1/e)≈6.3 V、Vc(2τ)≈8.6 V、Vc(3τ)≈9.5 V。放電：Vc(τ)=10/e≈3.7 V。
+//   充電のはじめの電流 I0=E/R=10 mA（コンデンサの電圧は 0 なので、全部 R にかかる）。
+//   RL は E=10 V、R=10 Ω、L=1.0 H → τ=L/R=0.10 s。最終電流 I∞=E/R=1.0 A。
+//   I(τ)≈0.63 A、I(2τ)≈0.86 A、I(3τ)≈0.95 A。RC と RL で τ が同じなので、曲線の形も同じ。
+// 罠：コンデンサの電圧は急に変わらない（スイッチを入れた瞬間 Vc=0）。コイルの電流も
+//   急に変わらない（スイッチを入れた瞬間 I=0）。「τ で 63%」は、e^-1≈0.37 が残ること。
+function transientDerived(data) {
+  const tauRC = data.rOhm * data.cF;
+  const tauRL = data.lH / data.rlROhm;
+  const vcTau = data.emfV * (1 - Math.exp(-1));
+  const vc2Tau = data.emfV * (1 - Math.exp(-2));
+  const vc3Tau = data.emfV * (1 - Math.exp(-3));
+  const vdTau = data.emfV * Math.exp(-1);
+  const vd2Tau = data.emfV * Math.exp(-2);
+  const iInf = data.emfV / data.rlROhm;
+  const iTau = iInf * (1 - Math.exp(-1));
+  const i2Tau = iInf * (1 - Math.exp(-2));
+  const i3Tau = iInf * (1 - Math.exp(-3));
+  const i0RC = data.emfV / data.rOhm;
+  return { tauRC, tauRL, vcTau, vc2Tau, vc3Tau, vdTau, vd2Tau, iInf, iTau, i2Tau, i3Tau, i0RC };
+}
+
+function transientForces(data) {
+  return []; // 回路図と指数曲線は drawBase で式から描く。力の矢印はない。
+}
+
 function sceneFor(type, thetaDeg, mgPx, fPx, data) {
   if (type === 'dcCircuit') {
     const d = dcCircuitDerived(data);
@@ -1379,6 +1465,38 @@ function sceneFor(type, thetaDeg, mgPx, fPx, data) {
       derived: d,
       center: { x: 200, y: 180 }, centerDot: false,
       forces: decayForces(data),
+    };
+  }
+  if (type === 'moment') {
+    const d = momentDerived(data);
+    return {
+      type, phase: data.phase || 'base',
+      childMassKg: data.childMassKg, boardMassKg: data.boardMassKg, g: data.g,
+      pivotFromLeftM: data.pivotFromLeftM, boardLengthM: data.boardLengthM,
+      derived: d,
+      center: { x: 200, y: 210 }, centerDot: false,
+      forces: momentForces(data),
+    };
+  }
+  if (type === 'solenoid') {
+    const d = solenoidDerived(data);
+    return {
+      type, phase: data.phase || 'base',
+      turnsPerM: data.turnsPerM, currentA: data.currentA, coilRadiusM: data.coilRadiusM,
+      totalTurns: data.totalTurns, lengthM: data.lengthM,
+      derived: d,
+      center: { x: 200, y: 150 }, centerDot: false,
+      forces: solenoidForces(data),
+    };
+  }
+  if (type === 'transient') {
+    const d = transientDerived(data);
+    return {
+      type, phase: data.phase || 'circuit',
+      emfV: data.emfV, rOhm: data.rOhm, cF: data.cF, lH: data.lH, rlROhm: data.rlROhm,
+      derived: d,
+      center: { x: 200, y: 180 }, centerDot: false,
+      forces: transientForces(data),
     };
   }
   if (type === 'heatCycle') {
@@ -2207,6 +2325,45 @@ function validateScene(scene) {
     // 年代測定：残った割合から半減期の回数を数える。
     if (Math.abs(d.halfLives - (-Math.log2(scene.measuredFraction))) > 1e-9) return ['残った割合からの半減期の回数が一致しません'];
     if (Math.abs(d.ageYr - d.halfLives * scene.carbonHalfLifeYr) > 1e-9) return ['年代が半減期の回数×5730 年と一致しません'];
+  }
+  if (scene.type === 'moment') {
+    const d = scene.derived;
+    // 子どものモーメント 200×1.5=300 N·m、板の重さのモーメント 100×0.5=50 N·m。
+    if (Math.abs(d.momentChild - d.childN * d.childArmM) > 1e-9) return ['子どものモーメントが一致しません'];
+    if (Math.abs(d.momentBoard - d.boardN * d.boardArmM) > 1e-9) return ['板の重さのモーメントが一致しません'];
+    // つり合い：F×2.5=300−50=250。力のつり合い：N=200+100+100=400。
+    if (Math.abs(d.fN * d.rightArmM - (d.momentChild - d.momentBoard)) > 1e-9) return ['F のモーメントがつり合っていません'];
+    if (Math.abs(d.normalN - (d.childN + d.boardN + d.fN)) > 1e-9) return ['支点の垂直抗力が力のつり合いと一致しません'];
+    // 矢印の長さ：0.25 px/N。
+    if (byId.child && Math.abs(byId.child.vector[1] - d.childN * 0.25) > 0.5) return ['子どもの重さの矢印が長さと一致しません'];
+    if (byId.push && Math.abs(byId.push.vector[1] - d.fN * 0.25) > 0.5) return ['F の矢印が長さと一致しません'];
+    if (byId.normal && Math.abs(-byId.normal.vector[1] - d.normalN * 0.25) > 0.5) return ['垂直抗力の矢印が長さと一致しません'];
+  }
+  if (scene.type === 'solenoid') {
+    const d = scene.derived;
+    // ソレノイド内部 B=μ0nI、1 巻きのコイルの中心 B=μ0I/2r、比は 100。
+    if (Math.abs(d.bT - d.mu0 * scene.turnsPerM * scene.currentA) / d.bT > 1e-9) return ['ソレノイドの磁場が μ0nI と一致しません'];
+    if (Math.abs(d.nFromTotal - scene.totalTurns / scene.lengthM) > 1e-9) return ['巻き数密度が全巻き数/長さと一致しません'];
+    if (Math.abs(d.bDoubleI - 2 * d.bT) > 1e-12) return ['電流 2 倍の磁場が 2 倍になっていません'];
+    if (Math.abs(d.coilB - d.mu0 * scene.currentA / (2 * scene.coilRadiusM)) / d.coilB > 1e-9) return ['1 巻きコイルの磁場が μ0I/2r と一致しません'];
+    if (Math.abs(d.ratio - 100) > 1e-9) return ['ソレノイドと 1 巻きコイルの磁場の比が 100 になっていません'];
+    // 磁場の矢印の長さ：30000 px/T。
+    if (byId.field && Math.abs(byId.field.vector[0] - d.bT * 30000) > 0.5) return ['磁場の矢印が B の縮尺と一致しません'];
+  }
+  if (scene.type === 'transient') {
+    const d = scene.derived;
+    // 時定数 τ=RC と τ=L/R。どちらも 0.10 s。
+    if (Math.abs(d.tauRC - scene.rOhm * scene.cF) > 1e-12) return ['RC の時定数が RC と一致しません'];
+    if (Math.abs(d.tauRL - scene.lH / scene.rlROhm) > 1e-12) return ['RL の時定数が L/R と一致しません'];
+    // 充電：τ で 63%、2τ で 86%、3τ で 95%。放電：τ で 37%。
+    if (Math.abs(d.vcTau - scene.emfV * (1 - Math.exp(-1))) > 1e-9) return ['充電 τ 後の電圧が一致しません'];
+    if (Math.abs(d.vc2Tau - scene.emfV * (1 - Math.exp(-2))) > 1e-9) return ['充電 2τ 後の電圧が一致しません'];
+    if (Math.abs(d.vc3Tau - scene.emfV * (1 - Math.exp(-3))) > 1e-9) return ['充電 3τ 後の電圧が一致しません'];
+    if (Math.abs(d.vdTau - scene.emfV * Math.exp(-1)) > 1e-9) return ['放電 τ 後の電圧が一致しません'];
+    // RL：最終電流 1.0 A、τ で 0.63 A。充電のはじめの電流 10 mA。
+    if (Math.abs(d.iInf - scene.emfV / scene.rlROhm) > 1e-9) return ['RL の最終電流が E/R と一致しません'];
+    if (Math.abs(d.iTau - d.iInf * (1 - Math.exp(-1))) > 1e-9) return ['RL τ 後の電流が一致しません'];
+    if (Math.abs(d.i0RC - scene.emfV / scene.rOhm) > 1e-9) return ['充電のはじめの電流が E/R と一致しません'];
   }
   return [];
 }
@@ -3179,6 +3336,135 @@ function drawBase(svg, scene) {
       // N 軸ラベルは見出しと重ならないよう、下へ出す。
       const tN = el('text', { x: 30, y: 60 }); tN.textContent = 'N'; svg.appendChild(tN);
     }
+  } else if (scene.type === 'moment') {
+    const tH = el('text', { x: 40, y: 36, fill: '#555' });
+    tH.textContent = scene.phase === 'child' ? '子ども 200 N が左端にのる'
+      : scene.phase === 'weight' ? '板の重さ 100 N は中心にはたらく'
+      : scene.phase === 'balance' ? 'モーメントのつり合い：F を求める'
+      : scene.phase === 'summary' ? 'まとめ：モーメント = 力 × うで'
+      : '板（4.0 m）と支点：力のモーメントを考える';
+    svg.appendChild(tH);
+    // 板：x=60〜340 が 4.0 m（70 px/m）。支点は左端から 1.5 m（x=165）、板の中心は x=200。
+    svg.appendChild(el('line', { x1: 60, y1: 210, x2: 340, y2: 210, stroke: '#333', 'stroke-width': 3 }));
+    svg.appendChild(el('polygon', { points: '150,250 180,250 165,210', fill: '#eee', stroke: '#333', 'stroke-width': 2 }));
+    const tP = el('text', { x: 135, y: 270 }); tP.textContent = '支点'; svg.appendChild(tP);
+    // 子ども：左端の上にのる箱。
+    svg.appendChild(el('rect', { x: 40, y: 170, width: 40, height: 40, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+    const tC = el('text', { x: 28, y: 160 }); tC.textContent = '子ども'; svg.appendChild(tC);
+    const tB = el('text', { x: 250, y: 196 }); tB.textContent = '板（4.0 m）'; svg.appendChild(tB);
+    if (scene.phase === 'summary') {
+      // モーメントの値を板の下に並べる。
+      const t1 = el('text', { x: 60, y: 285, fill: '#d35400' }); t1.textContent = '300 N·m'; svg.appendChild(t1);
+      const t2 = el('text', { x: 185, y: 285, fill: 'red' }); t2.textContent = '50 N·m'; svg.appendChild(t2);
+      const t3 = el('text', { x: 290, y: 285, fill: 'blue' }); t3.textContent = '250 N·m'; svg.appendChild(t3);
+    }
+  } else if (scene.type === 'solenoid') {
+    if (scene.phase === 'coil') {
+      // 1 巻きのコイル：円の中心の磁場は紙面の裏向き（×印）。
+      const tH = el('text', { x: 40, y: 36, fill: '#555' }); tH.textContent = '1 巻きのコイルの中心の磁場'; svg.appendChild(tH);
+      svg.appendChild(el('circle', { cx: 200, cy: 150, r: 60, fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      // 電流の向き：円の上を右向きに流れる矢印。
+      svg.appendChild(el('path', { d: 'M 158 108 A 60 60 0 0 1 242 108', fill: 'none', stroke: '#d35400', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+      const tI = el('text', { x: 248, y: 100, fill: '#d35400' }); tI.textContent = 'I=2.0 A'; svg.appendChild(tI);
+      // 中心の磁場（裏向き）の × 印。
+      svg.appendChild(el('line', { x1: 192, y1: 142, x2: 208, y2: 158, stroke: '#b00', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 208, y1: 142, x2: 192, y2: 158, stroke: '#b00', 'stroke-width': 2 }));
+      const tB = el('text', { x: 200, y: 185, fill: '#b00' }); tB.textContent = 'B≈25 μT（裏向き）'; svg.appendChild(tB);
+      // 半径 r=0.050 m：中心から上への破線。
+      svg.appendChild(el('line', { x1: 200, y1: 150, x2: 200, y2: 90, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      const tR = el('text', { x: 250, y: 76, fill: '#555' }); tR.textContent = 'r=0.050 m'; svg.appendChild(tR);
+    } else {
+      const tH = el('text', { x: 40, y: 36, fill: '#555' });
+      tH.textContent = scene.phase === 'field' ? '中の磁場はほぼ一様：B = μ₀nI'
+        : scene.phase === 'current' ? '電流 4.0 A にすると B は 2 倍'
+        : scene.phase === 'summary' ? 'まとめ：B は n と I に比例する'
+        : 'ソレノイド：コイルを巻いたもの';
+      svg.appendChild(tH);
+      // コイル：8 個の楕円ループ（横から見たソレノイド）。上下の導線でつなぐ。
+      for (let i = 0; i < 8; i++) {
+        const cx = 100 + i * 30;
+        svg.appendChild(el('ellipse', { cx, cy: 150, rx: 10, ry: 42, fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      }
+      svg.appendChild(el('line', { x1: 100, y1: 108, x2: 310, y2: 108, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 100, y1: 192, x2: 310, y2: 192, stroke: '#333', 'stroke-width': 2 }));
+      const tN = el('text', { x: 40, y: 100, fill: '#555' }); tN.textContent = 'n=1000 /m'; svg.appendChild(tN);
+      const tI = el('text', { x: 320, y: 100 }); tI.textContent = 'I=' + scene.currentA.toFixed(1) + ' A'; svg.appendChild(tI);
+      const tL = el('text', { x: 40, y: 230, fill: '#555' }); tL.textContent = '長さ 0.20 m・全 200 回'; svg.appendChild(tL);
+      const tB = el('text', { x: 180, y: 220, fill: '#b00' }); tB.textContent = '中の磁場 B'; svg.appendChild(tB);
+    }
+  } else if (scene.type === 'transient') {
+    const d = scene.derived;
+    if (scene.phase === 'circuit') {
+      // RC 回路図：電池・抵抗・コンデンサ・スイッチの四角い回路。
+      const tH = el('text', { x: 40, y: 36, fill: '#555' }); tH.textContent = 'RC 回路：電池・抵抗・コンデンサ'; svg.appendChild(tH);
+      svg.appendChild(el('line', { x1: 80, y1: 100, x2: 140, y2: 100, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 210, y1: 100, x2: 320, y2: 100, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 320, y1: 100, x2: 320, y2: 220, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 320, y1: 220, x2: 80, y2: 220, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 80, y1: 220, x2: 80, y2: 100, stroke: '#333', 'stroke-width': 2 }));
+      // 電池（左の辺）：長い線と短い太い線。
+      svg.appendChild(el('line', { x1: 68, y1: 150, x2: 92, y2: 150, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 72, y1: 162, x2: 88, y2: 162, stroke: '#333', 'stroke-width': 4 }));
+      const tE = el('text', { x: 100, y: 160 }); tE.textContent = 'E=10 V'; svg.appendChild(tE);
+      // 抵抗（上の辺）：ジグザグ。
+      svg.appendChild(el('polyline', { points: '140,100 150,88 160,112 170,88 180,112 190,88 200,112 210,100', fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      const tR = el('text', { x: 150, y: 78 }); tR.textContent = 'R=1000 Ω'; svg.appendChild(tR);
+      // コンデンサ（右の辺）：2 枚の平行板。
+      svg.appendChild(el('line', { x1: 300, y1: 140, x2: 340, y2: 140, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 300, y1: 152, x2: 340, y2: 152, stroke: '#333', 'stroke-width': 2 }));
+      const tC = el('text', { x: 250, y: 130 }); tC.textContent = 'C=100 μF'; svg.appendChild(tC);
+      // スイッチ（下の辺）：開いたスイッチ。
+      svg.appendChild(el('line', { x1: 180, y1: 220, x2: 215, y2: 205, stroke: '#333', 'stroke-width': 2 }));
+      const tS = el('text', { x: 180, y: 245 }); tS.textContent = 'スイッチ'; svg.appendChild(tS);
+    } else {
+      // 指数曲線のグラフ：充電・放電・RL・まとめで共通の軸を使う。
+      // 充電：Vc=10(1−e^(−t/0.1))、放電：Vc=10e^(−t/0.1)、RL：I=1.0(1−e^(−t/0.1))。
+      const x0 = 60, x1 = 340, y0 = 240, y1 = 40;
+      const tx = (t) => x0 + (t / 0.30) * (x1 - x0);
+      const isDischarge = scene.phase === 'discharge';
+      const isRL = scene.phase === 'rl';
+      const yOf = (v) => y0 - (v / (isRL ? 1.0 : 10)) * (y0 - y1);
+      const val = (t) => isDischarge ? scene.emfV * Math.exp(-t / d.tauRC)
+        : isRL ? d.iInf * (1 - Math.exp(-t / d.tauRL))
+        : scene.emfV * (1 - Math.exp(-t / d.tauRC));
+      const tH = el('text', { x: 40, y: 36, fill: '#555' });
+      tH.textContent = isDischarge ? '放電：Vc は 0 に近づく'
+        : isRL ? 'コイルの電流：急には流れない'
+        : scene.phase === 'summary' ? 'まとめ：τ で 63%、3τ で 95%'
+        : '充電：Vc は 10 V に近づく';
+      svg.appendChild(tH);
+      svg.appendChild(el('line', { x1: x0, y1: y0, x2: x1, y2: y0, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: x0, y1: y1, x2: x0, y2: y0, stroke: '#333', 'stroke-width': 1.5 }));
+      // 最終値の破線（充電・RL は上、放電は 0 の軸そのもの）。
+      if (!isDischarge) {
+        svg.appendChild(el('line', { x1: x0, y1: y1, x2: x1, y2: y1, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+        const tE = el('text', { x: 345, y: y1 + 18, fill: '#555' }); tE.textContent = isRL ? 'I=1.0 A' : 'E=10 V'; svg.appendChild(tE);
+      }
+      // 目盛り：0.1 s ごと。
+      for (const [t, label] of [[0.1, '0.1'], [0.2, '0.2'], [0.3, '0.3']]) {
+        svg.appendChild(el('line', { x1: tx(t), y1: y0 - 4, x2: tx(t), y2: y0 + 4, stroke: '#333', 'stroke-width': 1.5 }));
+        const tt = el('text', { x: tx(t) - 8, y: y0 + 22 }); tt.textContent = label; svg.appendChild(tt);
+      }
+      const tA = el('text', { x: 345, y: y0 + 4 }); tA.textContent = 't（s）'; svg.appendChild(tA);
+      const tV = el('text', { x: 34, y: 56 }); tV.textContent = isRL ? 'I' : 'V'; svg.appendChild(tV);
+      // 曲線：式から 100 点で描く。
+      let p = '';
+      for (let i = 0; i <= 100; i++) {
+        const t = (i / 100) * 0.30;
+        p += (p ? ' L ' : 'M ') + tx(t).toFixed(1) + ' ' + yOf(val(t)).toFixed(1);
+      }
+      svg.appendChild(el('path', { d: p, fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
+      // τ・2τ・3τ の点と値（ラベルは曲線の上に置く）。
+      const pts = isDischarge
+        ? [[0.1, '3.7 V', d.vdTau], [0.2, '1.4 V', d.vd2Tau]]
+        : isRL
+        ? [[0.1, '0.63 A', d.iTau], [0.2, '0.86 A', d.i2Tau], [0.3, '0.95 A', d.i3Tau]]
+        : [[0.1, '6.3 V', d.vcTau], [0.2, '8.6 V', d.vc2Tau], [0.3, '9.5 V', d.vc3Tau]];
+      for (const [t, label, v] of pts) {
+        svg.appendChild(el('circle', { cx: tx(t), cy: yOf(v), r: 4, fill: '#b00' }));
+        const tt = el('text', { x: tx(t) + 7, y: yOf(v) - 12, fill: '#b00' }); tt.textContent = label; svg.appendChild(tt);
+      }
+    }
   } else if (scene.type === 'ladder') {
     svg.appendChild(el('line', { x1: 80, y1: 20, x2: 80, y2: 260, stroke: '#333', 'stroke-width': 3 }));
     svg.appendChild(el('line', { x1: 80, y1: 260, x2: 380, y2: 260, stroke: '#333', 'stroke-width': 3 }));
@@ -3238,4 +3524,4 @@ function renderAllFigures() {
   });
 }
 
-if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, sceneFor, validateScene, renderFigure };
+if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, sceneFor, validateScene, renderFigure };
