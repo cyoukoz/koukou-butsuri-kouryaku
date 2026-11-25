@@ -292,6 +292,20 @@
 </div>
 
 <div class="card">
+  <h2>組み合わせ問題AG：地球を貫くトンネル</h2>
+  <p>地球は半径 6.4×10⁶ m の一様な球で、表面の重力は 10 m/s² とする。中心を通るトンネルに玉を落とすと、地球の内部では重力が中心からの距離に比例するので、玉は単振動になる。角振動数は √(g/R) ≈ 1.25×10⁻³ rad/s、周期は約 84 分、中心での速さは 8.0 km/s になる。中心から 0.60R 離れた弦のトンネルでも周期は同じ 84 分だ。g を一定とすると 27 分・16 km/s になってしまう罠があり、低軌道の人工衛星の周期（84 分）と同じになる。橋渡し量は「速さと位置エネルギー」。</p>
+  <p><a href="content/mechanics/earth-tunnel.html">地球を貫くトンネルのドリルを開く →</a></p>
+  <p id="progress-combo-earth-tunnel">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>組み合わせ問題AH：ヒーターで気体をふくらませる</h2>
+  <p>抵抗 10 Ω のヒーターに電池 10 V をつなぐと、電流は 1.0 A、電力は 10 W、10 s で 100 J のジュール熱が出る。その熱がヘリウム気体（0.040 mol）に入ると、等圧膨張で温度は 120 K 上がって 420 K になり、体積は 0.40 L ふえてピストンは 0.040 m 上がる。熱 100 J は内部エネルギーの増加 60 J と仕事 40 J に分かれる。ピストンを固定すると ΔT は 200 K になる罠があり、電流を 2 倍にすると電力は 4 倍になる。橋渡し量は「ジュール熱」。</p>
+  <p><a href="content/mechanics/heater-gas.html">ヒーターで気体をふくらませるドリルを開く →</a></p>
+  <p id="progress-combo-heater-gas">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
   <h2>第7問：気体＋ピストン</h2>
   <p>シリンダーにピストンがのっている。ピストンの力のつり合いから気体の圧力を、状態方程式から体積と高さを求める。加熱するとピストンが上がる等圧変化で、仕事・内部エネルギー・熱を区別しよう。</p>
   <p><a href="content/mechanics/gas-piston.html">気体＋ピストンのドリルを開く →</a></p>
@@ -574,6 +588,10 @@
       p.comboGasPistonOscDone ? '進捗：組み合わせ問題AE・気体ピストンの断熱振動を完了済み ✓' : '進捗：まだ組み合わせ問題AE・気体ピストンの断熱振動は未完了';
     document.getElementById('progress-combo-photo-circle').textContent =
       p.comboPhotoCircleDone ? '進捗：組み合わせ問題AF・光電効果＋磁場円運動を完了済み ✓' : '進捗：まだ組み合わせ問題AF・光電効果＋磁場円運動は未完了';
+    document.getElementById('progress-combo-earth-tunnel').textContent =
+      p.comboEarthTunnelDone ? '進捗：組み合わせ問題AG・地球を貫くトンネルを完了済み ✓' : '進捗：まだ組み合わせ問題AG・地球を貫くトンネルは未完了';
+    document.getElementById('progress-combo-heater-gas').textContent =
+      p.comboHeaterGasDone ? '進捗：組み合わせ問題AH・ヒーターで気体をふくらませるを完了済み ✓' : '進捗：まだ組み合わせ問題AH・ヒーターで気体をふくらませるは未完了';
     document.getElementById('progress-gas-piston').textContent =
       p.gasPistonDone ? '進捗：第7問・気体＋ピストンを完了済み ✓' : '進捗：まだ第7問・気体＋ピストンは未完了';
     document.getElementById('progress-young').textContent =
@@ -665,6 +683,8 @@
     document.getElementById('progress-combo-pendulum-spring').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-gas-piston-osc').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-photo-circle').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-earth-tunnel').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-heater-gas').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-gas-piston').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-young').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-capacitor').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';

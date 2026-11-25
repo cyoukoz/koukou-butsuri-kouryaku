@@ -1,4 +1,4 @@
-// 高校物理攻略 — 図描画シミュレータ（試作 v2.9：組み合わせAE 気体ピストンの断熱振動・組み合わせAF 光電効果＋磁場円運動 追加）
+// 高校物理攻略 — 図描画シミュレータ（試作 v3.0：組み合わせAG 地球を貫くトンネル・組み合わせAH ヒーター＋気体 追加）
 // 方針：図は手書きの座標を直書きしない。入力は JSON の「物理データ」だけ。
 // 描画側が角度・つり合いから矢印の向きと長さを計算する。
 // だから mg sinθ が mg と同じ長さになる、θ が消える、ラベルが切れる、
@@ -2054,6 +2054,112 @@ function photoCircleForces(data) {
   ];
 }
 
+// ---- 組み合わせAG：地球を貫くトンネル（万有引力＋単振動＋エネルギー）----
+// 地球を一様な球とみなす。内部では重力が中心からの距離に比例する（g(r) = g·r/R）。
+// トンネル内の落下は単振動になる（ω = √(g/R)、T ≈ 84分）。低軌道の周期と同じ。
+function earthTunnelDerived(data) {
+  const R = data.rM, g = data.g || 10, m = data.mKg || 1.0;
+  const gm = g * R * R; // GM = gR²（Q13・組み合わせYと同じ 4.096×10¹⁴）
+  const omega = Math.sqrt(g / R);
+  const periodS = (2 * Math.PI) / omega;
+  const vMaxMs = omega * R; // = √(gR)、低軌道の速さと同じ
+  const tQuarterS = periodS / 4;
+  const tHalfS = periodS / 2;
+  const uSurfJ = (-gm * m) / R; // = −mgR
+  const uCenterJ = (-1.5 * gm * m) / R; // = −(3/2)mgR
+  const keCenterJ = uSurfJ - uCenterJ; // = (1/2)mgR
+  // 弦のトンネル：中心からの距離 d、半分の長さ L = √(R²−d²)、周期は同じ。
+  const dM = (data.chordD || 0.6) * R;
+  const chordHalfM = Math.sqrt(R * R - dM * dM);
+  const chordVMaxMs = omega * chordHalfM;
+  // 罠：g を一定とすると、直径を落ちる時間は √(2·2R/g)、中心の速さは √(2g·2R)。
+  const constGT = Math.sqrt((2 * 2 * R) / g);
+  const constGV = Math.sqrt(2 * g * 2 * R);
+  return {
+    gm, omega, periodS, vMaxMs, tQuarterS, tHalfS,
+    uSurfJ, uCenterJ, keCenterJ,
+    dM, chordHalfM, chordVMaxMs, constGT, constGV,
+    circle: { x: 200, y: 150, r: 85 },
+  };
+}
+function earthTunnelForces(data) {
+  const phase = (data && data.phase) || 'base';
+  if (phase === 'base') {
+    // 表面の玉にはたらく重力（下向き）。矢印は玉の中心から 30 px。
+    // ラベルは左の空きに置く（円の輪郭・トンネルの線・半径の目印と重ならないよう）。
+    return [
+      { id: 'gravity', short: '重力 mg', color: 'red', vector: [0, 30], labelDx: -140, labelDy: 12, from: { x: 200, y: 65 } },
+    ];
+  }
+  if (phase === 'shm') {
+    // 中心の玉の速さ 8.0 km/s（右向き、破線）。トンネルは水平にとってある。
+    // ラベルは矢印の上に置く（玉の上端から 10 px 空ける）。
+    return [
+      { id: 'velocity', short: 'v=8.0 km/s', color: '#d35400', vector: [40, 0], dashed: true, labelDx: -55, labelDy: -20, from: { x: 200, y: 150 } },
+    ];
+  }
+  return [];
+}
+
+// ---- 組み合わせAH：ヒーターで気体をふくらませる（直流回路＋気体＋仕事・エネルギー）----
+// 抵抗（ヒーター）に電流を流すとジュール熱が出て、気体に入る。
+// ピストンが動ける（等圧変化）とき、熱は内部エネルギーの増加と仕事に分かれる（Q = ΔU + W）。
+const AH_R = 8.31; // J/(mol·K)
+function heaterGasDerived(data) {
+  const n = data.nMol, p0 = data.p0Pa, S = data.sM2, V0 = data.v0M3, T0 = data.t0K;
+  const gamma = data.gamma || 5 / 3;
+  const iA = data.vV / data.rOhm;
+  const pW = data.vV * iA;
+  const qJ = pW * data.tS;
+  const cpJ = (gamma / (gamma - 1)) * AH_R; // モル定圧熱容量（単原子分子なら (5/2)R）
+  const cvJ = (1 / (gamma - 1)) * AH_R; // モル定積熱容量（単原子分子なら (3/2)R）
+  const dTK = qJ / (n * cpJ);
+  const t1K = T0 + dTK;
+  const wJ = n * AH_R * dTK; // 等圧変化の仕事 pΔV = nRΔT
+  const duJ = n * cvJ * dTK;
+  const dVM3 = (n * AH_R * dTK) / p0;
+  const dhM = dVM3 / S;
+  // 罠：ピストンを固定すると（定積変化）仕事は 0、熱は全部 ΔU になる。
+  const dTFixedK = qJ / (n * cvJ);
+  const tFixedK = T0 + dTFixedK;
+  const pFixedPa = p0 * (tFixedK / T0);
+  // 変えたら：電流を 2 倍にすると電力は 4 倍。
+  const i2A = 2 * iA;
+  const p2W = i2A * i2A * data.rOhm;
+  const q2J = p2W * data.tS;
+  const dT2K = q2J / (n * cpJ);
+  const w2J = n * AH_R * dT2K;
+  const du2J = n * cvJ * dT2K;
+  const dV2M3 = (n * AH_R * dT2K) / p0;
+  const dh2M = dV2M3 / S;
+  // 空気（二原子分子、Cp = (7/2)R）なら。
+  const cpAirJ = 3.5 * AH_R, cvAirJ = 2.5 * AH_R;
+  const dTAirK = qJ / (n * cpAirJ);
+  const wAirJ = n * AH_R * dTAirK;
+  const duAirJ = n * cvAirJ * dTAirK;
+  // ピストンの描画位置（20 px = 0.040 m の上昇）。
+  const pistonBaseY = 100, pistonExpY = 80;
+  return {
+    iA, pW, qJ, cpJ, cvJ, dTK, t1K, wJ, duJ, dVM3, dhM,
+    dTFixedK, tFixedK, pFixedPa,
+    i2A, p2W, q2J, dT2K, w2J, du2J, dV2M3, dh2M,
+    cpAirJ, cvAirJ, dTAirK, wAirJ, duAirJ,
+    pistonBaseY, pistonExpY,
+  };
+}
+function heaterGasForces(data) {
+  const phase = (data && data.phase) || 'base';
+  if (phase !== 'base' && phase !== 'expand') return [];
+  const d = heaterGasDerived(data);
+  const pistonTopY = phase === 'expand' ? d.pistonExpY : d.pistonBaseY;
+  // 気体の力は上向き、大気の力は下向き。どちらも 1000 N（0.02 px/N → 20 px）。
+  // 2本の矢印は先端で向かい合う。ラベルは左右に分ける（AE の重なりを避ける）。
+  return [
+    { id: 'gasForce', short: '気体 1000 N', color: 'blue', vector: [0, -20], labelDx: -140, labelDy: -6, from: { x: 200, y: pistonTopY } },
+    { id: 'atmForce', short: '大気 1000 N', color: '#888', vector: [0, 20], labelDx: 10, labelDy: -6, from: { x: 200, y: pistonTopY - 40 } },
+  ];
+}
+
 // ---- 円運動（M11）：水平面内の円運動と、鉛直面内のループ ----
 // 具体値（検算済み）：m=1.0 kg、g=10 のとき
 //   水平：r=0.50 m、v=2.0 m/s → T = mv²/r = 8.0 N、ω = v/r = 4.0 rad/s、周期 ≈ 1.57 s
@@ -3953,6 +4059,29 @@ function sceneFor(type, thetaDeg, mgPx, fPx, data) {
       forces: photoCircleForces(data),
     };
   }
+  if (type === 'earthTunnel') {
+    const d = earthTunnelDerived(data);
+    const phase = (data && data.phase) || 'base';
+    return {
+      type, phase,
+      rM: data.rM, g: data.g || 10, mKg: data.mKg || 1.0, chordD: data.chordD || 0.6,
+      derived: d,
+      center: d.circle, centerDot: phase === 'base' || phase === 'shm' || phase === 'chord',
+      forces: earthTunnelForces(data),
+    };
+  }
+  if (type === 'heaterGas') {
+    const d = heaterGasDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      rOhm: data.rOhm, vV: data.vV, tS: data.tS, nMol: data.nMol,
+      p0Pa: data.p0Pa, sM2: data.sM2, v0M3: data.v0M3, t0K: data.t0K,
+      gamma: data.gamma || 5 / 3, g: data.g || 10,
+      derived: d,
+      center: { x: 200, y: 180 }, centerDot: false,
+      forces: heaterGasForces(data),
+    };
+  }
   if (type === 'slopePulley') {
     return {
       type, phase: (data && data.phase) || 'connected',
@@ -5087,6 +5216,56 @@ function validateScene(scene) {
     }
     if (byId.velocity && Math.abs(Math.hypot(byId.velocity.vector[0], byId.velocity.vector[1]) - 30) > 0.5) return ['速度の矢印が 30 px と一致しません'];
     if (byId.lorentz && Math.abs(Math.hypot(byId.lorentz.vector[0], byId.lorentz.vector[1]) - 30) > 0.5) return ['ローレンツ力の矢印が 30 px と一致しません'];
+  }
+  if (scene.type === 'earthTunnel') {
+    const d = scene.derived;
+    // GM = gR²、ω = √(g/R)、周期 T = 2π/ω。
+    if (Math.abs(d.gm - scene.g * scene.rM * scene.rM) > 1) return ['GM が gR² と一致しません'];
+    if (Math.abs(d.omega - Math.sqrt(scene.g / scene.rM)) > 1e-9) return ['角振動数が √(g/R) と一致しません'];
+    if (Math.abs(d.periodS - (2 * Math.PI) / d.omega) > 1e-9) return ['周期が 2π/ω と一致しません'];
+    // 中心の速さ v_max = ωR = √(gR)、T/4 で中心に着く。
+    if (Math.abs(d.vMaxMs - d.omega * scene.rM) > 1e-9) return ['中心の速さが ωR と一致しません'];
+    if (Math.abs(d.vMaxMs - Math.sqrt(scene.g * scene.rM)) > 1e-9) return ['中心の速さが √(gR) と一致しません'];
+    if (Math.abs(d.tQuarterS - d.periodS / 4) > 1e-9) return ['中心までの時間が T/4 と一致しません'];
+    // エネルギー：U(表面) = −GMm/R、U(中心) = −(3/2)GMm/R、KE(中心) = (1/2)mgR。
+    if (Math.abs(d.uSurfJ - (-d.gm * scene.mKg) / scene.rM) > 1e-3) return ['表面の位置エネルギーが −GMm/R と一致しません'];
+    if (Math.abs(d.uCenterJ - (-1.5 * d.gm * scene.mKg) / scene.rM) > 1e-3) return ['中心の位置エネルギーが −(3/2)GMm/R と一致しません'];
+    if (Math.abs(d.keCenterJ - 0.5 * scene.mKg * scene.g * scene.rM) > 1e-3) return ['中心の運動エネルギーが (1/2)mgR と一致しません'];
+    if (Math.abs(d.keCenterJ - 0.5 * scene.mKg * d.vMaxMs * d.vMaxMs) > 1e-3) return ['中心の運動エネルギーが (1/2)mv² と一致しません'];
+    // 弦のトンネル：半分の長さ L = √(R²−d²)、v_max = ωL、周期は同じ。
+    if (Math.abs(d.chordHalfM - Math.sqrt(scene.rM * scene.rM - d.dM * d.dM)) > 1e-3) return ['弦の半分の長さが √(R²−d²) と一致しません'];
+    if (Math.abs(d.chordVMaxMs - d.omega * d.chordHalfM) > 1e-9) return ['弦の最大の速さが ωL と一致しません'];
+    // 罠：g を一定とすると、直径を落ちる時間は √(2·2R/g)、中心の速さは √(2g·2R)。
+    if (Math.abs(d.constGT - Math.sqrt((2 * 2 * scene.rM) / scene.g)) > 1e-9) return ['g一定の落下時間が √(2·2R/g) と一致しません'];
+    if (Math.abs(d.constGV - Math.sqrt(2 * scene.g * 2 * scene.rM)) > 1e-9) return ['g一定の中心の速さが √(2g·2R) と一致しません'];
+    // 矢印の長さが縮尺どおりか（重力 30 px、速度 40 px）。
+    if (byId.gravity && Math.abs(Math.hypot(byId.gravity.vector[0], byId.gravity.vector[1]) - 30) > 0.5) return ['重力の矢印が 30 px と一致しません'];
+    if (byId.velocity && Math.abs(Math.hypot(byId.velocity.vector[0], byId.velocity.vector[1]) - 40) > 0.5) return ['速度の矢印が 40 px と一致しません'];
+  }
+  if (scene.type === 'heaterGas') {
+    const d = scene.derived;
+    // 回路：I = V/R、P = VI、Q = Pt。
+    if (Math.abs(d.iA - scene.vV / scene.rOhm) > 1e-9) return ['電流が V/R と一致しません'];
+    if (Math.abs(d.pW - scene.vV * d.iA) > 1e-9) return ['電力が VI と一致しません'];
+    if (Math.abs(d.qJ - d.pW * scene.tS) > 1e-9) return ['ジュール熱が Pt と一致しません'];
+    // 等圧膨張：ΔT = Q/(nCp)、W = nRΔT、ΔU = nCvΔT、Q = ΔU + W。
+    if (Math.abs(d.dTK - d.qJ / (scene.nMol * d.cpJ)) > 1e-9) return ['温度の上昇が Q/(nCp) と一致しません'];
+    if (Math.abs(d.wJ - scene.nMol * AH_R * d.dTK) > 1e-9) return ['仕事が nRΔT と一致しません'];
+    if (Math.abs(d.duJ - scene.nMol * d.cvJ * d.dTK) > 1e-9) return ['内部エネルギーの増加が nCvΔT と一致しません'];
+    if (Math.abs(d.qJ - (d.duJ + d.wJ)) > 1e-9) return ['Q = ΔU + W と一致しません'];
+    if (Math.abs(d.dVM3 - (scene.nMol * AH_R * d.dTK) / scene.p0Pa) > 1e-9) return ['体積の増加が nRΔT/p と一致しません'];
+    if (Math.abs(d.dhM - d.dVM3 / scene.sM2) > 1e-9) return ['ピストンの上昇が ΔV/S と一致しません'];
+    // 罠：ピストン固定（定積変化）では W = 0、ΔT = Q/(nCv)。
+    if (Math.abs(d.dTFixedK - d.qJ / (scene.nMol * d.cvJ)) > 1e-9) return ['固定したときの温度の上昇が Q/(nCv) と一致しません'];
+    if (Math.abs(d.pFixedPa - scene.p0Pa * (d.tFixedK / scene.t0K)) > 1e-9) return ['固定したときの圧力が p0·T/T0 と一致しません'];
+    // 変えたら：電流 2 倍で電力は 4 倍。空気なら Cp = (7/2)R。
+    if (Math.abs(d.p2W - 4 * d.pW) > 1e-9) return ['電流 2 倍の電力が 4 倍と一致しません'];
+    if (Math.abs(d.dT2K - d.q2J / (scene.nMol * d.cpJ)) > 1e-9) return ['電流 2 倍の温度の上昇が Q/(nCp) と一致しません'];
+    if (Math.abs(d.dTAirK - d.qJ / (scene.nMol * d.cpAirJ)) > 1e-9) return ['空気の温度の上昇が Q/(nCp) と一致しません'];
+    if (Math.abs(d.qJ - (d.duAirJ + d.wAirJ)) > 1e-9) return ['空気でも Q = ΔU + W と一致しません'];
+    // 矢印の長さが縮尺どおりか（気体・大気の力 0.02 px/N）。
+    if (byId.gasForce && Math.abs(Math.hypot(byId.gasForce.vector[0], byId.gasForce.vector[1]) - 20) > 0.5) return ['気体の力の矢印が 20 px と一致しません'];
+    if (byId.atmForce && Math.abs(Math.hypot(byId.atmForce.vector[0], byId.atmForce.vector[1]) - 20) > 0.5) return ['大気の力の矢印が 20 px と一致しません'];
   }
   if (scene.type === 'charged-circle') {
     const d = scene.derived;
@@ -8069,6 +8248,233 @@ function drawBase(svg, scene) {
         note(294, '周期 T≈36 ns、1周で 28 MHz');
       }
     }
+  } else if (scene.type === 'earthTunnel') {
+    const d = scene.derived;
+    const phase = scene.phase;
+    const c = d.circle;
+    const tH = el('text', { x: 40, y: 36, fill: '#333' });
+    tH.textContent = phase === 'gravity' ? '地球の内部の重力：g は r に比例'
+      : phase === 'shm' ? '単振動になる：周期は約84分'
+      : phase === 'energy' ? 'エネルギー：中心で速さが最大'
+      : phase === 'chord' ? '弦のトンネルでも周期は同じ'
+      : phase === 'trap' ? '罠：g を一定とするとまちがう'
+      : '地球を貫くトンネル：表面から落とす';
+    svg.appendChild(tH);
+    const note = (y, text) => { const t = el('text', { x: 60, y, fill: '#333' }); t.textContent = text; svg.appendChild(t); };
+    if (phase === 'gravity') {
+      // g–r グラフ：x 軸 r（0〜2R）、y 軸 g（0〜12）。内部は直線、外は 1/r²。
+      const x0 = 60, x1 = 360, y0 = 240;
+      const rx = (r) => x0 + (r / (2 * scene.rM)) * (x1 - x0);
+      const gy = (g) => y0 - (g / 12) * 180;
+      svg.appendChild(el('line', { x1: 60, y1: 240, x2: 360, y2: 240, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 60, y1: 60, x2: 60, y2: 240, stroke: '#333', 'stroke-width': 2 }));
+      const tG = el('text', { x: 48, y: 56 }); tG.textContent = 'g'; svg.appendChild(tG);
+      const tR = el('text', { x: 366, y: 232 }); tR.textContent = 'r'; svg.appendChild(tR);
+      const t0 = el('text', { x: 44, y: 232, fill: '#555' }); t0.textContent = '0'; svg.appendChild(t0);
+      const tR1 = el('text', { x: 196, y: 232, fill: '#555' }); tR1.textContent = 'R'; svg.appendChild(tR1);
+      const tR2 = el('text', { x: 348, y: 232, fill: '#555' }); tR2.textContent = '2R'; svg.appendChild(tR2);
+      // 表面の目印（破線）：r=R、g=10。
+      svg.appendChild(el('line', { x1: 210, y1: 90, x2: 210, y2: 240, stroke: '#888', 'stroke-width': 1, 'stroke-dasharray': '5 4' }));
+      svg.appendChild(el('line', { x1: 60, y1: 90, x2: 210, y2: 90, stroke: '#888', 'stroke-width': 1, 'stroke-dasharray': '5 4' }));
+      const t10 = el('text', { x: 70, y: 80, fill: '#555' }); t10.textContent = 'g=10 m/s²'; svg.appendChild(t10);
+      const t25 = el('text', { x: 296, y: 222, fill: '#555' }); t25.textContent = 'g=2.5'; svg.appendChild(t25);
+      let p = '';
+      for (let i = 0; i <= 40; i++) {
+        const r = (i / 40) * 2 * scene.rM;
+        const g = r <= scene.rM ? (scene.g * r) / scene.rM : scene.g * Math.pow(scene.rM / r, 2);
+        p += (p ? ' L ' : 'M ') + rx(r).toFixed(1) + ' ' + gy(g).toFixed(1);
+      }
+      svg.appendChild(el('path', { d: p, fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
+      note(258, '地球の内部では g は r に比例する');
+      note(276, '表面で g=10、2R では g=2.5');
+      note(294, '外では g は 1/r² で減る');
+    } else if (phase === 'energy') {
+      // エネルギーの棒グラフ（12 px/10⁷ J）。
+      const rows = [
+        { name: '全エネルギー −6.4×10⁷ J', w: 77, val: '−6.4×10⁷ J', color: '#cfe3ff' },
+        { name: '表面の位置エネルギー −6.4×10⁷ J', w: 77, val: '−6.4×10⁷ J', color: '#b3e6b3' },
+        { name: '中心の位置エネルギー −9.6×10⁷ J', w: 115, val: '−9.6×10⁷ J', color: '#ffd24d' },
+        { name: '中心の運動エネルギー +3.2×10⁷ J', w: 38, val: '+3.2×10⁷ J', color: '#ffb3b3' },
+      ];
+      rows.forEach((r, i) => {
+        const y = 75 + i * 45;
+        const tN = el('text', { x: 60, y: y - 8 }); tN.textContent = r.name; svg.appendChild(tN);
+        svg.appendChild(el('rect', { x: 140, y, width: r.w, height: 18, fill: r.color, stroke: '#333', 'stroke-width': 1 }));
+        const tV = el('text', { x: 140 + r.w + 8, y: y + 15 }); tV.textContent = r.val; svg.appendChild(tV);
+      });
+      note(258, '表面では速さ 0、エネルギーは全部 U');
+      note(276, '中心で KE = 3.2×10⁷ J、v=8.0 km/s');
+      note(294, 'E = U + KE はずっと −6.4×10⁷ J');
+    } else if (phase === 'trap') {
+      // 速さの比べ（10 px/(km/s)）。
+      const rows = [
+        { name: '正しい v_max', w: 80, val: '8.0 km/s', color: '#b3e6b3' },
+        { name: 'g一定の v', w: 160, val: '16 km/s', color: '#ffb3b3' },
+      ];
+      rows.forEach((r, i) => {
+        const y = 75 + i * 45;
+        const tN = el('text', { x: 60, y: y - 8 }); tN.textContent = r.name; svg.appendChild(tN);
+        svg.appendChild(el('rect', { x: 140, y, width: r.w, height: 18, fill: r.color, stroke: '#333', 'stroke-width': 1 }));
+        const tV = el('text', { x: 140 + r.w + 8, y: y + 15 }); tV.textContent = r.val; svg.appendChild(tV);
+      });
+      note(258, 'g=10 一定とすると v=16 km/s になる');
+      note(276, '正しくは 42分で反対側に着く');
+      note(294, '地球の内部では g は r に比例する');
+    } else if (phase === 'chord') {
+      // 弦のトンネル：中心から d=0.60R だけ離れた水平の弦。半分の長さは 0.80R。
+      svg.appendChild(el('circle', { cx: c.x, cy: c.y, r: c.r, fill: '#cfe3ff', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 132, y1: 99, x2: 268, y2: 99, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 200, y1: 99, x2: 200, y2: 150, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      svg.appendChild(el('circle', { cx: 132, cy: 99, r: 10, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      const tD = el('text', { x: 208, y: 128, fill: '#555' }); tD.textContent = 'd=0.60R'; svg.appendChild(tD);
+      const tH2 = el('text', { x: 172, y: 86, fill: '#555' }); tH2.textContent = '半分 0.80R'; svg.appendChild(tH2);
+      note(258, '弦のトンネルでも周期は同じ 84分');
+      note(276, '半分の長さは 0.80R、v_max=6.4 km/s');
+      note(294, '端から端までは 42分');
+    } else {
+      // base・shm：地球の円。base は縦のトンネル、shm は横のトンネル。
+      svg.appendChild(el('circle', { cx: c.x, cy: c.y, r: c.r, fill: '#cfe3ff', stroke: '#333', 'stroke-width': 2 }));
+      if (phase === 'base') {
+        svg.appendChild(el('line', { x1: 200, y1: 65, x2: 200, y2: 235, stroke: '#333', 'stroke-width': 2 }));
+        svg.appendChild(el('circle', { cx: 200, cy: 65, r: 10, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+        // 半径の目印（45°の線）とラベル。
+        svg.appendChild(el('line', { x1: 200, y1: 150, x2: 260, y2: 90, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+        const tR = el('text', { x: 265, y: 87, fill: '#555' }); tR.textContent = 'R=6.4×10⁶ m'; svg.appendChild(tR);
+        note(258, '地球を貫くトンネルを掘ったとする');
+        note(276, '表面から玉を静かに落とす');
+        note(294, '玉は中心を通り、反対側まで行く');
+      } else {
+        svg.appendChild(el('line', { x1: 115, y1: 150, x2: 285, y2: 150, stroke: '#333', 'stroke-width': 2 }));
+        svg.appendChild(el('circle', { cx: 200, cy: 150, r: 10, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+        note(258, '中心で速さは最大 8.0 km/s');
+        note(276, '表面から中心までは約21分');
+        note(294, '1往復は約84分');
+      }
+    }
+  } else if (scene.type === 'heaterGas') {
+    const d = scene.derived;
+    const phase = scene.phase;
+    const tH = el('text', { x: 40, y: 36, fill: '#333' });
+    tH.textContent = phase === 'circuit' ? '回路：電流と電力とジュール熱'
+      : phase === 'expand' ? '等圧膨張：温度と体積とピストン'
+      : phase === 'energy' ? 'エネルギー：ΔU と仕事に分かれる'
+      : phase === 'trap' ? '罠：ピストンを固定すると'
+      : phase === 'vary' ? '変えたら：電流を2倍に・空気なら'
+      : 'ヒーターで気体をあたためる';
+    svg.appendChild(tH);
+    const note = (y, text) => { const t = el('text', { x: 60, y, fill: '#333' }); t.textContent = text; svg.appendChild(t); };
+    if (phase === 'circuit') {
+      // 回路図：左に電池、上に抵抗、下に電流の矢印。
+      svg.appendChild(el('line', { x1: 80, y1: 80, x2: 320, y2: 80, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 320, y1: 80, x2: 320, y2: 200, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 80, y1: 200, x2: 320, y2: 200, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 80, y1: 80, x2: 80, y2: 130, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 80, y1: 152, x2: 80, y2: 200, stroke: '#333', 'stroke-width': 2 }));
+      // 電池の極板（長い方が ＋）。
+      svg.appendChild(el('line', { x1: 70, y1: 130, x2: 90, y2: 130, stroke: '#333', 'stroke-width': 3 }));
+      svg.appendChild(el('line', { x1: 74, y1: 152, x2: 86, y2: 152, stroke: '#333', 'stroke-width': 3 }));
+      const tP = el('text', { x: 94, y: 136, fill: '#b00', 'font-size': 16 }); tP.textContent = '＋'; svg.appendChild(tP);
+      const tM = el('text', { x: 94, y: 158, fill: '#b00', 'font-size': 16 }); tM.textContent = '－'; svg.appendChild(tM);
+      const tB = el('text', { x: 8, y: 146, fill: '#555' }); tB.textContent = '電池 10 V'; svg.appendChild(tB);
+      // 抵抗のジグザグ（上の導線、x=140〜220）。
+      let zp = 'M 140 80';
+      for (let i = 1; i <= 8; i++) {
+        const x = 140 + (80 * i) / 8;
+        zp += ` L ${x} ${i % 2 === 1 ? 72 : 88}`;
+      }
+      svg.appendChild(el('path', { d: zp, fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      const tR = el('text', { x: 150, y: 112, fill: '#555' }); tR.textContent = '抵抗 10 Ω'; svg.appendChild(tR);
+      // 電流の矢印（下の導線、左向きの破線）。
+      svg.appendChild(el('line', { x1: 280, y1: 200, x2: 170, y2: 200, stroke: '#d35400', 'stroke-width': 2, 'stroke-dasharray': '5 4', 'marker-end': 'url(#fig-arrow)' }));
+      const tI = el('text', { x: 200, y: 222, fill: '#d35400' }); tI.textContent = 'I=1.0 A'; svg.appendChild(tI);
+      const tP2 = el('text', { x: 100, y: 178, fill: '#555' }); tP2.textContent = 'P=10 W、10 s で 100 J'; svg.appendChild(tP2);
+      note(258, 'I = V/R = 10/10 = 1.0 A');
+      note(276, 'P = VI = 10 W、10 s で 100 J');
+      note(294, '電気エネルギーは全部ジュール熱になる');
+    } else if (phase === 'energy') {
+      // エネルギーの棒グラフ（1.5 px/J）。
+      const rows = [
+        { name: '電気エネルギー 100 J', w: 150, val: '100 J', color: '#ffd24d' },
+        { name: '内部エネルギーの増加 60 J', w: 90, val: '60 J', color: '#b3e6b3' },
+        { name: '気体のした仕事 40 J', w: 60, val: '40 J', color: '#cfe3ff' },
+      ];
+      rows.forEach((r, i) => {
+        const y = 75 + i * 45;
+        const tN = el('text', { x: 60, y: y - 8 }); tN.textContent = r.name; svg.appendChild(tN);
+        svg.appendChild(el('rect', { x: 140, y, width: r.w, height: 18, fill: r.color, stroke: '#333', 'stroke-width': 1 }));
+        const tV = el('text', { x: 140 + r.w + 8, y: y + 15 }); tV.textContent = r.val; svg.appendChild(tV);
+      });
+      note(258, '電気 100 J = ΔU 60 J + W 40 J');
+      note(276, '熱は気体の内部エネルギーと仕事になる');
+      note(294, 'Q = ΔU + W（熱力学第一法則）');
+    } else if (phase === 'trap') {
+      // 温度の上昇の比べ（0.9 px/K）。
+      const rows = [
+        { name: 'ピストンが動く 120 K', w: 108, val: '120 K', color: '#b3e6b3' },
+        { name: 'ピストン固定 200 K', w: 180, val: '200 K', color: '#ffb3b3' },
+      ];
+      rows.forEach((r, i) => {
+        const y = 75 + i * 45;
+        const tN = el('text', { x: 60, y: y - 8 }); tN.textContent = r.name; svg.appendChild(tN);
+        svg.appendChild(el('rect', { x: 140, y, width: r.w, height: 18, fill: r.color, stroke: '#333', 'stroke-width': 1 }));
+        const tV = el('text', { x: 140 + r.w + 8, y: y + 15 }); tV.textContent = r.val; svg.appendChild(tV);
+      });
+      note(258, 'ピストン固定では仕事が 0 になる');
+      note(276, '固定では ΔT=200 K、p=1.67×10⁵ Pa');
+      note(294, '熱は全部 ΔU になる');
+    } else if (phase === 'vary') {
+      // 温度の上昇の比べ（0.3 px/K）。
+      const rows = [
+        { name: 'もとの 120 K', w: 36, val: '120 K', color: '#b3e6b3' },
+        { name: '電流 2 倍 480 K', w: 144, val: '480 K', color: '#ffd24d' },
+        { name: '空気 86 K', w: 26, val: '86 K', color: '#cfe3ff' },
+      ];
+      rows.forEach((r, i) => {
+        const y = 75 + i * 45;
+        const tN = el('text', { x: 60, y: y - 8 }); tN.textContent = r.name; svg.appendChild(tN);
+        svg.appendChild(el('rect', { x: 140, y, width: r.w, height: 18, fill: r.color, stroke: '#333', 'stroke-width': 1 }));
+        const tV = el('text', { x: 140 + r.w + 8, y: y + 15 }); tV.textContent = r.val; svg.appendChild(tV);
+      });
+      note(258, '電流 2 倍で電力は 4 倍、ΔT は 480 K');
+      note(276, '仕事は 160 J、ΔU は 240 J になる');
+      note(294, '空気では ΔT は 86 K（Cp が大きい）');
+    } else {
+      // base・expand：シリンダーとピストンとヒーター。
+      const pistonY = phase === 'expand' ? d.pistonExpY : d.pistonBaseY;
+      const gasTopY = pistonY + 20;
+      // シリンダーの壁（左右と底）。ピストンのいちばん上まで壁をのばす。
+      svg.appendChild(el('line', { x1: 100, y1: 80, x2: 100, y2: 240, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 300, y1: 80, x2: 300, y2: 240, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 100, y1: 240, x2: 300, y2: 240, stroke: '#333', 'stroke-width': 2 }));
+      // 気体の領域。
+      svg.appendChild(el('rect', { x: 100, y: gasTopY, width: 200, height: 240 - gasTopY, fill: '#cfe3ff', stroke: 'none' }));
+      // ヒーターのジグザグ（気体の中）。
+      const zy = gasTopY + 40;
+      let zp = `M 130 ${zy}`;
+      for (let i = 1; i <= 8; i++) {
+        const x = 130 + (140 * i) / 8;
+        zp += ` L ${x} ${i % 2 === 1 ? zy - 8 : zy + 8}`;
+      }
+      svg.appendChild(el('path', { d: zp, fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
+      const tHz = el('text', { x: 130, y: zy - 14, fill: '#b00' }); tHz.textContent = 'ヒーター 10 Ω'; svg.appendChild(tHz);
+      // ピストン。
+      svg.appendChild(el('rect', { x: 100, y: pistonY, width: 200, height: 20, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      const tP = el('text', { x: 310, y: pistonY + 14, fill: '#555' }); tP.textContent = 'ピストン'; svg.appendChild(tP);
+      const tG = el('text', { x: 120, y: gasTopY + 88, fill: '#333' }); tG.textContent = '気体 He'; svg.appendChild(tG);
+      const tT = el('text', { x: 205, y: gasTopY + 88, fill: '#333' });
+      tT.textContent = phase === 'expand' ? 'T=420 K' : 'T0=300 K';
+      svg.appendChild(tT);
+      if (phase === 'expand') {
+        const tD = el('text', { x: 310, y: 72, fill: '#555' }); tD.textContent = 'Δh=4.0 cm'; svg.appendChild(tD);
+        note(258, '温度は 120 K 上がり、T=420 K');
+        note(276, '体積は 0.40 L ふえ、V=1.40 L');
+        note(294, 'ピストンは 0.040 m 上がる');
+      } else {
+        note(258, 'ヒーターで気体をあたためる');
+        note(276, 'ピストンは軽く、圧力は大気圧と等しい');
+        note(294, 'n=0.040 mol、V0=1.0 L、T0=300 K');
+      }
+    }
   } else if (scene.type === 'capacitor') {
     const topY = 110, dPx = scene.dPx;
     // 2枚の極板（水平）。上板が +、下板が −。
@@ -9210,4 +9616,4 @@ function renderAllFigures() {
   });
 }
 
-if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, capSpringGravDerived, capSpringGravForces, gasSpringCycleDerived, gasSpringCycleForces, slopeSpringDerived, slopeSpringForces, fallLoopDerived, fallLoopForces, beltSpringDerived, beltSpringForces, massSpecDerived, massSpecForces, coilHallDerived, coilHallForces, platformChargeDerived, platformChargeForces, pendulumCollideDerived, pendulumCollideForces, photoCapDerived, photoCapForces, orbitTransferDerived, orbitTransferForces, cyclotronDerived, cyclotronForces, slopeSpringFricDerived, slopeSpringFricForces, projWallDerived, projWallForces, railSpringDampDerived, railSpringDampForces, pendulumSpringDerived, pendulumSpringForces, gasPistonOscDerived, gasPistonOscForces, photoCircleDerived, photoCircleForces, sceneFor, validateScene, renderFigure };
+if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, capSpringGravDerived, capSpringGravForces, gasSpringCycleDerived, gasSpringCycleForces, slopeSpringDerived, slopeSpringForces, fallLoopDerived, fallLoopForces, beltSpringDerived, beltSpringForces, massSpecDerived, massSpecForces, coilHallDerived, coilHallForces, platformChargeDerived, platformChargeForces, pendulumCollideDerived, pendulumCollideForces, photoCapDerived, photoCapForces, orbitTransferDerived, orbitTransferForces, cyclotronDerived, cyclotronForces, slopeSpringFricDerived, slopeSpringFricForces, projWallDerived, projWallForces, railSpringDampDerived, railSpringDampForces, pendulumSpringDerived, pendulumSpringForces, gasPistonOscDerived, gasPistonOscForces, photoCircleDerived, photoCircleForces, earthTunnelDerived, earthTunnelForces, heaterGasDerived, heaterGasForces, sceneFor, validateScene, renderFigure };

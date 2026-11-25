@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題AH：ヒーターで気体をふくらませる — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題AH：ヒーターで気体をふくらませる</h1>
+<p><strong>問題：</strong>断面積 S = 0.010 m² のシリンダーに、ヘリウム気体 n = 0.040 mol が入っている。はじめ V0 = 1.0 L、p0 = 1.0×10⁵ Pa、T0 = 300 K だ。ピストンは軽くてなめらかで、気体の圧力はつねに大気圧と等しい。気体の中に抵抗 R = 10 Ω のヒーターがあり、電池 V = 10 V につないだ。ヘリウムは単原子分子気体（γ = 5/3）とする。(1) 電流・電力と、10 s のあいだに出るジュール熱を求めよ。(2) 10 s 後の気体の温度・体積・ピストンの上がる高さを求めよ。(3) 熱 100 J が内部エネルギーの増加と仕事にどう分かれるか求めよ。(4) ピストンを固定するとどうなるか。(5) 電流を 2 倍にするとどうなるか。空気（二原子分子）ならどうなるか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v3.0、heaterGas 型）が下の JSON データから計算して描く。気体・大気の力は 0.02 px/N（1000 N → 20 px）だ。</p>
+<script type="application/json" id="scene-heater-gas-base">{"type":"heaterGas","rOhm":10,"vV":10,"tS":10,"nMol":0.04,"p0Pa":100000,"sM2":0.01,"v0M3":0.001,"t0K":300,"gamma":1.6666666667,"phase":"base"}</script>
+<script type="application/json" id="scene-heater-gas-circuit">{"type":"heaterGas","rOhm":10,"vV":10,"tS":10,"nMol":0.04,"p0Pa":100000,"sM2":0.01,"v0M3":0.001,"t0K":300,"gamma":1.6666666667,"phase":"circuit"}</script>
+<script type="application/json" id="scene-heater-gas-expand">{"type":"heaterGas","rOhm":10,"vV":10,"tS":10,"nMol":0.04,"p0Pa":100000,"sM2":0.01,"v0M3":0.001,"t0K":300,"gamma":1.6666666667,"phase":"expand"}</script>
+<script type="application/json" id="scene-heater-gas-energy">{"type":"heaterGas","rOhm":10,"vV":10,"tS":10,"nMol":0.04,"p0Pa":100000,"sM2":0.01,"v0M3":0.001,"t0K":300,"gamma":1.6666666667,"phase":"energy"}</script>
+<script type="application/json" id="scene-heater-gas-trap">{"type":"heaterGas","rOhm":10,"vV":10,"tS":10,"nMol":0.04,"p0Pa":100000,"sM2":0.01,"v0M3":0.001,"t0K":300,"gamma":1.6666666667,"phase":"trap"}</script>
+<script type="application/json" id="scene-heater-gas-vary">{"type":"heaterGas","rOhm":10,"vV":10,"tS":10,"nMol":0.04,"p0Pa":100000,"sM2":0.01,"v0M3":0.001,"t0K":300,"gamma":1.6666666667,"phase":"vary"}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。回路と気体は、ジュール熱でつながる。電気エネルギーが、熱になり、気体の内部エネルギーと仕事になる。</p>
+  <table>
+    <tr><th>時間</th><th>系（何を見るか）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>はじめ</td><td>気体＋ピストン</td><td>—</td><td>気体の力 = 大気の力（はじめに）</td></tr>
+    <tr><td>電流を流す</td><td>回路</td><td><strong>ジュール熱 100 J</strong></td><td>I = 1.0 A、P = 10 W（ステップ①）</td></tr>
+    <tr><td>気体がふくらむ</td><td>気体＋ピストン</td><td><strong>ΔT = 120 K、Δh = 0.040 m</strong></td><td>等圧膨張する（ステップ②）</td></tr>
+    <tr><td>エネルギー</td><td>気体</td><td><strong>ΔU = 60 J、W = 40 J</strong></td><td>熱は 2つに分かれる（ステップ③）</td></tr>
+    <tr><td>罠・変えたら</td><td>気体・回路</td><td><strong>固定では ΔT = 200 K</strong></td><td>ピストン固定と電流 2倍（ステップ④⑤）</td></tr>
+  </table>
+  <p>回路で出た熱は、気体に入る。気体はあたたまってふくらみ、ピストンを押し上げる。電気・熱・仕事が、1つの流れでつながる。</p>
+  <svg class="fig" data-scene="scene-heater-gas-base" data-show="gasForce,atmForce" width="100%" role="img" aria-label="ヒーターの入ったシリンダー。気体の力 1000 N と大気の力 1000 N がつり合う"></svg>
+  <p>はじめ、気体の圧力は大気圧と等しく、p0 = 1.0×10⁵ Pa だ。気体の力は p0S = 1000 N、大気の力も 1000 N で、つり合っている。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①回路</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 回路：電流と電力とジュール熱</h2>
+  <svg class="fig" data-scene="scene-heater-gas-circuit" data-show="" width="100%" role="img" aria-label="回路図。電池 10 V、抵抗 10 Ω、電流 1.0 A、電力 10 W"></svg>
+  <p>まず回路だけを見る。オームの法則から、電流は I = V/R = 10/10 = <strong>1.0 A</strong> になる。電力は、P = VI = 10 × 1.0 = <strong>10 W</strong> だ。</p>
+  <p>10 s のあいだに、抵抗で出るジュール熱は、Q = Pt = 10 × 10 = <strong>100 J</strong> になる。この 100 J が、気体に入る熱だ。電気エネルギーは、抵抗で全部熱に変わる。</p>
+  <p>回路の計算は、気体の計算と切り分けてある。回路から出てくるのは、熱 100 J だけだ。この 100 J が、次のステップへの橋渡し量になる。</p>
+  <label><input type="checkbox" class="check"> 電流 1.0 A、電力 10 W、10 s のジュール熱 100 J を求めた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②等圧膨張</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 等圧膨張：温度と体積とピストン</h2>
+  <svg class="fig" data-scene="scene-heater-gas-expand" data-show="gasForce,atmForce" width="100%" role="img" aria-label="ピストンが上がったシリンダー。温度 420 K、体積 1.40 L、ピストンは 0.040 m 上がる"></svg>
+  <p>熱 100 J が気体に入ると、気体はあたたまってふくらむ。ピストンは軽くて動けるので、圧力は大気圧のまま、p = 1.0×10⁵ Pa で変わらない。等圧変化だ。</p>
+  <p>ヘリウムは単原子分子気体なので、モル定圧熱容量は Cp = (5/2)R = 20.8 J/(mol·K) になる。温度の上昇は、ΔT = Q/(nCp) = 100/(0.040 × 20.8) ≈ <strong>120 K</strong> だ。10 s 後の温度は、T = 300 + 120 = <strong>420 K</strong> になる。</p>
+  <p>体積の増加は、状態方程式から、ΔV = nRΔT/p = 0.040 × 8.31 × 120/1.0×10⁵ = 4.0×10⁻⁴ m³ = <strong>0.40 L</strong> になる。体積は V = 1.0 + 0.40 = <strong>1.40 L</strong> だ。ピストンの上がる高さは、Δh = ΔV/S = 4.0×10⁻⁴/0.010 = <strong>0.040 m</strong> になる。</p>
+  <label><input type="checkbox" class="check"> ΔT=120 K、T=420 K、ΔV=0.40 L、V=1.40 L、Δh=0.040 m を求めた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③エネルギー</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ エネルギー：ΔU と仕事に分かれる</h2>
+  <svg class="fig" data-scene="scene-heater-gas-energy" data-show="" width="100%" role="img" aria-label="エネルギーの棒グラフ。電気エネルギー 100 J、内部エネルギーの増加 60 J、気体のした仕事 40 J"></svg>
+  <p>熱 100 J は、気体の内部エネルギーの増加と、気体がピストンにする仕事に分かれる。熱力学第一法則は、Q = ΔU + W だ。</p>
+  <p>内部エネルギーの増加は、ΔU = nCvΔT になる。単原子分子気体では Cv = (3/2)R = 12.5 J/(mol·K) なので、ΔU = 0.040 × 12.5 × 120 ≈ <strong>60 J</strong> だ。仕事は、W = pΔV = nRΔT = 0.040 × 8.31 × 120 ≈ <strong>40 J</strong> になる。60 + 40 = 100 J で、熱と一致する。</p>
+  <p>熱のうち、6割が内部エネルギーになり、4割が仕事になる。比は、Cv : R = 3 : 2 だ。Cp = Cv + R = (5/2)R という関係が、ここに現れている。</p>
+  <label><input type="checkbox" class="check"> ΔU=60 J、W=40 J、Q = ΔU + W = 100 J になることを確かめた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④罠：ピストンを固定すると</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 罠：ピストンを固定すると</h2>
+  <svg class="fig" data-scene="scene-heater-gas-trap" data-show="" width="100%" role="img" aria-label="温度の上昇の比べ。ピストンが動くとき 120 K、固定すると 200 K"></svg>
+  <p>罠は、ピストンが動くことを忘れて、定積変化として計算することだ。ピストンを固定すると、体積は変わらないので、仕事は W = 0 になる。熱 100 J は、全部内部エネルギーの増加になる。</p>
+  <p>温度の上昇は、ΔT = Q/(nCv) = 100/(0.040 × 12.5) ≈ <strong>200 K</strong> になる。温度は T = 300 + 200 = <strong>500 K</strong> だ。圧力は、p = p0·T/T0 = 1.0×10⁵ × 500/300 ≈ <strong>1.67×10⁵ Pa</strong> になる。</p>
+  <p>ピストンが動くときは ΔT = 120 K、固定すると ΔT = 200 K だ。ちがいは、仕事をする分だけ、温度が上がりにくいからだ。Cp と Cv をとりちがえると、答えがちがう。</p>
+  <label><input type="checkbox" class="check"> ピストン固定では ΔT=200 K、T=500 K、p=1.67×10⁵ Pa、W=0 になることを確かめた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤変えたら</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ 変えたら：電流を2倍に・空気なら</h2>
+  <svg class="fig" data-scene="scene-heater-gas-vary" data-show="" width="100%" role="img" aria-label="温度の上昇の比べ。もとの 120 K、電流 2 倍で 480 K、空気なら 86 K"></svg>
+  <p>電流を 2 倍にすると、どうなるか。電圧を 20 V にして、電流を I = 2.0 A にする。電力は、P = I²R = 2.0² × 10 = <strong>40 W</strong> になる。電流が 2倍で、電力は 4倍だ。10 s のジュール熱は、Q = 40 × 10 = <strong>400 J</strong> になる。</p>
+  <p>温度の上昇は、ΔT = Q/(nCp) = 400/(0.040 × 20.8) ≈ <strong>480 K</strong> だ。温度は T = 300 + 480 = <strong>780 K</strong> になる。仕事は W = nRΔT ≈ <strong>160 J</strong>、内部エネルギーの増加は ΔU ≈ <strong>240 J</strong> で、160 + 240 = 400 J になる。ピストンは Δh = 0.16 m 上がる。</p>
+  <p>気体が空気（二原子分子）なら、Cp = (7/2)R = 29.1 J/(mol·K) になる。同じ 100 J の熱では、ΔT = 100/(0.040 × 29.1) ≈ <strong>86 K</strong> だ。仕事は W ≈ 29 J、ΔU ≈ 71 J になる。Cp が大きいほど、温度は上がりにくい。</p>
+  <label><input type="checkbox" class="check"> 電流 2 倍では P=40 W、ΔT=480 K、W=160 J、ΔU=240 J になり、空気では ΔT=86 K になることを確かめた</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と系を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) I=1.0 A、P=10 W、10 s のジュール熱は 100 J。(2) ΔT=120 K、T=420 K、ΔV=0.40 L、V=1.40 L、Δh=0.040 m。(3) ΔU=60 J、W=40 J、Q = ΔU + W = 100 J。(4) ピストン固定では ΔT=200 K、T=500 K、p=1.67×10⁵ Pa、W=0。(5) 電流 2 倍では P=40 W、ΔT=480 K、W=160 J、ΔU=240 J、Δh=0.16 m。空気では ΔT=86 K。もとになった単体モデル：直流回路は <a href="dc-circuit.html">第19問：直流回路</a>、気体・ピストンは <a href="gas-piston.html">第7問：気体・ピストン</a>、熱サイクルは <a href="heat-cycle.html">第16問：熱サイクル</a>、気体＋ピストン＋ばね＋サイクルは <a href="gas-spring-cycle.html">組み合わせ問題P：気体＋ピストン＋ばね＋サイクル</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboHeaterGasDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
