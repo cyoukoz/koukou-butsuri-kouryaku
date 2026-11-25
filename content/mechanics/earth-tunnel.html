@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題AG：地球を貫くトンネル — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題AG：地球を貫くトンネル</h1>
+<p><strong>問題：</strong>地球は半径 R = 6.4×10⁶ m の一様な球で、表面の重力加速度は g = 10 m/s² とする。地球の中心を通るトンネルを掘り、表面から質量 m = 1.0 kg の玉を静かに落とした。空気抵抗はない。(1) 地球の内部（中心からの距離 r &lt; R）での重力加速度 g(r) を求めよ。(2) 玉の運動が単振動になることを示し、周期を求めよ。(3) 中心での速さと、表面・中心での位置エネルギーと運動エネルギーを求めよ。(4) 中心から 0.60R だけ離れた弦のトンネルでは、周期と最大の速さはどうなるか。(5) g を 10 m/s² で一定とすると、どうまちがうか。低軌道の人工衛星の周期と比べよ。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v3.0、earthTunnel 型）が下の JSON データから計算して描く。重力の矢印は 30 px、速度の矢印は 40 px、g–r グラフは r が 0〜2R、g が 0〜12 m/s² だ。</p>
+<script type="application/json" id="scene-earth-tunnel-base">{"type":"earthTunnel","rM":6400000,"g":10,"mKg":1.0,"chordD":0.6,"phase":"base"}</script>
+<script type="application/json" id="scene-earth-tunnel-gravity">{"type":"earthTunnel","rM":6400000,"g":10,"mKg":1.0,"chordD":0.6,"phase":"gravity"}</script>
+<script type="application/json" id="scene-earth-tunnel-shm">{"type":"earthTunnel","rM":6400000,"g":10,"mKg":1.0,"chordD":0.6,"phase":"shm"}</script>
+<script type="application/json" id="scene-earth-tunnel-energy">{"type":"earthTunnel","rM":6400000,"g":10,"mKg":1.0,"chordD":0.6,"phase":"energy"}</script>
+<script type="application/json" id="scene-earth-tunnel-chord">{"type":"earthTunnel","rM":6400000,"g":10,"mKg":1.0,"chordD":0.6,"phase":"chord"}</script>
+<script type="application/json" id="scene-earth-tunnel-trap">{"type":"earthTunnel","rM":6400000,"g":10,"mKg":1.0,"chordD":0.6,"phase":"trap"}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。地球の外と中では、重力の式がちがう。玉の速さと位置エネルギーが、切り分けをつなぐ。</p>
+  <table>
+    <tr><th>時間</th><th>系（何を見るか）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>はじめ（表面）</td><td>玉＋地球</td><td>—</td><td>表面の重力は 10 m/s²（はじめに）</td></tr>
+    <tr><td>落ちる途中</td><td>玉（地球の内部）</td><td><strong>重力 g(r) = g·r/R</strong></td><td>重力が距離に比例する（ステップ①）</td></tr>
+    <tr><td>振動する</td><td>玉</td><td><strong>周期 84分、最大の速さ 8.0 km/s</strong></td><td>単振動になる（ステップ②③）</td></tr>
+    <tr><td>弦のトンネル</td><td>玉</td><td><strong>周期は同じ、速さは 6.4 km/s</strong></td><td>弦でも周期は変わらない（ステップ④）</td></tr>
+    <tr><td>罠</td><td>玉</td><td><strong>g一定では 27分・16 km/s</strong></td><td>g を一定とするとまちがう（ステップ⑤）</td></tr>
+  </table>
+  <p>地球の内部では、玉より外側の地球の質量は、玉を引かない。内側の質量だけが、玉を中心へ引く。内側の質量は r³ に比例するので、重力は r に比例する。これが単振動の源だ。</p>
+  <svg class="fig" data-scene="scene-earth-tunnel-base" data-show="gravity" width="100%" role="img" aria-label="地球を貫くトンネル。表面の玉に重力がはたらく"></svg>
+  <p>地球の半径は R = 6.4×10⁶ m、表面の重力は g = 10 m/s² だ。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①地球の内部の重力</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 地球の内部の重力</h2>
+  <svg class="fig" data-scene="scene-earth-tunnel-gravity" data-show="" width="100%" role="img" aria-label="g–r グラフ。地球の内部では g は r に比例し、表面で 10、外では 1/r² で減る"></svg>
+  <p>中心からの距離 r のところで、玉を引くのは、半径 r の内側の地球だけだ。地球は一様なので、内側の質量は M·(r/R)³ になる。万有引力は、F = G·(内側の質量)·m/r² = GMm·r/R³ だ。重力加速度は、g(r) = F/m = (GM/R³)·r になる。表面では GM/R² = g = 10 m/s² なので、g(r) = g·r/R = <strong>10·r/R m/s²</strong> になる。</p>
+  <p>r = R/2 のところでは、g = <strong>5.0 m/s²</strong> になる。中心では g = 0 だ。地球の外（r &gt; R）では、地球全体が玉を引くので、g(r) = GM/r² = g·(R/r)² になる。r = 2R では、g = <strong>2.5 m/s²</strong> だ。</p>
+  <p>地球の内部では、重力が中心からの距離に比例する。外では、距離の2乗に反比例する。表面で 2つの式がつながる（どちらも g = 10 m/s²）。</p>
+  <label><input type="checkbox" class="check"> 地球の内部では g(r) = g·r/R、r=R/2 で 5.0 m/s²、r=2R で 2.5 m/s² になることを確かめた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②単振動になる</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 単振動になる：周期は約84分</h2>
+  <svg class="fig" data-scene="scene-earth-tunnel-shm" data-show="velocity" width="100%" role="img" aria-label="中心の玉。速さは最大 8.0 km/s、周期は約84分"></svg>
+  <p>玉の位置を、中心からの距離 x とする（トンネルに沿って測る）。玉にはたらく力は、重力だけだ。中心へ向かう向きを負とすると、F = −m·g(r) = −m·(g/R)·x になる。これは、ばねの力 F = −kx と同じ形だ。ばね定数は、k = mg/R になる。</p>
+  <p>ばねと同じように、玉は単振動する。角振動数は、ω = √(k/m) = √(g/R) = √(10/6.4×10⁶) = √1.5625×10⁻⁶ ≈ <strong>1.25×10⁻³ rad/s</strong> になる。周期は、T = 2π/ω ≈ <strong>5027 s ≈ 84分</strong> だ。</p>
+  <p>表面から落とした玉は、中心まで T/4 ≈ <strong>21分</strong> で着き、反対側の表面まで T/2 ≈ <strong>42分</strong> で着く。そのあと、また戻ってくる。摩擦がなければ、84分で1往復する振動が永遠に続く。</p>
+  <label><input type="checkbox" class="check"> 玉は単振動になり、ω≈1.25×10⁻³ rad/s、周期は約84分、中心までは約21分になることを確かめた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③中心での速さ</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 中心での速さ 8.0 km/s</h2>
+  <svg class="fig" data-scene="scene-earth-tunnel-energy" data-show="" width="100%" role="img" aria-label="エネルギーの棒グラフ。全エネルギー −6.4×10⁷ J、中心の位置エネルギー −9.6×10⁷ J、中心の運動エネルギー 3.2×10⁷ J"></svg>
+  <p>単振動の振幅は、地球の半径 R = 6.4×10⁶ m だ。中心での速さは、v_max = ωA = ωR = 1.25×10⁻³ × 6.4×10⁶ = <strong>8000 m/s = 8.0 km/s</strong> になる。√(gR) = √(10 × 6.4×10⁶) = 8000 m/s とも書ける。</p>
+  <p>エネルギーでも確かめよう。位置エネルギーは、無限遠を 0 とすると、表面では U = −GMm/R = −mgR = −1.0 × 10 × 6.4×10⁶ = <strong>−6.4×10⁷ J</strong> だ。中心では、U = −(3/2)GMm/R = <strong>−9.6×10⁷ J</strong> になる。表面で玉を静かに落とすので、全エネルギーは E = −6.4×10⁷ J のままだ。中心では、KE = E − U = −6.4×10⁷ − (−9.6×10⁷) = <strong>3.2×10⁷ J</strong> になる。v = √(2KE/m) = √(2 × 3.2×10⁷/1.0) = 8000 m/s と一致する。</p>
+  <p>中心での速さ 8.0 km/s は、地表すれすれを回る人工衛星の速さ（第13問）と同じだ。偶然ではない。どちらも、ω = √(g/R) で決まる。</p>
+  <label><input type="checkbox" class="check"> 中心の速さ 8.0 km/s、U(表面)=−6.4×10⁷ J、U(中心)=−9.6×10⁷ J、KE(中心)=3.2×10⁷ J を求めた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④弦のトンネル</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 弦のトンネルでも周期は同じ</h2>
+  <svg class="fig" data-scene="scene-earth-tunnel-chord" data-show="" width="100%" role="img" aria-label="弦のトンネル。中心から 0.60R 離れ、半分の長さは 0.80R、周期は同じ 84分"></svg>
+  <p>今度は、地球の中心を通らないトンネルを考える。中心からの距離が d = 0.60R = 3.84×10⁶ m の弦のトンネルだ。弦の半分の長さは、L = √(R² − d²) = √(1 − 0.36)·R = 0.80R = <strong>5.12×10⁶ m</strong> になる。</p>
+  <p>弦に沿って測った位置を x とすると（弦の中点を 0 とする）、玉にはたらく重力の弦に沿う成分は、F = −m·(g/R)·x になる。中心からの距離が √(d² + x²) で、重力の大きさは g·√(d² + x²)/R、そのうち弦に沿う成分は x/√(d² + x²) 倍だから、かけると −m·(g/R)·x になる。d が消える。</p>
+  <p>だから、弦のトンネルでも角振動数は同じ ω = √(g/R) で、周期は同じ <strong>84分</strong> になる。ちがうのは振幅だけで、最大の速さは v_max = ωL = 1.25×10⁻³ × 5.12×10⁶ = <strong>6400 m/s = 6.4 km/s</strong> になる。端から端までは、やはり 42分だ。どの弦でも、同じ時間で着く。</p>
+  <label><input type="checkbox" class="check"> 弦のトンネルでも周期は同じ 84分で、半分の長さは 0.80R、最大の速さは 6.4 km/s になることを確かめた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤罠：g を一定とすると</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ 罠：g を一定とするとまちがう</h2>
+  <svg class="fig" data-scene="scene-earth-tunnel-trap" data-show="" width="100%" role="img" aria-label="速さの比べ。正しい v_max は 8.0 km/s、g一定とすると 16 km/s になる"></svg>
+  <p>罠は、地球の内部でも重力を g = 10 m/s² で一定とすることだ。g が一定なら、玉は等加速度運動で落ちる。直径 2R = 1.28×10⁷ m を落ちる時間は、t = √(2·2R/g) = √(2 × 1.28×10⁷/10) = 1600 s ≈ <strong>27分</strong> になる。中心の速さは、v = √(2g·2R) = √(2 × 10 × 1.28×10⁷) = <strong>16000 m/s = 16 km/s</strong> になる。</p>
+  <p>正しくは、42分で反対側に着き、中心の速さは 8.0 km/s だ。g が一定だと思うと、時間は短く、速さは 2倍になってしまう。地球の内部では、重力は中心に近づくほど小さくなる。g が一定なのは、地表の近くだけだ。</p>
+  <p>低軌道の人工衛星の周期も、約 84分だ（第13問）。人工衛星は、地球のまわりを回る速さ 8.0 km/s で、1周するのに 84分かかる。トンネルの玉も、84分で1往復する。回るのと、往復するのと、どちらも同じ ω = √(g/R) で決まる。</p>
+  <label><input type="checkbox" class="check"> g一定では 27分・16 km/s になってしまうことと、低軌道の周期も約84分であることを確かめた</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と系を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 地球の内部では g(r) = g·r/R、r=R/2 で 5.0 m/s²、r=2R で 2.5 m/s²。(2) ω = √(g/R) ≈ 1.25×10⁻³ rad/s、周期は約84分、中心までは約21分。(3) 中心の速さ 8.0 km/s、U(表面)=−6.4×10⁷ J、U(中心)=−9.6×10⁷ J、KE(中心)=3.2×10⁷ J。(4) 弦のトンネルでも周期は同じ 84分、半分の長さは 0.80R、最大の速さは 6.4 km/s。(5) g一定では 27分・16 km/s になってしまう。低軌道の周期も約84分。もとになった単体モデル：万有引力は <a href="gravitation.html">第13問：万有引力・ケプラー</a>、単振動は <a href="shm.html">第11問：単振動・振り子</a>、円運動は <a href="circle.html">第10問：円運動</a>、人工衛星の軌道遷移は <a href="orbit-transfer.html">組み合わせ問題Y：人工衛星の軌道遷移</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboEarthTunnelDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
