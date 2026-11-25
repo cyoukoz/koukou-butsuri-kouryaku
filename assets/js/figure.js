@@ -1,4 +1,4 @@
-// 高校物理攻略 — 図描画シミュレータ（試作 v1.2：単一モデル 分子運動論・進行波・クーロン・電場 追加）
+// 高校物理攻略 — 図描画シミュレータ（試作 v1.3：単一モデル 熱量・比熱・空気抵抗・終端速度・放射性崩壊 追加）
 // 方針：図は手書きの座標を直書きしない。入力は JSON の「物理データ」だけ。
 // 描画側が角度・つり合いから矢印の向きと長さを計算する。
 // だから mg sinθ が mg と同じ長さになる、θ が消える、ラベルが切れる、
@@ -1167,6 +1167,121 @@ function coulombFieldForces(data) {
   return []; // 電気力線の場面：線は drawBase で描く
 }
 
+// ---- 熱量・比熱（T5）：Q=mcΔT、熱容量 C=mc、混合温度、潜熱 ----
+// 具体値（検算済み）：水 0.20 kg、c=4200 J/(kg・K)、20°C→80°C で Q=50400 J、熱容量 C=840 J/K。
+//   銅 0.50 kg、c=390、ΔT=50 K で Q=9750 J。同じ 9750 J を水に与えると ΔT≈11.6 K。
+//   混合：80°C の水 0.20 kg と 20°C の水 0.30 kg → 44°C（失った熱 30240 J＝得た熱 30240 J）。
+//   氷 0.10 kg（0°C）をとかすのに Q=33000 J（温度は変わらない）、とけた水を 20°C まで温めるのに 8400 J、合計 41400 J。
+// 罠：熱と温度は別物。同じ熱量でも熱容量が違えば温度の上がり方は違う。潜熱では熱を与えても温度が変わらない。
+// 矢印の縮尺：熱量の矢印は 1 px/1000 J。
+function calorimetryDerived(data) {
+  const qHeat = data.waterMassKg * data.waterC * (data.t2C - data.t1C);
+  const heatCap = data.waterMassKg * data.waterC;
+  const qCopper = data.copperMassKg * data.copperC * data.copperDT;
+  const dTWaterSameQ = qCopper / heatCap;
+  const mixT = (data.waterMassKg * data.t2C + data.mixMass2Kg * data.mixT2C) / (data.waterMassKg + data.mixMass2Kg);
+  const qLost = data.waterMassKg * data.waterC * (data.t2C - mixT);
+  const qGained = data.mixMass2Kg * data.waterC * (mixT - data.mixT2C);
+  const qMelt = data.iceMassKg * data.latentJperKg;
+  const qWarmMelt = data.iceMassKg * data.waterC * (20 - 0);
+  const qTotalIce = qMelt + qWarmMelt;
+  return { qHeat, heatCap, qCopper, dTWaterSameQ, mixT, qLost, qGained, qMelt, qWarmMelt, qTotalIce };
+}
+
+function calorimetryForces(data) {
+  const d = calorimetryDerived(data);
+  const qScale = 1 / 1000; // px/J
+  if (data.phase === 'heat') {
+    // 熱は上からビーカーに入る（下向きの矢印）。
+    return [
+      { id: 'heatIn', short: 'Q=5.0×10⁴ J', color: '#d35400', vector: [0, d.qHeat * qScale], dashed: false, labelDx: 6, labelDy: -8, from: { x: 240, y: 60 } },
+    ];
+  }
+  if (data.phase === 'mix') {
+    // 熱い水から冷たい水へ熱が流れる。
+    return [
+      { id: 'heatFlow', short: 'Q=3.0×10⁴ J', color: '#d35400', vector: [d.qLost * qScale, 0], dashed: false, labelDx: 6, labelDy: -8, from: { x: 170, y: 120 } },
+    ];
+  }
+  if (data.phase === 'latent') {
+    // 氷をとかす熱。温度は 0°C のまま。
+    return [
+      { id: 'heatMelt', short: 'Q=3.3×10⁴ J', color: '#d35400', vector: [d.qMelt * qScale, 0], dashed: false, labelDx: 6, labelDy: -8, from: { x: 60, y: 80 } },
+    ];
+  }
+  return []; // compare の場面：温度の棒は drawBase で描く
+}
+
+// ---- 空気抵抗・終端速度（M18）：F=kv、v(t)=v_t(1−e^(−t/τ)) ----
+// 具体値（検算済み、g=10）：玉 m=0.50 kg、k=0.25 N・s/m、mg=5.0 N、終端速度 v_t=mg/k=20 m/s、時定数 τ=m/k=2.0 s。
+//   t=2.0 s：v≈12.6 m/s、抵抗 kv≈3.16 N、合力≈1.84 N、加速度≈3.68 m/s²、落ちた距離≈14.7 m。
+//   t=4.0 s：v≈17.3 m/s、抵抗≈4.32 N、加速度≈1.35 m/s²。終端速度では抵抗=重力で加速度 0。
+//   重い玉 m=1.0 kg（同じ k）：v_t=40 m/s、τ=4.0 s、t=2.0 s で v≈15.7 m/s（軽い玉の 12.6 m/s より速い）。
+//   真空なら t=2.0 s で v=gt=20 m/s（質量によらない）。
+// 罠：真空なら重さによらず同じ速さだが、空気抵抗があると重い玉のほうが終端速度が大きい。
+// 矢印の縮尺：力は 10 px/N（重力の矢印はつねに 50 px）、速度は 2 px/(m/s)。
+function dragDerived(data) {
+  const mg = data.massKg * data.g;
+  const vt = mg / data.dragK;
+  const tau = data.massKg / data.dragK;
+  const tMid = data.tMidS;
+  const vMid = vt * (1 - Math.exp(-tMid / tau));
+  const fDragMid = data.dragK * vMid;
+  const aMid = (mg - fDragMid) / data.massKg;
+  const xMid = vt * (tMid - tau * (1 - Math.exp(-tMid / tau)));
+  const vtHeavy = (data.heavyMassKg * data.g) / data.dragK;
+  const tauHeavy = data.heavyMassKg / data.dragK;
+  const vHeavyMid = vtHeavy * (1 - Math.exp(-tMid / tauHeavy));
+  const vVacMid = data.g * tMid;
+  return { mg, vt, tau, vMid, fDragMid, aMid, xMid, vtHeavy, tauHeavy, vHeavyMid, vVacMid };
+}
+
+function dragForces(data) {
+  const d = dragDerived(data);
+  const fScale = 10; // px/N
+  const vScale = 2; // px/(m/s)
+  if (data.phase === 'start') {
+    return [
+      { id: 'gravity', short: '重力 mg', color: 'red', vector: [0, d.mg * fScale], dashed: false, labelDx: 6, labelDy: -6, from: { x: 200, y: 120 } },
+    ];
+  }
+  if (data.phase === 'mid') {
+    return [
+      { id: 'gravity', short: '重力 mg', color: 'red', vector: [0, d.mg * fScale], dashed: false, labelDx: 6, labelDy: -6, from: { x: 200, y: 120 } },
+      { id: 'drag', short: '空気抵抗', color: 'purple', vector: [0, -d.fDragMid * fScale], dashed: false, labelDx: -70, labelDy: -6, from: { x: 200, y: 120 } },
+      { id: 'velocity', short: 'v=' + d.vMid.toFixed(1) + ' m/s', color: '#d35400', vector: [0, d.vMid * vScale], dashed: false, labelDx: 6, labelDy: -8, from: { x: 270, y: 120 } },
+    ];
+  }
+  if (data.phase === 'terminal') {
+    return [
+      { id: 'gravity', short: '重力 mg', color: 'red', vector: [0, d.mg * fScale], dashed: false, labelDx: 6, labelDy: -6, from: { x: 200, y: 120 } },
+      { id: 'drag', short: '空気抵抗', color: 'purple', vector: [0, -d.mg * fScale], dashed: false, labelDx: -70, labelDy: -6, from: { x: 200, y: 120 } },
+      { id: 'velocity', short: 'v=20 m/s', color: '#d35400', vector: [0, d.vt * vScale], dashed: false, labelDx: 6, labelDy: -8, from: { x: 270, y: 120 } },
+    ];
+  }
+  return []; // heavy の場面：2 本の v–t 曲線は drawBase で描く
+}
+
+// ---- 放射性崩壊（A3）：N=N0・(1/2)^(t/T)、放射能 A=λN、年代測定 ----
+// 具体値（検算済み）：ヨウ素131、半減期 T=8.0 日、λ=ln2/T≈0.0866 /日、N0=1.0×10⁶ 個。
+//   はじめの放射能 A0=λN0≈1.0 Bq。8 日後：N=5.0×10⁵ 個、A≈0.50 Bq。16 日後：N=2.5×10⁵ 個、A≈0.25 Bq。
+//   24 日後：N=1.25×10⁵ 個、A≈0.13 Bq。32 日後：N=6.25×10⁴ 個、A≈0.063 Bq。
+//   年代測定（¹⁴C、T=5730 年）：残りが 1/8 なら 3 半減期 → 17190 年前。1/4 なら 2 半減期 → 11460 年前。
+// 罠：減り方は直線ではなく指数関数的。2 半減期で 1/4 残る（0 にはならない）。1 個の原子核がいつ崩壊するかは予測できない。
+function decayDerived(data) {
+  const lambda = Math.LN2 / data.halfLifeDays; // /日
+  const fracs = [1, 0.5, 0.25, 0.125, 0.0625];
+  const nAt = fracs.map((f) => data.n0 * f);
+  const actBq = fracs.map((f) => (lambda * data.n0 * f) / 86400);
+  const halfLives = -Math.log2(data.measuredFraction);
+  const ageYr = halfLives * data.carbonHalfLifeYr;
+  return { lambda, fracs, nAt, actBq, halfLives, ageYr };
+}
+
+function decayForces(data) {
+  return []; // 崩壊曲線と年代の棒は drawBase で式から描く。力の矢印はない。
+}
+
 function sceneFor(type, thetaDeg, mgPx, fPx, data) {
   if (type === 'dcCircuit') {
     const d = dcCircuitDerived(data);
@@ -1232,6 +1347,38 @@ function sceneFor(type, thetaDeg, mgPx, fPx, data) {
       derived: d,
       center: { x: 200, y: 180 }, centerDot: false,
       forces: coulombFieldForces(data),
+    };
+  }
+  if (type === 'calorimetry') {
+    const d = calorimetryDerived(data);
+    return {
+      type, phase: data.phase || 'heat',
+      waterMassKg: data.waterMassKg, waterC: data.waterC, t1C: data.t1C, t2C: data.t2C,
+      copperMassKg: data.copperMassKg, copperC: data.copperC, copperDT: data.copperDT,
+      mixMass2Kg: data.mixMass2Kg, mixT2C: data.mixT2C, iceMassKg: data.iceMassKg, latentJperKg: data.latentJperKg,
+      derived: d,
+      center: { x: 200, y: 180 }, centerDot: false,
+      forces: calorimetryForces(data),
+    };
+  }
+  if (type === 'drag') {
+    const d = dragDerived(data);
+    return {
+      type, phase: data.phase || 'start',
+      massKg: data.massKg, dragK: data.dragK, g: data.g, heavyMassKg: data.heavyMassKg, tMidS: data.tMidS,
+      derived: d,
+      center: { x: 200, y: 120 }, centerDot: false,
+      forces: dragForces(data),
+    };
+  }
+  if (type === 'decay') {
+    const d = decayDerived(data);
+    return {
+      type, phase: data.phase || 'curve',
+      halfLifeDays: data.halfLifeDays, n0: data.n0, carbonHalfLifeYr: data.carbonHalfLifeYr, measuredFraction: data.measuredFraction,
+      derived: d,
+      center: { x: 200, y: 180 }, centerDot: false,
+      forces: decayForces(data),
     };
   }
   if (type === 'heatCycle') {
@@ -2006,6 +2153,61 @@ function validateScene(scene) {
     if (byId.eTotal && Math.abs(byId.eTotal.vector[0] - d.eMidTotal * 30 / 1e6) > 0.5) return ['中点の電場の矢印が縮尺と一致しません'];
     if (byId.fTest && Math.abs(byId.fTest.vector[0] - d.fTest * 20) > 0.5) return ['電気力の矢印が 20 px/N の縮尺と一致しません'];
   }
+  if (scene.type === 'calorimetry') {
+    const d = scene.derived;
+    // 熱量：Q=mcΔT、熱容量 C=mc。
+    if (Math.abs(d.qHeat - scene.waterMassKg * scene.waterC * (scene.t2C - scene.t1C)) > 1e-9) return ['水を温める熱量が mcΔT と一致しません'];
+    if (Math.abs(d.heatCap - scene.waterMassKg * scene.waterC) > 1e-9) return ['熱容量が mc と一致しません'];
+    if (Math.abs(d.qCopper - scene.copperMassKg * scene.copperC * scene.copperDT) > 1e-9) return ['銅を温める熱量が mcΔT と一致しません'];
+    if (Math.abs(d.dTWaterSameQ - d.qCopper / d.heatCap) > 1e-9) return ['同じ熱量での水の温度上昇が Q/C と一致しません'];
+    // 混合：熱量保存（失った熱＝得た熱）。
+    if (Math.abs(d.mixT - ((scene.waterMassKg * scene.t2C + scene.mixMass2Kg * scene.mixT2C) / (scene.waterMassKg + scene.mixMass2Kg))) > 1e-9) return ['混合温度が熱量保存と一致しません'];
+    if (Math.abs(d.qLost - d.qGained) > 1e-9) return ['失った熱量と得た熱量が一致しません'];
+    // 潜熱：Q=mL、とけた水を温める分を足す。
+    if (Math.abs(d.qMelt - scene.iceMassKg * scene.latentJperKg) > 1e-9) return ['氷をとかす熱量が mL と一致しません'];
+    if (Math.abs(d.qTotalIce - (d.qMelt + d.qWarmMelt)) > 1e-9) return ['氷から 20°C の水までの熱量が合計と一致しません'];
+    // 熱量の矢印の長さが 1 px/1000 J どおりか。
+    if (byId.heatIn && Math.abs(byId.heatIn.vector[1] - d.qHeat / 1000) > 0.5) return ['加熱の矢印が Q/1000 px と一致しません'];
+    if (byId.heatFlow && Math.abs(byId.heatFlow.vector[0] - d.qLost / 1000) > 0.5) return ['熱の流れの矢印が Q/1000 px と一致しません'];
+    if (byId.heatMelt && Math.abs(byId.heatMelt.vector[0] - d.qMelt / 1000) > 0.5) return ['融解の矢印が Q/1000 px と一致しません'];
+  }
+  if (scene.type === 'drag') {
+    const d = scene.derived;
+    // 終端速度 v_t=mg/k、時定数 τ=m/k。
+    if (Math.abs(d.vt - (d.mg / scene.dragK)) > 1e-9) return ['終端速度が mg/k と一致しません'];
+    if (Math.abs(d.tau - scene.massKg / scene.dragK) > 1e-9) return ['時定数が m/k と一致しません'];
+    // t=2.0 s の値：v=v_t(1−e^(−t/τ))、抵抗 kv、加速度 (mg−kv)/m。
+    if (Math.abs(d.vMid - d.vt * (1 - Math.exp(-scene.tMidS / d.tau))) > 1e-9) return ['t=2.0 s の速さが v_t(1−e^(−t/τ)) と一致しません'];
+    if (Math.abs(d.fDragMid - scene.dragK * d.vMid) > 1e-9) return ['t=2.0 s の空気抵抗が kv と一致しません'];
+    if (Math.abs(d.aMid - (d.mg - d.fDragMid) / scene.massKg) > 1e-9) return ['t=2.0 s の加速度が (mg−kv)/m と一致しません'];
+    // 重い玉：終端速度が大きく、t=2.0 s でも軽い玉より速い。真空なら gt。
+    if (Math.abs(d.vtHeavy - (scene.heavyMassKg * scene.g) / scene.dragK) > 1e-9) return ['重い玉の終端速度が mg/k と一致しません'];
+    if (Math.abs(d.vHeavyMid - d.vtHeavy * (1 - Math.exp(-scene.tMidS / d.tauHeavy))) > 1e-9) return ['重い玉の t=2.0 s の速さが一致しません'];
+    if (Math.abs(d.vVacMid - scene.g * scene.tMidS) > 1e-9) return ['真空での速さが gt と一致しません'];
+    // 重力の矢印はつねに同じ長さ（mg×10 px）、速度の矢印は速さで変わる。
+    if (byId.gravity && Math.abs(byId.gravity.vector[1] - d.mg * 10) > 0.5) return ['重力の矢印が mg×10 px と一致しません'];
+    if (byId.drag) {
+      const expect = scene.phase === 'terminal' ? d.mg * 10 : d.fDragMid * 10;
+      if (Math.abs(-byId.drag.vector[1] - expect) > 0.5) return ['空気抵抗の矢印が縮尺と一致しません'];
+    }
+    if (byId.velocity) {
+      const expect = scene.phase === 'terminal' ? d.vt * 2 : d.vMid * 2;
+      if (Math.abs(byId.velocity.vector[1] - expect) > 0.5) return ['速度の矢印が縮尺と一致しません'];
+    }
+  }
+  if (scene.type === 'decay') {
+    const d = scene.derived;
+    // 崩壊定数 λ=ln2/T、半減期ごとの残り（1/2、1/4…）。
+    if (Math.abs(d.lambda - Math.LN2 / scene.halfLifeDays) > 1e-12) return ['崩壊定数が ln2/T と一致しません'];
+    if (Math.abs(d.nAt[1] - scene.n0 / 2) > 1e-9) return ['1 半減期後の数が N0/2 と一致しません'];
+    if (Math.abs(d.nAt[2] - scene.n0 / 4) > 1e-9) return ['2 半減期後の数が N0/4 と一致しません'];
+    // 放射能 A=λN。半減期ごとに半分になる。
+    if (Math.abs(d.actBq[0] - (d.lambda * scene.n0) / 86400) > 1e-9) return ['はじめの放射能が λN0 と一致しません'];
+    if (Math.abs(d.actBq[1] / d.actBq[0] - 0.5) > 1e-9) return ['1 半減期後の放射能が半分になっていません'];
+    // 年代測定：残った割合から半減期の回数を数える。
+    if (Math.abs(d.halfLives - (-Math.log2(scene.measuredFraction))) > 1e-9) return ['残った割合からの半減期の回数が一致しません'];
+    if (Math.abs(d.ageYr - d.halfLives * scene.carbonHalfLifeYr) > 1e-9) return ['年代が半減期の回数×5730 年と一致しません'];
+  }
   return [];
 }
 
@@ -2724,8 +2926,9 @@ function drawBase(svg, scene) {
         p += (p ? ' L ' : 'M ') + x + ' ' + y;
       }
       svg.appendChild(el('path', { d: p, fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
-      // t=0.25 s のラベルは軸の目盛りと重ならないよう、軸の下に出す。
-      for (const [t, label, lx, ly] of [[0.125, 't=0.125 s：y=+A', 100, 128], [0.25, 't=0.25 s：y=0', 118, 205], [0.375, 't=0.375 s：y=−A', 168, 248]]) {
+      // t=0.25 s のラベルは、軸の目盛り（y=202）と重ならないよう、点の右上に出す。
+      // 点の右側では波形が軸の下側を通るので、軸の上側は空いている。
+      for (const [t, label, lx, ly] of [[0.125, 't=0.125 s：y=+A', 100, 128], [0.25, 't=0.25 s：y=0', 140, 160], [0.375, 't=0.375 s：y=−A', 168, 248]]) {
         const x = x0 + t * span, y = yMid - amp * Math.sin(2 * Math.PI * t / scene.periodS);
         svg.appendChild(el('circle', { cx: x, cy: y, r: 4, fill: '#b00' }));
         const tt = el('text', { x: lx, y: ly, fill: '#b00' }); tt.textContent = label; svg.appendChild(tt);
@@ -2824,6 +3027,153 @@ function drawBase(svg, scene) {
         const tN = el('text', { x: 40, y: 36, fill: '#555' }); tN.textContent = '点電荷のまわりの電場（距離で 1/r²）'; svg.appendChild(tN);
       }
     }
+  } else if (scene.type === 'calorimetry') {
+    const d = scene.derived;
+    if (scene.phase === 'compare') {
+      // 同じ熱量でも、熱容量が小さい銅のほうが温度が大きく上がる。
+      const tH = el('text', { x: 40, y: 36, fill: '#555' }); tH.textContent = '同じ Q=9750 J を与える'; svg.appendChild(tH);
+      svg.appendChild(el('rect', { x: 80, y: 120, width: 80, height: 50, fill: '#f0c8c8', stroke: '#333', 'stroke-width': 2 }));
+      const tCu = el('text', { x: 84, y: 148 }); tCu.textContent = '銅 0.50 kg'; svg.appendChild(tCu);
+      svg.appendChild(el('rect', { x: 80, y: 200, width: 80, height: 50, fill: '#cfe3ff', stroke: '#333', 'stroke-width': 2 }));
+      const tW = el('text', { x: 84, y: 228 }); tW.textContent = '水 0.20 kg'; svg.appendChild(tW);
+      // 温度の上がり幅の棒（基準線 y=280）：銅 50 K、水は約 12 K。
+      const baseY = 280;
+      svg.appendChild(el('line', { x1: 200, y1: baseY, x2: 360, y2: baseY, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('rect', { x: 230, y: baseY - scene.copperDT, width: 30, height: scene.copperDT, fill: '#b00', stroke: '#333', 'stroke-width': 1 }));
+      const t1 = el('text', { x: 222, y: baseY - scene.copperDT - 8 }); t1.textContent = 'ΔT=50 K'; svg.appendChild(t1);
+      svg.appendChild(el('rect', { x: 300, y: baseY - d.dTWaterSameQ, width: 30, height: d.dTWaterSameQ, fill: '#b00', stroke: '#333', 'stroke-width': 1 }));
+      const t2 = el('text', { x: 292, y: baseY - d.dTWaterSameQ - 8 }); t2.textContent = 'ΔT≈12 K'; svg.appendChild(t2);
+    } else if (scene.phase === 'heat') {
+      // 水 0.20 kg を 20°C から 80°C に温める。熱は上から入る（forces の矢印）。
+      const tH = el('text', { x: 40, y: 36, fill: '#555' }); tH.textContent = '水 0.20 kg を 20°C から 80°C に温める'; svg.appendChild(tH);
+      svg.appendChild(el('rect', { x: 180, y: 120, width: 120, height: 140, fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('rect', { x: 184, y: 180, width: 112, height: 76, fill: '#cfe3ff', stroke: 'none' }));
+      const tW = el('text', { x: 210, y: 220 }); tW.textContent = '水'; svg.appendChild(tW);
+      // 温度の目盛り：20°C が y=250、80°C が y=130（1 K = 2 px）。
+      svg.appendChild(el('line', { x1: 320, y1: 120, x2: 320, y2: 260, stroke: '#333', 'stroke-width': 1.5 }));
+      for (const [t, y] of [[20, 250], [80, 130]]) {
+        svg.appendChild(el('line', { x1: 314, y1: y, x2: 326, y2: y, stroke: '#333', 'stroke-width': 1.5 }));
+        const tt = el('text', { x: 330, y: y + 4 }); tt.textContent = t + '°C'; svg.appendChild(tt);
+      }
+    } else if (scene.phase === 'mix') {
+      // 80°C の水と 20°C の水を混ぜる。熱は熱いほうから冷たいほうへ流れる。
+      const tH = el('text', { x: 40, y: 36, fill: '#555' }); tH.textContent = '80°C の水と 20°C の水を混ぜる'; svg.appendChild(tH);
+      svg.appendChild(el('rect', { x: 60, y: 140, width: 90, height: 110, fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('rect', { x: 64, y: 180, width: 82, height: 66, fill: '#ffb3b3', stroke: 'none' }));
+      const t1 = el('text', { x: 80, y: 210 }); t1.textContent = '80°C'; svg.appendChild(t1);
+      svg.appendChild(el('rect', { x: 250, y: 140, width: 90, height: 110, fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('rect', { x: 254, y: 180, width: 82, height: 66, fill: '#cfe3ff', stroke: 'none' }));
+      const t2 = el('text', { x: 270, y: 210 }); t2.textContent = '20°C'; svg.appendChild(t2);
+      const tR = el('text', { x: 40, y: 284, fill: '#555' }); tR.textContent = '混ぜると 44°C になる'; svg.appendChild(tR);
+    } else {
+      // T–Q グラフ：横軸 Q（0〜4.14×10⁴ J → x=60〜340）、縦軸 T（0〜20°C → y=240〜120）。
+      const tH = el('text', { x: 40, y: 36, fill: '#555' }); tH.textContent = '氷をとかす：温度は 0°C のまま'; svg.appendChild(tH);
+      const x0 = 60, x1 = 340, y0 = 240, y1 = 120;
+      const xFlat = x0 + (d.qMelt / d.qTotalIce) * (x1 - x0);
+      svg.appendChild(el('line', { x1: x0, y1: y0, x2: x1, y2: y0, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: x0, y1: y1, x2: x0, y2: y0, stroke: '#333', 'stroke-width': 1.5 }));
+      // 0°C で水平（とける）、その後 20°C まで上がる。
+      svg.appendChild(el('path', { d: `M ${x0} ${y0} L ${xFlat.toFixed(1)} ${y0} L ${x1} ${y1}`, fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
+      const tY = el('text', { x: 40, y: 124 }); tY.textContent = 'T'; svg.appendChild(tY);
+      const t0 = el('text', { x: 28, y: 244 }); t0.textContent = '0°C'; svg.appendChild(t0);
+      const tF = el('text', { x: 175, y: 260, fill: '#555' }); tF.textContent = 'とけるだけ（0°C のまま）'; svg.appendChild(tF);
+      const tQ = el('text', { x: 348, y: 258, fill: '#555' }); tQ.textContent = 'Q'; svg.appendChild(tQ);
+    }
+  } else if (scene.type === 'drag') {
+    const d = scene.derived;
+    if (scene.phase === 'heavy') {
+      // v–t グラフ：軽い玉と重い玉の 2 本の曲線。横軸 t（0〜10 s）、縦軸 v（0〜40 m/s、5 px/(m/s)）。
+      const x0 = 60, x1 = 340, y0 = 240;
+      const tx = (t) => x0 + t * 28;
+      const vy = (v) => y0 - v * 5;
+      const tH = el('text', { x: 40, y: 36, fill: '#555' }); tH.textContent = 'v–t グラフ：重い玉のほうが速くなる'; svg.appendChild(tH);
+      svg.appendChild(el('line', { x1: x0, y1: y0, x2: x1, y2: y0, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: x0, y1: 40, x2: x0, y2: y0, stroke: '#333', 'stroke-width': 1.5 }));
+      // 終端速度の破線。
+      for (const [vt, label, ly] of [[d.vt, '軽い玉 20 m/s', 132], [d.vtHeavy, '重い玉 40 m/s', 32]]) {
+        svg.appendChild(el('line', { x1: x0, y1: vy(vt), x2: x1, y2: vy(vt), stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+        const tt = el('text', { x: 250, y: ly, fill: '#555' }); tt.textContent = label; svg.appendChild(tt);
+      }
+      // 曲線：v(t)=v_t(1−e^(−t/τ))。
+      const curve = (vt, tau, color) => {
+        let p = '';
+        for (let i = 0; i <= 100; i++) {
+          const t = (i / 100) * 10;
+          const v = vt * (1 - Math.exp(-t / tau));
+          p += (p ? ' L ' : 'M ') + tx(t).toFixed(1) + ' ' + vy(v).toFixed(1);
+        }
+        svg.appendChild(el('path', { d: p, fill: 'none', stroke: color, 'stroke-width': 2 }));
+      };
+      curve(d.vt, d.tau, '#b00');
+      curve(d.vtHeavy, d.tauHeavy, 'blue');
+      // t=2 s の点。
+      svg.appendChild(el('line', { x1: tx(2), y1: y0, x2: tx(2), y2: vy(d.vHeavyMid), stroke: '#888', 'stroke-width': 1, 'stroke-dasharray': '3 3' }));
+      svg.appendChild(el('circle', { cx: tx(2), cy: vy(d.vMid), r: 4, fill: '#b00' }));
+      svg.appendChild(el('circle', { cx: tx(2), cy: vy(d.vHeavyMid), r: 4, fill: 'blue' }));
+      const tL = el('text', { x: tx(2) + 6, y: vy(d.vMid) + 16, fill: '#b00' }); tL.textContent = '12.6 m/s'; svg.appendChild(tL);
+      const tHv = el('text', { x: tx(2) + 6, y: vy(d.vHeavyMid) - 10, fill: 'blue' }); tHv.textContent = '15.7 m/s'; svg.appendChild(tHv);
+      const tA = el('text', { x: 320, y: y0 + 22 }); tA.textContent = 't（s）'; svg.appendChild(tA);
+      const tV = el('text', { x: 36, y: 48 }); tV.textContent = 'v'; svg.appendChild(tV);
+    } else {
+      // 落ちる玉：重力はつねに同じ長さ、空気抵抗は速さで変わる（forces の矢印）。
+      const tH = el('text', { x: 40, y: 36, fill: '#555' });
+      tH.textContent = scene.phase === 'start' ? '落とし始め：抵抗はまだ 0'
+        : scene.phase === 'mid' ? 't=2.0 s：速さ 12.6 m/s、抵抗 3.16 N'
+        : '終端速度：抵抗 = 重力、加速度 0';
+      svg.appendChild(tH);
+      svg.appendChild(el('line', { x1: 40, y1: 270, x2: 360, y2: 270, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx: 200, cy: 120, r: 12, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      const tB = el('text', { x: 186, y: 96 }); tB.textContent = '玉'; svg.appendChild(tB);
+      const tG = el('text', { x: 40, y: 288, fill: '#555' }); tG.textContent = '地面'; svg.appendChild(tG);
+    }
+  } else if (scene.type === 'decay') {
+    const d = scene.derived;
+    if (scene.phase === 'dating') {
+      // 年代測定：残った割合から半減期の回数を数える。
+      const tH = el('text', { x: 40, y: 36, fill: '#555' }); tH.textContent = '¹⁴C が 1/8 だけ残っている → 3 半減期'; svg.appendChild(tH);
+      const baseY = 240;
+      svg.appendChild(el('line', { x1: 40, y1: baseY, x2: 360, y2: baseY, stroke: '#333', 'stroke-width': 1.5 }));
+      const years = [0, 5730, 11460, 17190];
+      const fracs = [1, 0.5, 0.25, 0.125];
+      for (let i = 0; i < 4; i++) {
+        const x = 80 + i * 80;
+        const h = fracs[i] * 160;
+        svg.appendChild(el('rect', { x, y: baseY - h, width: 40, height: h, fill: '#cfe3ff', stroke: '#333', 'stroke-width': 1.5 }));
+        const tF = el('text', { x: x + 2, y: baseY - h - 8 }); tF.textContent = fracs[i] === 1 ? '1' : '1/' + (1 / fracs[i]); svg.appendChild(tF);
+        const tY = el('text', { x: x - 6, y: baseY + 20 }); tY.textContent = years[i] + '年'; svg.appendChild(tY);
+      }
+    } else {
+      // 崩壊曲線：N(t)=N0・2^(−t/T)。横軸 0〜32 日、縦軸 0〜1.0×10⁶ 個。
+      const tH = el('text', { x: 40, y: 36, fill: '#555' });
+      tH.textContent = scene.phase === 'half' ? '半減期 8.0 日：8 日で半分になる'
+        : scene.phase === 'quarter' ? '16 日で 1/4 になる（直線ではない）'
+        : scene.phase === 'activity' ? '放射能も N と同じ割合で減る'
+        : '崩壊曲線：N=N0・(1/2)^(t/T)';
+      svg.appendChild(tH);
+      const x0 = 60, x1 = 340, y0 = 240, y1 = 40;
+      const tx = (t) => x0 + (t / 32) * (x1 - x0);
+      const ny = (n) => y0 - (n / scene.n0) * (y0 - y1);
+      svg.appendChild(el('line', { x1: x0, y1: y0, x2: x1, y2: y0, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: x0, y1: y1, x2: x0, y2: y0, stroke: '#333', 'stroke-width': 1.5 }));
+      let p = '';
+      for (let i = 0; i <= 100; i++) {
+        const t = (i / 100) * 32;
+        const n = scene.n0 * Math.pow(0.5, t / scene.halfLifeDays);
+        p += (p ? ' L ' : 'M ') + tx(t).toFixed(1) + ' ' + ny(n).toFixed(1);
+      }
+      svg.appendChild(el('path', { d: p, fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
+      // 半減期ごとの点（ラベルは曲線や見出しと重ならない位置に置く）。
+      const labels = ['1.0×10⁶', '5.0×10⁵', '2.5×10⁵', '1.3×10⁵', '6.3×10⁴'];
+      const labelPos = [[66, 56], [120, 130], [190, 180], [252, 205], [240, 217]];
+      for (let i = 0; i <= 4; i++) {
+        const t = i * scene.halfLifeDays;
+        const n = scene.n0 * d.fracs[i];
+        svg.appendChild(el('circle', { cx: tx(t), cy: ny(n), r: 4, fill: '#b00' }));
+        const tt = el('text', { x: labelPos[i][0], y: labelPos[i][1] }); tt.textContent = labels[i]; svg.appendChild(tt);
+      }
+      const tA = el('text', { x: 320, y: y0 + 22 }); tA.textContent = 't（日）'; svg.appendChild(tA);
+      const tN = el('text', { x: 36, y: 48 }); tN.textContent = 'N'; svg.appendChild(tN);
+    }
   } else if (scene.type === 'ladder') {
     svg.appendChild(el('line', { x1: 80, y1: 20, x2: 80, y2: 260, stroke: '#333', 'stroke-width': 3 }));
     svg.appendChild(el('line', { x1: 80, y1: 260, x2: 380, y2: 260, stroke: '#333', 'stroke-width': 3 }));
@@ -2883,4 +3233,4 @@ function renderAllFigures() {
   });
 }
 
-if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, sceneFor, validateScene, renderFigure };
+if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, sceneFor, validateScene, renderFigure };
