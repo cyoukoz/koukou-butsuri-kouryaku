@@ -152,6 +152,20 @@
 </div>
 
 <div class="card">
+  <h2>組み合わせ問題M：気体＋共鳴管</h2>
+  <p>ヘリウムを体積 1.0 L の管に封入し、定積のまま 300 K から 600 K まで加熱する。圧力は 2.0×10⁵ Pa になり、吸熱は 150 J だ。管は両端閉管でもあり、音速は約 1020 m/s から約 1440 m/s へ、基本振動数は約 600 Hz から 847 Hz へ上がる。圧力が変わっても音速は変わらない罠がある。橋渡し量は「温度」T。</p>
+  <p><a href="content/mechanics/gas-resonance.html">気体＋共鳴管のドリルを開く →</a></p>
+  <p id="progress-combo-gas-resonance">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>組み合わせ問題N：レール＋コンデンサ＋コイル</h2>
+  <p>磁場 1.0 T の中のレールの上で、棒が速さ 2.0 m/s ですべるとコンデンサが充電される。力積から、充電後の速さは 1.0 m/s、電荷は 0.50 C、エネルギーは 0.25 J だとわかる。はじめの運動エネルギー 1.0 J の半分はジュール熱になる。スイッチを切り替えると LC 振動がはじまり、周期 約 3.14 s、最大電流 1.0 A だ。橋渡し量は「コンデンサにたまった電荷」Q = 0.50 C。</p>
+  <p><a href="content/mechanics/rail-cap-coil.html">レール＋コンデンサ＋コイルのドリルを開く →</a></p>
+  <p id="progress-combo-rail-cap-coil">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
   <h2>第7問：気体＋ピストン</h2>
   <p>シリンダーにピストンがのっている。ピストンの力のつり合いから気体の圧力を、状態方程式から体積と高さを求める。加熱するとピストンが上がる等圧変化で、仕事・内部エネルギー・熱を区別しよう。</p>
   <p><a href="content/mechanics/gas-piston.html">気体＋ピストンのドリルを開く →</a></p>
@@ -394,6 +408,10 @@
       p.comboSlopeEnergyDone ? '進捗：組み合わせ問題K・斜面＋摩擦＋エネルギーを完了済み ✓' : '進捗：まだ組み合わせ問題K・斜面＋摩擦＋エネルギーは未完了';
     document.getElementById('progress-combo-induction-lc').textContent =
       p.comboInductionLCDone ? '進捗：組み合わせ問題L・誘導＋LC回路を完了済み ✓' : '進捗：まだ組み合わせ問題L・誘導＋LC回路は未完了';
+    document.getElementById('progress-combo-gas-resonance').textContent =
+      p.comboGasResonanceDone ? '進捗：組み合わせ問題M・気体＋共鳴管を完了済み ✓' : '進捗：まだ組み合わせ問題M・気体＋共鳴管は未完了';
+    document.getElementById('progress-combo-rail-cap-coil').textContent =
+      p.comboRailCapCoilDone ? '進捗：組み合わせ問題N・レール＋コンデンサ＋コイルを完了済み ✓' : '進捗：まだ組み合わせ問題N・レール＋コンデンサ＋コイルは未完了';
     document.getElementById('progress-gas-piston').textContent =
       p.gasPistonDone ? '進捗：第7問・気体＋ピストンを完了済み ✓' : '進捗：まだ第7問・気体＋ピストンは未完了';
     document.getElementById('progress-young').textContent =
@@ -465,6 +483,8 @@
     document.getElementById('progress-combo-cap-spring').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-slope-energy').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-induction-lc').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-gas-resonance').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-rail-cap-coil').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-gas-piston').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-young').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-capacitor').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
