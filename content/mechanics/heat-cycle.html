@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第16問：熱サイクル・熱機関 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>第16問：熱サイクル・熱機関</h1>
+<p><strong>問題：</strong>単原子分子の理想気体 n ≈ 0.040 mol が、p–V図の長方形のサイクルを1周する。A（1.0×10<sup>5</sup> Pa、1.0 L、300 K）→ D（3.0×10<sup>5</sup> Pa、1.0 L）→ C（3.0×10<sup>5</sup> Pa、3.0 L）→ B（1.0×10<sup>5</sup> Pa、3.0 L）→ A の順に進む。気体定数 R = 8.31 J/(mol・K)、単原子分子では定積モル比熱 C<sub>V</sub> = (3/2)R、定圧モル比熱 C<sub>p</sub> = (5/2)R とする。各過程の仕事・内部エネルギーの変化・熱を求め、1サイクルの仕事と熱効率を求めよ。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js）が下の JSON データから計算して描いている。p–V図の長方形の面積が、1サイクルの仕事 400 J にぴったり等しい。ラベルは短い名前だけにして、枠からはみ出さないよう描画側で調整している。</p>
+<script type="application/json" id="scene-heat">{"type":"heatCycle","phase":"path","p1Pa":100000,"p2Pa":300000,"v1M3":0.001,"v2M3":0.003,"tAK":300,"rGas":8.31,"nMol":0.0401,"cvFactor":1.5,"cpFactor":2.5}</script>
+<script type="application/json" id="scene-heat-full">{"type":"heatCycle","phase":"full","p1Pa":100000,"p2Pa":300000,"v1M3":0.001,"v2M3":0.003,"tAK":300,"rGas":8.31,"nMol":0.0401,"cvFactor":1.5,"cpFactor":2.5}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：p–V図の読み方</h2>
+  <p>p–V図では、横が体積 V、縦が圧力 p だ。右へ進むほど体積が大きく、上がるほど圧力が高い。A は左下（1.0×10<sup>5</sup> Pa、1.0 L、300 K）で、サイクルは A → D → C → B → A の順に、時計回りに1周する。時計回りだから、気体は1サイクルで外に仕事をする。反時計回りなら、仕事は外から気体にされる（冷凍機の向きだ）。</p>
+  <svg class="fig" data-scene="scene-heat" data-show="" width="100%" role="img" aria-label="p-V図の長方形のサイクル（過程の矢印はまだ描いていない）"></svg>
+  <p>まず角の温度を決める。等積変化では T は p に比例し、等圧変化では T は V に比例する。A が 300 K だから、D は p が 3 倍で 900 K、C は V が 3 倍で 2700 K、B は p が 1/3 で 900 K になる。温度は pV の比から出す。n の値から出すと、n ≈ 0.040 mol の計算が要るが、比で出すほうが間違えにくい。</p>
+  <a class="next" href="#step1">次へ ↓ ①等積変化 A→D</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 等積変化 A→D（加熱）</h2>
+  <svg class="fig" data-scene="scene-heat" data-show="processAD" width="100%" role="img" aria-label="等積変化 AからDへの矢印を描いたp-V図"></svg>
+  <p>体積が変わらないから、気体がする仕事は W = 0。温度は 300 K から 900 K へ上がるので、内部エネルギーの変化は ΔU = nC<sub>V</sub>ΔT = 0.040 × (3/2) × 8.31 × 600 ≈ <strong>+300 J</strong>。熱力学第一法則 Q = ΔU + W より、吸収した熱は Q = <strong>+300 J</strong>。等積変化では、吸収した熱がそのまま内部エネルギーになる。</p>
+  <label><input type="checkbox" class="check"> 等積変化では W = 0 で、Q = ΔU = +300 J と分かった</label>
+  <br><a class="next" href="#step2">次へ ↓ ②等圧膨張 D→C</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 等圧膨張 D→C（加熱しながら膨らむ）</h2>
+  <svg class="fig" data-scene="scene-heat" data-show="processAD,processDC" width="100%" role="img" aria-label="等圧膨張 DからCへの矢印を描いたp-V図"></svg>
+  <p>圧力 3.0×10<sup>5</sup> Pa のまま、体積が 1.0 L から 3.0 L へ増える。気体が外にした仕事は W = pΔV = 3.0×10<sup>5</sup> × 2.0×10<sup>−3</sup> = <strong>+600 J</strong>。温度は 900 K から 2700 K へ上がるので、ΔU = nC<sub>V</sub>ΔT ≈ <strong>+900 J</strong>。吸収した熱は Q = ΔU + W = <strong>+1500 J</strong>。等圧変化の熱は nC<sub>p</sub>ΔT でも出る（0.040 × (5/2) × 8.31 × 1800 ≈ 1500 J）。ここで C<sub>p</sub> と C<sub>V</sub> を取り違えると、Q が 600 J ずれる。膨張の仕事の分だけ、C<sub>p</sub> のほうが大きい。</p>
+  <label><input type="checkbox" class="check"> 等圧膨張では W = +600 J、ΔU = +900 J、Q = +1500 J を求めた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③等積変化 C→B</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 等積変化 C→B（冷却）</h2>
+  <svg class="fig" data-scene="scene-heat" data-show="processAD,processDC,processCB" width="100%" role="img" aria-label="等積変化 CからBへの矢印を描いたp-V図"></svg>
+  <p>体積が変わらないから W = 0。温度は 2700 K から 900 K へ下がるので、ΔU = nC<sub>V</sub>ΔT ≈ <strong>−900 J</strong>。熱は Q = ΔU + W = <strong>−900 J</strong>。マイナスは、気体が外へ熱を放出したことを表す。吸収した熱だけを数えるときは、この 900 J は入れない。放出した熱は、効率の計算では Q<sub>out</sub> の側に入る。</p>
+  <label><input type="checkbox" class="check"> 等積変化 C→B では Q = −900 J（900 J 放出した）と分かった</label>
+  <br><a class="next" href="#step4">次へ ↓ ④等圧圧縮 B→A</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 等圧圧縮 B→A（押されて戻る）</h2>
+  <svg class="fig" data-scene="scene-heat-full" data-show="processAD,processDC,processCB,processBA" width="100%" role="img" aria-label="サイクル全体を描いたp-V図（中が塗られている）"></svg>
+  <p>圧力 1.0×10<sup>5</sup> Pa のまま、体積が 3.0 L から 1.0 L へ減る。気体が外にした仕事は W = pΔV = 1.0×10<sup>5</sup> × (−2.0×10<sup>−3</sup>) = <strong>−200 J</strong>。マイナスは、外が気体に仕事をしたことを表す。温度は 900 K から 300 K へ下がるので、ΔU ≈ <strong>−300 J</strong>。熱は Q = ΔU + W = <strong>−500 J</strong>（500 J 放出した）。</p>
+  <p>4つの過程を足すと、ΔU の和は 300 + 900 − 900 − 300 = 0（1周して元に戻るから当然）。仕事の和は 0 + 600 + 0 − 200 = <strong>+400 J</strong>。これが p–V図の長方形の面積だ。図で中が塗られている部分が、そのまま 400 J になる。</p>
+  <label><input type="checkbox" class="check"> 等圧圧縮では W = −200 J、Q = −500 J で、1サイクルの仕事は +400 J と分かった</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤熱効率</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ 熱効率 η = W / Q<sub>in</sub></h2>
+  <svg class="fig" data-scene="scene-heat-full" data-show="processAD,processDC,processCB,processBA" width="100%" role="img" aria-label="サイクル全体のまとめのp-V図"></svg>
+  <p>吸収した熱は、プラスの Q だけを足す。Q<sub>in</sub> = 300 + 1500 = <strong>1800 J</strong>。放出した熱は Q<sub>out</sub> = 900 + 500 = <strong>1400 J</strong>。1800 − 1400 = 400 で、仕事と一致する（エネルギー保存）。熱効率は η = W / Q<sub>in</sub> = 400 / 1800 ≈ <strong>22%</strong>。</p>
+  <p>同じ最高温度 2700 K と最低温度 300 K のあいだで動くカルノー機関の効率は、1 − 300/2700 ≈ 89% だ。この長方形のサイクルは 22% しかない。効率の分母は「吸収した熱の合計」であって、「吸収した熱 − 放出した熱」ではない。Q<sub>in</sub> を 400 J とすると、効率が 100% になってしまう。ここがこの問題の中心の罠だ。</p>
+  <label><input type="checkbox" class="check"> 効率は η = 400 / 1800 ≈ 22% で、分母は吸収した熱の合計 1800 J と分かった</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：A→D は Q = +300 J、D→C は W = +600 J・Q = +1500 J、C→B は Q = −900 J、B→A は W = −200 J・Q = −500 J。1サイクルの仕事は +400 J、吸収した熱は 1800 J、効率は約 22%（カルノー効率は約 89%）。状態方程式と熱力学第一法則の使い方は <a href="gas-piston.html">第7問：気体＋ピストン</a> でも確かめられる。</p>
+  <p>次は準備中です。<a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.heatCycleDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>

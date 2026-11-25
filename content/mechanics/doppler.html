@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第18問：ドップラー効果 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>第18問：ドップラー効果</h1>
+<p><strong>問題：</strong>音速 V = 340 m/s の空気中で、振動数 f = 440 Hz の音を出す音源がある。(1) 音源が観測者に向かって速さ v<sub>s</sub> = 34 m/s で近づくとき、観測者が聞く音の振動数と波長を求めよ。(2) 音源が同じ速さで遠ざかるとき、また観測者が静止した音源に速さ v<sub>o</sub> = 34 m/s で近づくとき・遠ざかるときの振動数を求めよ。(3) 音源が壁に向かって速さ 34 m/s で近づくとき、音源の位置で聞こえる反射音の振動数を求めよ。(4) 440 Hz と 444 Hz の2つの音を同時に出すとき、うなりの回数と周期を求めよ。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js）が下の JSON データから計算して描いている。波の間隔は、静止時の波長 0.77 m を 40 px として、近づく側は 0.90 倍の 36 px、遠ざかる側は 1.10 倍の 44 px になっている。ラベルは短い名前だけにして、枠からはみ出さないよう描画側で調整している。</p>
+<script type="application/json" id="scene-dop-base">{"type":"doppler","phase":"base","soundSpeedMs":340,"freqHz":440,"sourceSpeedMs":34,"observerSpeedMs":34,"beatFreqHz":4}</script>
+<script type="application/json" id="scene-dop-approach">{"type":"doppler","phase":"approach","soundSpeedMs":340,"freqHz":440,"sourceSpeedMs":34,"observerSpeedMs":34,"beatFreqHz":4}</script>
+<script type="application/json" id="scene-dop-observer">{"type":"doppler","phase":"observer","soundSpeedMs":340,"freqHz":440,"sourceSpeedMs":34,"observerSpeedMs":34,"beatFreqHz":4}</script>
+<script type="application/json" id="scene-dop-reflect">{"type":"doppler","phase":"reflect","soundSpeedMs":340,"freqHz":440,"sourceSpeedMs":34,"observerSpeedMs":34,"beatFreqHz":4}</script>
+<script type="application/json" id="scene-dop-beats">{"type":"doppler","phase":"beats","soundSpeedMs":340,"freqHz":440,"sourceSpeedMs":34,"observerSpeedMs":34,"beatFreqHz":4}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：波長と振動数</h2>
+  <p>音は、空気の中を速さ V = 340 m/s で進む波だ。音源が 1 秒間に 440 回振動すると、1 秒間に 440 個の波が出て、波と波の間隔（波長）は λ = V / f = 340 / 440 ≈ <strong>0.77 m</strong> になる。振動数と波長は、V = fλ の関係で結ばれている。ドップラー効果の問題は、結局「波長が変わるのか、観測者が波を横切る速さが変わるのか」のどちらかだ。この2つを区別するのが、この問題の中心だ。</p>
+  <svg class="fig" data-scene="scene-dop-base" data-show="" width="100%" role="img" aria-label="静止した音源と等間隔の波"></svg>
+  <p>音源が静止しているとき、波の間隔は前後で等しい。ここから、音源が動く場合と、観測者が動く場合を比べていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①音源が近づく</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 音源が近づく：489 Hz、波長は 0.90 倍に縮む</h2>
+  <svg class="fig" data-scene="scene-dop-approach" data-show="sourceVelocity" width="100%" role="img" aria-label="近づく音源と前側で縮んだ波"></svg>
+  <p>音源が観測者のほうへ速さ 34 m/s で進みながら波を出すと、音源は自分が出した前の波を追いかける形になる。1 回の振動（1/440 秒）のあいだに、音源は 34/440 ≈ 0.077 m だけ前に進む。だから前側の波の間隔は、λ' = (V − v<sub>s</sub>) / f = (340 − 34) / 440 ≈ <strong>0.70 m</strong>。静止時の 0.77 m の <strong>0.90 倍</strong>に縮んでいる。図でも、右側（進む方向）の波の間隔が狭くなっている。</p>
+  <p>観測者が聞く振動数は、f' = V / λ' = f・V / (V − v<sub>s</sub>) = 440 × 340 / 306 ≈ <strong>489 Hz</strong>。音源が動くときは、波長そのものが変わる（式では分母が変わる）。「音源が動いても波長は変わらない」と思うと、ここで間違う。</p>
+  <label><input type="checkbox" class="check"> 音源が近づくとき、波長は 0.90 倍に縮み、振動数は約 489 Hz になると分かった</label>
+  <br><a class="next" href="#step2">次へ ↓ ②遠ざかる・観測者が動く</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 音源が遠ざかる：400 Hz ／ 観測者が動く：484 Hz と 396 Hz</h2>
+  <svg class="fig" data-scene="scene-dop-observer" data-show="observerVelocity" width="100%" role="img" aria-label="観測者が音源に近づく図"></svg>
+  <p>音源が遠ざかるときは、波の間隔が広がる。λ' = (V + v<sub>s</sub>) / f = 374 / 440 = <strong>0.85 m</strong>（1.10 倍）で、振動数は f' = f・V / (V + v<sub>s</sub>) = 440 × 340 / 374 = <strong>400 Hz</strong>。図では、左側（進む方向と反対側）の波の間隔が広がっている。</p>
+  <p>こんどは音源が静止していて、観測者が動く場合だ。波長は 0.77 m のままで変わらない。変わるのは、観測者が波を横切る速さだ。観測者が音源に速さ 34 m/s で近づくとき、波に対する相対的な速さは V + v<sub>o</sub> = 374 m/s になるので、f' = f・(V + v<sub>o</sub>) / V = 440 × 374 / 340 = <strong>484 Hz</strong>。遠ざかるときは f' = f・(V − v<sub>o</sub>) / V = 440 × 306 / 340 = <strong>396 Hz</strong>。音源が動くときは分母、観測者が動くときは分子が変わる。どちらが動いているかで式が違う。ここがこの問題の第2の罠だ。</p>
+  <label><input type="checkbox" class="check"> 遠ざかる音源は 400 Hz、近づく観測者は 484 Hz・遠ざかる観測者は 396 Hz と分かった</label>
+  <br><a class="next" href="#step3">次へ ↓ ③反射波は2回シフト</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 反射波は2回シフトする：538 Hz</h2>
+  <svg class="fig" data-scene="scene-dop-reflect" data-show="sourceVelocity" width="100%" role="img" aria-label="壁に向かって進む音源と反射波"></svg>
+  <p>音源が壁に向かって速さ 34 m/s で近づくとき、壁に届く音は、(1) と同じで約 <strong>489 Hz</strong> だ。ここで終わりではない。反射した音は壁から音源へ戻ってくるが、音源の位置の観測者も壁に向かって 34 m/s で進んでいるので、戻ってくる波を迎えに行く分、もう1回シフトを受ける。f'' = 489 × (340 + 34) / 340 = 440 × (340 + 34) / (340 − 34) ≈ <strong>538 Hz</strong>。壁に届くとき1回、壁から戻るときもう1回、合計2回のシフトだ。1回だけだと 489 Hz と答えてしまう。ここがこの問題の中心の罠だ。</p>
+  <p>なお、音源の位置で直接聞こえる音（440 Hz）と反射音（538 Hz）が重なると、うなりも生じる。その回数は 538 − 440 = 98 Hz だ。うなりの考え方は次のステップで確かめる。</p>
+  <label><input type="checkbox" class="check"> 反射波は2回シフトして約 538 Hz になると分かった</label>
+  <br><a class="next" href="#step4">次へ ↓ ④うなり</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ うなり：440 Hz と 444 Hz → 4.0 Hz</h2>
+  <svg class="fig" data-scene="scene-dop-beats" data-show="" width="100%" role="img" aria-label="うなりで強くなるところの目印"></svg>
+  <p>振動数が少しだけ違う2つの音を同時に出すと、音の強さが周期的に大きくなったり小さくなったりする。これがうなりだ。440 Hz と 444 Hz の場合、1 秒間に 440 回と 444 回振動するので、2つの音の位相が合うのは 1 秒間に 4 回だけだ。うなりの回数は、振動数の差そのもの：|444 − 440| = <strong>4.0 Hz</strong>。うなりの周期は、その逆数で 1 / 4.0 = <strong>0.25 s</strong>。図の赤い線は、音が強くなるところで、0.25 s ごとに並んでいる。</p>
+  <p>うなりの回数が「2つの振動数の平均」や「和」ではないことに注意する。440 Hz と 444 Hz の平均 442 Hz は、うなりを聞いたときの音の高さの目安にはなるが、うなりの回数そのものは差の 4.0 Hz だ。</p>
+  <label><input type="checkbox" class="check"> うなりの回数は振動数の差 4.0 Hz、周期は 0.25 s と分かった</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ：どちらが動いたかで式が違う</h2>
+  <svg class="fig" data-scene="scene-dop-approach" data-show="sourceVelocity" width="100%" role="img" aria-label="ドップラー効果のまとめの図"></svg>
+  <p>音源が動くときは波長が変わる（分母が V − v<sub>s</sub> や V + v<sub>s</sub> になる）。観測者が動くときは波長は変わらず、波を横切る速さが変わる（分子が V + v<sub>o</sub> や V − v<sub>o</sub> になる）。反射波は、壁で受ける音と壁から出る音の2回シフトする。うなりは振動数の差だ。この4つを区別できれば、ドップラー効果の問題は解ける。</p>
+  <label><input type="checkbox" class="check"> 音源が動くときは分母、観測者が動くときは分子が変わると分かった</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 近づく音源は約 489 Hz、波長は約 0.70 m。(2) 遠ざかる音源は 400 Hz、近づく観測者は 484 Hz、遠ざかる観測者は 396 Hz。(3) 反射音は約 538 Hz（2回シフト）。(4) うなりは 4.0 Hz、周期は 0.25 s。波の基本と振動数は <a href="standing-wave.html">第14問：定常波・共鳴</a>、振動数と周期の関係は <a href="shm.html">第11問：単振動・振り子</a> でも確かめられる。</p>
+  <p>次は準備中です。<a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.dopplerDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
