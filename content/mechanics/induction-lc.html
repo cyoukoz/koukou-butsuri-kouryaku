@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題L：誘導＋LC回路 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題L：誘導＋LC回路</h1>
+<p><strong>問題：</strong>100 回巻き、面積 S = 0.010 m² のコイルに、電気容量 C = 100 μF のコンデンサをつなぐ。コイルを貫く磁場 B（裏向き）が、0 から 0.40 T まで 0.20 s かけて一様に増えた。(1) この間に生じる誘導起電力と、コンデンサにたまる電荷・エネルギーを求めよ。(2) 磁場が増え終わったあと、コンデンサをコイル L = 0.10 H だけの回路につなぎかえた。電荷と電流はどのように時間変化するか。周期と最大電流を求めよ。(3) コンデンサの電荷が初めて 0 になるのは、つなぎかえてから何 s 後か。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v1.9、inductionLC 型）が下の JSON データから計算して描く。電流の矢印は方向だけの固定長 60 px で、電流の大きさは数字で示す。q–t グラフと i–t グラフは q(t) = Q cos ωt、i(t) = −I₀ sin ωt から計算して描く。</p>
+<script type="application/json" id="scene-induction-lc-base">{"type":"inductionLC","phase":"base","turnsN":100,"areaM2":0.01,"bMaxT":0.4,"dtS":0.2,"capUF":100,"indH":0.1}</script>
+<script type="application/json" id="scene-induction-lc-charge">{"type":"inductionLC","phase":"charge","turnsN":100,"areaM2":0.01,"bMaxT":0.4,"dtS":0.2,"capUF":100,"indH":0.1}</script>
+<script type="application/json" id="scene-induction-lc-lc">{"type":"inductionLC","phase":"lc","turnsN":100,"areaM2":0.01,"bMaxT":0.4,"dtS":0.2,"capUF":100,"indH":0.1}</script>
+<script type="application/json" id="scene-induction-lc-graph">{"type":"inductionLC","phase":"graph","turnsN":100,"areaM2":0.01,"bMaxT":0.4,"dtS":0.2,"capUF":100,"indH":0.1}</script>
+<script type="application/json" id="scene-induction-lc-trap">{"type":"inductionLC","phase":"trap","turnsN":100,"areaM2":0.01,"bMaxT":0.4,"dtS":0.2,"capUF":100,"indH":0.1}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。磁場が増えている間は電磁誘導だけ、増え終わったあとは LC 振動だけを使う。場面をつなぐのは、コンデンサにたまった電荷だ。</p>
+  <table>
+    <tr><th>時間</th><th>系（どの回路か）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>磁場が増える間（0 → 0.20 s）</td><td>コイル＋コンデンサ</td><td>—</td><td>誘導起電力 V = 2.0 V（ステップ①）</td></tr>
+    <tr><td>磁場が増え終わったとき</td><td>コンデンサ</td><td><strong>電荷 Q = 200 μC</strong></td><td>ためた電荷とエネルギー U = 0.20 mJ（ステップ①）</td></tr>
+    <tr><td>つなぎかえたあと</td><td>コンデンサ＋コイル（LC 回路）</td><td><strong>電荷 Q = 200 μC</strong></td><td>LC 振動：周期 約 0.020 s、最大電流 約 63 mA（ステップ②）</td></tr>
+  </table>
+  <p>磁場が増えている間だけ誘導起電力が生まれ、コンデンサが充電される。磁場が増え終わると誘導起電力は 0 になり、コンデンサにたまった電荷が LC 振動のスタートになる。2つの場面で使う法則はまったく違う。</p>
+  <svg class="fig" data-scene="scene-induction-lc-base" data-show="current" width="100%" role="img" aria-label="磁場が増えるコイルとコンデンサの回路、誘導電流の向きを描いた図"></svg>
+  <p>コイルを貫く磁場（裏向き）が増えると、誘導電流が流れる。向きは、増える磁場を打ち消す向き（レンツの法則）だ。ここから下へ、1本ずつ足していく。</p>
+  <a class="next" href="#step1">次へ ↓ ①コンデンサに電荷をためる</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① コンデンサに電荷をためる</h2>
+  <svg class="fig" data-scene="scene-induction-lc-charge" data-show="" width="100%" role="img" aria-label="コンデンサの極板にたまった電荷 ＋200 μC と −200 μC を描いた図"></svg>
+  <p>1回巻きあたりの磁束の変化は、ΔΦ = ΔB × S = 0.40 × 0.010 = <strong>4.0×10⁻³ Wb</strong>。100 回巻きのコイル全体では、ファラデーの法則から誘導起電力は V = NΔΦ/Δt = 100 × 4.0×10⁻³ / 0.20 = <strong>2.0 V</strong>。磁場が増える速さ ΔB/Δt = 2.0 T/s が、そのまま起電力の大きさを決める。</p>
+  <p>この起電力でコンデンサが充電される。たまる電荷は Q = CV = 100×10⁻⁶ × 2.0 = <strong>200 μC</strong>。ためたエネルギーは U = (1/2)CV² = (1/2) × 100×10⁻⁶ × 4.0 = <strong>0.20 mJ</strong>。電荷が橋渡し量になって、次の場面（LC 振動）へ渡される。</p>
+  <label><input type="checkbox" class="check"> 誘導起電力 V = 2.0 V、電荷 Q = 200 μC、エネルギー U = 0.20 mJ を求めた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②スイッチを切り替えて LC 振動</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② スイッチを切り替えて LC 振動</h2>
+  <svg class="fig" data-scene="scene-induction-lc-lc" data-show="current" width="100%" role="img" aria-label="コンデンサとコイルだけの LC 回路、電流の向きを描いた図"></svg>
+  <p>磁場が増え終わったあと、コンデンサをコイルだけの回路につなぎかえる。コンデンサの電荷がコイルに流れ、コイルに電流が流れると、今度はコイルが電流の変化を妨げる（自己誘導）。電荷と電流が行き来して、振動がはじまる。</p>
+  <p>LC 回路の角振動数は ω = 1/√(LC) = 1/√(0.10 × 100×10⁻⁶) = 1/√(1.0×10⁻⁵) ≈ <strong>316 rad/s</strong>。周期は T = 2π/ω ≈ <strong>0.020 s</strong>、振動数は f = 1/T ≈ <strong>50 Hz</strong>。最大電流は、エネルギー保存 (1/2)LI₀² = (1/2)CV² から、I₀ = V√(C/L) = 2.0 × √(100×10⁻⁶ / 0.10) = 2.0 × 0.0316 ≈ <strong>63 mA</strong>。コイルのエネルギー (1/2)LI₀² = 0.20 mJ は、コンデンサのエネルギーとぴったり一致する。</p>
+  <p class="note">この ω は、ばねの単振動 ω = √(k/m) と同じ形をしている。コンデンサの電荷 Q がばねの変位 x、コイルのインダクタンス L が質量 m、1/C がばね定数 k に対応する（組み合わせ問題D：LC＋単振動も見てみよう）。</p>
+  <label><input type="checkbox" class="check"> ω ≈ 316 rad/s、周期 約 0.020 s、最大電流 約 63 mA を求めた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③q と i の時間変化</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ q と i の時間変化</h2>
+  <svg class="fig" data-scene="scene-induction-lc-graph" data-show="" width="100%" role="img" aria-label="電荷 q と電流 i の時間変化のグラフ、1周期 T 約 0.020 s を描いた図"></svg>
+  <p>つなぎかえた瞬間を t = 0 とすると、電荷は q(t) = Q cos ωt、電流は i(t) = −I₀ sin ωt と時間変化する。t = 0 では q = 200 μC（最大）、i = 0。電荷が減りはじめると電流が流れ、T/4 ≈ <strong>0.0050 s</strong> 後には q = 0 になり、電流が最大の 63 mA になる。エネルギーは、コンデンサの (1/2)q²/C からコイルの (1/2)Li² へ移っている。</p>
+  <p>T/2 ≈ 0.010 s 後には q = −200 μC（極板の ＋− が逆転）、T ≈ 0.020 s 後に q = 200 μC に戻る。q と i のグラフは、位相が π/2（T/4）ずれている。ばねの単振動で、変位と速度のグラフが π/2 ずれているのと同じだ。</p>
+  <label><input type="checkbox" class="check"> q(t) = Q cos ωt、i(t) = −I₀ sin ωt で、T/4 後に q = 0、i が最大になることを確かめた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④罠：磁場が変わらなくなると V=0</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 罠：磁場が変わらなくなると V=0</h2>
+  <svg class="fig" data-scene="scene-induction-lc-trap" data-show="" width="100%" role="img" aria-label="磁場 B が 0.20 s で 0.40 T まで増えて一定になり、起電力 V が増えている間だけ 2.0 V でそのあと 0 になるグラフ"></svg>
+  <p>誘導起電力は、磁場の大きさではなく<strong>磁場の変わる速さ</strong> ΔΦ/Δt で決まる。B が 0.40 T のまま変わらなくなると、ΔΦ/Δt = 0 になり、誘導起電力は <strong>0 V</strong> になる。B が大きくても、変わらなければ起電力は生まれない。</p>
+  <p>逆に、同じ 0.40 T まで 0.10 s（半分の時間）で増やすと、ΔΦ/Δt は 2 倍になり、V = <strong>4.0 V</strong>、たまる電荷も Q = <strong>400 μC</strong> になる。起電力は「どれだけ増えたか」ではなく「どれだけ速く増えたか」で決まる。</p>
+  <label><input type="checkbox" class="check"> 起電力は磁場の変わる速さで決まり、B が一定になると V = 0 になることを確かめた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ・罠の確認</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ・罠の確認</h2>
+  <svg class="fig" data-scene="scene-induction-lc-graph" data-show="" width="100%" role="img" aria-label="電荷 q と電流 i の時間変化のグラフ、1周期 T 約 0.020 s を描いた図"></svg>
+  <p>この問題の罠は2つある。1つめは、磁場が大きいことと起電力が大きいことを混同することだ。起電力は ΔΦ/Δt で決まり、B が変わらなければ V = 0 だ。2つめは、LC 振動の場面でも誘導起電力 V = 2.0 V がずっとあると思ってしまうことだ。つなぎかえたあとは、コンデンサにたまった電荷 Q = 200 μC がスタートで、電磁誘導の式はもう使わない。</p>
+  <p>切り分けはこうだ。磁場が増えている間はファラデーの法則で V = 2.0 V を求め、Q = CV で電荷をためる。つなぎかえたあとは、電荷 Q = 200 μC を橋渡し量にして、LC 振動の式で周期 約 0.020 s と最大電流 約 63 mA を求める。電荷が初めて 0 になるのは T/4 ≈ 0.0050 s 後だ。</p>
+  <label><input type="checkbox" class="check"> 磁場が増えている間は電磁誘導、つなぎかえたあとは LC 振動と、場面ごとに使う法則が違うことを確かめた</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と系を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 誘導起電力 V = 2.0 V、電荷 Q = 200 μC、エネルギー U = 0.20 mJ。(2) ω ≈ 316 rad/s、周期 約 0.020 s、振動数 約 50 Hz、最大電流 約 63 mA。(3) 電荷が初めて 0 になるのは T/4 ≈ 0.0050 s 後。もとになった単体モデル：電磁誘導は <a href="induction.html">第32問：電磁誘導</a>、LC 振動は <a href="lc.html">組み合わせ問題D：LC＋単振動</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboInductionLCDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>

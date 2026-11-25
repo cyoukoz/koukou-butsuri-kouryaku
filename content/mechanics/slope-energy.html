@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題K：斜面＋摩擦＋エネルギー — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題K：斜面＋摩擦＋エネルギー</h1>
+<p><strong>問題：</strong>質量 m = 2.0 kg の物体を、傾き θ = 30°、長さ L = 5.0 m の粗い斜面の上に置き、静かにすべらせる。斜面と物体の間の動摩擦係数は μ = 0.20 とする。g = 10 m/s² とする。(1) 斜面をすべりおりる間の加速度を求めよ。(2) 斜面の下端での速さを求めよ。(3) 下端から水平な粗い床（動摩擦係数も 0.20）に出たあと、物体は何 m すべって止まるか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v1.9、slopeEnergy 型）が下の JSON データから計算して描く。力の矢印は 3 px/N（重力 20 N は 60 px、垂直抗力 17.3 N は 52 px、斜面の摩擦力 3.5 N は 10 px）、速度の矢印は 8 px/(m/s)。斜面の長さ 5.0 m は図では 277 px（横 240 px）で描く。</p>
+<script type="application/json" id="scene-slope-energy-base">{"type":"slopeEnergy","phase":"base","mKg":2,"thetaDeg":30,"slopeLM":5,"mu":0.2,"g":10}</script>
+<script type="application/json" id="scene-slope-energy-forces">{"type":"slopeEnergy","phase":"forces","mKg":2,"thetaDeg":30,"slopeLM":5,"mu":0.2,"g":10}</script>
+<script type="application/json" id="scene-slope-energy-energy">{"type":"slopeEnergy","phase":"energy","mKg":2,"thetaDeg":30,"slopeLM":5,"mu":0.2,"g":10}</script>
+<script type="application/json" id="scene-slope-energy-trap">{"type":"slopeEnergy","phase":"trap","mKg":2,"thetaDeg":30,"slopeLM":5,"mu":0.2,"g":10}</script>
+<script type="application/json" id="scene-slope-energy-floor">{"type":"slopeEnergy","phase":"floor","mKg":2,"thetaDeg":30,"slopeLM":5,"mu":0.2,"g":10}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。斜面の上では力の図示と仕事、床の上では仕事だけを使う。場面をつなぐのは、斜面の下端での速さだ。</p>
+  <table>
+    <tr><th>時間</th><th>系（どの物体か）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>斜面をすべる（上端 → 下端）</td><td>物体だけ（重力＋垂直抗力＋摩擦力）</td><td>—</td><td>力の図示と加速度 a ≈ 3.3 m/s²（ステップ①）</td></tr>
+    <tr><td>斜面の下端</td><td>物体</td><td><strong>速さ v ≈ 5.7 m/s</strong></td><td>仕事とエネルギーで v を求める（ステップ②）</td></tr>
+    <tr><td>水平な床をすべる（下端 → 停止）</td><td>物体（重力＋垂直抗力＋摩擦力）</td><td><strong>速さ v ≈ 5.7 m/s</strong></td><td>摩擦の仕事で止まるまでの距離 約 8.2 m（ステップ④）</td></tr>
+  </table>
+  <p>摩擦があるので、力学的エネルギーは保存されない。重力の仕事 50 J から摩擦の仕事 約 17 J が引かれ、残り 約 33 J が運動エネルギーになる。斜面と床では垂直抗力が違うので、摩擦力も違う（斜面では μmg cosθ、床では μmg）。</p>
+  <svg class="fig" data-scene="scene-slope-energy-base" data-show="" width="100%" role="img" aria-label="粗い斜面の上の物体"></svg>
+  <p>力を描く前の図はこれだけ。長さ 5.0 m、傾き 30° の粗い斜面の上に、質量 2.0 kg の物体がある。ここから下へ、1本ずつ足していく。</p>
+  <a class="next" href="#step1">次へ ↓ ①斜面の上の力を図示する</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 斜面の上の力を図示する</h2>
+  <svg class="fig" data-scene="scene-slope-energy-forces" data-show="gravity,normal,friction,decompSin,decompCos" width="100%" role="img" aria-label="斜面の上の物体にはたらく重力・垂直抗力・摩擦力と重力の分解を描いた図"></svg>
+  <p>物体にはたらく力は3つ。重力 mg = 2.0 × 10 = <strong>20 N</strong>（下向き）、垂直抗力 N、摩擦力 f だ。重力を斜面に沿う方向と斜面に垂直な方向に分解すると、斜面に沿う成分は mg sinθ = 20 × 0.50 = <strong>10 N</strong>（下向き）、斜面に垂直な成分は mg cosθ = 20 × 0.87 ≈ <strong>17 N</strong>（斜面にめり込む向き）になる。分解した2本の矢印の和が、もとの重力の矢印とぴったり一致することを図で確かめよう。</p>
+  <p>斜面に垂直な方向には加速度がないので、垂直抗力はめり込む成分とつり合う。N = mg cosθ ≈ <strong>17 N</strong>。摩擦力は f = μN = 0.20 × 17.3 ≈ <strong>3.5 N</strong>、向きはすべる向きと反対（斜面を上向き）だ。</p>
+  <p>斜面に沿う方向の運動方程式は、ma = mg sinθ − f。a = g(sinθ − μcosθ) = 10 × (0.50 − 0.20 × 0.87) = 10 × (0.50 − 0.17) ≈ <strong>3.3 m/s²</strong>。摩擦がなければ a = g sinθ = 5.0 m/s² だった。</p>
+  <label><input type="checkbox" class="check"> 重力を分解して N ≈ 17 N、f ≈ 3.5 N、加速度 a ≈ 3.3 m/s² を求めた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②仕事とエネルギーで速さを求める</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 仕事とエネルギーで速さを求める</h2>
+  <svg class="fig" data-scene="scene-slope-energy-energy" data-show="velocity" width="100%" role="img" aria-label="重力の仕事・摩擦の仕事・運動エネルギーの棒グラフと下端の速さを描いた図"></svg>
+  <p>斜面の高さは h = L sinθ = 5.0 × 0.50 = <strong>2.5 m</strong>。重力のする仕事は mgh = 2.0 × 10 × 2.5 = <strong>50 J</strong>。摩擦力のする仕事は、摩擦力がすべる向きと反対なので負で、−fL = −3.46 × 5.0 ≈ <strong>−17 J</strong>。垂直抗力はすべる向きと垂直なので、仕事は 0 だ。</p>
+  <p>仕事とエネルギーの関係（運動エネルギーの変化 = された仕事の和）から、下端での運動エネルギーは 50 − 17 = <strong>約 33 J</strong>。(1/2)mv² = 33 だから、v² = 2 × 33 / 2.0 ≈ 33、v ≈ <strong>5.7 m/s</strong>。加速度から確かめても、v² = 2aL = 2 × 3.27 × 5.0 ≈ 33 で一致する。すべる時間は t = v/a ≈ 5.7 / 3.3 ≈ <strong>1.8 s</strong> だ。</p>
+  <label><input type="checkbox" class="check"> 重力の仕事 50 J、摩擦の仕事 約 −17 J から下端の速さ v ≈ 5.7 m/s を求めた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③罠：摩擦を忘れると速くなる</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 罠：摩擦を忘れると速くなる</h2>
+  <svg class="fig" data-scene="scene-slope-energy-trap" data-show="velocityFric,velocityNoFric" width="100%" role="img" aria-label="摩擦ありの速さ 5.7 m/s と摩擦なしの速さ 7.1 m/s を並べた図"></svg>
+  <p>摩擦があるのに力学的エネルギー保存 (1/2)mv² = mgh を使うと、v = √(2gh) = √50 ≈ <strong>7.1 m/s</strong> になってしまう。正しい速さは約 5.7 m/s だ。摩擦の仕事 −17 J を忘れると、速さを大きく見積もりすぎる。</p>
+  <p>力学的エネルギーが保存されるのは、仕事をする力が重力だけ（保存力だけ）のときだ。摩擦力は非保存力で、力学的エネルギーを熱に変えて減らす。摩擦がある問題では、エネルギー保存ではなく「仕事とエネルギー」の関係を使う。</p>
+  <label><input type="checkbox" class="check"> 摩擦があるときはエネルギー保存が使えず、正しい速さは約 5.7 m/s だと確かめた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④斜面を出たあと、床で止まる</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 斜面を出たあと、床で止まる</h2>
+  <svg class="fig" data-scene="scene-slope-energy-floor" data-show="velocity,friction" width="100%" role="img" aria-label="水平な床の上で速さ 5.7 m/s の物体が摩擦力で止まるまでの図"></svg>
+  <p>下端から水平な床に出たあと、物体は速さ 約 5.7 m/s で進み、摩擦力で止まる。床では垂直抗力は mg = 20 N なので、摩擦力は f = μmg = 0.20 × 20 = <strong>4.0 N</strong>。斜面の上の摩擦力 約 3.5 N より大きい。垂直抗力が違うので、同じ μ でも摩擦力は違う。</p>
+  <p>止まるまでの距離を s とすると、摩擦の仕事は −f × s = −4.0s。運動エネルギー 約 33 J がすべて摩擦の仕事で失われるので、4.0s ≈ 33、s ≈ <strong>8.2 m</strong>。v² = 2μgs からも、s = 5.7² / (2 × 0.20 × 10) ≈ 32.7 / 4.0 ≈ 8.2 m で一致する。</p>
+  <label><input type="checkbox" class="check"> 床の摩擦力 4.0 N から、止まるまでの距離が約 8.2 m になることを確かめた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ・罠の確認</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ・罠の確認</h2>
+  <svg class="fig" data-scene="scene-slope-energy-energy" data-show="velocity" width="100%" role="img" aria-label="重力の仕事・摩擦の仕事・運動エネルギーの棒グラフと下端の速さを描いた図"></svg>
+  <p>この問題の罠は2つある。1つめは、摩擦があるのに力学的エネルギー保存を使ってしまうことだ。摩擦の仕事は負で、力学的エネルギーを減らす。摩擦があるときは「仕事とエネルギー」の関係を使う。2つめは、斜面と床で摩擦力を同じにしてしまうことだ。摩擦力は μN で、N は斜面では mg cosθ、床では mg と違う。</p>
+  <p>切り分けはこうだ。斜面の上では力の図示から加速度を求め、仕事とエネルギーで下端の速さを求める。床の上では、下端の速さが橋渡し量になって、摩擦の仕事から止まるまでの距離が決まる。斜面の下端の速さ v ≈ 5.7 m/s、止まるまでの距離 約 8.2 m は、セットで覚えよう。</p>
+  <label><input type="checkbox" class="check"> 摩擦があるときはエネルギー保存ではなく仕事とエネルギーの関係を使うこと、斜面と床で摩擦力が違うことを確かめた</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と系を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 加速度 a ≈ 3.3 m/s²。(2) 下端の速さ v ≈ 5.7 m/s（すべる時間 約 1.8 s）。(3) 止まるまでの距離 約 8.2 m。もとになった単体モデル：斜面の力の図示は <a href="slope.html">第1問：斜面</a>、仕事とエネルギーの使い方は <a href="proj-energy.html">組み合わせ問題G：斜方投射＋エネルギー</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboSlopeEnergyDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
