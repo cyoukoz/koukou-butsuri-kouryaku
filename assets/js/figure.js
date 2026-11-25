@@ -1,4 +1,4 @@
-// 高校物理攻略 — 図描画シミュレータ（試作 v0.9：単一モデル 万有引力・定常波・光電効果 追加）
+// 高校物理攻略 — 図描画シミュレータ（試作 v1.0：単一モデル 熱サイクル・レール＋棒・ドップラー 追加）
 // 方針：図は手書きの座標を直書きしない。入力は JSON の「物理データ」だけ。
 // 描画側が角度・つり合いから矢印の向きと長さを計算する。
 // だから mg sinθ が mg と同じ長さになる、θ が消える、ラベルが切れる、
@@ -734,7 +734,185 @@ function photoelectricForces(data) {
   return { forces, derived: d, vScale, plateX };
 }
 
+// ---- 熱サイクル・熱機関（T3）：p–V図の長方形サイクル ----
+// 具体値（検算済み）：単原子分子の理想気体 n≈0.040 mol、Cv=3R/2、Cp=5R/2、R=8.31
+//   A(1.0e5 Pa, 1.0 L, 300 K) → D(3.0e5 Pa, 1.0 L, 900 K) 等積：ΔU=+300 J、W=0、Q=+300 J
+//   D → C(3.0e5 Pa, 3.0 L, 2700 K) 等圧膨張：ΔU=+900 J、W=+600 J、Q=+1500 J
+//   C → B(1.0e5 Pa, 3.0 L, 900 K) 等積：ΔU=−900 J、W=0、Q=−900 J
+//   B → A 等圧圧縮：ΔU=−300 J、W=−200 J、Q=−500 J
+//   1サイクル：W=+400 J、吸収した熱 Qin=1800 J、放出した熱 Qout=1400 J、効率 η=400/1800≈22%
+//   カルノー効率 1−300/2700≈89% よりずっと小さい（このサイクルはカルノーサイクルではない）。
+// 図の縮尺：V は 70 px/1.0×10⁻³ m³（1 L→70px）、p は 50 px/1.0×10⁵ Pa。
+//   したがって p–V図の長方形の面積は 140×100=14000 px² で、1 px² あたり
+//   (1.0e5/50)×(1.0e-3/70)=0.0286 J/px² だから、仕事は 14000×0.0286=400 J と一致する。
+// 罠：等圧変化の Q は nCpΔT、等積変化の Q は nCvΔT。Cp と Cv を取り違えると
+//   Q が 300 J ずつずれる。W の符号も、膨張が +、圧縮が −（外がした仕事は −W）。
+function heatCycleDerived(data) {
+  const rGas = data.rGas || 8.31;
+  const nCv = data.nMol * (data.cvFactor || 1.5) * rGas; // J/K（≈0.50）
+  const nCp = data.nMol * (data.cpFactor || 2.5) * rGas; // J/K（≈0.833）
+  const tA = data.tAK; // 300 K
+  const tD = tA * (data.p2Pa / data.p1Pa); // 等積で p が 3 倍 → 900 K
+  const tC = tD * (data.v2M3 / data.v1M3); // 等圧で V が 3 倍 → 2700 K
+  const tB = tC * (data.p1Pa / data.p2Pa); // 等積で p が 1/3 → 900 K
+  const procs = [
+    { id: 'processAD', name: 'A→D', kind: 'isochoric', pPa: data.p1Pa, dT: tD - tA, wJ: 0 },
+    { id: 'processDC', name: 'D→C', kind: 'isobaric', pPa: data.p2Pa, dT: tC - tD, wJ: data.p2Pa * (data.v2M3 - data.v1M3) },
+    { id: 'processCB', name: 'C→B', kind: 'isochoric', pPa: data.p2Pa, dT: tB - tC, wJ: 0 },
+    { id: 'processBA', name: 'B→A', kind: 'isobaric', pPa: data.p1Pa, dT: tA - tB, wJ: data.p1Pa * (data.v1M3 - data.v2M3) },
+  ];
+  for (const p of procs) {
+    p.dUJ = nCv * p.dT;
+    p.qJ = p.dUJ + p.wJ;
+  }
+  const wNetJ = procs.reduce((s, p) => s + p.wJ, 0);
+  const qInJ = procs.filter((p) => p.qJ > 0).reduce((s, p) => s + p.qJ, 0);
+  const qOutJ = -procs.filter((p) => p.qJ < 0).reduce((s, p) => s + p.qJ, 0);
+  const corners = {
+    A: { x: 70 + (data.v1M3 / 1e-3) * 70, y: 250 - (data.p1Pa / 1e5) * 50 },
+    D: { x: 70 + (data.v1M3 / 1e-3) * 70, y: 250 - (data.p2Pa / 1e5) * 50 },
+    C: { x: 70 + (data.v2M3 / 1e-3) * 70, y: 250 - (data.p2Pa / 1e5) * 50 },
+    B: { x: 70 + (data.v2M3 / 1e-3) * 70, y: 250 - (data.p1Pa / 1e5) * 50 },
+  };
+  return {
+    tA, tD, tC, tB, nCv, nCp, procs, wNetJ, qInJ, qOutJ,
+    eta: wNetJ / qInJ, carnotEta: 1 - tA / tC, corners,
+    pxPerM3: 70 / 1e-3, pxPerPa: 50 / 1e5,
+  };
+}
+
+function heatCycleForces(data) {
+  const d = heatCycleDerived(data);
+  const c = d.corners;
+  const edge = (id, short, color, from, to, dx, dy) => ({
+    id, short, color, vector: [to.x - from.x, to.y - from.y], dashed: false, labelDx: dx, labelDy: dy, from,
+  });
+  return [
+    edge('processAD', 'A→D', 'red', c.A, c.D, 8, -6),
+    edge('processDC', 'D→C', 'red', c.D, c.C, -20, -10),
+    edge('processCB', 'C→B', 'blue', c.C, c.B, 8, -6),
+    edge('processBA', 'B→A', 'blue', c.B, c.A, -24, 16),
+  ];
+}
+
+// ---- レール＋棒の電磁誘導（E6）：運動→磁束変化→誘導起電力→電流→磁場の力→終端速度 ----
+// 具体値（検算済み）：B=0.40 T、レール間隔 L=0.50 m、抵抗 R=2.0 Ω、棒の質量 m=0.20 kg、
+//   外から右向きに一定の力 F=0.080 N で引く。棒は静止から出発する。
+//   BL=0.20 V/(m/s)、(BL)²/R=0.020 N・s/m、終端速度 v_t=F・R/(BL)²=4.0 m/s、時定数 τ=mR/(BL)²=10 s
+//   v=2.0 m/s のとき：ε=BLv=0.40 V、I=ε/R=0.20 A、磁場の力 F_mag=BIL=0.040 N、
+//     合力 0.040 N、加速度 a=0.20 m/s²、ジュール熱 I²R=0.080 W、外力の仕事率 Fv=0.16 W
+//   終端速度 v=4.0 m/s のとき：ε=0.80 V、I=0.40 A、F_mag=0.080 N=F、a=0、
+//     I²R=0.32 W=F・v_t（外力の仕事はすべてジュール熱になる）。
+//   外力がなければ棒は止まる：初速 4.0 m/s なら、止まるまでに進む距離は v0・τ=40 m、
+//   初めの運動エネルギー 1.6 J がすべてジュール熱になる。
+// 罠：起電力は磁束そのものではなく磁束の「変化」で決まる（ε=BLv）。電流の向きは
+//   レンツの法則で、磁場の力はつねに運動を妨げる向き。終端速度では合力が 0 になる。
+// 矢印の縮尺：速度 15 px/(m/s)、電流 100 px/A、力 500 px/N。
+function railRodDerived(data) {
+  const bl = data.bT * data.railLengthM; // V/(m/s)
+  const k = (bl * bl) / data.resistanceOhm; // N・s/m（制動の係数）
+  const v = data.vMs || 0;
+  const emfV = bl * v;
+  const currentA = emfV / data.resistanceOhm;
+  const fMagN = data.bT * currentA * data.railLengthM;
+  const fNetN = data.extForceN - fMagN;
+  const accelMs2 = fNetN / data.massKg;
+  const pJouleW = currentA * currentA * data.resistanceOhm;
+  const pExtW = data.extForceN * v;
+  return {
+    bl, k, v, emfV, currentA, fMagN, fNetN, accelMs2, pJouleW, pExtW,
+    pKeW: pExtW - pJouleW, // 運動エネルギーの増加率（= F_net・v）
+    vtMs: data.extForceN / k, tauS: data.massKg / k,
+    xStopM: 4.0 * (data.massKg / k), ke0J: 0.5 * data.massKg * 16,
+  };
+}
+
+function railRodForces(data) {
+  const d = railRodDerived(data);
+  return [
+    { id: 'velocity', short: 'v', color: '#d35400', vector: [d.v * 15, 0], dashed: false, labelDx: 6, labelDy: -8, from: { x: 200, y: 160 } },
+    { id: 'current', short: 'I', color: 'blue', vector: [0, -d.currentA * 100], dashed: false, labelDx: 6, labelDy: -8, from: { x: 200, y: 200 } },
+    { id: 'magForce', short: '磁場の力', color: 'purple', vector: [-d.fMagN * 500, 0], dashed: false, labelDx: -34, labelDy: -8, from: { x: 200, y: 160 } },
+    { id: 'extForce', short: '引く力', color: 'green', vector: [data.extForceN * 500, 0], dashed: false, labelDx: 6, labelDy: -14, from: { x: 200, y: 130 } },
+  ];
+}
+
+// ---- ドップラー効果（W4）：音源・観測者の移動と、うなり ----
+// 具体値（検算済み）：音速 V=340 m/s、音源の振動数 f=440 Hz、音源の速さ vs=34 m/s（=V/10）、観測者の速さ vo=34 m/s
+//   静止時の波長 λ=V/f≈0.77 m
+//   音源が近づく：f'=f・V/(V−vs)=440×340/306≈489 Hz、波長 λ'=(V−vs)/f≈0.70 m（0.90 倍に縮む）
+//   音源が遠ざかる：f'=f・V/(V+vs)=400 Hz、波長 λ'=0.85 m（1.10 倍に伸びる）
+//   観測者が近づく：f'=f・(V+vo)/V=484 Hz（波長は変わらない）
+//   観測者が遠ざかる：f'=f・(V−vo)/V=396 Hz
+//   反射波（壁に近づく音源）：壁で受ける音は 489 Hz、壁が音源になって戻るともう1回シフトし、
+//     f''=f・(V+vs)/(V−vs)≈538 Hz。1回だけだと 489 Hz と間違う（この問題の罠）。
+//   うなり：440 Hz と 444 Hz → 4.0 Hz（0.25 s ごとに強くなる）。
+// 図の縮尺：波長 0.77 m を 40 px とする（51.8 px/m）。近づく側の波の間隔は 0.90 倍の 36 px、
+//   遠ざかる側は 1.10 倍の 44 px。うなりの周期 0.25 s は 280 px/s で 70 px。
+// 罠：音源が動くときは波長が変わる（分母が変わる）が、観測者が動くときは波長は変わらない（分子が変わる）。
+function dopplerDerived(data) {
+  const V = data.soundSpeedMs, f = data.freqHz, vs = data.sourceSpeedMs, vo = data.observerSpeedMs;
+  const lamM = V / f;
+  const fApproach = (f * V) / (V - vs);
+  const fRecede = (f * V) / (V + vs);
+  const fObsApproach = (f * (V + vo)) / V;
+  const fObsRecede = (f * (V - vo)) / V;
+  const fReflect = (f * (V + vs)) / (V - vs); // 2回シフト
+  const f2 = f + data.beatFreqHz;
+  const beatPeriodS = 1 / data.beatFreqHz;
+  const basePx = 40; // 静止時の波長 1 つ分の図示
+  return {
+    lamM, fApproach, fRecede, fObsApproach, fObsRecede, fReflect, f2, beatPeriodS,
+    lamApproachM: (V - vs) / f, lamRecedeM: (V + vs) / f,
+    basePx, approachPx: basePx * ((V - vs) / V), recedePx: basePx * ((V + vs) / V),
+    beatPx: beatPeriodS * 280,
+  };
+}
+
+function dopplerForces(data) {
+  const moving = data.phase === 'approach' || data.phase === 'reflect';
+  const obsMoving = data.phase === 'observer';
+  return [
+    { id: 'sourceVelocity', short: 'v_s', color: '#d35400', vector: [moving ? data.sourceSpeedMs * 1.5 : 0, 0], dashed: false, labelDx: 6, labelDy: -8, from: { x: 200, y: 180 } },
+    { id: 'observerVelocity', short: 'v_o', color: 'blue', vector: [obsMoving ? -data.observerSpeedMs * 1.5 : 0, 0], dashed: false, labelDx: -34, labelDy: -8, from: { x: 320, y: 180 } },
+  ];
+}
+
 function sceneFor(type, thetaDeg, mgPx, fPx, data) {
+  if (type === 'heatCycle') {
+    const d = heatCycleDerived(data);
+    return {
+      type, phase: data.phase || 'path',
+      p1Pa: data.p1Pa, p2Pa: data.p2Pa, v1M3: data.v1M3, v2M3: data.v2M3,
+      tAK: data.tAK, nMol: data.nMol, rGas: data.rGas || 8.31,
+      derived: d, corners: d.corners,
+      center: { x: 210, y: 150 }, centerDot: false,
+      forces: heatCycleForces(data),
+    };
+  }
+  if (type === 'railRod') {
+    const d = railRodDerived(data);
+    return {
+      type, phase: data.phase || 'base',
+      bT: data.bT, railLengthM: data.railLengthM, resistanceOhm: data.resistanceOhm,
+      massKg: data.massKg, extForceN: data.extForceN, vMs: data.vMs || 0,
+      derived: d,
+      center: { x: 200, y: 160 },
+      forces: railRodForces(data),
+    };
+  }
+  if (type === 'doppler') {
+    const d = dopplerDerived(data);
+    return {
+      type, phase: data.phase || 'base',
+      soundSpeedMs: data.soundSpeedMs, freqHz: data.freqHz,
+      sourceSpeedMs: data.sourceSpeedMs, observerSpeedMs: data.observerSpeedMs,
+      beatFreqHz: data.beatFreqHz,
+      derived: d,
+      center: { x: 200, y: 180 }, centerDot: false,
+      forces: dopplerForces(data),
+    };
+  }
   if (type === 'gravitation') {
     const r = gravitationForces(data);
     return {
@@ -1265,6 +1443,84 @@ function validateScene(scene) {
       if (byId.compression && Math.abs(byId.compression.vector[0] - d.amplitudeM * scene.xScalePxPerM) > 0.5) return ['縮みの矢印が A と一致しません'];
     }
   }
+  if (scene.type === 'heatCycle') {
+    const d = scene.derived;
+    // 角の温度：等積では T∝p、等圧では T∝V。
+    if (Math.abs(d.tD - scene.tAK * (scene.p2Pa / scene.p1Pa)) > 1e-9) return ['D の温度が等積の比例と一致しません'];
+    if (Math.abs(d.tC - d.tD * (scene.v2M3 / scene.v1M3)) > 1e-9) return ['C の温度が等圧の比例と一致しません'];
+    if (Math.abs(d.tB - d.tC * (scene.p1Pa / scene.p2Pa)) > 1e-9) return ['B の温度が等積の比例と一致しません'];
+    // 各過程：Q = ΔU + W。等積では W=0、等圧では W=pΔV。
+    for (const p of d.procs) {
+      if (Math.abs(p.qJ - (p.dUJ + p.wJ)) > 0.5) return [p.name + ' で Q = ΔU + W が成り立ちません'];
+      if (p.kind === 'isochoric' && Math.abs(p.wJ) > 1e-9) return [p.name + '（等積）で仕事が 0 になっていません'];
+    }
+    if (Math.abs(d.procs[1].wJ - scene.p2Pa * (scene.v2M3 - scene.v1M3)) > 0.5) return ['等圧膨張の仕事が pΔV と一致しません'];
+    if (Math.abs(d.procs[3].wJ - scene.p1Pa * (scene.v1M3 - scene.v2M3)) > 0.5) return ['等圧圧縮の仕事が pΔV と一致しません'];
+    // 1サイクル：内部エネルギーの和は 0、仕事は吸収した熱−放出した熱、効率は W/Qin。
+    const dUSum = d.procs.reduce((s, p) => s + p.dUJ, 0);
+    if (Math.abs(dUSum) > 0.5) return ['1サイクルで内部エネルギーの和が 0 になっていません: ' + dUSum.toFixed(2)];
+    if (Math.abs(d.wNetJ - (d.qInJ - d.qOutJ)) > 0.5) return ['仕事が Qin − Qout と一致しません'];
+    if (Math.abs(d.eta - d.wNetJ / d.qInJ) > 1e-9) return ['効率が W/Qin と一致しません'];
+    if (Math.abs(d.carnotEta - (1 - d.tA / d.tC)) > 1e-9) return ['カルノー効率が 1−Tmin/Tmax と一致しません'];
+    // 図の角の位置が V・p の縮尺どおりか。長方形の面積が仕事と一致すること。
+    const c = d.corners;
+    if (Math.abs(c.A.x - (70 + (scene.v1M3 / 1e-3) * 70)) > 0.5 || Math.abs(c.A.y - (250 - (scene.p1Pa / 1e5) * 50)) > 0.5) return ['A の位置が V・p の縮尺と一致しません'];
+    if (Math.abs(c.C.x - (70 + (scene.v2M3 / 1e-3) * 70)) > 0.5 || Math.abs(c.C.y - (250 - (scene.p2Pa / 1e5) * 50)) > 0.5) return ['C の位置が V・p の縮尺と一致しません'];
+    const areaPx2 = Math.abs(c.C.x - c.A.x) * Math.abs(c.A.y - c.C.y);
+    const jPerPx2 = (1e5 / 50) * (1e-3 / 70);
+    if (Math.abs(areaPx2 * jPerPx2 - d.wNetJ) > 0.5) return ['p–V図の面積が 1 サイクルの仕事と一致しません'];
+    // 過程の矢印の長さが辺の長さと一致すること。
+    if (byId.processAD && Math.abs(Math.abs(byId.processAD.vector[1]) - Math.abs(c.D.y - c.A.y)) > 0.5) return ['A→D の矢印が辺の長さと一致しません'];
+    if (byId.processDC && Math.abs(byId.processDC.vector[0] - (c.C.x - c.D.x)) > 0.5) return ['D→C の矢印が辺の長さと一致しません'];
+  }
+  if (scene.type === 'railRod') {
+    const d = scene.derived;
+    // 誘導起電力 ε=BLv、電流 I=ε/R、磁場の力 F=BIL。
+    if (Math.abs(d.emfV - d.bl * d.v) > 1e-9) return ['誘導起電力が BLv と一致しません'];
+    if (Math.abs(d.currentA - d.emfV / scene.resistanceOhm) > 1e-9) return ['電流が ε/R と一致しません'];
+    if (Math.abs(d.fMagN - scene.bT * d.currentA * scene.railLengthM) > 1e-9) return ['磁場の力が BIL と一致しません'];
+    // 運動方程式：m・a = F − F_mag。終端速度では F_mag=F で a=0。
+    if (Math.abs(d.accelMs2 - d.fNetN / scene.massKg) > 1e-9) return ['加速度が (F−F_mag)/m と一致しません'];
+    if (Math.abs(d.vtMs - scene.extForceN * scene.resistanceOhm / (d.bl * d.bl)) > 1e-9) return ['終端速度が F・R/(BL)² と一致しません'];
+    if (Math.abs(d.tauS - scene.massKg * scene.resistanceOhm / (d.bl * d.bl)) > 1e-9) return ['時定数が mR/(BL)² と一致しません'];
+    // エネルギー：外力の仕事率 = ジュール熱 + 運動エネルギーの増加率。
+    if (Math.abs(d.pExtW - (d.pJouleW + d.pKeW)) > 1e-9) return ['外力の仕事率がジュール熱と運動エネルギーの和と一致しません'];
+    // 矢印の長さが縮尺どおりか。
+    if (byId.velocity && Math.abs(byId.velocity.vector[0] - d.v * 15) > 0.5) return ['速度の矢印が v の縮尺と一致しません'];
+    if (byId.current && Math.abs(-byId.current.vector[1] - d.currentA * 100) > 0.5) return ['電流の矢印が I の縮尺と一致しません'];
+    if (byId.magForce && Math.abs(-byId.magForce.vector[0] - d.fMagN * 500) > 0.5) return ['磁場の力の矢印が BIL の縮尺と一致しません'];
+    if (byId.extForce && Math.abs(byId.extForce.vector[0] - scene.extForceN * 500) > 0.5) return ['引く力の矢印が F の縮尺と一致しません'];
+    // 終端速度の場面：磁場の力＝外力、加速度 0、ジュール熱＝外力の仕事率。
+    if (scene.phase === 'terminal') {
+      if (Math.abs(d.fMagN - scene.extForceN) > 1e-9) return ['終端速度で磁場の力が外力と等しくなっていません'];
+      if (Math.abs(d.accelMs2) > 1e-9) return ['終端速度で加速度が 0 になっていません'];
+      if (Math.abs(d.pJouleW - d.pExtW) > 1e-9) return ['終端速度でジュール熱が外力の仕事率と一致しません'];
+    }
+  }
+  if (scene.type === 'doppler') {
+    const d = scene.derived;
+    const V = scene.soundSpeedMs, f = scene.freqHz, vs = scene.sourceSpeedMs, vo = scene.observerSpeedMs;
+    // 音源が動くときは分母、観測者が動くときは分子が変わる。
+    if (Math.abs(d.fApproach - (f * V) / (V - vs)) > 1e-9) return ['近づく音源の振動数が f・V/(V−vs) と一致しません'];
+    if (Math.abs(d.fRecede - (f * V) / (V + vs)) > 1e-9) return ['遠ざかる音源の振動数が f・V/(V+vs) と一致しません'];
+    if (Math.abs(d.fObsApproach - (f * (V + vo)) / V) > 1e-9) return ['近づく観測者の振動数が f・(V+vo)/V と一致しません'];
+    if (Math.abs(d.fObsRecede - (f * (V - vo)) / V) > 1e-9) return ['遠ざかる観測者の振動数が f・(V−vo)/V と一致しません'];
+    // 反射波は 2 回シフトする：壁で受ける音（1回目）に、壁が音源になった分のシフト（2回目）をかける。
+    if (Math.abs(d.fReflect - d.fApproach * ((V + vs) / V)) > 1e-9) return ['反射波の振動数が 2 回のシフトと一致しません'];
+    if (Math.abs(d.fReflect - (f * (V + vs)) / (V - vs)) > 1e-9) return ['反射波の振動数が f・(V+vs)/(V−vs) と一致しません'];
+    // 波長：音源が動くときだけ変わる。近づく側は 0.90 倍、遠ざかる側は 1.10 倍。
+    if (Math.abs(d.lamApproachM - (V - vs) / f) > 1e-9) return ['近づく側の波長が (V−vs)/f と一致しません'];
+    if (Math.abs(d.lamRecedeM - (V + vs) / f) > 1e-9) return ['遠ざかる側の波長が (V+vs)/f と一致しません'];
+    if (Math.abs(d.approachPx - d.basePx * ((V - vs) / V)) > 0.5) return ['近づく側の波の間隔が 0.90 倍と一致しません'];
+    if (Math.abs(d.recedePx - d.basePx * ((V + vs) / V)) > 0.5) return ['遠ざかる側の波の間隔が 1.10 倍と一致しません'];
+    // うなり：振動数の差がうなりの回数、周期はその逆数。
+    if (Math.abs(d.f2 - (f + scene.beatFreqHz)) > 1e-9) return ['うなりの 2 つ目の振動数が一致しません'];
+    if (Math.abs(d.beatPeriodS - 1 / scene.beatFreqHz) > 1e-9) return ['うなりの周期が 1/Δf と一致しません'];
+    if (Math.abs(d.beatPx - d.beatPeriodS * 280) > 0.5) return ['うなりの図示の間隔が周期と一致しません'];
+    // 速度の矢印の長さが縮尺どおりか（動いている場面だけ）。
+    if ((scene.phase === 'approach' || scene.phase === 'reflect') && byId.sourceVelocity && Math.abs(byId.sourceVelocity.vector[0] - vs * 1.5) > 0.5) return ['音源の速度の矢印が vs の縮尺と一致しません'];
+    if (scene.phase === 'observer' && byId.observerVelocity && Math.abs(-byId.observerVelocity.vector[0] - vo * 1.5) > 0.5) return ['観測者の速度の矢印が vo の縮尺と一致しません'];
+  }
   return [];
 }
 
@@ -1688,6 +1944,85 @@ function drawBase(svg, scene) {
     if (!scene.derived.emitted) {
       const tX = el('text', { x: px + 30, y: 180, fill: '#b00' }); tX.textContent = '電子は出ない'; svg.appendChild(tX);
     }
+  } else if (scene.type === 'heatCycle') {
+    const c = scene.corners;
+    // 軸：V が右、p が上。目盛りは V が 1・2・3（×10⁻³ m³）、p が 1・2・3（×10⁵ Pa）。
+    svg.appendChild(el('line', { x1: 70, y1: 250, x2: 360, y2: 250, stroke: '#333', 'stroke-width': 2 }));
+    svg.appendChild(el('line', { x1: 70, y1: 20, x2: 70, y2: 250, stroke: '#333', 'stroke-width': 2 }));
+    const tV = el('text', { x: 348, y: 272 }); tV.textContent = 'V'; svg.appendChild(tV);
+    const tP = el('text', { x: 54, y: 28 }); tP.textContent = 'p'; svg.appendChild(tP);
+    for (const [x, label] of [[140, '1'], [210, '2'], [280, '3']]) {
+      svg.appendChild(el('line', { x1: x, y1: 250, x2: x, y2: 256, stroke: '#333', 'stroke-width': 1.5 }));
+      const t = el('text', { x: x - 3, y: 268 }); t.textContent = label; svg.appendChild(t);
+    }
+    for (const [y, label] of [[200, '1'], [150, '2'], [100, '3']]) {
+      svg.appendChild(el('line', { x1: 64, y1: y, x2: 70, y2: y, stroke: '#333', 'stroke-width': 1.5 }));
+      const t = el('text', { x: 52, y: y + 4 }); t.textContent = label; svg.appendChild(t);
+    }
+    const tU = el('text', { x: 70, y: 288, fill: '#555' }); tU.textContent = 'V（×10⁻³ m³）、p（×10⁵ Pa）'; svg.appendChild(tU);
+    // サイクルの長方形：phase が full のときだけ中を塗る（1 サイクルの仕事＝面積）。
+    const pts = `${c.A.x},${c.A.y} ${c.D.x},${c.D.y} ${c.C.x},${c.C.y} ${c.B.x},${c.B.y}`;
+    svg.appendChild(el('polygon', { points: pts, fill: scene.phase === 'full' ? '#fff3e0' : 'none', stroke: '#333', 'stroke-width': 2 }));
+    for (const [key, lx, ly] of [['A', 148, 218], ['B', 288, 218], ['C', 288, 92], ['D', 112, 92]]) {
+      svg.appendChild(el('circle', { cx: c[key].x, cy: c[key].y, r: 3, fill: '#333' }));
+      const t = el('text', { x: lx, y: ly }); t.textContent = key; svg.appendChild(t);
+    }
+  } else if (scene.type === 'railRod') {
+    // 磁場：レールのあいだに × 印（紙面の裏向き）。
+    for (let gx = 110; gx <= 320; gx += 42) {
+      for (const gy of [140, 180]) {
+        const t = el('text', { x: gx, y: gy, fill: '#888', 'font-size': 16 }); t.textContent = '×'; svg.appendChild(t);
+      }
+    }
+    const tB = el('text', { x: 96, y: 104, fill: '#555' }); tB.textContent = '磁場 B（裏向き）'; svg.appendChild(tB);
+    // 2本のレールと、左端をつなぐ抵抗。
+    svg.appendChild(el('line', { x1: 60, y1: 120, x2: 340, y2: 120, stroke: '#333', 'stroke-width': 3 }));
+    svg.appendChild(el('line', { x1: 60, y1: 200, x2: 340, y2: 200, stroke: '#333', 'stroke-width': 3 }));
+    const tR = el('text', { x: 296, y: 110 }); tR.textContent = 'レール'; svg.appendChild(tR);
+    svg.appendChild(el('rect', { x: 52, y: 148, width: 16, height: 44, fill: '#fff', stroke: '#333', 'stroke-width': 2 }));
+    const tRe = el('text', { x: 4, y: 176 }); tRe.textContent = '抵抗'; svg.appendChild(tRe);
+    // 棒：レールの上にまたがる縦の板。
+    svg.appendChild(el('rect', { x: 192, y: 120, width: 16, height: 80, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+    const tRod = el('text', { x: 216, y: 152 }); tRod.textContent = '棒'; svg.appendChild(tRod);
+  } else if (scene.type === 'doppler') {
+    const cx = 200, cy = 180, d = scene.derived;
+    // 基準線（音の進む向き）と音源・観測者。
+    svg.appendChild(el('line', { x1: 40, y1: cy, x2: 360, y2: cy, stroke: '#333', 'stroke-width': 1.5 }));
+    svg.appendChild(el('circle', { cx, cy, r: 7, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+    const tS = el('text', { x: 178, y: 162 }); tS.textContent = '音源'; svg.appendChild(tS);
+    svg.appendChild(el('circle', { cx: 320, cy, r: 7, fill: '#cfe3ff', stroke: '#333', 'stroke-width': 2 }));
+    const tO = el('text', { x: 296, y: 162 }); tO.textContent = '観測者'; svg.appendChild(tO);
+    // 波の弧：半円を小さな線分で描く（右側と左側で間隔が違うため、円では描けない）。
+    const arc = (r, fromDeg, toDeg) => {
+      let path = '';
+      for (let deg = fromDeg; deg <= toDeg; deg += 5) {
+        const rad = deg2rad(deg);
+        const x = (cx + r * Math.cos(rad)).toFixed(1), y = (cy + r * Math.sin(rad)).toFixed(1);
+        path += (path ? ' L ' : 'M ') + x + ' ' + y;
+      }
+      svg.appendChild(el('path', { d: path, fill: 'none', stroke: '#888', 'stroke-width': 1.5 }));
+    };
+    if (scene.phase === 'beats') {
+      // うなり：強くなる時刻の目印（周期 0.25 s ごとに 70 px）。
+      for (let k = 0; k <= 4; k++) {
+        const x = 60 + k * d.beatPx;
+        svg.appendChild(el('line', { x1: x, y1: 150, x2: x, y2: 210, stroke: '#b00', 'stroke-width': 2 }));
+      }
+      const tB = el('text', { x: 60, y: 138, fill: '#b00' }); tB.textContent = 'うなり：強くなるところ'; svg.appendChild(tB);
+      const tN = el('text', { x: 60, y: 120, fill: '#555' }); tN.textContent = 'うなり 4.0 Hz（0.25 s ごと）'; svg.appendChild(tN);
+    } else if (scene.phase === 'approach' || scene.phase === 'reflect') {
+      for (let k = 1; k <= 3; k++) arc(k * d.approachPx, -90, 90); // 右側：間隔が 0.90 倍に縮む
+      for (let k = 1; k <= 3; k++) arc(k * d.recedePx, 90, 270); // 左側：間隔が 1.10 倍に伸びる
+    } else {
+      // base / observer：音源が静止しているので、波の間隔は左右で等しい。
+      for (let k = 1; k <= 3; k++) {
+        svg.appendChild(el('circle', { cx, cy, r: k * d.basePx, fill: 'none', stroke: '#888', 'stroke-width': 1.5 }));
+      }
+    }
+    if (scene.phase === 'reflect') {
+      svg.appendChild(el('line', { x1: 340, y1: 100, x2: 340, y2: 260, stroke: '#333', 'stroke-width': 3 }));
+      const tW = el('text', { x: 318, y: 92 }); tW.textContent = '壁'; svg.appendChild(tW);
+    }
   } else if (scene.type === 'ladder') {
     svg.appendChild(el('line', { x1: 80, y1: 20, x2: 80, y2: 260, stroke: '#333', 'stroke-width': 3 }));
     svg.appendChild(el('line', { x1: 80, y1: 260, x2: 380, y2: 260, stroke: '#333', 'stroke-width': 3 }));
@@ -1742,4 +2077,4 @@ function renderAllFigures() {
   });
 }
 
-if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, sceneFor, validateScene };
+if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, sceneFor, validateScene, renderFigure };

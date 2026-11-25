@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第17問：レール＋棒の電磁誘導 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>第17問：レール＋棒の電磁誘導</h1>
+<p><strong>問題：</strong>紙面の裏向きの一様な磁場 B = 0.40 T の中に、間隔 L = 0.50 m の2本のレールがある。レールの左端は抵抗 R = 2.0 Ω でつながっている。質量 m = 0.20 kg の導体棒がレールの上にまたがり、摩擦はない。棒を右向きに一定の力 F = 0.080 N で引き続ける。棒は静止から出発する。(1) 速さ v = 2.0 m/s のときの誘導起電力・電流・磁場の力・加速度を求めよ。(2) 終端速度と時定数を求めよ。(3) 終端速度のときのエネルギーの流れを説明せよ。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js）が下の JSON データから計算して描いている。速度の矢印は 15 px/(m/s)、電流は 100 px/A、力は 500 px/N だ。ラベルは短い名前だけにして、枠からはみ出さないよう描画側で調整している。</p>
+<script type="application/json" id="scene-rail-base">{"type":"railRod","phase":"base","bT":0.4,"railLengthM":0.5,"resistanceOhm":2,"massKg":0.2,"extForceN":0.08,"vMs":0}</script>
+<script type="application/json" id="scene-rail-emf">{"type":"railRod","phase":"emf","bT":0.4,"railLengthM":0.5,"resistanceOhm":2,"massKg":0.2,"extForceN":0.08,"vMs":2}</script>
+<script type="application/json" id="scene-rail-current">{"type":"railRod","phase":"current","bT":0.4,"railLengthM":0.5,"resistanceOhm":2,"massKg":0.2,"extForceN":0.08,"vMs":2}</script>
+<script type="application/json" id="scene-rail-force">{"type":"railRod","phase":"force","bT":0.4,"railLengthM":0.5,"resistanceOhm":2,"massKg":0.2,"extForceN":0.08,"vMs":2}</script>
+<script type="application/json" id="scene-rail-terminal">{"type":"railRod","phase":"terminal","bT":0.4,"railLengthM":0.5,"resistanceOhm":2,"massKg":0.2,"extForceN":0.08,"vMs":4}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：装置と因果の鎖</h2>
+  <p>この問題は、1つの因果の鎖でできている。棒が動く → レールと棒で囲まれた部分の磁束が変わる → 誘導起電力が生まれる → 回路に電流が流れる → 電流が流れる棒は磁場から力を受ける → その力は棒の運動を妨げる向き。最後の「妨げる向き」が、終端速度を生む。磁場の向き（紙面の裏向き）と、棒を引く力の向きを、はじめに図で確かめておく。</p>
+  <svg class="fig" data-scene="scene-rail-base" data-show="" width="100%" role="img" aria-label="レールと棒と抵抗（矢印はまだ描いていない）"></svg>
+  <p>棒が右へ動くと、レール・棒・抵抗で囲まれた長方形の面積が広がり、裏向きの磁束が増える。磁束そのものではなく、磁束の「変化」が起電力を生む。ここが第1の罠だ。磁束が大きくても、変わらなければ起電力は 0 だ。</p>
+  <a class="next" href="#step1">次へ ↓ ①誘導起電力</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 誘導起電力 ε = BLv</h2>
+  <svg class="fig" data-scene="scene-rail-emf" data-show="velocity" width="100%" role="img" aria-label="速さ v=2.0 m/s の棒を描いた図"></svg>
+  <p>速さ v = 2.0 m/s のとき、棒が 1 秒間に掃く面積は L × v = 0.50 × 2.0 = 1.0 m<sup>2</sup>。磁束の変化率は B × 1.0 = 0.40 Wb/s だから、誘導起電力は ε = BLv = 0.40 × 0.50 × 2.0 = <strong>0.40 V</strong>。起電力は速さに比例する。速さが 2 倍になれば、起電力も 2 倍になる。v = 0 なら起電力は 0 だ。</p>
+  <label><input type="checkbox" class="check"> 誘導起電力は ε = BLv = 0.40 V で、速さに比例すると分かった</label>
+  <br><a class="next" href="#step2">次へ ↓ ②電流とその向き</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 電流 I = ε / R とその向き</h2>
+  <svg class="fig" data-scene="scene-rail-current" data-show="velocity,current" width="100%" role="img" aria-label="棒を上向きに流れる電流を描いた図"></svg>
+  <p>回路の抵抗は R = 2.0 Ω だから、電流は I = ε / R = 0.40 / 2.0 = <strong>0.20 A</strong>。向きは、レンツの法則で決まる。裏向きの磁束が増えているので、電流はそれを打ち消す向き、つまり表向きの磁場を作る向きに流れる。棒の中では、電流は<strong>上向き</strong>に流れる（棒の中の正の電荷は、v × B の力で上に押される）。下向きとすると、磁場の力の向きも逆になってしまう。</p>
+  <label><input type="checkbox" class="check"> 電流は I = 0.20 A で、棒の中では上向きに流れると分かった</label>
+  <br><a class="next" href="#step3">次へ ↓ ③磁場からの力</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 磁場からの力 F = BIL（運動を妨げる向き）</h2>
+  <svg class="fig" data-scene="scene-rail-force" data-show="velocity,current,magForce,extForce" width="100%" role="img" aria-label="磁場の力と引く力を描いた図"></svg>
+  <p>電流が流れる棒は、磁場から力を受ける。大きさは F<sub>mag</sub> = BIL = 0.40 × 0.20 × 0.50 = <strong>0.040 N</strong>。向きは、電流が上向き・磁場が裏向きなので、<strong>左向き</strong>（棒の運動と逆向き）。外から引く力は右向き 0.080 N だから、合力は 0.080 − 0.040 = 0.040 N（右向き）。加速度は a = 合力 / m = 0.040 / 0.20 = <strong>0.20 m/s²</strong>。磁場の力が運動を妨げる向きになるのは、レンツの法則の言い換えだ。もし磁場の力が右向きなら、棒はどんどん加速してエネルギーが無から生まれてしまう。</p>
+  <label><input type="checkbox" class="check"> 磁場の力は 0.040 N で左向き、加速度は 0.20 m/s² と分かった</label>
+  <br><a class="next" href="#step4">次へ ↓ ④終端速度</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 終端速度 v<sub>t</sub> = 4.0 m/s、時定数 τ = 10 s</h2>
+  <svg class="fig" data-scene="scene-rail-terminal" data-show="velocity,current,magForce,extForce" width="100%" role="img" aria-label="終端速度の棒を描いた図"></svg>
+  <p>速くなると、起電力も電流も磁場の力も大きくなる。磁場の力が外力と等しくなったところで、合力は 0 になり、棒はそれ以上加速しない。その速さが終端速度だ。F<sub>mag</sub> = BIL = B × (BLv/R) × L = (BL)<sup>2</sup>v / R だから、F = (BL)<sup>2</sup>v<sub>t</sub> / R より、v<sub>t</sub> = F・R / (BL)<sup>2</sup> = 0.080 × 2.0 / (0.20)<sup>2</sup> = <strong>4.0 m/s</strong>。このとき ε = 0.80 V、I = 0.40 A、F<sub>mag</sub> = 0.080 N = F で、加速度は 0 だ。速さは v<sub>t</sub>(1 − e<sup>−t/τ</sup>) の形で近づき、時定数は τ = mR / (BL)<sup>2</sup> = 0.20 × 2.0 / 0.04 = <strong>10 s</strong>。10 秒で終端速度の約 63% まで速くなる。</p>
+  <label><input type="checkbox" class="check"> 終端速度は 4.0 m/s で、磁場の力と外力がつり合って加速度が 0 になると分かった</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤エネルギー</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ エネルギー：外力の仕事はジュール熱になる</h2>
+  <svg class="fig" data-scene="scene-rail-terminal" data-show="velocity,current,magForce,extForce" width="100%" role="img" aria-label="終端速度のエネルギーのまとめの図"></svg>
+  <p>終端速度のとき、外力が 1 秒間にする仕事は F・v<sub>t</sub> = 0.080 × 4.0 = 0.32 W。抵抗で 1 秒間に発生するジュール熱は I<sup>2</sup>R = 0.40<sup>2</sup> × 2.0 = <strong>0.32 W</strong>。ぴったり一致する。速さが変わらなくなったので、運動エネルギーは増えない。外力の仕事は、すべてジュール熱になっている。v = 2.0 m/s のときは、外力の仕事率は 0.16 W、ジュール熱は 0.080 W で、残りの 0.080 W が運動エネルギーの増加になっている（合力 × 速さ = 0.040 × 2.0 = 0.080 W）。</p>
+  <p class="note">なお、外から引く力がなければ、棒は止まる。初速 4.0 m/s なら、止まるまでに進む距離は v<sub>0</sub>・τ = 40 m で、初めの運動エネルギー 1.6 J がすべてジュール熱になる。終端速度があるのは、外力が引き続けているからだ。</p>
+  <label><input type="checkbox" class="check"> 終端速度では外力の仕事率 0.32 W がすべてジュール熱になると分かった</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) v = 2.0 m/s のとき ε = 0.40 V、I = 0.20 A（棒の中は上向き）、磁場の力 0.040 N（左向き）、加速度 0.20 m/s²。(2) 終端速度 4.0 m/s、時定数 10 s。(3) 終端速度では外力の仕事率 0.32 W がすべてジュール熱になる。磁場の力の向きの考え方は <a href="charged-circle.html">組み合わせC：荷電粒子＋円運動</a> のローレンツ力、力のつり合いは <a href="hang.html">第4問：三力のつり合い</a> でも確かめられる。</p>
+  <p>次は準備中です。<a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.railRodDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
