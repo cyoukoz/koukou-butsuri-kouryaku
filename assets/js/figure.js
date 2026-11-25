@@ -1070,7 +1070,8 @@ function kineticTheoryForces(data) {
     // 1個の分子が右の壁にぶつかる：来るとき v_x、跳ね返るとき −v_x。
     return [
       { id: 'vxIn', short: 'v_x', color: '#d35400', vector: [vxPx, 0], dashed: false, labelDx: 6, labelDy: -8, from: { x: 260, y: 160 } },
-      { id: 'vxOut', short: '−v_x', color: 'blue', vector: [-vxPx, 0], dashed: false, labelDx: -6, labelDy: -8, from: { x: 290, y: 160 } },
+      // 跳ね返りのラベルは矢印の下側に出し、来るときの v_x と重ならないようにする。
+      { id: 'vxOut', short: '−v_x', color: 'blue', vector: [-vxPx, 0], dashed: false, labelDx: -30, labelDy: 16, from: { x: 290, y: 160 } },
     ];
   }
   return [];
@@ -1159,7 +1160,8 @@ function coulombFieldForces(data) {
     return [
       { id: 'e1', short: 'E1', color: '#b00', vector: [d.eMid1 * eScale, 0], dashed: false, labelDx: 6, labelDy: -8, from: { x: 210, y: 165 } },
       { id: 'eTotal', short: 'E=1.6×10⁶', color: '#b00', vector: [d.eMidTotal * eScale, 0], dashed: false, labelDx: 6, labelDy: -8, from: { x: 210, y: 180 } },
-      { id: 'e2', short: 'E2', color: '#b00', vector: [d.eMid2 * eScale, 0], dashed: false, labelDx: 6, labelDy: -8, from: { x: 210, y: 195 } },
+      // E2 のラベルは矢印の下側に出し、E（合計）の矢印と重ならないようにする。
+      { id: 'e2', short: 'E2', color: '#b00', vector: [d.eMid2 * eScale, 0], dashed: false, labelDx: 6, labelDy: 16, from: { x: 210, y: 195 } },
     ];
   }
   return []; // 電気力線の場面：線は drawBase で描く
@@ -2678,8 +2680,9 @@ function drawBase(svg, scene) {
       // 1個の分子：右の壁に向かう。速度の矢印は forces（v_x / −v_x）で描く。
       svg.appendChild(el('circle', { cx: 260, cy: 160, r: 7, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
       const tM = el('text', { x: 244, y: 140 }); tM.textContent = '分子'; svg.appendChild(tM);
-      const tN = el('text', { x: x0, y: 272, fill: '#555' });
-      tN.textContent = '分子は壁にぶつかって跳ね返る（速さは変わらない）';
+      // 図下の説明は右端で切れないよう、左から短く書く。
+      const tN = el('text', { x: 40, y: 272, fill: '#555' });
+      tN.textContent = '壁で跳ね返る（速さは変わらない）';
       svg.appendChild(tN);
     } else {
       // 分子の集まり：位置と向きは固定（計算で決めたもの）。hot では矢印が √2 倍長い。
@@ -2692,11 +2695,11 @@ function drawBase(svg, scene) {
         svg.appendChild(el('line', { x1: px, y1: py, x2: (px + len * Math.cos(rad)).toFixed(1), y2: (py + len * Math.sin(rad)).toFixed(1), stroke: '#d35400', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
         svg.appendChild(el('circle', { cx: px, cy: py, r: 5, fill: '#ffd24d', stroke: '#333', 'stroke-width': 1.5 }));
       }
-      const tN = el('text', { x: x0, y: 272, fill: '#555' });
+      const tN = el('text', { x: 40, y: 272, fill: '#555' });
       tN.textContent = scene.phase === 'hot'
-        ? '速さは √2 倍、壁にぶつかる回数も増える'
+        ? '速さは√2倍、衝突の回数も増える'
         : scene.phase === 'half'
-          ? '体積は半分、分子の数は同じ（ぎゅうぎゅう）'
+          ? '体積は半分、数は同じ（ぎゅうぎゅう）'
           : '分子はでたらめな向きに飛んでいる';
       svg.appendChild(tN);
     }
@@ -2721,7 +2724,8 @@ function drawBase(svg, scene) {
         p += (p ? ' L ' : 'M ') + x + ' ' + y;
       }
       svg.appendChild(el('path', { d: p, fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
-      for (const [t, label, lx, ly] of [[0.125, 't=0.125 s：y=+A', 100, 128], [0.25, 't=0.25 s：y=0', 118, 160], [0.375, 't=0.375 s：y=−A', 168, 248]]) {
+      // t=0.25 s のラベルは軸の目盛りと重ならないよう、軸の下に出す。
+      for (const [t, label, lx, ly] of [[0.125, 't=0.125 s：y=+A', 100, 128], [0.25, 't=0.25 s：y=0', 118, 205], [0.375, 't=0.375 s：y=−A', 168, 248]]) {
         const x = x0 + t * span, y = yMid - amp * Math.sin(2 * Math.PI * t / scene.periodS);
         svg.appendChild(el('circle', { cx: x, cy: y, r: 4, fill: '#b00' }));
         const tt = el('text', { x: lx, y: ly, fill: '#b00' }); tt.textContent = label; svg.appendChild(tt);
@@ -2808,8 +2812,8 @@ function drawBase(svg, scene) {
       const tQ = el('text', { x: 128, y: 212, fill: '#555' }); tQ.textContent = '+2.0 μC'; svg.appendChild(tQ);
       for (const [x, label] of [[210, 'r=0.10 m'], [280, 'r=0.20 m']]) {
         svg.appendChild(el('line', { x1: x, y1: 174, x2: x, y2: 186, stroke: '#333', 'stroke-width': 1.5 }));
-        // 距離のラベルは下へ出して、遠くの電場ラベル（矢印の下側）と重ならないようにする。
-        const t = el('text', { x: x - 26, y: 224, fill: '#555' }); t.textContent = label; svg.appendChild(t);
+        // 距離のラベルはさらに下へ出して、「+2.0 μC」と重ならないようにする。
+        const t = el('text', { x: x - 26, y: 238, fill: '#555' }); t.textContent = label; svg.appendChild(t);
       }
       if (scene.phase === 'force') {
         // 試験電荷 q を r=0.10 m の位置に置く。
