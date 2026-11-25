@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>組み合わせ問題AS：光電効果＋コンデンサ＋磁場円運動</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body { max-width: 760px; margin: 0 auto; padding: 16px; font-family: sans-serif; line-height: 1.8; }
+h1 { font-size: 22px; }
+.step { border-top: 2px solid #eee; padding: 18px 0; }
+.fig { margin: 12px 0; }
+.fig svg { width: 100%; height: auto; display: block; }
+.check { font-size: 18px; margin-right: 8px; }
+.next { display: inline-block; margin-top: 8px; }
+.toplink { position: fixed; right: 12px; bottom: 12px; background: #fff; border: 1px solid #ccc; padding: 6px 10px; border-radius: 6px; text-decoration: none; }
+.donebox { border: 2px solid #4a4; padding: 14px; margin: 20px 0; }
+table { border-collapse: collapse; margin: 10px 0; }
+th, td { border: 1px solid #999; padding: 6px 8px; text-align: left; }
+</style>
+</head>
+<body id="top">
+<h1>組み合わせ問題AS：光電効果＋コンデンサ＋磁場円運動</h1>
+<p>光電管の陰極（仕事関数 2.0 eV）に波長 400 nm の光を当てる。陰極と陽極のあいだにはコンデンサ（電気容量 10 nF）がつながっており、飛び出した電子は陽極に集まってコンデンサを充電する。光電流は 1.0 μA で一定である。電子の電気量 e = 1.60×10<sup>−19</sup> C、電子の質量 m = 9.11×10<sup>−31</sup> kg、hc = 1240 eV·nm とする。(1) 飛び出す電子の最大の運動エネルギーと、最も速い電子の速さを求めよ。(2) コンデンサの電圧が阻止電圧に達したとき、たまった電荷、電子の数、静電エネルギー、充電にかかる時間を求めよ。(3) 飛び出した電子を磁束密度 1.0 mT の一様な磁場に入れる。電子の円運動の半径、周期、振動数を求めよ。</p>
+
+<div class="step">
+<p><b>はじめに：どう切り分けるか</b></p>
+<p>光電効果 → コンデンサの充電 → 磁場の円運動 → 罠 → 変えたら、の順に区切る。橋渡し量は「電子の運動エネルギー（速さ）」だ。</p>
+<table>
+<tr><th>いつ</th><th>何が起きるか</th><th>橋渡し量</th><th>どこで解くか</th></tr>
+<tr><td>はじめ</td><td>光電効果</td><td>Kmax = 1.10 eV、vmax ≈ 6.2×10<sup>5</sup> m/s</td><td>ステップ①</td></tr>
+<tr><td>充電</td><td>コンデンサ</td><td>V0 = 1.10 V、Q = 11 nC、U ≈ 6.1 nJ</td><td>ステップ②</td></tr>
+<tr><td>円運動</td><td>磁場</td><td>r ≈ 3.5 mm、T ≈ 36 ns</td><td>ステップ③</td></tr>
+<tr><td>罠・変えたら</td><td>V0 と r</td><td>明るい光でも変わらない</td><td>ステップ④⑤</td></tr>
+</table>
+<p>図：光電管とコンデンサ。光が陰極に当たり、電子が陽極へ飛んでコンデンサにたまる。同じ電子が磁場に入ると円を描く。組み合わせ問題X と AF をつなげた問題だ。</p>
+<script type="application/json" id="scene-photoCapCircle-base">{"type":"photoCapCircle","lambdaNm":400,"phiEV":2.0,"capF":1e-8,"bT":0.001,"photoCurrentA":1e-6,"hcEvNm":1240,"eC":1.602e-19,"mKg":9.11e-31,"phase":"base"}</script>
+<svg class="fig" data-scene="scene-photoCapCircle-base" data-show="" width="100%" role="img" aria-label="光電管とコンデンサの図。光が陰極に当たり、電子が陽極へ飛び、コンデンサにたまる。電子は管を出て右の磁場へ進む"></svg>
+</div>
+
+<div class="step">
+<p><b>ステップ① 光電効果：飛び出す電子の最大の運動エネルギー</b></p>
+<script type="application/json" id="scene-photoCapCircle-photo">{"type":"photoCapCircle","lambdaNm":400,"phiEV":2.0,"capF":1e-8,"bT":0.001,"photoCurrentA":1e-6,"hcEvNm":1240,"eC":1.602e-19,"mKg":9.11e-31,"phase":"photo"}</script>
+<svg class="fig" data-scene="scene-photoCapCircle-photo" data-show="" width="100%" role="img" aria-label="光子 3.10 eV、仕事関数 2.0 eV、Kmax 1.10 eV の棒グラフ"></svg>
+<p>光子のエネルギーは E = hc/λ = 1240/400 ≈ 3.10 eV。光電効果の式 K<sub>max</sub> = E − φ より、K<sub>max</sub> = 3.10 − 2.0 = 1.10 eV。</p>
+<p>最も速い電子の速さは ½mv² = K<sub>max</sub> より、v<sub>max</sub> = √(2K/m) = √(2 × 1.10 × 1.60×10<sup>−19</sup>/9.11×10<sup>−31</sup>) ≈ 6.2×10<sup>5</sup> m/s。</p>
+<p>波長 650 nm の光では、光子のエネルギーは 1240/650 ≈ 1.91 eV &lt; 2.0 eV なので、電子は出ない。限界波長は λ<sub>0</sub> = hc/φ = 1240/2.0 = 620 nm である。</p>
+<p><label><input type="checkbox" class="check">① 光電効果が分かった</label></p>
+<p><a class="next" href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<p><b>ステップ② コンデンサの充電：阻止電圧までたまる</b></p>
+<script type="application/json" id="scene-photoCapCircle-charge">{"type":"photoCapCircle","lambdaNm":400,"phiEV":2.0,"capF":1e-8,"bT":0.001,"photoCurrentA":1e-6,"hcEvNm":1240,"eC":1.602e-19,"mKg":9.11e-31,"phase":"charge"}</script>
+<svg class="fig" data-scene="scene-photoCapCircle-charge" data-show="" width="100%" role="img" aria-label="コンデンサの拡大図。電荷 11 nC、静電エネルギー 6.1 nJ、充電時間 11 ms、電子 6.9×10の10乗 個"></svg>
+<p>電子が陽極に集まると、コンデンサが充電されて電圧が上がる。コンデンサの電圧が阻止電圧 V<sub>0</sub> まで上がると、最も速い電子でも陽極に届かなくなり、充電は止まる。</p>
+<p>阻止電圧は、電子の最大の運動エネルギーを電気的なエネルギーと等しく置いて、eV<sub>0</sub> = K<sub>max</sub> より V<sub>0</sub> = 1.10 V。たまった電荷は Q = CV<sub>0</sub> = 10×10<sup>−9</sup> × 1.10 = 11 nC。電子の数は N = Q/e = 11×10<sup>−9</sup>/1.60×10<sup>−19</sup> ≈ 6.9×10<sup>10</sup> 個。静電エネルギーは U = ½CV<sub>0</sub>² = ½ × 10×10<sup>−9</sup> × 1.10² ≈ 6.1 nJ。</p>
+<p>充電にかかる時間は、光電流 I = 1.0 μA で一定として、t = Q/I = 11×10<sup>−9</sup>/1.0×10<sup>−6</sup> = 11 ms。</p>
+<p><label><input type="checkbox" class="check">② コンデンサの充電が分かった</label></p>
+<p><a class="next" href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<p><b>ステップ③ 磁場の円運動：電子は円を描く</b></p>
+<script type="application/json" id="scene-photoCapCircle-circle">{"type":"photoCapCircle","lambdaNm":400,"phiEV":2.0,"capF":1e-8,"bT":0.001,"photoCurrentA":1e-6,"hcEvNm":1240,"eC":1.602e-19,"mKg":9.11e-31,"phase":"circle"}</script>
+<svg class="fig" data-scene="scene-photoCapCircle-circle" data-show="velocity,lorentz" width="100%" role="img" aria-label="磁場中の円運動。半径 3.5 mm、速度の矢印と中心向きのローレンツ力の矢印"></svg>
+<p>飛び出した電子が磁場に入ると、ローレンツ力 F = evB を受けて円運動をする。速さは変わらない（磁場は仕事をしない）。</p>
+<p>半径は r = mv/eB = 9.11×10<sup>−31</sup> × 6.2×10<sup>5</sup>/(1.60×10<sup>−19</sup> × 1.0×10<sup>−3</sup>) ≈ 3.5 mm。周期は T = 2πm/eB = 2π × 9.11×10<sup>−31</sup>/(1.60×10<sup>−19</sup> × 1.0×10<sup>−3</sup>) ≈ 36 ns。振動数は f = 1/T ≈ 28 MHz。</p>
+<p>ローレンツ力の大きさは F = evB ≈ 1.0×10<sup>−16</sup> N で、これが向心力である。周期が速さによらないことに注意：速さが違っても、円を1周する時間は同じである。</p>
+<p><label><input type="checkbox" class="check">③ 磁場の円運動が分かった</label></p>
+<p><a class="next" href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<p><b>ステップ④ 罠：明るい光で V0 も r も大きくなる？</b></p>
+<script type="application/json" id="scene-photoCapCircle-trap">{"type":"photoCapCircle","lambdaNm":400,"phiEV":2.0,"capF":1e-8,"bT":0.001,"photoCurrentA":1e-6,"hcEvNm":1240,"eC":1.602e-19,"mKg":9.11e-31,"phase":"trap"}</script>
+<svg class="fig" data-scene="scene-photoCapCircle-trap" data-show="" width="100%" role="img" aria-label="阻止電圧の比べ。暗い光でも明るい光でも 1.10 V、300 nm では 2.13 V"></svg>
+<p>光を明るくすると、飛び出す電子の数は増えるが、1個の電子の最大の運動エネルギーは変わらない。したがって、阻止電圧 V<sub>0</sub> は 1.10 V のまま、円運動の半径も 3.5 mm のままである。</p>
+<p>明るくなるのは、電子の数が増えて充電が速くなることだけである（充電時間は 11 ms から 5.5 ms になる）。</p>
+<p>また、阻止電圧で止まるのは、最も速い電子（K<sub>max</sub> の電子）だけである。運動エネルギーが小さい電子は、もっと小さい電圧で止まる。したがって「阻止電圧で全ての電子が止まる」はまちがいである。</p>
+<p><label><input type="checkbox" class="check">④ 罠が分かった</label></p>
+<p><a class="next" href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<p><b>ステップ⑤ 変えたら：波長 300 nm、磁場 2 倍、明るい光</b></p>
+<script type="application/json" id="scene-photoCapCircle-vary">{"type":"photoCapCircle","lambdaNm":400,"phiEV":2.0,"capF":1e-8,"bT":0.001,"photoCurrentA":1e-6,"hcEvNm":1240,"eC":1.602e-19,"mKg":9.11e-31,"phase":"vary"}</script>
+<svg class="fig" data-scene="scene-photoCapCircle-vary" data-show="" width="100%" role="img" aria-label="半径の比べ。400 nm で 3.5 mm、300 nm で 4.9 mm、磁場 2 倍で 1.8 mm、明るい光で 3.5 mm"></svg>
+<p>波長を 300 nm にすると、光子のエネルギーは 1240/300 ≈ 4.13 eV、K<sub>max</sub> = 4.13 − 2.0 = 2.13 eV、v<sub>max</sub> ≈ 8.7×10<sup>5</sup> m/s、V<sub>0</sub> = 2.13 V、Q ≈ 21 nC、U ≈ 23 nJ、r ≈ 4.9 mm。周期は速さによらないので T ≈ 36 ns のままである。</p>
+<p>磁場を 2.0 mT にすると、r = mv/eB より半径は半分の 1.8 mm、周期も半分の 18 ns（振動数 56 MHz）、ローレンツ力は 2 倍の 2.0×10<sup>−16</sup> N になる。</p>
+<p>光を明るくして光電流が 2.0 μA になると、充電時間は半分の 5.5 ms になるが、V<sub>0</sub> と r は変わらない。</p>
+<p><label><input type="checkbox" class="check">⑤ 変えたらが分かった</label></p>
+</div>
+
+<div class="donebox">
+<p id="done-message">5つのチェックをすべて入れると完了になります。</p>
+<button id="done-btn">完了にする</button>
+<p>答え：K<sub>max</sub> = 1.10 eV、v<sub>max</sub> ≈ 6.2×10<sup>5</sup> m/s、V<sub>0</sub> = 1.10 V、Q = 11 nC、N ≈ 6.9×10<sup>10</sup> 個、U ≈ 6.1 nJ、充電 11 ms、r ≈ 3.5 mm、T ≈ 36 ns、f ≈ 28 MHz。光電効果は<a href="photoelectric.html">第15問：光電効果</a>、コンデンサは<a href="capacitor.html">第9問：コンデンサ</a>、磁場の円運動は<a href="photo-circle.html">組み合わせ問題AF：光電効果＋磁場円運動</a>、阻止電圧と充電は<a href="photo-cap.html">組み合わせ問題X：光電効果＋コンデンサ</a>に戻って確認しよう。</p>
+<p><a href="rlc-charge.html">← 組み合わせ問題AR：RLC回路の過渡応答</a></p>
+</div>
+
+<a class="toplink" href="#top">↑ TOP</a>
+<script src="../../assets/js/figure.js"></script>
+<script src="../../assets/js/idb.js"></script>
+<script>
+renderAllFigures();
+const boxes = Array.from(document.querySelectorAll('.check'));
+const doneBtn = document.getElementById('done-btn');
+const doneMsg = document.getElementById('done-message');
+const doneKey = 'comboPhotoCapCircleDone';
+const allChecked = () => boxes.every(b => b.checked);
+boxes.forEach(b => b.addEventListener('change', () => { doneBtn.disabled = !allChecked(); }));
+doneBtn.disabled = true;
+(async () => {
+  try {
+    const saved = await loadProgress();
+    if (saved && saved[doneKey]) { doneMsg.textContent = '完了済み ✓'; doneBtn.disabled = true; }
+  } catch (e) { /* IndexedDB が使えない環境では無視 */ }
+})();
+doneBtn.addEventListener('click', async () => {
+  if (!allChecked()) return;
+  try {
+    const saved = await loadProgress();
+    saved[doneKey] = true;
+    await saveProgress(saved);
+    doneMsg.textContent = '完了済み ✓';
+    doneBtn.disabled = true;
+  } catch (e) { doneMsg.textContent = '保存できませんでした（IndexedDB が使えません）。'; }
+});
+</script>
+</body>
+</html>
