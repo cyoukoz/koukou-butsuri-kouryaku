@@ -667,25 +667,26 @@ function capSpringGravForces(data) {
   if (data.phase === 'base') {
     // 電池なし：ばね（上向き）と重力（下向き）がつり合う。どちらも 0.20 N。
     return [
-      { id: 'spring', short: 'ばね 0.20 N', color: 'green', vector: [0, -d.mgN * fScale], dashed: false, labelDx: 6, labelDy: -8, from: { x: 180, y: plateY } },
+      { id: 'spring', short: 'ばね 0.20 N', color: 'green', vector: [0, -d.mgN * fScale], dashed: false, labelDx: -140, labelDy: -8, from: { x: 180, y: plateY } },
       { id: 'gravity', short: '重力 0.20 N', color: 'red', vector: [0, d.mgN * fScale], dashed: false, labelDx: 6, labelDy: -6, from: { x: 220, y: plateY } },
     ];
   }
   if (data.phase === 'charge') {
     // 電池あり：ばね 0.28 N（上）＝ 重力 0.20 N ＋ 静電気力 0.076 N（下）。
+    // ラベルは矢印と重ならないよう左の空きに置く（ばねのジグザグ・重力の矢印を避ける）。
     return [
-      { id: 'spring', short: 'ばね 0.28 N', color: 'green', vector: [0, -(d.mgN + d.f1N) * fScale], dashed: false, labelDx: 6, labelDy: -8, from: { x: 180, y: plateY } },
+      { id: 'spring', short: 'ばね 0.28 N', color: 'green', vector: [0, -(d.mgN + d.f1N) * fScale], dashed: false, labelDx: -140, labelDy: -8, from: { x: 180, y: plateY } },
       { id: 'gravity', short: '重力 0.20 N', color: 'red', vector: [0, d.mgN * fScale], dashed: false, labelDx: 6, labelDy: -6, from: { x: 220, y: plateY } },
-      { id: 'elec', short: '静電気力 0.076 N', color: '#b00', vector: [0, d.f1N * fScale], dashed: false, labelDx: 6, labelDy: -6, from: { x: 200, y: plateY } },
+      { id: 'elec', short: '静電気力 0.076 N', color: '#b00', vector: [0, d.f1N * fScale], dashed: false, labelDx: -140, labelDy: 2, from: { x: 200, y: plateY } },
     ];
   }
   if (data.phase === 'shm') {
     // 上端（d=d0）の瞬間：ばね 0.20 N、静電気力 C_e/d0²、重力 0.20 N。合力は下向き。
     const fTopN = d.cE / (d.d0M * d.d0M);
     return [
-      { id: 'spring', short: 'ばね 0.20 N', color: 'green', vector: [0, -d.mgN * fScale], dashed: false, labelDx: 6, labelDy: -8, from: { x: 180, y: d.plateY0 } },
+      { id: 'spring', short: 'ばね 0.20 N', color: 'green', vector: [0, -d.mgN * fScale], dashed: false, labelDx: -140, labelDy: -8, from: { x: 180, y: d.plateY0 } },
       { id: 'gravity', short: '重力 0.20 N', color: 'red', vector: [0, d.mgN * fScale], dashed: false, labelDx: 6, labelDy: -6, from: { x: 220, y: d.plateY0 } },
-      { id: 'elec', short: '静電気力 0.050 N', color: '#b00', vector: [0, fTopN * fScale], dashed: false, labelDx: 6, labelDy: -6, from: { x: 200, y: d.plateY0 } },
+      { id: 'elec', short: '静電気力', color: '#b00', vector: [0, fTopN * fScale], dashed: false, labelDx: -140, labelDy: 64, from: { x: 200, y: d.plateY0 } },
     ];
   }
   return []; // graph・trap：力の矢印はない。
@@ -965,8 +966,8 @@ function gasSpringCycleDerived(data) {
   const qCAJ = wCAJ; // 等温なので ΔU=0、Q=W。
   const wNetJ = wABJ + wCAJ;
   const eta = wNetJ / qABJ;
-  // 図の配置：ピストン y = 260 − 400h。p–V 図の座標変換。
-  const pistonY = (hM) => 260 - hM * 400;
+  // 図の配置：ピストン y = 240 − 400h（シリンダーの底は y=240。下の注記と重ならないよう 260 から上げた）。p–V 図の座標変換。
+  const pistonY = (hM) => 240 - hM * 400;
   const pvX = (vLM) => 60 + (vLM - 1.5) * (280 / 2.5);
   const pvY = (p1e5) => 240 - (p1e5 - 0.5) * (180 / 0.8);
   return {
@@ -984,19 +985,20 @@ function gasSpringCycleForces(data) {
   const gasN = (pPa) => pPa * data.areaM2;
   if (data.phase === 'base') {
     // 状態A：気体 1100 N（上）＝ 大気圧 1000 N ＋ 重力 100 N（下）。ばねは自然長で力は 0。
+    // ラベルは矢印の先端の右では壁・ばねのジグザグと重なるため、気体の空きに置く。
     return [
-      { id: 'gasForce', short: '気体の力', color: '#d35400', vector: [0, -(gasN(d.pAPa) / fScale)], dashed: false, labelDx: 6, labelDy: -8, from: { x: 150, y: d.pistonYA } },
-      { id: 'atmForce', short: '大気圧の力', color: 'purple', vector: [0, (gasN(data.p0Pa) / fScale)], dashed: false, labelDx: 6, labelDy: -6, from: { x: 250, y: d.pistonYA } },
-      { id: 'gravity', short: '重力 mg', color: 'red', vector: [0, d.mgN / fScale], dashed: false, labelDx: 6, labelDy: -6, from: { x: 200, y: d.pistonYA } },
+      { id: 'gasForce', short: '気体の力', color: '#d35400', vector: [0, -(gasN(d.pAPa) / fScale)], dashed: false, labelDx: -20, labelDy: 95, from: { x: 150, y: d.pistonYA } },
+      { id: 'atmForce', short: '大気圧', color: 'purple', vector: [0, (gasN(data.p0Pa) / fScale)], dashed: false, labelDx: -70, labelDy: 6, from: { x: 250, y: d.pistonYA } },
+      { id: 'gravity', short: '重力 mg', color: 'red', vector: [0, d.mgN / fScale], dashed: false, labelDx: -70, labelDy: 16, from: { x: 200, y: d.pistonYA } },
     ];
   }
   if (data.phase === 'expand') {
     // 状態B：気体 1200 N（上）＝ 大気圧 1000 N ＋ 重力 100 N ＋ ばね 100 N（下）。
     const springN = data.kNm * (d.hB - data.hNatM);
     return [
-      { id: 'gasForce', short: '気体の力', color: '#d35400', vector: [0, -(gasN(d.pBPa) / fScale)], dashed: false, labelDx: 6, labelDy: -8, from: { x: 150, y: d.pistonYB } },
-      { id: 'atmForce', short: '大気圧の力', color: 'purple', vector: [0, (gasN(data.p0Pa) / fScale)], dashed: false, labelDx: 6, labelDy: -6, from: { x: 250, y: d.pistonYB } },
-      { id: 'gravity', short: '重力 mg', color: 'red', vector: [0, d.mgN / fScale], dashed: false, labelDx: 6, labelDy: -6, from: { x: 200, y: d.pistonYB } },
+      { id: 'gasForce', short: '気体の力', color: '#d35400', vector: [0, -(gasN(d.pBPa) / fScale)], dashed: false, labelDx: -20, labelDy: 95, from: { x: 150, y: d.pistonYB } },
+      { id: 'atmForce', short: '大気圧', color: 'purple', vector: [0, (gasN(data.p0Pa) / fScale)], dashed: false, labelDx: -70, labelDy: 6, from: { x: 250, y: d.pistonYB } },
+      { id: 'gravity', short: '重力 mg', color: 'red', vector: [0, d.mgN / fScale], dashed: false, labelDx: -70, labelDy: 16, from: { x: 200, y: d.pistonYB } },
       { id: 'spring', short: 'ばねの力', color: 'green', vector: [0, springN / fScale], dashed: false, labelDx: 6, labelDy: -22, from: { x: 220, y: d.pistonYB - 6 } },
     ];
   }
@@ -1005,9 +1007,9 @@ function gasSpringCycleForces(data) {
     // つり合っていない分（467 N）は留め具が支える。
     const springN = data.kNm * (d.hB - data.hNatM);
     return [
-      { id: 'gasForce', short: '気体の力', color: '#d35400', vector: [0, -(gasN(d.pCPa) / fScale)], dashed: false, labelDx: 6, labelDy: -8, from: { x: 150, y: d.pistonYB } },
-      { id: 'atmForce', short: '大気圧の力', color: 'purple', vector: [0, (gasN(data.p0Pa) / fScale)], dashed: false, labelDx: 6, labelDy: -6, from: { x: 250, y: d.pistonYB } },
-      { id: 'gravity', short: '重力 mg', color: 'red', vector: [0, d.mgN / fScale], dashed: false, labelDx: 6, labelDy: -6, from: { x: 200, y: d.pistonYB } },
+      { id: 'gasForce', short: '気体の力', color: '#d35400', vector: [0, -(gasN(d.pCPa) / fScale)], dashed: false, labelDx: -20, labelDy: 95, from: { x: 150, y: d.pistonYB } },
+      { id: 'atmForce', short: '大気圧', color: 'purple', vector: [0, (gasN(data.p0Pa) / fScale)], dashed: false, labelDx: -70, labelDy: 6, from: { x: 250, y: d.pistonYB } },
+      { id: 'gravity', short: '重力 mg', color: 'red', vector: [0, d.mgN / fScale], dashed: false, labelDx: -70, labelDy: 16, from: { x: 200, y: d.pistonYB } },
       { id: 'spring', short: 'ばねの力', color: 'green', vector: [0, springN / fScale], dashed: false, labelDx: 6, labelDy: -22, from: { x: 220, y: d.pistonYB - 6 } },
     ];
   }
@@ -4662,9 +4664,10 @@ function drawBase(svg, scene) {
       : '電池なし：ばねと重力だけのつり合い';
     svg.appendChild(tH);
     if (scene.phase === 'graph') {
-      // G(d) = k(d_nat−d) − mg − C_e/d² のグラフ。d=1.5〜5.0 mm、G=−0.06〜+0.06 N。
+      // G(d) = k(d_nat−d) − mg − C_e/d² のグラフ。d=1.5〜5.0 mm、G=−0.15〜+0.15 N。
+      // ±0.06 N では曲線の両端（d≈1.5 mm と d≈5.0 mm）が枠の下にはみ出すため、範囲を広げた。
       const xOf = (dMm) => 60 + (dMm - 1.5) * (280 / 3.5);
-      const yOf = (gN) => 240 - (gN + 0.06) * (180 / 0.12);
+      const yOf = (gN) => 240 - (gN + 0.15) * (180 / 0.30);
       const gOf = (dMm) => scene.kNm * (scene.dNatMm - dMm) * 1e-3 - d.mgN - d.cE / ((dMm * 1e-3) * (dMm * 1e-3));
       svg.appendChild(el('line', { x1: 60, y1: 240, x2: 340, y2: 240, stroke: '#333', 'stroke-width': 1.5 }));
       svg.appendChild(el('line', { x1: 60, y1: 60, x2: 60, y2: 240, stroke: '#333', 'stroke-width': 1.5 }));
@@ -4776,10 +4779,10 @@ function drawBase(svg, scene) {
       // シリンダーとピストンとばね。ピストン高さで位置が決まる。
       const pistonY = scene.phase === 'expand' || scene.phase === 'lock' ? d.pistonYB
         : scene.phase === 'return' ? d.pistonY(0.25) : d.pistonYA;
-      svg.appendChild(el('line', { x1: 120, y1: 40, x2: 120, y2: 260, stroke: '#333', 'stroke-width': 3 }));
-      svg.appendChild(el('line', { x1: 280, y1: 40, x2: 280, y2: 260, stroke: '#333', 'stroke-width': 3 }));
-      svg.appendChild(el('line', { x1: 120, y1: 260, x2: 280, y2: 260, stroke: '#333', 'stroke-width': 3 }));
-      svg.appendChild(el('rect', { x: 120, y: pistonY, width: 160, height: 260 - pistonY, fill: '#e8f4ff', stroke: 'none' }));
+      svg.appendChild(el('line', { x1: 120, y1: 40, x2: 120, y2: 240, stroke: '#333', 'stroke-width': 3 }));
+      svg.appendChild(el('line', { x1: 280, y1: 40, x2: 280, y2: 240, stroke: '#333', 'stroke-width': 3 }));
+      svg.appendChild(el('line', { x1: 120, y1: 240, x2: 280, y2: 240, stroke: '#333', 'stroke-width': 3 }));
+      svg.appendChild(el('rect', { x: 120, y: pistonY, width: 160, height: 240 - pistonY, fill: '#e8f4ff', stroke: 'none' }));
       // ばね（上）：天井 y=40 からピストンまで。ジグザグは長さから計算する。
       let zig = '';
       const nSeg = 12;
@@ -4791,13 +4794,14 @@ function drawBase(svg, scene) {
       svg.appendChild(el('path', { d: zig, fill: 'none', stroke: '#333', 'stroke-width': 2 }));
       svg.appendChild(el('rect', { x: 116, y: pistonY - 6, width: 168, height: 12, fill: '#cfe3ff', stroke: '#333', 'stroke-width': 2 }));
       const tP = el('text', { x: 288, y: pistonY + 4 }); tP.textContent = 'ピストン'; svg.appendChild(tP);
-      // 「気体」は下の注記と重ならないよう、底から少し上に置く。
-      const tG = el('text', { x: 180, y: 240 }); tG.textContent = '気体'; svg.appendChild(tG);
+      // 「気体」は底の線・力のラベルと重ならないよう、右下に置く。
+      const tG = el('text', { x: 240, y: 232 }); tG.textContent = '気体'; svg.appendChild(tG);
       // 「大気圧 p0」は見出しと重ならないよう、ばねの右側に置く。
       const tA = el('text', { x: 230, y: 80 }); tA.textContent = '大気圧 p0'; svg.appendChild(tA);
-      const tS = el('text', { x: 212, y: 52 }); tS.textContent = 'ばね'; svg.appendChild(tS);
+      // 「ばね」はジグザグ（x=188〜212）と重ならないよう、右にずらす。
+      const tS = el('text', { x: 222, y: 52 }); tS.textContent = 'ばね'; svg.appendChild(tS);
       // 高さ h の目印（破線）。ラベルはピストンの少し下に置く（力のラベルと重ならない）。
-      svg.appendChild(el('line', { x1: 310, y1: pistonY, x2: 310, y2: 260, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+      svg.appendChild(el('line', { x1: 310, y1: pistonY, x2: 310, y2: 240, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
       const tH2 = el('text', { x: 316, y: pistonY + 20 }); tH2.textContent = scene.phase === 'expand' || scene.phase === 'lock' ? 'h=0.30 m' : scene.phase === 'return' ? 'h=0.25 m' : 'h=0.20 m'; svg.appendChild(tH2);
       if (scene.phase === 'lock') {
         // 留め具：シリンダーの壁に止める金具。
