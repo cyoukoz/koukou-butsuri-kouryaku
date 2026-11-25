@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題V：動く台＋荷電粒子＋衝突 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題V：動く台＋荷電粒子＋衝突</h1>
+<p><strong>問題：</strong>質量 m = 0.50 kg、電荷 q = +1.0×10⁻⁵ C の玉が、質量 M = 2.0 kg の台車の上に置かれている。台車はなめらかな水平面の上にあり、台車の右端には壁がある。玉と壁のあいだの距離は L = 0.50 m である。右向きに一様な電場 E = 2.0×10³ V/m をかけると、玉は電場から力を受けて右へ加速され、壁にぶつかる。玉と壁の衝突は弾性衝突とする。玉と台車のあいだに摩擦はないものとする。(1) 玉にはたらく力と加速度、壁に着くときの速さと時間を求めよ。(2) 衝突の直後の玉と台車の速さを求めよ。(3) その後、玉はいつ止まるか。止まるまでに玉は何 m 進むか。そのあいだに台車は何 m 進むか。(4) 玉が壁にくっついたとしたら、衝突のあとの速さと運動エネルギーはどうなるか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v2.4、platformCharge 型）が下の JSON データから計算して描く。玉と壁の距離 0.50 m は 160 px（320 px/m）、速さの矢印は 300 px/(m/s)、力の矢印は 40 px で描く。v–t グラフの横軸は 80 px/s、縦軸は 600 px/(m/s) で、玉の速さの三角形の面積が止まるまでの距離になる。</p>
+<script type="application/json" id="scene-platform-charge-base">{"type":"platformCharge","mKg":0.5,"qC":1e-5,"eVm":2000,"lengthM":0.5,"cartMKg":2,"g":10,"phase":"base"}</script>
+<script type="application/json" id="scene-platform-charge-accel">{"type":"platformCharge","mKg":0.5,"qC":1e-5,"eVm":2000,"lengthM":0.5,"cartMKg":2,"g":10,"phase":"accel"}</script>
+<script type="application/json" id="scene-platform-charge-collision">{"type":"platformCharge","mKg":0.5,"qC":1e-5,"eVm":2000,"lengthM":0.5,"cartMKg":2,"g":10,"phase":"collision"}</script>
+<script type="application/json" id="scene-platform-charge-after">{"type":"platformCharge","mKg":0.5,"qC":1e-5,"eVm":2000,"lengthM":0.5,"cartMKg":2,"g":10,"phase":"after"}</script>
+<script type="application/json" id="scene-platform-charge-trap">{"type":"platformCharge","mKg":0.5,"qC":1e-5,"eVm":2000,"lengthM":0.5,"cartMKg":2,"g":10,"phase":"trap"}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。電場で加速される時間、壁にぶつかる瞬間、ぶつかったあとの時間では、使う保存則がちがう。3つをつなぐのは、壁に着くときの速さ v = 0.20 m/s だ。</p>
+  <table>
+    <tr><th>時間</th><th>場所（何を見るか）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>はじめ（加速）</td><td>玉＋電場</td><td>—</td><td>電場で加速される（はじめに）</td></tr>
+    <tr><td>壁に着くとき</td><td>玉＋電場</td><td><strong>速さ v = 0.20 m/s</strong></td><td>加速の速さと時間（ステップ①）</td></tr>
+    <tr><td>衝突の瞬間</td><td>玉＋台車</td><td><strong>速さ v = 0.20 m/s</strong></td><td>弾性衝突で分かれる（ステップ②）</td></tr>
+    <tr><td>衝突のあと</td><td>玉＋台車＋電場</td><td><strong>玉 −0.12 m/s、台車 +0.080 m/s</strong></td><td>玉は止まり、台車は進む（ステップ③）</td></tr>
+    <tr><td>まとめ</td><td>全体</td><td><strong>運動量は衝突のときだけ保存する</strong></td><td>罠の確認（ステップ④・⑤）</td></tr>
+  </table>
+  <p>玉にはたらく力は、電場からの電気の力だけだ。F = qE = 1.0×10⁻⁵ × 2.0×10³ = <strong>0.020 N</strong> で、向きは右向きだ。玉の加速度は、a = F / m = 0.020 / 0.50 = <strong>0.040 m/s²</strong> になる。台車には、水平方向の力ははたらかない。玉と台車のあいだに摩擦はなく、床もなめらかだからだ。だから加速のあいだ、台車は動かない。</p>
+  <svg class="fig" data-scene="scene-platform-charge-base" data-show="" width="100%" role="img" aria-label="動く台の上の荷電粒子。玉は質量 0.50 kg、電荷 +1.0×10⁻⁵ C、壁まで 0.50 m、電場は右向き 2.0×10³ V/m"></svg>
+  <p>ここで気をつけることが 1 つある。加速のあいだ、玉と台車の運動量は保存しない。電場が外から力を及ぼしているからだ。運動量が保存するのは、衝突の瞬間だけだ。衝突は一瞬で終わるので、そのあいだに電場がする仕事は無視できる。保存則は、成り立つ場面でだけ使う。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①電場で加速：壁に着くときの速さ</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 電場で加速：壁に着くときの速さ</h2>
+  <svg class="fig" data-scene="scene-platform-charge-accel" data-show="elecForce" width="100%" role="img" aria-label="電場で加速される玉。電気の力 0.020 N、加速度 0.040 m/s²、壁に着くとき速さ 0.20 m/s、時間 5.0 s"></svg>
+  <p>玉は静止した状態から、加速度 a = 0.040 m/s² で右へ加速される。壁までの距離は L = 0.50 m だ。壁に着くときの速さは、v² = 2aL から、v = √(2 × 0.040 × 0.50) = √0.040 = <strong>0.20 m/s</strong> になる。加速の時間は、t = v / a = 0.20 / 0.040 = <strong>5.0 s</strong> だ。</p>
+  <p>エネルギーでも確かめられる。電場が玉にする仕事は、W = FL = 0.020 × 0.50 = <strong>0.010 J</strong> だ。電場は、距離 L = 0.50 m のあいだに、電位を EL = 2.0×10³ × 0.50 = <strong>1000 V</strong> だけ下げている。電荷 q が電位差 1000 V を下りるとき、エネルギーは qΔV = 1.0×10⁻⁵ × 1000 = <strong>0.010 J</strong> になる。玉の運動エネルギーは、½mv² = 0.5 × 0.50 × 0.20² = <strong>0.010 J</strong> だ。3 つの計算が、同じ 0.010 J になる。</p>
+  <p>玉の速さ 0.20 m/s は、歩く速さ（約 1 m/s）よりも遅い。加速度 0.040 m/s² は、重力加速度 10 m/s² の 1/250 ほどだ。電場の力 0.020 N は、玉の重さ 5.0 N の 1/250 ほどで、小さい。だから玉はゆっくり加速され、壁に着くまで 5.0 s かかる。</p>
+  <label><input type="checkbox" class="check"> F = qE = 0.020 N、a = 0.040 m/s²、v = 0.20 m/s、t = 5.0 s、仕事 0.010 J を確かめた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②弾性衝突：玉と台車に分かれる</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 弾性衝突：玉と台車に分かれる</h2>
+  <svg class="fig" data-scene="scene-platform-charge-collision" data-show="velocity1p,velocity2p" width="100%" role="img" aria-label="弾性衝突。玉は速さ 0.20 m/s で壁にぶつかり、玉は −0.12 m/s、台車は +0.080 m/s になる"></svg>
+  <p>玉は速さ v = 0.20 m/s で、台車の壁にぶつかる。衝突は弾性衝突なので、運動量と運動エネルギーの両方が保存する。玉の質量は m = 0.50 kg、台車の質量は M = 2.0 kg で、台車は静止している。衝突のあとの玉の速さを v₁′、台車の速さを v₂′ とすると、弾性衝突の公式から、v₁′ = (m − M) / (m + M) × v = (0.50 − 2.0) / 2.5 × 0.20 = −0.60 × 0.20 = <strong>−0.12 m/s</strong>、v₂′ = 2m / (m + M) × v = 1.0 / 2.5 × 0.20 = <strong>+0.080 m/s</strong> になる。玉は左向きにはね返り、台車は右向きに動き出す。</p>
+  <p>保存することを確かめよう。衝突の前の運動量は、mv = 0.50 × 0.20 = <strong>0.10 kg·m/s</strong> だ。衝突のあとの運動量は、mv₁′ + Mv₂′ = 0.50 × (−0.12) + 2.0 × 0.080 = −0.060 + 0.16 = <strong>0.10 kg·m/s</strong> になる。衝突の前の運動エネルギーは、½mv² = 0.010 J だ。衝突のあとの運動エネルギーは、½mv₁′² + ½Mv₂′² = 0.5 × 0.50 × 0.0144 + 0.5 × 2.0 × 0.0064 = 0.0036 + 0.0064 = <strong>0.010 J</strong> になる。どちらも保存している。</p>
+  <p>玉は台車より軽いので、はね返る。玉が台車より重かったら、玉はそのまま右へ進む。玉と台車の質量が同じなら、玉は止まり、台車が玉の速さをそのまま受け取る。質量の比が、衝突のあとの速さを決める。ここでは、玉が軽いので、玉は −0.12 m/s ではね返り、台車は +0.080 m/s で動き出す。</p>
+  <label><input type="checkbox" class="check"> 玉 −0.12 m/s、台車 +0.080 m/s、運動量 0.10 kg·m/s と運動エネルギー 0.010 J が保存することを確かめた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③その後：玉は止まり、台車は進む</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ その後：玉は止まり、台車は進む</h2>
+  <svg class="fig" data-scene="scene-platform-charge-after" data-show="" width="100%" role="img" aria-label="v–t グラフ。玉の速さは −0.12 m/s から 3.0 s 後に 0 になり、台車は 0.080 m/s で進み続ける"></svg>
+  <p>衝突のあと、玉は左向きに速さ 0.12 m/s ではね返る。だが、電場は右向きに力を及ぼし続けている。玉は右向きの加速度 a = 0.040 m/s² で減速され、やがて止まる。止まるまでの時間は、t = |v₁′| / a = 0.12 / 0.040 = <strong>3.0 s</strong> だ。止まるまでに玉が進む距離は、v–t グラフの三角形の面積で、½ × 0.12 × 3.0 = <strong>0.18 m</strong> になる。玉は壁から 0.18 m 左へ進んで止まる。台車の上からはみ出さない。</p>
+  <p>台車はどうなるか。台車には水平方向の力がはたらかないので、台車は速さ 0.080 m/s のまま、等速で進み続ける。玉が止まるまでの 3.0 s のあいだに、台車は 0.080 × 3.0 = <strong>0.24 m</strong> 進む。玉は 0.18 m 左へ、台車は 0.24 m 右へ進むので、玉と台車は 0.42 m だけ離れる。玉が止まったあと、電場は玉をまた右へ加速し始める。玉はまた壁に向かって進み、またぶつかる。ぶつかるたびに、台車は少しずつ速くなる。</p>
+  <p>v–t グラフを確かめよう。玉の速さは、−0.12 m/s から、傾き +0.040 m/s² の直線で上がり、3.0 s 後に 0 になる。三角形の面積が、止まるまでの距離 0.18 m だ。台車の速さは、0.080 m/s の水平な直線で、変わらない。玉の速さが 0 になったあとも、台車は 0.080 m/s で進み続ける。</p>
+  <label><input type="checkbox" class="check"> 玉は 3.0 s 後に止まり 0.18 m 進むこと、そのあいだに台車は 0.24 m 進むことを確かめた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④罠：くっついたらエネルギーは減る</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 罠：くっついたらエネルギーは減る</h2>
+  <svg class="fig" data-scene="scene-platform-charge-trap" data-show="" width="100%" role="img" aria-label="棒グラフ。運動エネルギーは衝突前 0.010 J、くっついたら 0.0020 J、弾性衝突のあと 0.010 J"></svg>
+  <p>罠は、玉が壁にぶつかったら、玉と台車がくっついて一緒に動くと思うことだ。くっついたら、運動量保存から、v′ = mv / (m + M) = 0.50 × 0.20 / 2.5 = <strong>0.040 m/s</strong> になる。だが、運動エネルギーは、½(m + M)v′² = 0.5 × 2.5 × 0.040² = <strong>0.0020 J</strong> になって、衝突前の 0.010 J より小さくなる。失われた 0.0080 J は、くっつくときの変形や熱になっている。弾性衝突では、運動エネルギーは 0.010 J のまま保存する。くっつくかどうかで、運動エネルギーが変わる。</p>
+  <p>もう 1 つの罠は、加速のあいだも運動量が保存すると思うことだ。加速のあいだ、玉の運動量は 0 から 0.10 kg·m/s まで増える。台車の運動量は 0 のままだ。玉と台車の運動量の合計は、0 から 0.10 kg·m/s まで増える。保存していない。電場が外から力を及ぼして、運動量を増やしているからだ。運動量が保存するのは、衝突の瞬間だけだ。衝突は一瞬で終わるので、そのあいだに電場が及ぼす力積は無視できる。</p>
+  <p>保存則を使うときは、いつも「何が保存するか」と「いつ保存するか」を確かめること。運動量は、力がはたらかないときだけ保存する。運動エネルギーは、弾性衝突のときだけ保存する。電場がはたらくあいだは、運動量も運動エネルギーも、電場の仕事で変わる。</p>
+  <label><input type="checkbox" class="check"> くっついたら 0.040 m/s、運動エネルギーは 0.0020 J に減ること、加速のあいだは運動量が保存しないことを確かめた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ・罠の確認</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ・罠の確認</h2>
+  <svg class="fig" data-scene="scene-platform-charge-after" data-show="" width="100%" role="img" aria-label="v–t グラフ。玉の速さは −0.12 m/s から 3.0 s 後に 0 になり、台車は 0.080 m/s で進み続ける"></svg>
+  <p>この問題の橋渡し量は、壁に着くときの速さ v = 0.20 m/s だ。電場で加速されて v = 0.20 m/s になり、弾性衝突で玉は −0.12 m/s、台車は +0.080 m/s に分かれる。その後、玉は電場で減速されて 3.0 s 後に止まり、0.18 m 進む。そのあいだに台車は 0.24 m 進む。加速では電場の仕事 0.010 J が運動エネルギーになり、衝突では運動量 0.10 kg·m/s と運動エネルギー 0.010 J が保存する。</p>
+  <p>罠は 2 つある。1 つは、玉が壁にくっついたら、運動エネルギーは 0.0020 J に減ることだ。弾性衝突とちがって、くっつく衝突では運動エネルギーは保存しない。もう 1 つは、加速のあいだは運動量が保存しないことだ。電場が外から力を及ぼしているから、運動量は増える。保存則は、成り立つ場面でだけ使う。</p>
+  <label><input type="checkbox" class="check"> 橋渡し量は壁に着くときの速さ 0.20 m/s であること、罠を 2 つとも確認した</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と場所を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) F = qE = 0.020 N、a = 0.040 m/s²、v = 0.20 m/s、t = 5.0 s。(2) 玉 −0.12 m/s、台車 +0.080 m/s。(3) 玉は 3.0 s 後に止まり、0.18 m 進む。そのあいだに台車は 0.24 m 進む。(4) くっついたら v′ = 0.040 m/s、運動エネルギーは 0.0020 J に減る。もとになった単体モデル：二体問題・重心は <a href="two-body.html">第31問：二体問題・重心・相対運動</a>、運動量・衝突は <a href="collision.html">第12問：運動量・衝突</a>、クーロンの法則・電場は <a href="coulomb-field.html">第24問：クーロンの法則・電場</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboPlatformChargeDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>

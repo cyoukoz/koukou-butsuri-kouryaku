@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題U：円形コイル＋干渉計＋ホール効果 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題U：円形コイル＋干渉計＋ホール効果</h1>
+<p><strong>問題：</strong>半径 R = 0.050 m の円形コイルを 100 回巻き、電流 I = 1.0 A を流す。コイルの中心に置いたホール素子に制御電流 I_H = 0.10 A を流すと、ホール電圧 V_H が生じる。また、コイルの中心の磁場の中に長さ ℓ = 0.10 m の導線を置き、電流 I_w = 0.50 A を流すと、導線は磁気の力を受け、ばね定数 k = 10 N/m のばねでつるされた導線が少し伸びる。この伸びを波長 λ = 633 nm のマイケルソン干渉計で測る。(1) コイルの中心の磁場 B を求めよ。(2) ホール電圧 V_H を求めよ。ただしホール素子のキャリア密度は n = 1.0×10²¹ m⁻³、素子の厚さは d = 1.0 mm とする。(3) 導線にはたらく力 F とばねの伸び Δx を求めよ。(4) 干渉計の縞は何本ずれるか。電流 I を 0.50 A、2.0 A にしたとき、縞のずれはどう変わるか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v2.4、coilHall 型）が下の JSON データから計算して描く。コイルの半径は 70 px、棒グラフは縞 1 本あたり 5 px で描く。ばねの伸び Δx ≈ 6.3 μm は小さすぎてそのままでは見えないので、図では大きく描いている。</p>
+<script type="application/json" id="scene-coil-hall-base">{"type":"coilHall","turnsN":100,"coilRM":0.05,"coilIA":1,"hallIHA":0.1,"hallN":1e21,"hallQC":1.6e-19,"hallDM":0.001,"wireIA":0.5,"wireLM":0.1,"springKNm":10,"lambdaNm":6.33e-7,"phase":"base"}</script>
+<script type="application/json" id="scene-coil-hall-hall">{"type":"coilHall","turnsN":100,"coilRM":0.05,"coilIA":1,"hallIHA":0.1,"hallN":1e21,"hallQC":1.6e-19,"hallDM":0.001,"wireIA":0.5,"wireLM":0.1,"springKNm":10,"lambdaNm":6.33e-7,"phase":"hall"}</script>
+<script type="application/json" id="scene-coil-hall-wire">{"type":"coilHall","turnsN":100,"coilRM":0.05,"coilIA":1,"hallIHA":0.1,"hallN":1e21,"hallQC":1.6e-19,"hallDM":0.001,"wireIA":0.5,"wireLM":0.1,"springKNm":10,"lambdaNm":6.33e-7,"phase":"wire"}</script>
+<script type="application/json" id="scene-coil-hall-graph">{"type":"coilHall","turnsN":100,"coilRM":0.05,"coilIA":1,"hallIHA":0.1,"hallN":1e21,"hallQC":1.6e-19,"hallDM":0.001,"wireIA":0.5,"wireLM":0.1,"springKNm":10,"lambdaNm":6.33e-7,"phase":"graph"}</script>
+<script type="application/json" id="scene-coil-hall-trap">{"type":"coilHall","turnsN":100,"coilRM":0.05,"coilIA":1,"hallIHA":0.1,"hallN":1e21,"hallQC":1.6e-19,"hallDM":0.001,"wireIA":0.5,"wireLM":0.1,"springKNm":10,"lambdaNm":6.33e-7,"phase":"trap"}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、場所で切る</strong>。コイルで磁場を作る場所、ホール素子で磁場を測る場所、導線が力を受ける場所、干渉計で伸びを測る場所では、使う式がちがう。4つをつなぐのは、磁場 B と、ばねの伸び Δx だ。</p>
+  <table>
+    <tr><th>時間</th><th>場所（何を見るか）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>はじめ（コイル）</td><td>円形コイル</td><td>—</td><td>中心の磁場 B を求める（はじめに）</td></tr>
+    <tr><td>磁場を測る</td><td>ホール素子＋磁場</td><td><strong>磁場 B ≈ 1.3 mT</strong></td><td>磁場を電圧で測る（ステップ①）</td></tr>
+    <tr><td>力を受ける</td><td>導線＋磁場＋ばね</td><td><strong>力 F ≈ 6.3×10⁻⁵ N</strong></td><td>力でばねが伸びる（ステップ②）</td></tr>
+    <tr><td>伸びを測る</td><td>干渉計＋伸び</td><td><strong>伸び Δx ≈ 6.3 μm</strong></td><td>縞のずれ ΔN ≈ 20（ステップ③）</td></tr>
+    <tr><td>まとめ</td><td>全体</td><td><strong>ΔN は電流 I に比例する</strong></td><td>罠の確認（ステップ④・⑤）</td></tr>
+  </table>
+  <p>円形コイルの中心の磁場は、B = μ₀NI / 2R で求められる。μ₀ = 4π×10⁻⁷、N = 100 回、I = 1.0 A、R = 0.050 m を入れると、B = 4π×10⁻⁷ × 100 × 1.0 / (2 × 0.050) = 4π×10⁻⁷ × 100 / 0.10 = 4π×10⁻⁵ ≈ <strong>1.3×10⁻³ T = 1.3 mT</strong> になる。磁場の向きは、コイルの面に垂直で、図では紙面の表向き（⊙）だ。</p>
+  <svg class="fig" data-scene="scene-coil-hall-base" data-show="" width="100%" role="img" aria-label="円形コイル。100 回巻き、半径 0.050 m、電流 1.0 A で、中心の磁場は約 1.3 mT"></svg>
+  <p>この磁場 1.3 mT は、地球の磁場（約 0.05 mT）の 26 倍ほどで、コイルの中心ではかなり強い。ホール素子はこの磁場を電圧に変えて測り、導線はこの磁場から力を受ける。磁場 B が、すべての場面をつなぐ橋渡し量だ。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①ホール素子：磁場を電圧で測る</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① ホール素子：磁場を電圧で測る</h2>
+  <svg class="fig" data-scene="scene-coil-hall-hall" data-show="" width="100%" role="img" aria-label="ホール素子。制御電流 0.10 A を流すと、磁場 1.3 mT でホール電圧約 0.79 mV が生じる"></svg>
+  <p>ホール素子は、磁場を電圧に変える道具だ。素子に制御電流 I_H を流すと、電荷は素子の中を流れる。そこに磁場 B がかかると、電荷はローレンツ力を受けて、素子の片側に寄る。片側に電荷がたまると、素子の両側のあいだに電圧が生じる。これがホール電圧 V_H だ。電荷がたまりすぎると、電荷の作る電場がローレンツ力とつり合い、それ以上はたまらない。</p>
+  <p>ホール電圧は、V_H = I_H·B / (nqd) で求められる。n はキャリア密度、q は電荷、d は素子の厚さだ。I_H = 0.10 A、B = 1.26×10⁻³ T、n = 1.0×10²¹ m⁻³、q = 1.60×10⁻¹⁹ C、d = 1.0×10⁻³ m を入れると、V_H = 0.10 × 1.26×10⁻³ / (1.0×10²¹ × 1.60×10⁻¹⁹ × 1.0×10⁻³) = 1.26×10⁻⁴ / 0.16 ≈ <strong>7.9×10⁻⁴ V = 0.79 mV</strong> になる。</p>
+  <p>ホール電圧は磁場 B に比例する。だからホール電圧を測れば、磁場の大きさが分かる。電流 I が 2 倍になれば、磁場 B も 2 倍になり、ホール電圧も 2 倍の約 1.57 mV になる。ホール素子は、磁場を「測る」ための道具だ。</p>
+  <label><input type="checkbox" class="check"> V_H = I_H·B/(nqd) ≈ 0.79 mV、ホール電圧は磁場に比例することを確かめた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②導線にはたらく力：ばねが伸びる</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 導線にはたらく力：ばねが伸びる</h2>
+  <svg class="fig" data-scene="scene-coil-hall-wire" data-show="magForce" width="100%" role="img" aria-label="磁場の中の導線。電流 0.50 A、長さ 0.10 m で力約 6.3×10⁻⁵ N を受け、ばねが約 6.3 μm 伸びる"></svg>
+  <p>磁場の中に置いた導線に電流を流すと、導線は磁気の力を受ける。力の大きさは F = I_w·ℓ·B だ。I_w = 0.50 A、ℓ = 0.10 m、B = 1.26×10⁻³ T を入れると、F = 0.50 × 0.10 × 1.26×10⁻³ = <strong>6.3×10⁻⁵ N</strong> になる。力の向きは、電流と磁場に垂直で、図では下向きだ。</p>
+  <p>導線はばねでつるされているので、磁気の力でばねが伸びる。ばねの伸びは、フックの法則 F = kΔx から、Δx = F / k = 6.3×10⁻⁵ / 10 ≈ <strong>6.3×10⁻⁶ m = 6.3 μm</strong> になる。6.3 μm は、髪の毛の太さ（約 100 μm）の 1/16 ほどで、目では見えないほど小さい。だからこの伸びを測るには、干渉計が要る。</p>
+  <p>力と伸びの関係を確かめよう。電流 I が 2 倍になれば、磁場 B が 2 倍になり、力 F も 2 倍、伸び Δx も 2 倍の約 12.6 μm になる。電流 I が半分になれば、伸びも半分の約 3.1 μm になる。伸びは、コイルの電流 I に比例する。</p>
+  <label><input type="checkbox" class="check"> F = I_w·ℓ·B ≈ 6.3×10⁻⁵ N、Δx = F/k ≈ 6.3 μm を確かめた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③縞のずれ：電流に比例する</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 縞のずれ：電流に比例する</h2>
+  <svg class="fig" data-scene="scene-coil-hall-graph" data-show="" width="100%" role="img" aria-label="棒グラフ。縞のずれは電流 0.50 A で約 10、1.0 A で約 20、2.0 A で約 40"></svg>
+  <p>マイケルソン干渉計では、光が 2 つの道に分かれて、また合わさる。片方の鏡が Δx だけ動くと、光の道のりは往復で 2Δx だけ変わる。道のりの差が波長 λ の整数倍だけ変わるたびに、縞が 1 本ずれる。だから縞のずれは、ΔN = 2Δx / λ になる。Δx = 6.3×10⁻⁶ m、λ = 633×10⁻⁹ m を入れると、ΔN = 2 × 6.3×10⁻⁶ / 633×10⁻⁹ = 1.26×10⁻⁵ / 6.33×10⁻⁷ ≈ <strong>20</strong> になる。縞は約 20 本ずれる。</p>
+  <p>電流を変えると、縞のずれも変わる。電流 I = 0.50 A のとき、磁場は半分の 0.63 mT、伸びは半分の約 3.1 μm になるので、縞のずれは ΔN ≈ <strong>10</strong> になる。電流 I = 2.0 A のとき、磁場は 2 倍の約 2.5 mT、伸びは 2 倍の約 12.6 μm になるので、縞のずれは ΔN ≈ <strong>40</strong> になる。縞のずれは、電流 I に比例する。</p>
+  <p>伸び Δx が 6.3 μm という小さな量でも、縞のずれは 20 本という大きな数になる。波長 633 nm は伸びの 1/10 ほどで、往復で 2 倍になるからだ。干渉計は、小さな伸びを大きく見せる道具だ。電流を測るのに、縞を数えるだけでよい。</p>
+  <label><input type="checkbox" class="check"> ΔN = 2Δx/λ ≈ 20、電流 0.50 A で約 10、2.0 A で約 40 になることを確かめた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④罠：往復で 2 倍になるのを忘れる</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 罠：往復で 2 倍になるのを忘れる</h2>
+  <svg class="fig" data-scene="scene-coil-hall-trap" data-show="" width="100%" role="img" aria-label="棒グラフ。往復の 2 を忘れると縞のずれは 10、正しくは 2Δx/λ で 20"></svg>
+  <p>罠は、縞のずれを ΔN = Δx / λ で計算することだ。鏡が Δx だけ動いたら、光の道のりも Δx だけ変わると思うかもしれない。だが、マイケルソン干渉計では、光は鏡まで行って、また戻ってくる。往復するので、道のりの差は 2Δx だけ変わる。正しい式は ΔN = 2Δx / λ だ。2 を忘れると、ΔN = 6.3×10⁻⁶ / 633×10⁻⁹ ≈ <strong>10</strong> になって、正しい 20 の半分になる。</p>
+  <p>まちがいの原因は、光が 1 回だけ通ると思うことだ。干渉計では、光は鏡で反射して戻ってくる。行くときも帰るときも、鏡の動きの影響を受ける。だから 2 倍になる。ヤングの干渉では、光は 1 回だけ通るので、2 はつかない。干渉計の種類で、2 がつくかつかないかが変わる。図を見て、光が何回通るかを確かめること。</p>
+  <p>もう 1 つの罠は、縞のずれが電流に比例しないと思うことだ。磁場 B は電流 I に比例し、力 F は B に比例し、伸び Δx は F に比例し、縞のずれ ΔN は Δx に比例する。だから縞のずれは、電流 I に比例する。電流が 2 倍なら、縞のずれも 2 倍の約 40 になる。途中のどれか 1 つでも比例しないと思い込むと、答えがずれる。</p>
+  <label><input type="checkbox" class="check"> 正しくは ΔN = 2Δx/λ ≈ 20 で、2 を忘れると半分の 10 になることを確かめた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ・罠の確認</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ・罠の確認</h2>
+  <svg class="fig" data-scene="scene-coil-hall-graph" data-show="" width="100%" role="img" aria-label="棒グラフ。縞のずれは電流 0.50 A で約 10、1.0 A で約 20、2.0 A で約 40"></svg>
+  <p>この問題の橋渡し量は、磁場 B と、ばねの伸び Δx だ。コイルで磁場 B ≈ 1.3 mT を作り、ホール素子はその磁場をホール電圧 V_H ≈ 0.79 mV に変えて測る。磁場の中の導線は力 F ≈ 6.3×10⁻⁵ N を受け、ばねは Δx ≈ 6.3 μm だけ伸びる。干渉計はその伸びを縞のずれ ΔN ≈ 20 に変えて測る。磁場から電圧へ、力から伸びへ、伸びから縞へ。1 つの量が次の量に変わっていく。</p>
+  <p>縞のずれは、電流 I に比例する。電流 I = 0.50 A では約 10、1.0 A では約 20、2.0 A では約 40 になる。比例するのは、磁場・力・伸び・縞のずれが、どれも前の量に比例するからだ。罠は、往復の 2 を忘れて ΔN = Δx / λ とすることだ。マイケルソン干渉計では光が往復するので、ΔN = 2Δx / λ になる。</p>
+  <label><input type="checkbox" class="check"> 橋渡し量は磁場 B と伸び Δx であること、ΔN は電流に比例すること、罠を確認した</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と場所を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) B = μ₀NI/2R ≈ 1.3 mT。(2) V_H = I_H·B/(nqd) ≈ 0.79 mV。(3) F = I_w·ℓ·B ≈ 6.3×10⁻⁵ N、Δx = F/k ≈ 6.3 μm。(4) ΔN = 2Δx/λ ≈ 20；I = 0.50 A で約 10、I = 2.0 A で約 40。もとになった単体モデル：ソレノイド・コイルの磁場は <a href="solenoid.html">第29問：ソレノイド・コイルの磁場</a>、電磁誘導は <a href="induction.html">第32問：電磁誘導・ファラデーの法則・レンツの法則</a>、ヤングの干渉は <a href="young.html">第8問：ヤングの干渉</a>、荷電粒子と円運動の組み合わせは <a href="charged-circle.html">組み合わせ問題C：荷電粒子＋円運動</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboCoilHallDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
