@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題AF：光電効果＋磁場円運動 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題AF：光電効果＋磁場円運動</h1>
+<p><strong>問題：</strong>仕事関数 φ = 2.0 eV の陰極に、波長 λ = 400 nm の光を当てる。出た電子は、一様な磁場 B = 1.0 mT（紙面の裏向き）の中に入る。電子の質量は m_e = 9.11×10⁻³¹ kg、電気素量は e = 1.602×10⁻¹⁹ C、hc = 1240 eV·nm とする。(1) 出る電子の最大の運動エネルギーと最大の速さを求めよ。(2) 電子が磁場中で描く円の半径と周期を求めよ。(3) 光の波長を 300 nm にしたら、半径はどうなるか。磁場を 2 倍にしたらどうか。明るい光にしたらどうか。(4) 同じ運動エネルギー 1.10 eV の陽子なら、半径はどうなるか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v2.9、photoCircle 型）が下の JSON データから計算して描く。円の半径は描画用に 40 px にしている（実際の 3.5 mm をそのまま描くことはできない）。速度とローレンツ力の矢印は 30 px だ。</p>
+<script type="application/json" id="scene-photo-circle-base">{"type":"photoCircle","lambdaNm":400,"phiEV":2.0,"bT":0.001,"g":10,"phase":"base"}</script>
+<script type="application/json" id="scene-photo-circle-photo">{"type":"photoCircle","lambdaNm":400,"phiEV":2.0,"bT":0.001,"g":10,"phase":"photo"}</script>
+<script type="application/json" id="scene-photo-circle-circle">{"type":"photoCircle","lambdaNm":400,"phiEV":2.0,"bT":0.001,"g":10,"phase":"circle"}</script>
+<script type="application/json" id="scene-photo-circle-vary">{"type":"photoCircle","lambdaNm":400,"phiEV":2.0,"bT":0.001,"g":10,"phase":"vary"}</script>
+<script type="application/json" id="scene-photo-circle-trap">{"type":"photoCircle","lambdaNm":400,"phiEV":2.0,"bT":0.001,"g":10,"phase":"trap"}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。光が当たるときと、磁場の中を進むときでは、使える式がちがう。2つをつなぐのは、電子の速さだ。</p>
+  <table>
+    <tr><th>時間</th><th>系（何を見るか）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>はじめ（光を当てる）</td><td>陰極</td><td>—</td><td>400 nm の光を当てる（はじめに）</td></tr>
+    <tr><td>光電効果</td><td>電子</td><td><strong>最大の速さ 6.2×10⁵ m/s</strong></td><td>光子のエネルギーから Kmax が決まる（ステップ①）</td></tr>
+    <tr><td>磁場中の円運動</td><td>電子</td><td><strong>半径 3.5 mm、周期 36 ns</strong></td><td>速さが半径と周期を決める（ステップ②）</td></tr>
+    <tr><td>変えたら</td><td>電子</td><td><strong>300 nm なら 4.9 mm</strong></td><td>波長・磁場・明るさで何が変わるか（ステップ③）</td></tr>
+    <tr><td>罠</td><td>陽子</td><td><strong>半径は約43倍</strong></td><td>質量が半径を決める（ステップ④）</td></tr>
+  </table>
+  <p>光が電子を出し、磁場が電子を曲げる。光電効果で決まる速さが、円運動の半径と周期を決める。つなぐのは、電子の速さだ。</p>
+  <svg class="fig" data-scene="scene-photo-circle-base" data-show="" width="100%" role="img" aria-label="光電効果＋磁場円運動の全体図。400 nm の光が陰極に当たり、電子が磁場で円を描く"></svg>
+  <p>光子のエネルギーは、hc/λ = 1240/400 = <strong>3.10 eV</strong> だ。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①光電効果</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 光電効果：Kmax = 1.10 eV</h2>
+  <svg class="fig" data-scene="scene-photo-circle-photo" data-show="" width="100%" role="img" aria-label="エネルギーの棒グラフ。光子 3.10 eV、仕事関数 2.0 eV、Kmax 1.10 eV"></svg>
+  <p>400 nm の光の光子のエネルギーは、E = hc/λ = 1240/400 = <strong>3.10 eV</strong> だ。仕事関数 φ = 2.0 eV を引くと、電子の最大の運動エネルギーは、Kmax = 3.10 − 2.0 = <strong>1.10 eV</strong> になる。</p>
+  <p>最大の速さは、(1/2)mv² = Kmax から、v_max = √(2Kmax/m) = √(2×1.10×1.602×10⁻¹⁹/9.11×10⁻³¹) ≈ <strong>6.2×10⁵ m/s</strong> になる。光速の 0.2% ほどだ。</p>
+  <p>650 nm の光では、光子のエネルギーは 1240/650 ≈ 1.91 eV で、仕事関数 2.0 eV より小さい。電子は出ない。光のエネルギーが仕事関数を超えなければ、どんなに明るい光でも電子は出ない。</p>
+  <label><input type="checkbox" class="check"> Kmax = 1.10 eV、最大の速さ 6.2×10⁵ m/s、650 nm では電子が出ないことを求めた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②円運動</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 磁場中の円運動：r≈3.5 mm</h2>
+  <svg class="fig" data-scene="scene-photo-circle-circle" data-show="velocity,lorentz" width="100%" role="img" aria-label="磁場中の円運動。半径 3.5 mm、ローレンツ力は速度と直角"></svg>
+  <p>速さ 6.2×10⁵ m/s の電子が、磁場 B = 1.0 mT に入る。電子にはローレンツ力 F = qvB = 1.602×10⁻¹⁹ × 6.2×10⁵ × 1.0×10⁻³ ≈ <strong>1.0×10⁻¹⁶ N</strong> がはたらく。力は速度と直角なので、電子は円運動をする。</p>
+  <p>半径は、r = mv/(qB) = 9.11×10⁻³¹ × 6.2×10⁵/(1.602×10⁻¹⁹ × 1.0×10⁻³) ≈ 3.5×10⁻³ m = <strong>3.5 mm</strong> になる。周期は、T = 2πm/(qB) = 2π×9.11×10⁻³¹/(1.602×10⁻¹⁹×1.0×10⁻³) ≈ <strong>36 ns</strong>、振動数は f ≈ <strong>28 MHz</strong> になる。1秒間に約2800万周する。</p>
+  <p>磁場は、電子の速さを変えない。ローレンツ力は速度と直角なので、仕事をしないからだ。だから、電子は速さ 6.2×10⁵ m/s のまま、円を描き続ける。</p>
+  <label><input type="checkbox" class="check"> ローレンツ力 F≈1.0×10⁻¹⁶ N、半径 3.5 mm、周期 36 ns、振動数 28 MHz を求めた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③変えたら</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 変えたら：半径はどう変わるか</h2>
+  <svg class="fig" data-scene="scene-photo-circle-vary" data-show="" width="100%" role="img" aria-label="半径の棒グラフ。400 nm なら 3.5 mm、300 nm なら 4.9 mm、B を 2 倍にすると 1.8 mm、明るい光なら 3.5 mm"></svg>
+  <p>光の波長を 300 nm にすると、光子のエネルギーは 1240/300 ≈ 4.13 eV、Kmax = 4.13 − 2.0 = 2.13 eV になる。速さは √(2.13/1.10) ≈ 1.39 倍になり、半径も 1.39 倍の r ≈ <strong>4.9 mm</strong> になる。周期は、T = 2πm/(qB) で速さによらないので、変わらない。</p>
+  <p>磁場を 2 倍（B = 2.0 mT）にすると、半径は r = mv/(qB) で半分の <strong>1.8 mm</strong> になり、周期も半分の 18 ns になる。角速度は 2 倍になる。</p>
+  <p>光を明るくしても、光子のエネルギーは変わらない。Kmax は 1.10 eV のまま、半径も 3.5 mm のままだ。変わるのは、出る電子の数だけだ。光の明るさは電子の数を決め、光の波長は電子の速さを決める。</p>
+  <label><input type="checkbox" class="check"> 300 nm なら r≈4.9 mm、B を 2 倍にすると r≈1.8 mm、明るい光では r は変わらないことを確かめた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④罠：陽子なら</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 罠：陽子なら半径は約43倍</h2>
+  <svg class="fig" data-scene="scene-photo-circle-trap" data-show="" width="100%" role="img" aria-label="電子と陽子の円の比べ。電子は半径 3.5 mm、陽子は半径 15 cm"></svg>
+  <p>罠は、半径は速さだけで決まると思ってしまうことだ。半径は r = mv/(qB) なので、質量もきく。同じ運動エネルギー 1.10 eV の陽子は、速さが v = √(2K/m_p) ≈ 1.5×10⁴ m/s と遅いが、質量が 1836 倍なので、半径は r ≈ <strong>15 cm</strong> になる。電子の 3.5 mm の約43倍だ。</p>
+  <p>r = √(2mK)/(qB) と書くと、同じ K・同じ q・同じ B なら、半径は √m に比例することがわかる。√1836 ≈ 43 だ。速さが同じなら、半径は質量に比例して 1836 倍になる。</p>
+  <p>陽子の周期は、T = 2πm/(qB) で質量に比例するので、電子の 36 ns の 1836 倍、約 <strong>66 μs</strong> になる。質量がちがうと、円運動のようすが大きくちがう。</p>
+  <label><input type="checkbox" class="check"> 陽子の半径は約 15 cm（電子の約43倍）、周期は約 66 μs になることを確かめた</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と系を切ったことも、ここまでの4つのチェックに入っている。4つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) Kmax = 1.10 eV、v_max≈6.2×10⁵ m/s。650 nm では電子は出ない。(2) F≈1.0×10⁻¹⁶ N、r≈3.5 mm、T≈36 ns、f≈28 MHz。(3) 300 nm なら r≈4.9 mm、B を 2 倍にすると r≈1.8 mm・T≈18 ns、明るい光では r は変わらない。(4) 陽子の半径は約 15 cm（電子の約43倍）、周期は約 66 μs。もとになった単体モデル：光電効果は <a href="photoelectric.html">第15問：光電効果</a>、円運動は <a href="circle.html">第10問：円運動</a>、荷電粒子の円運動は <a href="charged-circle.html">組み合わせ問題C：荷電粒子＋円運動</a>、光電効果＋コンデンサは <a href="photo-cap.html">組み合わせ問題X：光電効果＋コンデンサ</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。4つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboPhotoCircleDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>

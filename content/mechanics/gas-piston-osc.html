@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題AE：気体ピストンの断熱振動 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題AE：気体ピストンの断熱振動</h1>
+<p><strong>問題：</strong>水平なシリンダーに、断面積 S = 0.010 m²、長さ x0 = 0.10 m のヘリウム気体が入っている。気体の圧力は p0 = 1.0×10⁵ Pa、温度は T0 = 300 K で、外は大気圧 1.0×10⁵ Pa だ。シリンダーの左端は閉じていて、右側には質量 m = 5.0 kg のピストンがある。ピストンとシリンダーのあいだに摩擦はない。気体は断熱変化（pV^γ = 一定、ヘリウムの γ = 5/3）をする。ピストンを少し押し込んで静かに放すと、ピストンは単振動する。気体定数 R = 8.31 J/(mol·K) とする。(1) つり合いのとき、気体の物質量と内部エネルギーを求めよ。(2) ピストンを 0.010 m 押し込んだときの圧力・温度・合力を求めよ。(3) 単振動の周期と最大の速さ・加速度・エネルギーを求めよ。(4) 押し込むときの仕事と内部エネルギーの増加を求めよ。(5) 等温とすると、周期はどうなるか。リュシャルトの実験とは何か。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v2.9、gasPistonOsc 型）が下の JSON データから計算して描く。気体の力は 0.02 px/N、合力は 0.1 px/N、x–t グラフは振幅 0.010 m が 60 px だ。</p>
+<script type="application/json" id="scene-gas-piston-osc-base">{"type":"gasPistonOsc","mKg":5.0,"sM2":0.01,"v0M3":0.001,"p0Pa":100000,"t0K":300,"gamma":1.6666666667,"ampM":0.01,"g":10,"phase":"base"}</script>
+<script type="application/json" id="scene-gas-piston-osc-compress">{"type":"gasPistonOsc","mKg":5.0,"sM2":0.01,"v0M3":0.001,"p0Pa":100000,"t0K":300,"gamma":1.6666666667,"ampM":0.01,"g":10,"phase":"compress"}</script>
+<script type="application/json" id="scene-gas-piston-osc-expand">{"type":"gasPistonOsc","mKg":5.0,"sM2":0.01,"v0M3":0.001,"p0Pa":100000,"t0K":300,"gamma":1.6666666667,"ampM":0.01,"g":10,"phase":"expand"}</script>
+<script type="application/json" id="scene-gas-piston-osc-graph">{"type":"gasPistonOsc","mKg":5.0,"sM2":0.01,"v0M3":0.001,"p0Pa":100000,"t0K":300,"gamma":1.6666666667,"ampM":0.01,"g":10,"phase":"graph"}</script>
+<script type="application/json" id="scene-gas-piston-osc-energy">{"type":"gasPistonOsc","mKg":5.0,"sM2":0.01,"v0M3":0.001,"p0Pa":100000,"t0K":300,"gamma":1.6666666667,"ampM":0.01,"g":10,"phase":"energy"}</script>
+<script type="application/json" id="scene-gas-piston-osc-trap">{"type":"gasPistonOsc","mKg":5.0,"sM2":0.01,"v0M3":0.001,"p0Pa":100000,"t0K":300,"gamma":1.6666666667,"ampM":0.01,"g":10,"phase":"trap"}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。つり合いのときと、押し込むときと、振動するときでは、使える式がちがう。3つをつなぐのは、圧力と体積の関係だ。</p>
+  <table>
+    <tr><th>時間</th><th>系（何を見るか）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>はじめ（つり合い）</td><td>気体＋ピストン</td><td>—</td><td>気体の力 = 大気の力（はじめに）</td></tr>
+    <tr><td>押し込む・引く</td><td>気体＋ピストン</td><td><strong>圧力 p、温度 T、合力 170 N</strong></td><td>断熱変化で圧力が変わる（ステップ①②）</td></tr>
+    <tr><td>振動する</td><td>ピストン</td><td><strong>周期 0.11 s、最大の速さ 0.58 m/s</strong></td><td>気体の力がばねになる（ステップ③）</td></tr>
+    <tr><td>仕事</td><td>気体</td><td><strong>人の仕事 0.9 J、大気の仕事 10 J</strong></td><td>2つの仕事が ΔU になる（ステップ④）</td></tr>
+    <tr><td>罠</td><td>気体</td><td><strong>等温なら周期 0.14 s</strong></td><td>断熱と等温をとりちがえない（ステップ⑤）</td></tr>
+  </table>
+  <p>気体の圧力変化が、ばねのようにピストンを押し戻す。気体の量・圧力・温度が、振動の周期を決める。つなぐのは、圧力と体積の関係だ。</p>
+  <svg class="fig" data-scene="scene-gas-piston-osc-base" data-show="gasForce,atmForce" width="100%" role="img" aria-label="気体ピストンのつり合い。気体の力 1000 N と大気の力 1000 N がつり合う"></svg>
+  <p>つり合いの気体の長さは、x0 = V0/S = 1.0×10⁻³/0.010 = <strong>0.10 m</strong> だ。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①押し込む</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 押し込むと復元力がはたらく</h2>
+  <svg class="fig" data-scene="scene-gas-piston-osc-compress" data-show="gasForce,atmForce,netForce" width="100%" role="img" aria-label="ピストンを押し込んだところ。気体の力 1170 N、大気の力 1000 N、合力 170 N が左向き"></svg>
+  <p>はじめに、気体の物質量を求めよう。n = p0V0/(RT0) = 1.0×10⁵ × 1.0×10⁻³/(8.31×300) ≈ <strong>0.040 mol</strong> だ。ヘリウムは単原子分子気体なので、内部エネルギーは U = (3/2)pV = 1.5 × 1.0×10⁵ × 1.0×10⁻³ = <strong>150 J</strong> になる。</p>
+  <p>ピストンを 0.010 m 押し込むと、体積は V = V0 − S·A = 1.0×10⁻³ − 0.010×0.010 = 0.90×10⁻³ m³ になる。気体は断熱変化するので、pV^γ = 一定だ。圧力は、直線近似（振幅が小さいとき）で、Δp = γp0·S·A/V0 = (5/3)×1.0×10⁵×0.010×0.010/1.0×10⁻³ = 1.67×10⁴ Pa だけ上がり、p ≈ <strong>1.17×10⁵ Pa</strong> になる。温度は、ΔT = (γ−1)T0·S·A/V0 = (2/3)×300×0.010×0.010/1.0×10⁻³ = 20 K 上がり、T ≈ <strong>320 K</strong> になる。</p>
+  <p>気体の力は pS = 1.17×10⁵ × 0.010 ≈ 1170 N、大気の力は 1000 N なので、合力は 1170 − 1000 = <strong>170 N、左向き</strong>（元に戻る向き）になる。押し込んだ分だけ、圧力が上がって押し戻す。これが復元力だ。</p>
+  <label><input type="checkbox" class="check"> 押し込んだとき p≈1.17×10⁵ Pa、T≈320 K、合力 170 N（左向き）を求めた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②引く</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 引くと反対向きの復元力</h2>
+  <svg class="fig" data-scene="scene-gas-piston-osc-expand" data-show="gasForce,atmForce,netForce" width="100%" role="img" aria-label="ピストンを引いたところ。気体の力 830 N、大気の力 1000 N、合力 170 N が右向き"></svg>
+  <p>今度はピストンを 0.010 m 引く。体積は 1.1×10⁻³ m³ になる。圧力は 1.67×10⁴ Pa 下がり、p ≈ <strong>0.83×10⁵ Pa</strong>、温度は 20 K 下がり、T ≈ <strong>280 K</strong> になる。</p>
+  <p>気体の力は 0.83×10⁵ × 0.010 = 830 N、大気の力は 1000 N なので、合力は 1000 − 830 = <strong>170 N、右向き</strong>（元に戻る向き）になる。引いても、やはり元に戻る向きの力がはたらく。</p>
+  <p>押し込んだときも引いたときも、合力の大きさは同じ 170 N だ。合力は変位に比例する：F = −k_eff·x、k_eff = γp0S²/V0 = (5/3)×1.0×10⁵×0.010²/1.0×10⁻³ = <strong>1.67×10⁴ N/m</strong> になる。気体が、ばねの役目をしている。</p>
+  <label><input type="checkbox" class="check"> 引いたとき p≈0.83×10⁵ Pa、T≈280 K、合力 170 N（右向き）と k_eff≈1.67×10⁴ N/m を求めた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③周期</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 単振動の周期は約 0.11 s</h2>
+  <svg class="fig" data-scene="scene-gas-piston-osc-graph" data-show="" width="100%" role="img" aria-label="x–t グラフ。振幅 0.010 m、1周期は約 0.11 s"></svg>
+  <p>気体の力がばねになるので、ピストンは単振動する。角振動数は、ω = √(k_eff/m) = √(1.67×10⁴/5.0) = √3333 ≈ <strong>57.7 rad/s</strong>、周期は T = 2π/ω ≈ <strong>0.11 s</strong>、振動数は f ≈ <strong>9.2 Hz</strong> になる。</p>
+  <p>振幅は 0.010 m なので、最大の速さは v_max = ωA = 57.7×0.010 ≈ <strong>0.58 m/s</strong>、最大の加速度は a_max = ω²A = 3333×0.010 ≈ <strong>33 m/s²</strong> になる。振動のエネルギーは E = (1/2)k_eff A² = 0.5×1.67×10⁴×0.010² ≈ <strong>0.83 J</strong> で、(1/2)mv_max² = 0.5×5.0×0.58² ≈ 0.83 J と一致する。</p>
+  <p>0.11 s という短い周期で、ピストンは 1 秒間に約 9 回振動する。振幅が小さいうちは、この直線近似がよく成り立つ。正確な断熱の式で計算すると、最大の圧力は 1.19×10⁵ Pa（直線近似では 1.17×10⁵ Pa）、最大の温度は 322 K（直線近似では 320 K）になり、差は 2% ほどだ。</p>
+  <label><input type="checkbox" class="check"> 周期 0.11 s、振動数 9.2 Hz、最大の速さ 0.58 m/s、最大の加速度 33 m/s²、エネルギー 0.83 J を求めた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④仕事と内部エネルギー</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 仕事と内部エネルギー</h2>
+  <svg class="fig" data-scene="scene-gas-piston-osc-energy" data-show="" width="100%" role="img" aria-label="仕事の棒グラフ。人の仕事 0.9 J、大気の仕事 10 J、内部エネルギーの増加 11 J"></svg>
+  <p>ピストンを 0.010 m 押し込むとき、人は仕事をする。正確な断熱の式で計算すると、内部エネルギーの増加は ΔU ≈ <strong>11 J</strong> になる。そのうち、大気の仕事は p0·S·A = 1.0×10⁵×0.010×0.010 = <strong>10 J</strong> だ。残りの人の仕事は、ΔU − 大気の仕事 = 11 − 10 = <strong>0.9 J</strong> になる。</p>
+  <p>直線近似では、人の仕事は (1/2)k_eff A² ≈ 0.83 J になる。正確な値 0.91 J とは少しちがうが、どちらも約 0.9 J で、大気の仕事 10 J と合わせると ΔU ≈ 11 J になる。断熱変化では、された仕事がすべて内部エネルギーの増加になる（Q = 0）。</p>
+  <p>振動のエネルギー 0.83 J は、人の仕事（約 0.9 J）とほぼ同じだ。ピストンを押し込んでためたエネルギーが、そのまま振動のエネルギーになる。大気の仕事 10 J は、振動にはならず、気体の内部エネルギーとして残る。</p>
+  <label><input type="checkbox" class="check"> 人の仕事 0.9 J、大気の仕事 10 J、ΔU ≈ 11 J を求めた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤罠：等温とすると</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ 罠：等温とすると周期がちがう</h2>
+  <svg class="fig" data-scene="scene-gas-piston-osc-trap" data-show="" width="100%" role="img" aria-label="周期の比べ。断熱なら 0.11 s、等温なら 0.14 s"></svg>
+  <p>罠は、気体の変化を等温と考えてしまうことだ。等温とすると、圧力は体積に反比例する（pV = 一定）ので、ばね定数は k_iso = p0S²/V0 = 1.0×10⁵×0.010²/1.0×10⁻³ = 1.0×10⁴ N/m になる。周期は T_iso = 2π√(m/k_iso) ≈ <strong>0.14 s</strong> だ。断熱の 0.11 s とは、√γ ≈ 1.29 倍ちがう。</p>
+  <p>断熱では、圧力が体積の γ 乗に比例するので、圧力の変化が等温より γ 倍大きい。だから、ばね定数も γ 倍、周期は 1/√γ 倍になる。気体の変化が断熱か等温かで、周期が変わる。</p>
+  <p>この仕組みは、リュシャルトの実験として知られている。ピストンを振動させて周期を測れば、γ が求まる。いまの例では、周期 0.11 s から、γ = (4π²mV0)/(p0S²T²) ≈ <strong>1.67</strong> になる。周期を測るだけで、気体の性質がわかる。</p>
+  <label><input type="checkbox" class="check"> 等温なら周期 0.14 s（√γ 倍）になり、リュシャルトの実験で周期から γ ≈ 1.67 が出ることを確かめた</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と系を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) n≈0.040 mol、U0=150 J。(2) 押し込むと p≈1.17×10⁵ Pa、T≈320 K、合力 170 N（左向き）。引くと p≈0.83×10⁵ Pa、T≈280 K、合力 170 N（右向き）。(3) k_eff≈1.67×10⁴ N/m、ω≈57.7 rad/s、T≈0.11 s、f≈9.2 Hz、v_max≈0.58 m/s、a_max≈33 m/s²、E≈0.83 J。(4) 人の仕事 0.9 J、大気の仕事 10 J、ΔU≈11 J。(5) 等温なら周期 0.14 s。リュシャルトの実験で周期から γ≈1.67 が出る。もとになった単体モデル：理想気体は <a href="gas-piston.html">第7問：気体・ピストン</a>、単振動は <a href="shm.html">第11問：単振動・振り子</a>、気体＋ばね＋サイクルは <a href="gas-spring-cycle.html">組み合わせ問題P：気体＋ピストン＋ばね＋サイクル</a>、気体＋共鳴管は <a href="gas-resonance.html">組み合わせ問題M：気体＋共鳴管</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboGasPistonOscDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
