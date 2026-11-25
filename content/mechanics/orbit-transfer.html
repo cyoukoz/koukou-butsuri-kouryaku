@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題Y：人工衛星の軌道遷移 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題Y：人工衛星の軌道遷移</h1>
+<p><strong>問題：</strong>高度 400 km の低軌道を回る人工衛星を、高度 35800 km の静止軌道に移したい。地球の半径は R = 6.4×10⁶ m、地表の重力加速度は g0 = 10 m/s² とする。(1) 低軌道の速さと周期、重力加速度を求めよ。(2) 遷移楕円に乗るために、近地点でどれだけ加速すればよいか。(3) 遠地点でもう一度加速し、静止軌道に乗る。2回目の加速量と、遷移にかかる時間を求めよ。(4) 単位質量あたりのエネルギーを、低軌道・遷移楕円・静止軌道で比べよ。(5) 「速い低軌道」と「エネルギーの大きい静止軌道」のちがいを説明せよ。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v2.6、orbitTransfer 型）が下の JSON データから計算して描く。速さの矢印は 0.008 px/(m/s)、重力の矢印は 4 px/(m/s²)。軌道の大きさは模式図だ（本当の比率では、低軌道は地球にくっついて見える）。</p>
+<script type="application/json" id="scene-orbit-transfer-base">{"type":"orbitTransfer","g0":10,"radiusM":6400000,"altitude1M":400000,"altitude2M":35800000,"phase":"base"}</script>
+<script type="application/json" id="scene-orbit-transfer-low">{"type":"orbitTransfer","g0":10,"radiusM":6400000,"altitude1M":400000,"altitude2M":35800000,"phase":"low"}</script>
+<script type="application/json" id="scene-orbit-transfer-transfer">{"type":"orbitTransfer","g0":10,"radiusM":6400000,"altitude1M":400000,"altitude2M":35800000,"phase":"transfer"}</script>
+<script type="application/json" id="scene-orbit-transfer-apogee">{"type":"orbitTransfer","g0":10,"radiusM":6400000,"altitude1M":400000,"altitude2M":35800000,"phase":"apogee"}</script>
+<script type="application/json" id="scene-orbit-transfer-energy">{"type":"orbitTransfer","g0":10,"radiusM":6400000,"altitude1M":400000,"altitude2M":35800000,"phase":"energy"}</script>
+<script type="application/json" id="scene-orbit-transfer-trap">{"type":"orbitTransfer","g0":10,"radiusM":6400000,"altitude1M":400000,"altitude2M":35800000,"phase":"trap"}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。低軌道を回る場面、楕円に移る場面、遠地点で加速する場面では、使う法則がちがう。3つをつなぐのは、速さとエネルギーだ。</p>
+  <table>
+    <tr><th>時間</th><th>場所（何を見るか）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>はじめ（低軌道）</td><td>地球＋衛星</td><td>—</td><td>低軌道の速さと周期（はじめに）</td></tr>
+    <tr><td>近地点で加速</td><td>衛星</td><td><strong>速さ 7.76 → 10.19 km/s</strong></td><td>遷移楕円への乗り換え（ステップ①・②）</td></tr>
+    <tr><td>遠地点で加速</td><td>衛星</td><td><strong>速さ 1.64 → 3.12 km/s</strong></td><td>静止軌道への乗り換え（ステップ③）</td></tr>
+    <tr><td>エネルギー</td><td>衛星</td><td><strong>−30.1 → −8.36 → −4.85 MJ/kg</strong></td><td>エネルギーの階段（ステップ④）</td></tr>
+    <tr><td>まとめ</td><td>全体</td><td><strong>速いほどエネルギー小さい</strong></td><td>罠の確認（ステップ⑤）</td></tr>
+  </table>
+  <p>人工衛星は、エンジンをふかし続けて飛んでいるのではない。エンジンを切っても、重力（万有引力）が向心力になって、円軌道を回り続ける。軌道を変えるには、エンジンを短くふかして速さを変えるだけだ。速さを変えると、軌道は円から楕円に変わる。楕円の遠地点でもう一度ふかすと、ふたたび円軌道に戻る。これがホーマン遷移だ。</p>
+  <svg class="fig" data-scene="scene-orbit-transfer-base" data-show="" width="100%" role="img" aria-label="軌道の全体図。地球のまわりに低軌道、遷移楕円、静止軌道がある"></svg>
+  <p>ここで気をつけることが 1 つある。万有引力の定数 GM は、GM = g0R² から求める。地表の重力加速度 g0 = 10 m/s² と地球の半径 R = 6.4×10⁶ m から、GM = 10 × (6.4×10⁶)² = <strong>4.096×10¹⁴ m³/s²</strong> になる。この GM だけがあれば、速さも周期もエネルギーも、すべて決まる。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①低軌道の速さと周期</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 低軌道の速さと周期</h2>
+  <svg class="fig" data-scene="scene-orbit-transfer-low" data-show="gravity,velocity" width="100%" role="img" aria-label="低軌道の衛星。重力 8.86 m/s² が下向き、速さ 7.76 km/s が右向き"></svg>
+  <p>低軌道の半径は、r1 = R + 高度 = 6.4×10⁶ + 0.40×10⁶ = <strong>6.8×10⁶ m</strong> になる。円運動の条件は、万有引力が向心力になることだ。GMm/r1² = mv1²/r1 から、v1 = √(GM/r1) = √(4.096×10¹⁴ / 6.8×10⁶) = √(6.02×10⁷) ≈ <strong>7.76 km/s</strong> になる。秒速 7.8 km、時速に直すと約 28000 km/h だ。</p>
+  <p>周期は、T1 = 2πr1/v1 = 2π × 6.8×10⁶ / 7761 ≈ <strong>5505 s ≈ 92 分</strong> になる。低軌道の衛星は、約 1 時間半で地球を 1 周する。低軌道での重力加速度は、g1 = GM/r1² = g0(R/r1)² = 10 × (6.4/6.8)² ≈ <strong>8.86 m/s²</strong> だ。地表の 10 m/s² より少し小さいだけだ。宇宙飛行士が無重力を感じるのは、重力がなくなったからではなく、衛星ごと自由落下しているからだ。</p>
+  <p>速さの式 v = √(GM/r) は、半径が大きいほど速さが小さいことを教えている。静止軌道は低軌道より遠いので、速さはもっと小さいはずだ。ここで、速さと半径の関係を、まず確かめた。</p>
+  <label><input type="checkbox" class="check"> 低軌道の速さ 7.76 km/s、周期 ≈ 92 分、重力加速度 8.86 m/s² を確かめた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②遷移楕円に乗る：Δv1</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 遷移楕円に乗る：Δv1</h2>
+  <svg class="fig" data-scene="scene-orbit-transfer-transfer" data-show="" width="100%" role="img" aria-label="遷移楕円。近地点の速さは 10.19 km/s、加速量 Δv1=2.42 km/s"></svg>
+  <p>静止軌道の半径は、r2 = R + 高度 = 6.4×10⁶ + 35.8×10⁶ = <strong>4.22×10⁷ m</strong> になる。低軌道から静止軌道へは、いきなり円軌道に移るのではなく、近地点が r1、遠地点が r2 の楕円軌道（遷移楕円）を経由する。楕円の長半径は、a = (r1 + r2)/2 = (6.8×10⁶ + 4.22×10⁷)/2 = <strong>2.45×10⁷ m</strong> だ。</p>
+  <p>楕円軌道の速さは、位置によって変わる。近地点の速さは、エネルギー保存と角運動量保存から、vp = √(GM(2/r1 − 1/a)) = √(4.096×10¹⁴ × (2/6.8×10⁶ − 1/2.45×10⁷)) ≈ <strong>10.19 km/s</strong> になる。低軌道の速さ 7.76 km/s から、加速量は Δv1 = 10.19 − 7.76 = <strong>2.42 km/s</strong> だ。エンジンをふかして 2.42 km/s だけ速くすると、衛星は円軌道を離れて、楕円軌道に乗る。</p>
+  <p>加速した瞬間、衛星の位置は変わらない。変わるのは速さだけだ。速くなった分だけ、重力が曲げきれなくなり、衛星は遠くへ離れていく。だが、重力は衛星を引き戻そうとするので、衛星は楕円を描く。近地点が最も速く、遠地点が最も遅い。これが、楕円軌道の速さの変化だ。</p>
+  <label><input type="checkbox" class="check"> 遷移楕円の長半径 2.45×10⁷ m、近地点の速さ 10.19 km/s、Δv1 = 2.42 km/s を確かめた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③遠地点でもう一度加速：Δv2</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 遠地点でもう一度加速：Δv2</h2>
+  <svg class="fig" data-scene="scene-orbit-transfer-apogee" data-show="" width="100%" role="img" aria-label="遠地点。楕円の速さは 1.64 km/s、静止軌道の速さは 3.12 km/s"></svg>
+  <p>遷移楕円の遠地点の速さは、va = √(GM(2/r2 − 1/a)) = √(4.096×10¹⁴ × (2/4.22×10⁷ − 1/2.45×10⁷)) ≈ <strong>1.64 km/s</strong> になる。近地点の 10.19 km/s から、ずいぶん遅くなった。静止軌道の速さは、v2 = √(GM/r2) = √(4.096×10¹⁴ / 4.22×10⁷) ≈ <strong>3.12 km/s</strong> だ。だから、遠地点でもう一度加速して、Δv2 = 3.12 − 1.64 = <strong>1.47 km/s</strong> だけ速くすれば、衛星は静止軌道に乗る。</p>
+  <p>遷移にかかる時間は、楕円の周期の半分だ。楕円の周期は T = 2π√(a³/GM) ≈ 37648 s なので、半分の <strong>18824 s ≈ 5.2 時間</strong> で、衛星は近地点から遠地点に着く。静止軌道の周期は、T2 = 2πr2/v2 ≈ <strong>85108 s ≈ 23.6 時間（約 24 時間）</strong> になる。地球の自転と同じ周期で回るので、地上から見ると衛星は空に止まって見える。</p>
+  <p>2 回の加速を合わせると、Δv1 + Δv2 = 2.42 + 1.47 = <strong>3.89 km/s</strong> だ。低軌道の速さ 7.76 km/s の半分ほどの加速で、静止軌道に届く。エンジンをふかすのは、近地点と遠地点の 2 回だけだ。そのあいだは、エンジンを切って、重力にまかせて楕円を飛ぶ。</p>
+  <label><input type="checkbox" class="check"> 遠地点の速さ 1.64 km/s、静止軌道の速さ 3.12 km/s、Δv2 = 1.47 km/s、遷移時間 ≈ 5.2 時間を確かめた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④エネルギーの階段</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ エネルギーの階段</h2>
+  <svg class="fig" data-scene="scene-orbit-transfer-energy" data-show="" width="100%" role="img" aria-label="エネルギーの棒グラフ。低軌道 −30.1、遷移楕円 −8.36、静止軌道 −4.85 MJ/kg"></svg>
+  <p>単位質量あたりの力学的エネルギーは、円軌道では E = −GM/(2r)、楕円軌道では E = −GM/(2a) になる。低軌道では E1 = −4.096×10¹⁴ / (2 × 6.8×10⁶) ≈ <strong>−30.1 MJ/kg</strong>、遷移楕円では Et = −4.096×10¹⁴ / (2 × 2.45×10⁷) ≈ <strong>−8.36 MJ/kg</strong>、静止軌道では E2 = −4.096×10¹⁴ / (2 × 4.22×10⁷) ≈ <strong>−4.85 MJ/kg</strong> になる。エネルギーは、負の値で、0 に近いほど大きい。低軌道から静止軌道へ行くほど、エネルギーは大きくなる。</p>
+  <p>エンジンが与えたエネルギーは、1 回目が ΔE1 = −8.36 − (−30.1) = <strong>21.8 MJ/kg</strong>、2 回目が ΔE2 = −4.85 − (−8.36) = <strong>3.5 MJ/kg</strong> だ。1 回目の加速のほうが、ずっと多くのエネルギーを与えている。近地点の速さは、運動エネルギーが 51.9 MJ/kg、位置エネルギーが −60.2 MJ/kg で、合計が −8.36 MJ/kg になる。遠地点では、運動エネルギーが 1.35 MJ/kg、位置エネルギーが −9.71 MJ/kg で、合計はやはり −8.36 MJ/kg だ。楕円のあいだはエンジンを切っているので、エネルギーは変わらない。</p>
+  <p>エネルギーが負なのは、衛星が地球の重力に束縛されているからだ。エネルギーが 0 になると、衛星は地球から逃げていく。静止軌道のエネルギー −4.85 MJ/kg は、0 に近い。静止軌道の衛星は、地球から逃げる寸前のところにいる。</p>
+  <label><input type="checkbox" class="check"> エネルギー −30.1 → −8.36 → −4.85 MJ/kg、エンジンが与えた 21.8＋3.5 MJ/kg を確かめた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤罠：速いのにエネルギーは小さい</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ 罠：速いのにエネルギーは小さい</h2>
+  <svg class="fig" data-scene="scene-orbit-transfer-trap" data-show="" width="100%" role="img" aria-label="速さとエネルギーの棒グラフ。低軌道は速いがエネルギーは小さく、静止軌道は遅いがエネルギーは大きい"></svg>
+  <p>罠は、速い軌道ほどエネルギーが大きいと思うことだ。低軌道の速さは 7.76 km/s で、静止軌道の 3.12 km/s より速い。だが、エネルギーは低軌道が −30.1 MJ/kg、静止軌道が −4.85 MJ/kg で、静止軌道のほうが大きい。速さだけでエネルギーを比べると、まちがう。エネルギーは、運動エネルギーと位置エネルギーの合計だ。低軌道は速いぶん運動エネルギーは大きいが、地球に近いぶん位置エネルギーがずっと小さい（負に大きい）。合計では、静止軌道のほうが大きくなる。</p>
+  <p>もう 1 つの罠は、遠地点で加速しなければ、衛星は静止軌道に乗れると思うことだ。遠地点で加速しなければ、衛星は遷移楕円のまま近地点に戻ってくる。遠地点の速さ 1.64 km/s は、静止軌道の速さ 3.12 km/s より遅い。加速しないと、衛星は地球に引き戻されて、もとの低軌道のあたりまで落ちていく。静止軌道に乗るには、遠地点での 2 回目の加速が欠かせない。</p>
+  <p>速さとエネルギーは、逆になることがある。速い低軌道はエネルギーが小さく、遅い静止軌道はエネルギーが大きい。速さは「その場所での運動の激しさ」で、エネルギーは「地球からどれだけ離れられるか」だ。ちがう量なので、比べるときは、運動エネルギーと位置エネルギーを分けて考える。</p>
+  <label><input type="checkbox" class="check"> 速い低軌道ほどエネルギーが小さく、遠地点で加速しないと静止軌道に乗れないことを確かめた</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と場所を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 低軌道 v1 = 7.76 km/s、T1 ≈ 92 分、g1 = 8.86 m/s²。(2) 遷移楕円 a = 2.45×10⁷ m、vp = 10.19 km/s、Δv1 = 2.42 km/s。(3) 遠地点 va = 1.64 km/s、静止軌道 v2 = 3.12 km/s、Δv2 = 1.47 km/s、遷移時間 ≈ 5.2 時間。(4) エネルギー −30.1 → −8.36 → −4.85 MJ/kg、エンジンが与えたエネルギー 21.8＋3.5 MJ/kg。(5) 速いのは低軌道だが、エネルギーが大きいのは静止軌道。遠地点で加速しないと楕円のままで静止軌道に乗れない。もとになった単体モデル：万有引力は <a href="gravitation.html">第13問：万有引力</a>、円運動は <a href="circle.html">第10問：円運動</a>、エネルギー保存は <a href="proj-energy.html">組み合わせ問題G：斜方投射＋エネルギー</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboOrbitTransferDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
