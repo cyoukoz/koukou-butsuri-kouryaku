@@ -1697,7 +1697,8 @@ function projEnergyForces(data) {
   if (data.phase === 'top') {
     return [
       { id: 'velocity', short: 'v=8.66 m/s', color: '#d35400', vector: [d.v0x * vScale, 0], dashed: true, labelDx: 6, labelDy: -8, from: d.top },
-      { id: 'gravity', short: '重力 5.0 N', color: 'red', vector: [0, d.gravityN * fScale], dashed: false, labelDx: 6, labelDy: -6, from: d.top },
+      // 最高点では重力ラベルを矢印の左に出し、「H=6.25 m」と重ならないようにする。
+      { id: 'gravity', short: '重力 5.0 N', color: 'red', vector: [0, d.gravityN * fScale], dashed: false, labelDx: -70, labelDy: -6, from: d.top },
     ];
   }
   if (data.phase === 'ground') {
@@ -4301,7 +4302,8 @@ function drawBase(svg, scene) {
     // 地面と発射台の高さ。
     svg.appendChild(el('line', { x1: 40, y1: d.groundY, x2: 360, y2: d.groundY, stroke: '#333', 'stroke-width': 2 }));
     svg.appendChild(el('line', { x1: d.originX, y1: d.launch.y, x2: d.originX, y2: d.groundY, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
-    const tH0 = el('text', { x: 66, y: 240, fill: '#555' }); tH0.textContent = 'h0=5.0 m'; svg.appendChild(tH0);
+    // h0 のラベルは地面のすぐ上に出し、重力ラベルと重ならないようにする。
+    const tH0 = el('text', { x: 66, y: 256, fill: '#555' }); tH0.textContent = 'h0=5.0 m'; svg.appendChild(tH0);
     // 軌道を描く：y(t) = h0 ± v0y・t − (g/2)t² を 0.05 s 刻みでたどる。
     const traj = (v0ySign, color) => {
       let p = '';
