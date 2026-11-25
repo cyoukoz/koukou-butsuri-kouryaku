@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題M：気体＋共鳴管 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題M：気体＋共鳴管</h1>
+<p><strong>問題：</strong>ヘリウムを体積 V = 1.0 L の管に封入した。はじめ圧力 p = 1.0×10⁵ Pa、温度 T = 300 K である。管の体積を変えずに加熱して、温度を 600 K にした。この管は両端が閉じた共鳴管でもあり、長さは L = 0.85 m である。ヘリウムは単原子分子気体（γ = 5/3、モル質量 4.0 g/mol）とする。R = 8.3 J/(mol·K) とする。(1) 加熱後の圧力と、気体が吸収した熱を求めよ。(2) 300 K と 600 K での音速と、両端閉管の基本振動数を求めよ。(3) 基本振動数が 1200 Hz になるのは何 K のときか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v2.0、gasResonance 型）が下の JSON データから計算して描く。音速は v = √(γRT/M) から、共鳴振動数は f<sub>n</sub> = nv/(2L) から計算し、棒グラフの長さは 0.15 px/Hz で決める。</p>
+<script type="application/json" id="scene-gas-resonance-base">{"type":"gasResonance","phase":"base","p1Pa":100000,"volM3":0.001,"t1K":300,"t2K":600,"gamma":1.6666666666666667,"rGas":8.3,"molarMassKg":0.004,"pipeLM":0.85}</script>
+<script type="application/json" id="scene-gas-resonance-heat">{"type":"gasResonance","phase":"heat","p1Pa":100000,"volM3":0.001,"t1K":300,"t2K":600,"gamma":1.6666666666666667,"rGas":8.3,"molarMassKg":0.004,"pipeLM":0.85}</script>
+<script type="application/json" id="scene-gas-resonance-sound">{"type":"gasResonance","phase":"sound","p1Pa":100000,"volM3":0.001,"t1K":300,"t2K":600,"gamma":1.6666666666666667,"rGas":8.3,"molarMassKg":0.004,"pipeLM":0.85}</script>
+<script type="application/json" id="scene-gas-resonance-resonance">{"type":"gasResonance","phase":"resonance","p1Pa":100000,"volM3":0.001,"t1K":300,"t2K":600,"gamma":1.6666666666666667,"rGas":8.3,"molarMassKg":0.004,"pipeLM":0.85}</script>
+<script type="application/json" id="scene-gas-resonance-trap">{"type":"gasResonance","phase":"trap","p1Pa":100000,"volM3":0.001,"t1K":300,"t2K":600,"gamma":1.6666666666666667,"rGas":8.3,"molarMassKg":0.004,"pipeLM":0.85}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。気体の状態が変わる場面では熱力学、音の場面では波動を使う。2つをつなぐのは、気体の温度が決める音速だ。</p>
+  <table>
+    <tr><th>時間</th><th>系（何を見るか）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>加熱する前</td><td>管の中のヘリウム</td><td>—</td><td>物質量 n = pV/RT ≈ 0.040 mol（はじめに）</td></tr>
+    <tr><td>定積加熱（300 K → 600 K）</td><td>管の中のヘリウム</td><td><strong>温度 T</strong></td><td>圧力 p = 2.0×10⁵ Pa、吸熱 Q = 150 J（ステップ①）</td></tr>
+    <tr><td>加熱後</td><td>管の中の音</td><td><strong>音速 v</strong>（約 1020 m/s → 約 1440 m/s）</td><td>基本振動数 f<sub>1</sub> ≈ 600 Hz → 847 Hz（ステップ②③）</td></tr>
+  </table>
+  <p>体積が変わらないので、気体のする仕事は 0 だ。吸収した熱はすべて内部エネルギーの増加になる。温度が 2 倍になると音速は √2 倍になり、共鳴振動数も √2 倍になる。圧力は音速に直接は関係しない。</p>
+  <svg class="fig" data-scene="scene-gas-resonance-base" data-show="" width="100%" role="img" aria-label="ヘリウムを封入した両端閉管"></svg>
+  <p>長さ 0.85 m、両端が閉じた管にヘリウムが入っている。はじめの圧力は 1.0×10⁵ Pa、温度は 300 K、体積は 1.0 L だ。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①定積加熱で圧力が2倍になる</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 定積加熱で圧力が2倍になる</h2>
+  <svg class="fig" data-scene="scene-gas-resonance-heat" data-show="" width="100%" role="img" aria-label="定積加熱で温度が 300 K から 600 K になり圧力が 2 倍になる図"></svg>
+  <p>はじめに物質量を求める。状態方程式 pV = nRT から、n = pV/RT = 1.0×10⁵ × 1.0×10⁻³ / (8.3 × 300) = 100 / 2490 ≈ <strong>0.040 mol</strong>。体積が 1.0 L = 1.0×10⁻³ m³ であることに注意しよう。</p>
+  <p>体積が変わらない定積変化では、p/T が一定だ。温度が 300 K から 600 K へ 2 倍になるので、圧力も 2 倍になり、p<sub>2</sub> = 1.0×10⁵ × (600/300) = <strong>2.0×10⁵ Pa</strong> になる。</p>
+  <p>単原子分子気体の内部エネルギーは U = (3/2)nRT だ。温度が 300 K 上がるので、内部エネルギーの増加は ΔU = (3/2)nRΔT = 1.5 × 0.040 × 8.3 × 300 ≈ <strong>150 J</strong>。定積変化なので気体のする仕事は W = 0、熱力学第一法則 Q = ΔU + W から、吸収した熱は Q = <strong>150 J</strong> になる。吸った熱はすべて内部エネルギーになる。</p>
+  <label><input type="checkbox" class="check"> 物質量 約 0.040 mol、加熱後の圧力 2.0×10⁵ Pa、吸熱 150 J を求めた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②両端閉管の基本振動</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 両端閉管の基本振動</h2>
+  <svg class="fig" data-scene="scene-gas-resonance-sound" data-show="" width="100%" role="img" aria-label="両端閉管の基本振動。両端が節で中央が腹、波長は管の長さの 2 倍"></svg>
+  <p>気体の中の音速は、v = √(γRT/M) で決まる。γ = 5/3、R = 8.3、T = 300 K、M = 4.0×10⁻³ kg/mol を入れると、v = √(1.67 × 8.3 × 300 / 0.004) = √(1.04×10⁶) ≈ <strong>1020 m/s</strong>。空気の中の音速（約 340 m/s）の 3 倍も速い。ヘリウムが軽いからだ。</p>
+  <p>管の両端は閉じているので、両端は空気が動けない「節」、中央は一番よく動く「腹」になる。基本振動の波長は、管の長さの 2 倍で、λ = 2L = 2 × 0.85 = <strong>1.7 m</strong>。基本振動数は f<sub>1</sub> = v/λ = 1020 / 1.7 ≈ <strong>600 Hz</strong>（計算値は 599 Hz）になる。</p>
+  <p>共鳴振動数は f<sub>n</sub> = nv/(2L) だ。n = 2 の 2 倍音は 1200 Hz、n = 3 は 1800 Hz になる。両端閉管では、すべての整数倍の振動数が出る。</p>
+  <label><input type="checkbox" class="check"> 音速 約 1020 m/s、波長 1.7 m、基本振動数 約 600 Hz を求めた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③温度が上がると共鳴振動数も上がる</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 温度が上がると共鳴振動数も上がる</h2>
+  <svg class="fig" data-scene="scene-gas-resonance-resonance" data-show="" width="100%" role="img" aria-label="300 K と 600 K での基本振動数と 2 倍音の棒グラフ"></svg>
+  <p>温度が 600 K になると、音速は v = √(γRT/M) で、√(600/300) = √2 倍になる。v ≈ 1020 × 1.41 ≈ <strong>1440 m/s</strong>。管の長さは変わらないので、基本振動数も √2 倍になり、f<sub>1</sub> ≈ 600 × 1.41 ≈ <strong>847 Hz</strong>、2 倍音は f<sub>2</sub> ≈ <strong>1695 Hz</strong> になる。</p>
+  <p>(3) 基本振動数が 1200 Hz になる温度を逆算しよう。f<sub>1</sub> = v/(2L) から、v = 2Lf<sub>1</sub> = 2 × 0.85 × 1200 = <strong>2040 m/s</strong> が必要だ。音速は √T に比例するので、T = 300 × (2040/1020)² = 300 × 4 = <strong>1200 K</strong> になる。音速が 2 倍なら、温度は 4 倍だ。</p>
+  <label><input type="checkbox" class="check"> 600 K での音速 約 1440 m/s、基本振動数 847 Hz、1200 Hz になる温度 1200 K を求めた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④罠：圧力が変わっても音速は変わらない</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 罠：圧力が変わっても音速は変わらない</h2>
+  <svg class="fig" data-scene="scene-gas-resonance-trap" data-show="" width="100%" role="img" aria-label="圧力が 1.0×10⁵ Pa と 2.0×10⁵ Pa の 2 本の管。温度が同じなら音速は同じ"></svg>
+  <p>圧力が 2 倍になったから、音速も 2 倍になるだろうか。答えはならない。音速の式 v = √(γRT/M) を見ると、圧力 p は出てこない。同じ温度なら、圧力が 1.0×10⁵ Pa でも 2.0×10⁵ Pa でも、音速は同じ約 1020 m/s だ。圧力を 2 倍にすると密度も 2 倍になるが、気体の「かたさ」（体積弾性率）も 2 倍になるので、打ち消し合う。</p>
+  <p>もう1つの罠は、管の端の条件をまちがえることだ。この管は両端が閉じているので、基本振動の波長は λ = 2L だ。片端だけが閉じた管（片端閉管）の式 f = v/(4L) を使うと、1020/(4 × 0.85) ≈ <strong>300 Hz</strong> になってしまう。管の端が開いているか閉じているかで、節と腹の位置が変わり、式が変わる。図の両端が「節」になっていることを確かめよう。</p>
+  <label><input type="checkbox" class="check"> 音速は圧力ではなく温度で決まること、両端閉管では v/(4L) は使えないことを確かめた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ・罠の確認</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ・罠の確認</h2>
+  <svg class="fig" data-scene="scene-gas-resonance-resonance" data-show="" width="100%" role="img" aria-label="300 K と 600 K での基本振動数と 2 倍音の棒グラフ"></svg>
+  <p>この問題の罠は2つある。1つめは、圧力が 2 倍になったから音速も変わると思ってしまうことだ。音速は v = √(γRT/M) で、圧力ではなく温度で決まる。2つめは、両端閉管なのに片端閉管の式 f = v/(4L) を使ってしまうことだ。管の端の条件を図で確かめてから、式を選ぶ。</p>
+  <p>切り分けはこうだ。定積加熱の場面では熱力学で圧力と吸熱を求め、音の場面では温度から音速を求め、共鳴の式で振動数を求める。場面をつなぐ橋渡し量は温度 T だ。温度が気体の圧力・内部エネルギーを決め、音速を決め、共鳴振動数を決める。加熱後の圧力 2.0×10⁵ Pa、吸熱 150 J、300 K での基本振動数 約 600 Hz、600 K での基本振動数 847 Hz は、セットで覚えよう。</p>
+  <label><input type="checkbox" class="check"> 音速は温度で決まること、両端閉管の式は f = v/(2L) であること、橋渡し量は温度であることを確かめた</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と系を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 加熱後の圧力 p = 2.0×10⁵ Pa、吸収した熱 Q = 150 J。(2) 300 K：音速 約 1020 m/s、基本振動数 約 600 Hz。600 K：音速 約 1440 m/s、基本振動数 847 Hz（2 倍音 1695 Hz）。(3) 1200 K。もとになった単体モデル：気体の状態方程式と定積変化は <a href="gas-piston.html">第7問：気体＋ピストン</a>、共鳴管の定常波は <a href="standing-wave.html">第14問：定常波</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboGasResonanceDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>

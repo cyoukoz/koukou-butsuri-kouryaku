@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題N：レール＋コンデンサ＋コイル — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題N：レール＋コンデンサ＋コイル</h1>
+<p><strong>問題：</strong>幅 L = 1.0 m の 2 本のレールの上に、質量 m = 0.50 kg の棒を置いた。レールの端にはコンデンサ C = 0.50 F がつながっている。レールの面に垂直に B = 1.0 T の磁場（裏向き）がかかっている。棒を速さ v<sub>0</sub> = 2.0 m/s ですべらせると、コンデンサが充電されながら棒は遅くなる。レールと棒の抵抗は無視できるものとする。(1) 棒がコンデンサを充電しながらすべり、充電が終わったあとの棒の速さと、コンデンサにたまった電荷とエネルギーを求めよ。(2) 充電が終わったあと、スイッチを切り替えてコンデンサをコイル L = 0.50 H につなぐ。LC 振動の角振動数・周期・最大電流を求めよ。(3) スイッチを切り替えてから T/4 のとき、コンデンサの電荷と回路の電流はどうなっているか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v2.0、railCapCoil 型）が下の JSON データから計算して描く。速度の矢印は 30 px/(m/s)（v<sub>0</sub> = 2.0 m/s は 60 px、v<sub>1</sub> = 1.0 m/s は 30 px）、電流の矢印は方向だけの固定長 60 px。エネルギーの棒グラフの長さは 150 px/J で決める。</p>
+<script type="application/json" id="scene-rail-cap-coil-base">{"type":"railCapCoil","phase":"base","bT":1,"railLM":1,"mKg":0.5,"v0Ms":2,"capF":0.5,"indH":0.5}</script>
+<script type="application/json" id="scene-rail-cap-coil-charge">{"type":"railCapCoil","phase":"charge","bT":1,"railLM":1,"mKg":0.5,"v0Ms":2,"capF":0.5,"indH":0.5}</script>
+<script type="application/json" id="scene-rail-cap-coil-lc">{"type":"railCapCoil","phase":"lc","bT":1,"railLM":1,"mKg":0.5,"v0Ms":2,"capF":0.5,"indH":0.5}</script>
+<script type="application/json" id="scene-rail-cap-coil-graph">{"type":"railCapCoil","phase":"graph","bT":1,"railLM":1,"mKg":0.5,"v0Ms":2,"capF":0.5,"indH":0.5}</script>
+<script type="application/json" id="scene-rail-cap-coil-trap">{"type":"railCapCoil","phase":"trap","bT":1,"railLM":1,"mKg":0.5,"v0Ms":2,"capF":0.5,"indH":0.5}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。棒がすべってコンデンサを充電する場面では力積と電荷、スイッチを切り替えたあとでは LC 振動を使う。2つをつなぐのは、コンデンサにたまった電荷だ。</p>
+  <table>
+    <tr><th>時間</th><th>系（何を見るか）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>すべりはじめ</td><td>棒＋レール＋コンデンサ</td><td>—</td><td>誘導起電力 ε<sub>0</sub> = BLv<sub>0</sub> = 2.0 V（はじめに）</td></tr>
+    <tr><td>充電しながらすべる</td><td>棒＋コンデンサ</td><td><strong>電荷 Q</strong></td><td>力積で v<sub>1</sub> = 1.0 m/s、Q = 0.50 C、U = 0.25 J（ステップ①）</td></tr>
+    <tr><td>スイッチを切り替えたあと</td><td>コンデンサ＋コイル</td><td><strong>電荷 Q<sub>0</sub> = 0.50 C</strong></td><td>LC 振動 ω = 2.0 rad/s、T ≈ 3.14 s、I<sub>0</sub> = 1.0 A（ステップ②③）</td></tr>
+  </table>
+  <p>棒が遅くなるのは、充電電流が磁場から受ける力が、すべる向きと反対だからだ。充電が終わると電流は止まり、棒は一定の速さですべり続ける。充電の瞬間には電流が流れて熱が出るので、エネルギーは保存されない。速さを求めるには、力積を使う。</p>
+  <svg class="fig" data-scene="scene-rail-cap-coil-base" data-show="velocity" width="100%" role="img" aria-label="レールの上の棒が速さ 2.0 m/s ですべり、端のコンデンサが充電される図"></svg>
+  <p>幅 1.0 m のレール、裏向きの磁場 1.0 T、質量 0.50 kg の棒、コンデンサ 0.50 F。棒が速さ 2.0 m/s ですべると、棒の両端に誘導起電力が生まれ、コンデンサが充電される。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①力積で充電後の速さを求める</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 力積で充電後の速さを求める</h2>
+  <svg class="fig" data-scene="scene-rail-cap-coil-charge" data-show="velocity,current" width="100%" role="img" aria-label="充電後の棒の速さ 1.0 m/s とコンデンサの電荷 0.50 C を描いた図"></svg>
+  <p>棒が磁場の中をすべると、棒の中の電荷がローレンツ力を受け、棒の上端が ＋、下端が − になる。棒の両端の電位差（誘導起電力）は ε = BLv だ。はじめは ε<sub>0</sub> = 1.0 × 1.0 × 2.0 = <strong>2.0 V</strong> ある。</p>
+  <p>棒が遅くなる理由は、充電電流 I が磁場から受ける力 F = BIL が、すべる向きと反対だからだ。棒の運動量の変化は、この力の力積に等しい。力積は ∫BIL dt = BL∫I dt = BLQ（Q は充電で流れた電荷）なので、m(v<sub>1</sub> − v<sub>0</sub>) = −BLQ が成り立つ。</p>
+  <p>充電が終わると電流は止まる。棒の両端の電位差とコンデンサの電圧が等しくなるので、Q = C × BLv<sub>1</sub> だ。2つの式から v<sub>1</sub> を求めると、v<sub>1</sub> = mv<sub>0</sub>/(m + B²L²C) になる。B²L²C = 1.0 × 1.0 × 0.50 = <strong>0.50 kg</strong> は、コンデンサが棒にくっついてきたときの「効き目の質量」だ。v<sub>1</sub> = 0.50 × 2.0 / (0.50 + 0.50) = <strong>1.0 m/s</strong> になる。</p>
+  <p>電荷は Q = CBLv<sub>1</sub> = 0.50 × 1.0 × 1.0 × 1.0 = <strong>0.50 C</strong>、コンデンサのエネルギーは U = Q²/(2C) = 0.25 / 1.0 = <strong>0.25 J</strong> になる。</p>
+  <label><input type="checkbox" class="check"> 力積 BLQ から、充電後の速さ 1.0 m/s、電荷 0.50 C、エネルギー 0.25 J を求めた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②スイッチを切り替えて LC 振動</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② スイッチを切り替えて LC 振動</h2>
+  <svg class="fig" data-scene="scene-rail-cap-coil-lc" data-show="current" width="100%" role="img" aria-label="コンデンサとコイルの LC 回路。角振動数 2.0 rad/s、周期 約 3.14 s"></svg>
+  <p>充電が終わったあと、スイッチを切り替えてコンデンサをコイル L = 0.50 H につなぐ。コンデンサの電荷がコイルに流れ、電流が流れると、今度はコイルが電流を保とうとしてコンデンサを逆向きに充電する。電荷と電流が、ばねの変位と速度のように振動する。</p>
+  <p>角振動数は ω = 1/√(LC) = 1/√(0.50 × 0.50) = 1/0.50 = <strong>2.0 rad/s</strong>。周期は T = 2π/ω = 2 × 3.14 / 2.0 ≈ <strong>3.14 s</strong>、振動数は f = 1/T ≈ <strong>0.32 Hz</strong> だ。</p>
+  <p>最大電流は I<sub>0</sub> = Q<sub>0</sub>ω = 0.50 × 2.0 = <strong>1.0 A</strong>。コイルのエネルギーの最大値は (1/2)LI<sub>0</sub>² = 0.5 × 0.50 × 1.0² = <strong>0.25 J</strong> で、コンデンサのエネルギー 0.25 J とぴったり一致する。エネルギーは、コンデンサとコイルのあいだを行き来するだけだ。</p>
+  <label><input type="checkbox" class="check"> 角振動数 2.0 rad/s、周期 約 3.14 s、最大電流 1.0 A を求めた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③q と i の時間変化</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ q と i の時間変化</h2>
+  <svg class="fig" data-scene="scene-rail-cap-coil-graph" data-show="" width="100%" role="img" aria-label="電荷 q と電流 i の時間変化のグラフ。T/4 で q=0、i は最大になる"></svg>
+  <p>スイッチを切り替えた瞬間を t = 0 とすると、電荷は q(t) = Q<sub>0</sub> cos ωt、電流は i(t) = −I<sub>0</sub> sin ωt で変化する。t = 0 では q = 0.50 C（最大）、i = 0 だ。</p>
+  <p>(3) T/4 ≈ 3.14/4 ≈ <strong>0.79 s</strong> のとき、ωt = π/2 になるので、q = 0.50 × cos(π/2) = <strong>0</strong>、i = −1.0 × sin(π/2) = <strong>−1.0 A</strong> になる。電荷が 0 になる瞬間に、電流は最大になる。コンデンサのエネルギーが 0 になり、エネルギーはすべてコイルにある。</p>
+  <p>T/2 ≈ 1.57 s では q = −0.50 C（極板の ＋− が入れ替わる）、i = 0 になる。T ≈ 3.14 s で、はじめの状態に戻る。</p>
+  <label><input type="checkbox" class="check"> q(t) = Q cos ωt、i(t) = −I0 sin ωt から、T/4 で q=0、i が最大になることを確かめた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④罠：エネルギー保存だけでは求まらない</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 罠：エネルギー保存だけでは求まらない</h2>
+  <svg class="fig" data-scene="scene-rail-cap-coil-trap" data-show="" width="100%" role="img" aria-label="エネルギーの行き先の棒グラフ。はじめ 1.0 J が運動エネルギー 0.25 J、静電エネルギー 0.25 J、ジュール熱 0.50 J になる"></svg>
+  <p>ステップ①で、エネルギー保存だけを使って速さを求めるとどうなるか。充電後のエネルギー保存は、(1/2)mv<sub>1</sub>² + (1/2)CB²L²v<sub>1</sub>² = (1/2)mv<sub>0</sub>² だ。これを解くと v<sub>1</sub> = v<sub>0</sub>/√(1 + B²L²C/m) = 2.0/√2 ≈ <strong>1.41 m/s</strong> になってしまう。正しい答えは 1.0 m/s だ。</p>
+  <p>なぜまちがうのか。充電の瞬間には電流が流れて、ジュール熱が出るからだ。はじめの運動エネルギーは (1/2)mv<sub>0</sub>² = 0.5 × 0.50 × 4.0 = <strong>1.0 J</strong>。あとに残るのは、運動エネルギー (1/2)mv<sub>1</sub>² = 0.25 J と静電エネルギー 0.25 J の合計 0.50 J だけだ。残りの <strong>0.50 J</strong> は、充電のときに流れた電流のジュール熱になっている。エネルギーは保存されないので、エネルギー保存では v<sub>1</sub> は求まらない。力積 BLQ を使うのが正しい。</p>
+  <label><input type="checkbox" class="check"> エネルギー保存だけでは 1.41 m/s になってしまうこと、はじめの 1.0 J の半分がジュール熱になることを確かめた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ・罠の確認</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ・罠の確認</h2>
+  <svg class="fig" data-scene="scene-rail-cap-coil-graph" data-show="" width="100%" role="img" aria-label="電荷 q と電流 i の時間変化のグラフ。T/4 で q=0、i は最大になる"></svg>
+  <p>この問題の罠は、充電の場面でエネルギー保存を使ってしまうことだ。充電の瞬間には電流が流れてジュール熱が出るので、エネルギーは保存されない。速さを求めるには、棒の運動量の変化と電荷を結ぶ力積 BLQ を使う。充電が終わったあとの LC 振動では、抵抗がないのでエネルギーは保存され、コンデンサとコイルのあいだを行き来するだけだ。</p>
+  <p>切り分けはこうだ。充電の場面では力積で速さと電荷を求め、スイッチを切り替えたあとでは、電荷 Q<sub>0</sub> = 0.50 C が橋渡し量になって、LC 振動の角振動数・周期・最大電流が決まる。充電後の速さ 1.0 m/s、電荷 0.50 C、角振動数 2.0 rad/s、周期 約 3.14 s、最大電流 1.0 A は、セットで覚えよう。</p>
+  <label><input type="checkbox" class="check"> 充電では力積を使うこと、LC 振動ではエネルギーが保存されること、橋渡し量は電荷であることを確かめた</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と系を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 充電後の速さ v<sub>1</sub> = 1.0 m/s、電荷 Q = 0.50 C、エネルギー U = 0.25 J。(2) 角振動数 ω = 2.0 rad/s、周期 T ≈ 3.14 s、最大電流 I<sub>0</sub> = 1.0 A。(3) T/4 ≈ 0.79 s で q = 0、i = −1.0 A（大きさは最大）。もとになった単体モデル：レール上の棒は <a href="rail-rod.html">第17問：レール＋棒</a>、コンデンサは <a href="capacitor.html">第9問：コンデンサ</a>、LC 振動は <a href="lc.html">組み合わせ問題D：LC＋単振動</a>、誘導起電力は <a href="induction.html">第32問：電磁誘導</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboRailCapCoilDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
