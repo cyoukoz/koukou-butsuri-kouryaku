@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題Q：斜面＋ばね＋エネルギー — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題Q：斜面＋ばね＋エネルギー</h1>
+<p><strong>問題：</strong>質量 m = 2.0 kg の小物体が、傾き θ = 30°、高さ h = 1.8 m のなめらかな斜面の頂上から静かに滑り落ちる。斜面の下端の水平面上には、ばね定数 k = 200 N/m のばねが壁についていて、小物体はそのままばねに当たる。(1) 斜面の下端での速さを求めよ。(2) ばねが最も縮むときの縮みと、ばねの最大の力を求めよ。(3) 小物体がばねに触れているあいだの運動を求め、ばねに触れている時間を求めよ。(4) ばねが最も縮んだあと、小物体はどうなるか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v2.2、slopeSpring 型）が下の JSON データから計算して描く。力の矢印は 2 px/N（重力 20 N は 40 px、垂直抗力 約 17 N は 約 34 px）、ばねの力は 0.5 px/N（最大 120 N は 60 px）、速度の矢印は 15 px/(m/s)（6.0 m/s は 90 px）で決める。</p>
+<script type="application/json" id="scene-slope-spring-base">{"type":"slopeSpring","thetaDeg":30,"hM":1.8,"mKg":2.0,"kNm":200,"g":10,"phase":"base"}</script>
+<script type="application/json" id="scene-slope-spring-bottom">{"type":"slopeSpring","thetaDeg":30,"hM":1.8,"mKg":2.0,"kNm":200,"g":10,"phase":"bottom"}</script>
+<script type="application/json" id="scene-slope-spring-compress">{"type":"slopeSpring","thetaDeg":30,"hM":1.8,"mKg":2.0,"kNm":200,"g":10,"phase":"compress"}</script>
+<script type="application/json" id="scene-slope-spring-shm">{"type":"slopeSpring","thetaDeg":30,"hM":1.8,"mKg":2.0,"kNm":200,"g":10,"phase":"shm"}</script>
+<script type="application/json" id="scene-slope-spring-trap">{"type":"slopeSpring","thetaDeg":30,"hM":1.8,"mKg":2.0,"kNm":200,"g":10,"phase":"trap"}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。斜面を滑る場面と、ばねに触れている場面では、使える式がちがう。2つをつなぐのは、斜面の下端での速さだ。</p>
+  <table>
+    <tr><th>時間</th><th>系（何を見るか）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>はじめ（斜面の上）</td><td>小物体（斜面上）</td><td>—</td><td>重力の斜面方向の成分が加速度を決める（はじめに）</td></tr>
+    <tr><td>斜面を滑る</td><td>小物体（斜面上）</td><td><strong>下端の速さ v = 6.0 m/s</strong></td><td>エネルギー保存で v を求める（ステップ①）</td></tr>
+    <tr><td>ばねが縮む</td><td>小物体＋ばね</td><td><strong>運動エネルギー 36 J</strong></td><td>エネルギーがばねに移る。最大の縮み 0.60 m（ステップ②）</td></tr>
+    <tr><td>ばねに触れているあいだ</td><td>小物体＋ばね</td><td><strong>単振動の半周期 0.31 s</strong></td><td>単振動の半分だけ進む（ステップ③）</td></tr>
+    <tr><td>ばねが押し返す</td><td>小物体</td><td><strong>速さ 6.0 m/s（もどる）</strong></td><td>斜面を上り、もとの高さ 1.8 m まで戻る（ステップ④⑤）</td></tr>
+  </table>
+  <p>斜面では、重力 mg = 20 N のうち斜面に沿った成分 mg sinθ = 20 × 0.50 = 10 N が小物体を加速する。斜面に垂直な成分 mg cosθ ≈ 17 N は垂直抗力とつり合う。斜面がなめらかなら、摩擦はない。だから下端での速さは、高さだけで決まる。</p>
+  <svg class="fig" data-scene="scene-slope-spring-base" data-show="gravity,normal" width="100%" role="img" aria-label="斜面の上の小物体。重力 20 N の斜面方向の成分が 10 N で、垂直抗力は約 17 N"></svg>
+  <p>斜面の長さは L = h / sinθ = 1.8 / 0.50 = <strong>3.6 m</strong> だ。加速度は a = g sinθ = 10 × 0.50 = <strong>5.0 m/s²</strong> で、滑る時間は t = √(2L/a) = √(7.2/5.0) = √1.44 = <strong>1.2 s</strong> になる。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①斜面の下端：速さ 6.0 m/s</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 斜面の下端：速さ 6.0 m/s</h2>
+  <svg class="fig" data-scene="scene-slope-spring-bottom" data-show="velocity" width="100%" role="img" aria-label="斜面の下端。小物体は速さ 6.0 m/s で水平に走り、ばねに向かう"></svg>
+  <p>頂上での高さのエネルギーは mgh = 2.0 × 10 × 1.8 = <strong>36 J</strong> だ。斜面がなめらかなので、摩擦で熱になる分は 0 だ。だからこの 36 J がそのまま下端での運動エネルギーになる。(1/2)mv² = 36 から、v² = 36 × 2 / 2.0 = 36、v = <strong>6.0 m/s</strong> になる。</p>
+  <p>速さの公式 v = √(2gh) = √(2 × 10 × 1.8) = √36 = <strong>6.0 m/s</strong> は、質量 m が消えている。だから質量がちがっても、下端の速さは同じだ。質量が大きいとエネルギーは大きいが、加速に必要な力も同じ割合で大きいからだ。</p>
+  <p>運動量でも確かめられる。下端の運動量は mv = 2.0 × 6.0 = <strong>12 kg·m/s</strong> だ。斜面を滑っているあいだ、重力の斜面方向の成分 10 N が 1.2 s だけはたらいた。力積は 10 × 1.2 = 12 N·s で、運動量の変化 12 kg·m/s とぴったり一致する。</p>
+  <label><input type="checkbox" class="check"> 下端の速さ v = 6.0 m/s を、エネルギーと力積の両方で確かめた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②ばねが最も縮む：0.60 m</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② ばねが最も縮む：0.60 m</h2>
+  <svg class="fig" data-scene="scene-slope-spring-compress" data-show="springForce" width="100%" role="img" aria-label="ばねが最も縮んだとき。縮み 0.60 m、ばねの力は最大で 120 N"></svg>
+  <p>小物体がばねに当たると、ばねが縮み始める。ばねが最も縮んだとき、小物体は一瞬止まる。速さが 0 になるので運動エネルギーは 0 になり、36 J は全部ばねのエネルギーに移る。(1/2)kx² = 36 から、x² = 36 × 2 / 200 = 0.36、x = <strong>0.60 m</strong> になる。</p>
+  <p>ばねの力は、縮みに比例する。最も縮んだときの力は F = kx = 200 × 0.60 = <strong>120 N</strong> だ。重力 20 N の 6 倍の大きさだ。このときの加速度は a = F/m = 120 / 2.0 = <strong>60 m/s²</strong> で、重力加速度の 6 倍になる。</p>
+  <p>縮みが 0.60 m になることを、ばねの自然長から確かめよう。ばねの自然長の位置は、斜面の下端から 1.0 m のところ（図の x = 240）だ。小物体が 0.60 m 進むと、ばねの長さは 1.0 − 0.60 = 0.40 m になる。ばねが 0 になるほど縮まないので、この計算は成り立つ。</p>
+  <label><input type="checkbox" class="check"> 最も縮んだとき x = 0.60 m、ばねの力 120 N、加速度 60 m/s² を求めた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③ばねに触れているあいだの動き</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ ばねに触れているあいだの動き</h2>
+  <svg class="fig" data-scene="scene-slope-spring-shm" data-show="" width="100%" role="img" aria-label="ばねに触れているあいだの縮みのグラフ。x = 0.60 sin(10t) で、0.31 s 後にばねは自然長に戻る"></svg>
+  <p>ばねに触れているあいだ、小物体は単振動をする。ばねの力は −kx だから、運動方程式は ma = −kx、つまり a = −(k/m)x = −100x だ。これは単振動の式 a = −ω²x と同じ形で、角振動数は ω = √(k/m) = √(200/2.0) = √100 = <strong>10 rad/s</strong> になる。</p>
+  <p>単振動の周期は T = 2π/ω = 2π/10 ≈ <strong>0.63 s</strong> だ。ただし小物体がばねに触れているのは、自然長から最も縮んで、また自然長に戻るまでの、半周期だけだ。だから接触する時間は T/2 = 0.31 s ≈ <strong>0.31 s</strong> になる。縮みは x = 0.60 sin(10t) と変わり、t = 0.31 s で x = 0 に戻る。</p>
+  <p>速さの最大値は、単振動の式から v_max = Aω = 0.60 × 10 = <strong>6.0 m/s</strong> だ。これはちょうど、ばねに当たったときの速さ 6.0 m/s と同じだ。ばねに当たった瞬間（x = 0）で速さが最大になるのは、単振動では当然のことだ。</p>
+  <label><input type="checkbox" class="check"> ω = 10 rad/s、T ≈ 0.63 s、接触時間 0.31 s、v_max = 6.0 m/s を求めた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④罠：ばねの力は一定ではない</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 罠：ばねの力は一定ではない</h2>
+  <svg class="fig" data-scene="scene-slope-spring-trap" data-show="" width="100%" role="img" aria-label="棒グラフ。正しい最大の縮み 0.60 m と、ばねの力を一定 120 N としたときのまちがった縮み 0.30 m の比較"></svg>
+  <p>罠は、ばねの力を一定だと思い込むことだ。ばねの力は、縮むにつれて 0 から 120 N まで増える。途中の平均の力は (0 + 120)/2 = <strong>60 N</strong> だ。もし最大の力 120 N がはじめからずっとかかるとして、仕事 = 力 × 距離 = 120 × x = 36 とすると、x = 0.30 m になってしまう。正しい 0.60 m の半分だ。</p>
+  <p>ばねの力は縮みに比例するので、仕事は F–x グラフの面積、つまり三角形の面積 (1/2) × 120 × x = 36 から x = 0.60 m になる。平均の力 60 N で計算しても、60 × 0.60 = 36 J と一致する。力が変わる場面では、平均の力を使うか、グラフの面積を使うかしないと、仕事は求められない。</p>
+  <p>時間のほうも同じ罠がある。速さが 6.0 m/s から 0 まで「平均 3.0 m/s」で 0.60 m 進むと、時間は 0.60/3.0 = 0.20 s になる。でも正しい接触時間は 0.31 s だ。速さの変わり方は等加速度運動ではなく、単振動の sin カーブだから、平均の速さは 3.0 m/s ではない。単振動の式を使うのが正しい。</p>
+  <label><input type="checkbox" class="check"> ばねの力を一定とすると縮みが 0.30 m になるまちがいを確かめ、平均の力 60 N と単振動で正しく求められることを確かめた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ・罠の確認</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ・罠の確認</h2>
+  <svg class="fig" data-scene="scene-slope-spring-shm" data-show="" width="100%" role="img" aria-label="ばねに触れているあいだの縮みのグラフ。x = 0.60 sin(10t) で、0.31 s 後にばねは自然長に戻る"></svg>
+  <p>この問題の橋渡し量は、斜面の下端での速さ v = 6.0 m/s だ。斜面ではエネルギー保存で v = √(2gh) = 6.0 m/s を求め、ばねではその運動エネルギー 36 J がばねのエネルギー (1/2)kx² に移る。最大の縮みは x = 0.60 m、最大の力は 120 N だ。ばねに触れているあいだは単振動で、ω = 10 rad/s、周期 0.63 s、接触時間は半周期の 0.31 s だ。</p>
+  <p>ばねが最も縮んだあと、小物体はばねに押し返される。ばねが自然長に戻ったとき、小物体の速さはまた 6.0 m/s になる。エネルギーが保存されるからだ。そのまま斜面を上り、摩擦がなければもとの高さ 1.8 m まで戻る。斜面・ばね・単振動の 3 つのモデルが、速さとエネルギーでつながっている。</p>
+  <label><input type="checkbox" class="check"> 橋渡し量は下端の速さ 6.0 m/s であること、ばねに触れているあいだは単振動であること、罠を確認した</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と系を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) v = 6.0 m/s。(2) 最大の縮み 0.60 m、最大の力 120 N、最大の加速度 60 m/s²。(3) 単振動で ω = 10 rad/s、T ≈ 0.63 s、接触時間 0.31 s。(4) ばねに押し返され、速さ 6.0 m/s で斜面を上り、もとの高さ 1.8 m まで戻る。もとになった単体モデル：斜面は <a href="slope.html">第1問：斜面上の物体</a>、ばねは <a href="spring.html">第5問：ばねのつり合い</a>、単振動は <a href="shm.html">第11問：単振動・振り子</a>、斜面とエネルギーの組み合わせは <a href="slope-energy.html">組み合わせ問題K：斜面＋摩擦＋エネルギー</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboSlopeSpringDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
