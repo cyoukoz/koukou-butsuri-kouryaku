@@ -1,0 +1,1 @@
+{"g":10,"mKg":2.0,"scenes":[{"phase":"base","step":"はじめに","title":"空中で分裂する斜方投射"},{"phase":"apex","step":"①","title":"頂点で分裂：運動量は保存する"},{"phase":"land","step":"②","title":"着地：A は 17.3 m、B は 52.0 m"},{"phase":"trap","step":"③","title":"罠：分裂しても重心は元の放物線"},{"phase":"vary","step":"④","title":"変えたら：A が後ろ向きに −10 m/s"}],"thetaDeg":60,"type":"explodeProjectile","v0Ms":20}

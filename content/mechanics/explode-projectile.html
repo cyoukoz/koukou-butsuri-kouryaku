@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題AL：空中で分裂する斜方投射 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題AL：空中で分裂する斜方投射</h1>
+<p><strong>問題：</strong>質量 2.0 kg の玉を、速さ 20 m/s、仰角 60° で投げ上げる。頂点で玉は 2 つに分裂し、A（1.0 kg）は水平方向の速さが 0 になり、B（1.0 kg）は水平方向に速さ 20 m/s をもらう。(1) 頂点の高さと位置、頂点での運動量と運動エネルギーを求めよ。(2) A と B の着地点と着地の速さを求めよ。重心はどこに着地するか。(3) 分裂の前後でエネルギーはどうなるか。(4) A が水平方向に −10 m/s、B が 30 m/s をもらうと、着地点はどうなるか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v3.2、explodeProjectile 型）が下の JSON データから計算して描く。軌道は y = x tanθ − gx²/(2v0x²) から計算した点列だ。</p>
+<script type="application/json" id="scene-explode-base">{"type":"explodeProjectile","mKg":2.0,"v0Ms":20,"thetaDeg":60,"g":10,"phase":"base"}</script>
+<script type="application/json" id="scene-explode-apex">{"type":"explodeProjectile","mKg":2.0,"v0Ms":20,"thetaDeg":60,"g":10,"phase":"apex"}</script>
+<script type="application/json" id="scene-explode-land">{"type":"explodeProjectile","mKg":2.0,"v0Ms":20,"thetaDeg":60,"g":10,"phase":"land"}</script>
+<script type="application/json" id="scene-explode-trap">{"type":"explodeProjectile","mKg":2.0,"v0Ms":20,"thetaDeg":60,"g":10,"phase":"trap"}</script>
+<script type="application/json" id="scene-explode-vary">{"type":"explodeProjectile","mKg":2.0,"v0Ms":20,"thetaDeg":60,"g":10,"phase":"vary"}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。投げ上げてから頂点まで、分裂の瞬間、分裂してから着地まで、の 3 つに切る。橋渡し量は「頂点での速度と重心の運動」だ。</p>
+  <table>
+    <tr><th>時間</th><th>過程</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>はじめ</td><td>斜方投射</td><td><strong>頂点 H=15 m、x=17.3 m</strong></td><td>頂点までの運動（ステップ①）</td></tr>
+    <tr><td>分裂</td><td>頂点で 2 つに分かれる</td><td><strong>運動量 20 kg·m/s</strong></td><td>分裂の瞬間（ステップ①）</td></tr>
+    <tr><td>落下</td><td>A と B が別々に落ちる</td><td><strong>A は 17.3 m、B は 52.0 m</strong></td><td>着地点と重心（ステップ②）</td></tr>
+    <tr><td>罠・変えたら</td><td>重心とエネルギー</td><td><strong>重心は 34.6 m</strong></td><td>爆発のエネルギー（ステップ③④）</td></tr>
+  </table>
+  <p>分裂の瞬間は、とても短い時間だ。そのあいだ重力の力積は無視できるので、水平方向の運動量は保存する。でもエネルギーは、爆発で増える。保存則を、境界をまたいで使ってはいけない。</p>
+  <svg class="fig" data-scene="scene-explode-base" data-show="" width="100%" role="img" aria-label="斜方投射の軌道。頂点は高さ 15 m、着地点は 34.6 m"></svg>
+  <p>はじめ、玉の速度の成分は、v0x = 20 × cos60° = <strong>10 m/s</strong>、v0y = 20 × sin60° ≈ <strong>17.3 m/s</strong> になる。頂点までの時間は t1 = 17.3/10 ≈ <strong>1.73 s</strong>、最高点は H = 17.3²/(2 × 10) = <strong>15 m</strong>、頂点の x は 10 × 1.73 ≈ <strong>17.3 m</strong> になる。分裂しなければ、射程は 34.6 m だ。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①頂点で分裂</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 頂点で分裂：運動量は保存する</h2>
+  <svg class="fig" data-scene="scene-explode-apex" data-show="" width="100%" role="img" aria-label="頂点での分裂。A は速さ 0、B は速さ 20 m/s"></svg>
+  <p>頂点では、鉛直方向の速さは 0 になっている。残っているのは、水平方向の速さ 10 m/s だけだ。玉全体の運動量は、水平方向に p = 2.0 × 10 = <strong>20 kg·m/s</strong> になる。運動エネルギーは、KE = (1/2) × 2.0 × 10² = <strong>100 J</strong> だ。</p>
+  <p>ここで玉が 2 つに分裂する。A（1.0 kg）は水平方向の速さが 0 になり、真下に落ちる。B（1.0 kg）は、水平方向の速さを 20 m/s もらう。分裂の前後で水平方向の運動量は保存するので、1.0 × 0 + 1.0 × 20 = <strong>20 kg·m/s</strong> になる。分裂の瞬間は短いので、重力の力積は無視できる。</p>
+  <p>頂点では、2 つの破片の鉛直方向の速さは、どちらも 0 のままだ。分裂は、水平方向の速さだけを分け直す。</p>
+  <label><input type="checkbox" class="check"> 頂点で運動量 20 kg·m/s、KE 100 J、A は 0、B は 20 m/s になることを求めた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②着地</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 着地：A は 17.3 m、B は 52.0 m</h2>
+  <svg class="fig" data-scene="scene-explode-land" data-show="" width="100%" role="img" aria-label="着地。A は 17.3 m、B は 52.0 m、重心は 34.6 m"></svg>
+  <p>分裂したあと、A と B はどちらも高さ 15 m から落ちる。落下時間は、t2 = √(2 × 15/10) ≈ <strong>1.73 s</strong> になる。上昇時間と同じだ。</p>
+  <p>A は水平方向の速さが 0 なので、頂点の真下に落ちる。着地点は、x = <strong>17.3 m</strong> だ。着地の速さは、鉛直方向だけの 10 × 1.73 ≈ <strong>17.3 m/s</strong> になる。</p>
+  <p>B は水平方向に 20 m/s で進みながら落ちる。着地点は、x = 17.3 + 20 × 1.73 ≈ <strong>52.0 m</strong> になる。着地の速さは、√(20² + 17.3²) ≈ <strong>26.5 m/s</strong> だ。</p>
+  <p>2 つの破片の重心は、(17.3 + 52.0)/2 = <strong>34.6 m</strong> に着地する。分裂しなかったときの射程とまったく同じだ。重心は、外力（重力）だけを受けて、分裂しなかったときと同じ放物線を描く。</p>
+  <label><input type="checkbox" class="check"> A は 17.3 m、B は 52.0 m、重心は 34.6 m に着地することを求めた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③罠：重心とエネルギー</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 罠：分裂しても重心は元の放物線</h2>
+  <svg class="fig" data-scene="scene-explode-trap" data-show="" width="100%" role="img" aria-label="エネルギーの比べ。分裂前 100 J、分裂後 200 J"></svg>
+  <p>罠は、分裂の前後でエネルギー保存を使うことだ。分裂のあとの運動エネルギーは、A が 0、B が (1/2) × 1.0 × 20² = 200 J で、合計 <strong>200 J</strong> になる。分裂の前の 100 J より 100 J 増えている。爆発で、化学エネルギーが 100 J 加わったのだ。</p>
+  <p>もう1つの罠は、B の着地点を「水平速度が 2 倍だから、元の 2 倍の 69.3 m」と考えることだ。B が速いのは、分裂してからの 1.73 s だけだ。分裂するまでの 1.73 s は、10 m/s でしか進んでいない。だから B の着地点は、17.3 + 20 × 1.73 = <strong>52.0 m</strong> で、69.3 m ではない。</p>
+  <p>運動量は分裂の瞬間に保存するが、エネルギーは爆発で増える。重心の運動は、分裂の影響を受けない。3 つのことを、別々に確かめる。</p>
+  <label><input type="checkbox" class="check"> 爆発で 100 J 加わること、B は 69.3 m には落ちないことを確かめた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④変えたら</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 変えたら：A が後ろ向きに −10 m/s</h2>
+  <svg class="fig" data-scene="scene-explode-vary" data-show="" width="100%" role="img" aria-label="着地点の数直線。A は 0 m、重心は 34.6 m、B は 69.3 m"></svg>
+  <p>分裂のしかたを変える。A が水平方向に −10 m/s（後ろ向き）、B が 30 m/s をもらうとどうなるか。運動量は、1.0 × (−10) + 1.0 × 30 = <strong>20 kg·m/s</strong> で、分裂の前と変わらない。</p>
+  <p>A の着地点は、x = 17.3 + (−10) × 1.73 = <strong>0 m</strong> になる。打ち出し点の真下に戻ってくる。B の着地点は、x = 17.3 + 30 × 1.73 ≈ <strong>69.3 m</strong> になる。重心は、(0 + 69.3)/2 ≈ <strong>34.6 m</strong> で、やっぱり分裂しなかったときの射程と同じだ。</p>
+  <p>分裂のあとの運動エネルギーは、A が (1/2) × 1.0 × 10² = 50 J、B が (1/2) × 1.0 × 30² = 450 J で、合計 500 J になる。爆発で加わったのは 400 J だ。分裂のしかたで、爆発のエネルギーがちがう。</p>
+  <label><input type="checkbox" class="check"> A は 0 m、B は 69.3 m、重心は 34.6 m のまま、爆発で 400 J 加わることを確かめた</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と系を切ったことも、ここまでの4つのチェックに入っている。4つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 頂点 H=15 m、x=17.3 m、運動量 20 kg·m/s、KE 100 J、A は 0、B は 20 m/s。(2) A は 17.3 m に 17.3 m/s、B は 52.0 m に 26.5 m/s で着地、重心は 34.6 m。(3) 分裂後 KE=200 J、爆発で 100 J 加わった。B は 69.3 m には落ちない。(4) A は 0 m、B は 69.3 m、重心は 34.6 m、爆発で 400 J 加わった。もとになった単体モデル：斜方投射は <a href="projectile.html">斜方投射のシミュレータ</a>、運動量・衝突は <a href="collision.html">第12問：運動量・衝突</a>、2物体・重心は <a href="two-body.html">第31問：2物体・重心</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。4つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboExplodeDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>

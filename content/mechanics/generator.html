@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題AK：回転コイル発電機 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題AK：回転コイル発電機</h1>
+<p><strong>問題：</strong>磁場 B = 0.50 T の中に、100 巻きのコイル（1巻きの面積 S = 0.010 m²）を置き、1 秒間に 50 回転させる。コイルの両端に抵抗 R = 100 Ω をつなぐ。(1) コイルを貫く磁束と、誘導起電力の時間変化を求めよ。(2) 起電力と電流の実効値を求めよ。(3) 抵抗で消費される電力と、10 s のあいだに出るエネルギーを求めよ。コイルを回すのに必要なトルクの平均も求めよ。(4) 起電力の最大値を実効値とまちがえるとどうなるか。(5) 回転数を 60 Hz にする、磁場を 1.0 T にすると電力はどうなるか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v3.2、generatorAC 型）が下の JSON データから計算して描く。磁束と起電力のグラフは、Φ = NBS cos ωt と ε = NBSω sin ωt から計算した点列だ。</p>
+<script type="application/json" id="scene-generator-base">{"type":"generatorAC","nTurns":100,"sM2":0.01,"bT":0.5,"freqHz":50,"rOhm":100,"tS":10,"g":10,"phase":"base"}</script>
+<script type="application/json" id="scene-generator-flux">{"type":"generatorAC","nTurns":100,"sM2":0.01,"bT":0.5,"freqHz":50,"rOhm":100,"tS":10,"g":10,"phase":"flux"}</script>
+<script type="application/json" id="scene-generator-eff">{"type":"generatorAC","nTurns":100,"sM2":0.01,"bT":0.5,"freqHz":50,"rOhm":100,"tS":10,"g":10,"phase":"eff"}</script>
+<script type="application/json" id="scene-generator-energy">{"type":"generatorAC","nTurns":100,"sM2":0.01,"bT":0.5,"freqHz":50,"rOhm":100,"tS":10,"g":10,"phase":"energy"}</script>
+<script type="application/json" id="scene-generator-trap">{"type":"generatorAC","nTurns":100,"sM2":0.01,"bT":0.5,"freqHz":50,"rOhm":100,"tS":10,"g":10,"phase":"trap"}</script>
+<script type="application/json" id="scene-generator-vary">{"type":"generatorAC","nTurns":100,"sM2":0.01,"bT":0.5,"freqHz":50,"rOhm":100,"tS":10,"g":10,"phase":"vary"}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。コイルが回ることで磁束が変わり、起電力が生まれ、抵抗で電力が消費される。橋渡し量は「磁束→起電力→電力」だ。</p>
+  <table>
+    <tr><th>時間</th><th>過程</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>はじめ</td><td>コイルが回る</td><td><strong>Φ_max = 0.50 Wb</strong></td><td>磁束の最大値（ステップ①）</td></tr>
+    <tr><td>回転</td><td>磁束が変わる</td><td><strong>ε_max = 157 V</strong></td><td>起電力の時間変化（ステップ①）</td></tr>
+    <tr><td>回路</td><td>抵抗に電流が流れる</td><td><strong>ε_eff = 111 V、I_eff = 1.11 A</strong></td><td>実効値（ステップ②）</td></tr>
+    <tr><td>エネルギー</td><td>電力が熱になる</td><td><strong>P = 123 W、10 s で 1230 J</strong></td><td>電力とトルク（ステップ③）</td></tr>
+    <tr><td>罠・変えたら</td><td>実効値のまちがい</td><td><strong>ε_max のままでは 247 W</strong></td><td>f・B を変える（ステップ④⑤）</td></tr>
+  </table>
+  <p>起電力は、磁束そのものではなく、磁束の変化の速さで決まる。磁束が最大のときに起電力は 0 になり、磁束が 0 のときに起電力は最大になる。</p>
+  <svg class="fig" data-scene="scene-generator-base" data-show="" width="100%" role="img" aria-label="回転コイル発電機。磁場の中のコイルが回り、抵抗につながっている"></svg>
+  <p>はじめ、コイルを貫く磁束の最大値は、Φ_max = NBS = 100 × 0.50 × 0.010 = <strong>0.50 Wb</strong> になる。コイルは 1 秒間に 50 回転するので、角振動数は ω = 2π × 50 ≈ <strong>314 rad/s</strong>、周期は T = 1/50 = <strong>0.020 s</strong> だ。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①磁束と起電力</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 磁束と起電力：1周期 0.020 s</h2>
+  <svg class="fig" data-scene="scene-generator-flux" data-show="" width="100%" role="img" aria-label="磁束と起電力のグラフ。磁束が最大のとき起電力は 0、磁束が 0 のとき起電力は最大"></svg>
+  <p>コイルが回ると、コイルを貫く磁束は Φ = NBS cos ωt = 0.50 cos ωt で変わる。t = 0 ではコイルの面が磁場に垂直で、磁束は最大の <strong>0.50 Wb</strong> になる。1/4 周期後にはコイルの面が磁場に平行になり、磁束は 0 になる。</p>
+  <p>誘導起電力は、磁束の変化の速さだ。ε = −dΦ/dt = NBSω sin ωt = 0.50 × 314 sin ωt になる。最大値は ε_max = NBSω = 0.50 × 314 ≈ <strong>157 V</strong> だ。t = 0 では磁束が最大でも、その変化は 0 なので起電力は 0 になる。t = T/4 では磁束は 0 だが、変化が一番速いので起電力は最大の 157 V になる。</p>
+  <p>磁束と起電力は、山と谷が 1/4 周期ずれている。起電力は磁束の大きさではなく、磁束の「変わりやすさ」で決まる。</p>
+  <label><input type="checkbox" class="check"> Φ_max=0.50 Wb、ε_max=157 V、t=0 で ε=0、t=T/4 で ε が最大になることを求めた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②実効値</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 実効値：最大値の 1/√2 倍</h2>
+  <svg class="fig" data-scene="scene-generator-eff" data-show="" width="100%" role="img" aria-label="実効値の比べ。起電力の最大値 157 V、実効値 111 V"></svg>
+  <p>起電力は正弦波で変わるので、抵抗での電力は瞬間瞬間で変わる。同じ電力を出す直流の電圧を「実効値」という。正弦波では、実効値は最大値の 1/√2 倍になる。ε_eff = 157/√2 ≈ <strong>111 V</strong> だ。</p>
+  <p>電流の実効値も同じように求める。I_eff = ε_eff/R = 111/100 ≈ <strong>1.11 A</strong> になる。電流の最大値は I_max = 157/100 ≈ <strong>1.57 A</strong> だが、電力の計算に使うのは実効値のほうだ。</p>
+  <p>電力は、P = ε_eff²/R = 111²/100 ≈ <strong>123 W</strong> になる。I_eff²R = 1.11² × 100 ≈ 123 W とも一致する。</p>
+  <label><input type="checkbox" class="check"> ε_eff=111 V、I_eff=1.11 A、P=123 W を求めた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③電力とエネルギー</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 電力とエネルギー</h2>
+  <svg class="fig" data-scene="scene-generator-energy" data-show="" width="100%" role="img" aria-label="電力とエネルギー。電力 123 W、10 s で 1230 J"></svg>
+  <p>抵抗では、電力 123 W がジュール熱になる。10 s のあいだに出るエネルギーは、E = P × t = 123 × 10 ≈ <strong>1230 J</strong> だ。このエネルギーは、コイルを回す手がした仕事から来ている。エネルギーは、ただでは生まれない。</p>
+  <p>コイルを回すのに必要なトルクの平均は、仕事率を角振動数で割って求める。τ = P/ω = 123/314 ≈ <strong>0.39 N·m</strong> になる。コイルが回ると、磁場からコイルに逆らう向きのトルクがはたらく。回し続けるには、そのトルクに逆らって回す必要がある。</p>
+  <p>回転が速くなると、起電力は大きくなるが、回すのに必要なトルクも大きくなる。発電機は、回す仕事を電気エネルギーに変える装置だ。</p>
+  <label><input type="checkbox" class="check"> P=123 W、10 s で 1230 J、トルクの平均 0.39 N·m を求めた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④罠：実効値と最大値</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 罠：実効値と最大値をまちがえる</h2>
+  <svg class="fig" data-scene="scene-generator-trap" data-show="" width="100%" role="img" aria-label="電力の比べ。正しい 123 W、ε_max を実効値とすると 247 W"></svg>
+  <p>罠は、起電力の最大値 157 V を、そのまま実効値として電力に使うことだ。P = 157²/100 ≈ <strong>247 W</strong> になってしまい、正しい 123 W の 2 倍になる。電力は電圧の 2 乗に比例するので、電圧を √2 倍まちがえると、電力は 2 倍まちがえる。</p>
+  <p>もう1つの罠は、コイルの巻き数 N を忘れることだ。1巻きだけなら ε_max = BSω = 0.50 × 0.010 × 314 ≈ <strong>1.57 V</strong> で、電力は (1.57/√2)²/100 ≈ <strong>0.012 W</strong> にしかならない。100 巻きあるからこそ、157 V になる。N は、磁束にも起電力にもかかる。</p>
+  <p>実効値を使うのは、電力の計算を直流と同じ形にするためだ。最大値と実効値、どちらをどこで使うかを先に決める。</p>
+  <label><input type="checkbox" class="check"> ε_max を実効値とすると 247 W、N を忘れると 0.012 W になってしまう罠を確かめた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤変えたら</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ 変えたら：f=60 Hz・B=1.0 T</h2>
+  <svg class="fig" data-scene="scene-generator-vary" data-show="" width="100%" role="img" aria-label="電力の比べ。f=50 Hz で 123 W、f=60 Hz で 178 W、B=1.0 T で 494 W"></svg>
+  <p>回転数を 60 Hz にすると、角振動数は ω = 2π × 60 ≈ 377 rad/s になる。起電力の最大値は ε_max = 0.50 × 377 ≈ <strong>188 V</strong>、実効値は 133 V、電力は 133²/100 ≈ <strong>178 W</strong> になる。回転数を 1.2 倍にすると、電力は 1.2² = 1.44 倍になる。</p>
+  <p>磁場を 1.0 T にすると、起電力の最大値は ε_max = 100 × 1.0 × 0.010 × 314 ≈ <strong>314 V</strong>、実効値は 222 V、電力は 222²/100 ≈ <strong>494 W</strong> になる。磁場を 2 倍にすると、電力は 2² = 4 倍になる。</p>
+  <p>電力は、回転数の 2 乗と磁場の 2 乗に比例する。発電量を上げるには、速く回すか、強い磁場を使うか、巻き数を増やすかだ。</p>
+  <label><input type="checkbox" class="check"> f=60 Hz では 178 W、B=1.0 T では 494 W になることを確かめた</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と系を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) Φ_max=0.50 Wb、ε_max=157 V、t=0 で ε=0、t=T/4 で ε が最大。(2) ε_eff=111 V、I_eff=1.11 A、P=123 W。(3) 10 s で 1230 J、トルクの平均 0.39 N·m。(4) ε_max を実効値とすると 247 W、N を忘れると 0.012 W。(5) f=60 Hz では 178 W、B=1.0 T では 494 W。もとになった単体モデル：電磁誘導は <a href="induction.html">第32問：電磁誘導</a>、直流回路は <a href="dc-circuit.html">第19問：直流回路</a>、仕事・エネルギーは <a href="slope-energy.html">組み合わせ問題K：斜面＋摩擦＋エネルギー</a>、レール＋棒は <a href="rail-rod.html">第17問：レール上の棒</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboGeneratorDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
