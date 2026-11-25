@@ -320,6 +320,20 @@
 </div>
 
 <div class="card">
+  <h2>組み合わせ問題AK：回転コイル発電機</h2>
+  <p>磁場 B = 0.50 T の中で 100 巻きのコイル（1巻きの面積 0.010 m²）を 1 秒間に 50 回転させると、磁束の最大値は 0.50 Wb、起電力の最大値は 157 V、実効値は 111 V になる。抵抗 100 Ω では電流の実効値は 1.11 A、電力は 123 W、10 s で 1230 J のエネルギーになる。コイルを回すトルクの平均は 0.39 N·m だ。起電力の最大値を実効値とすると 247 W になってしまう罠があり、回転数を 60 Hz にすると 178 W、磁場を 1.0 T にすると 494 W になる。橋渡し量は「磁束→起電力→電力」。</p>
+  <p><a href="content/mechanics/generator.html">回転コイル発電機のドリルを開く →</a></p>
+  <p id="progress-combo-generator">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>組み合わせ問題AL：空中で分裂する斜方投射</h2>
+  <p>質量 2.0 kg の玉を速さ 20 m/s、仰角 60° で投げ上げると、頂点は高さ 15 m、x = 17.3 m になる。頂点で玉が 2 つに分裂し、A（1.0 kg）は速さ 0、B（1.0 kg）は速さ 20 m/s をもらう。A は頂点の真下 17.3 m、B は 52.0 m に着地し、重心は分裂しなかったときの射程 34.6 m に着地する。分裂でエネルギーは 100 J 増え、A が −10 m/s、B が 30 m/s なら A は 0 m、B は 69.3 m に着地する。橋渡し量は「頂点での速度と重心の運動」。</p>
+  <p><a href="content/mechanics/explode-projectile.html">空中で分裂する斜方投射のドリルを開く →</a></p>
+  <p id="progress-combo-explode">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
   <h2>第7問：気体＋ピストン</h2>
   <p>シリンダーにピストンがのっている。ピストンの力のつり合いから気体の圧力を、状態方程式から体積と高さを求める。加熱するとピストンが上がる等圧変化で、仕事・内部エネルギー・熱を区別しよう。</p>
   <p><a href="content/mechanics/gas-piston.html">気体＋ピストンのドリルを開く →</a></p>
@@ -610,6 +624,10 @@
       p.comboSpecPhotoDone ? '進捗：組み合わせ問題AI・水素のスペクトル＋光電効果＋磁場円運動を完了済み ✓' : '進捗：まだ組み合わせ問題AI・水素のスペクトル＋光電効果＋磁場円運動は未完了';
     document.getElementById('progress-combo-otto').textContent =
       p.comboOttoDone ? '進捗：組み合わせ問題AJ・オットーサイクルを完了済み ✓' : '進捗：まだ組み合わせ問題AJ・オットーサイクルは未完了';
+    document.getElementById('progress-combo-generator').textContent =
+      p.comboGeneratorDone ? '進捗：組み合わせ問題AK・回転コイル発電機を完了済み ✓' : '進捗：まだ組み合わせ問題AK・回転コイル発電機は未完了';
+    document.getElementById('progress-combo-explode').textContent =
+      p.comboExplodeDone ? '進捗：組み合わせ問題AL・空中で分裂する斜方投射を完了済み ✓' : '進捗：まだ組み合わせ問題AL・空中で分裂する斜方投射は未完了';
     document.getElementById('progress-gas-piston').textContent =
       p.gasPistonDone ? '進捗：第7問・気体＋ピストンを完了済み ✓' : '進捗：まだ第7問・気体＋ピストンは未完了';
     document.getElementById('progress-young').textContent =
@@ -705,6 +723,8 @@
     document.getElementById('progress-combo-heater-gas').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-spec-photo').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-otto').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-generator').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-explode').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-gas-piston').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-young').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-capacitor').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
