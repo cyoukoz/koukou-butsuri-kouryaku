@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>組み合わせ問題AQ：斜方投射＋壁＋床の摩擦</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body { max-width: 760px; margin: 0 auto; padding: 16px; font-family: sans-serif; line-height: 1.8; }
+h1 { font-size: 22px; }
+.step { border-top: 2px solid #eee; padding: 18px 0; }
+.fig { margin: 12px 0; }
+.fig svg { width: 100%; height: auto; display: block; }
+.check { font-size: 18px; margin-right: 8px; }
+.next { display: inline-block; margin-top: 8px; }
+.toplink { position: fixed; right: 12px; bottom: 12px; background: #fff; border: 1px solid #ccc; padding: 6px 10px; border-radius: 6px; text-decoration: none; }
+.donebox { border: 2px solid #4a4; padding: 14px; margin: 20px 0; }
+table { border-collapse: collapse; margin: 10px 0; }
+th, td { border: 1px solid #999; padding: 6px 8px; text-align: left; }
+</style>
+</head>
+<body id="top">
+<h1>組み合わせ問題AQ：斜方投射＋壁＋床の摩擦</h1>
+<p>質量 0.50 kg の玉を速さ 10 m/s、仰角 45° で打ち出す。5.0 m 先に壁がある。壁との反発係数は 0.80、床との動摩擦係数は 0.20 とする。重力加速度は g=10 m/s² とする。(1) 玉が壁に当たるまでの時間と高さを求めよ。(2) 壁ではね返ったあと、玉はどこに着地し、着地の速さはいくらか。(3) 着地のあと、玉は床を何 m すべって止まるか。止まるまでの時間と、摩擦で生じる熱を求めよ。(4) 着地の運動エネルギーが全部摩擦熱になるとするとどうなるか。(5) 反発係数を 1.0 にする、動摩擦係数を 0.40 にするとどうなるか。</p>
+
+<div class="step">
+<p><b>はじめに：どう切り分けるか</b></p>
+<p>打ち出し → 壁ではね返る → 着地 → 床をすべる → 罠 → 変えたら、の順に区切る。橋渡し量は「速さ」だ。</p>
+<table>
+<tr><th>いつ</th><th>何が起きるか</th><th>橋渡し量</th><th>どこで解くか</th></tr>
+<tr><td>はじめ</td><td>斜方投射</td><td>壁まで 0.71 s、高さ 2.5 m</td><td>ステップ①</td></tr>
+<tr><td>壁</td><td>はね返る</td><td>vx が −5.66 m/s になる</td><td>ステップ②</td></tr>
+<tr><td>着地</td><td>床をすべる</td><td>着地の横の速さ 5.66 m/s</td><td>ステップ③</td></tr>
+<tr><td>罠・変えたら</td><td>エネルギー</td><td>熱になるのは横の 8.0 J だけ</td><td>ステップ④⑤</td></tr>
+</table>
+<p>図：玉を投げると壁ではね返り、着地してから床をすべって止まる。組み合わせ問題AB のつづきだ。</p>
+<script type="application/json" id="scene-proj-wall-fric-base">{"type":"projWallFric","g":10,"mKg":0.5,"v0Ms":10,"angleDeg":45,"wallXM":5.0,"eRest":0.8,"muKin":0.2,"phase":"base"}</script>
+<svg class="fig" data-scene="scene-proj-wall-fric-base" data-show="" width="100%" role="img" aria-label="斜方投射＋壁＋床の摩擦：AB のつづき"></svg>
+</div>
+
+<div class="step">
+<p><b>ステップ① 打ち出しから壁まで</b></p>
+<script type="application/json" id="scene-proj-wall-fric-wall">{"type":"projWallFric","g":10,"mKg":0.5,"v0Ms":10,"angleDeg":45,"wallXM":5.0,"eRest":0.8,"muKin":0.2,"phase":"wall"}</script>
+<svg class="fig" data-scene="scene-proj-wall-fric-wall" data-show="" width="100%" role="img" aria-label="壁に当たるまで：最高点に着く"></svg>
+<p>初速度を分解すると、vx = vy = 10×cos45° ≈ 7.07 m/s。壁までの時間は t = 5.0/7.07 ≈ 0.71 s。</p>
+<p>そのときの高さは y = 7.07×0.71 − 5×0.71² = 5.0 − 2.5 = 2.5 m。鉛直の速さは vy = 7.07 − 10×0.71 = 0 になる。壁のところがちょうど最高点だ。</p>
+<p><label><input type="checkbox" class="check">① 打ち出しから壁までが分かった</label></p>
+<p><a class="next" href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<p><b>ステップ② はね返って着地</b></p>
+<script type="application/json" id="scene-proj-wall-fric-land">{"type":"projWallFric","g":10,"mKg":0.5,"v0Ms":10,"angleDeg":45,"wallXM":5.0,"eRest":0.8,"muKin":0.2,"phase":"land"}</script>
+<svg class="fig" data-scene="scene-proj-wall-fric-land" data-show="" width="100%" role="img" aria-label="はね返ったあと：x=1.0 m に着地"></svg>
+<p>壁はなめらかだから、鉛直方向の力はない。水平成分だけが反発係数 0.80 倍になって、vx′ = −0.80×7.07 ≈ −5.66 m/s になる。</p>
+<p>壁のあとの運動エネルギーは ½×0.50×5.66² = 8.0 J。壁の前は ½×0.50×7.07² = 12.5 J だったので、壁で 4.5 J 失われた。</p>
+<p>高さ 2.5 m から落ちる時間は t = √(2×2.5/10) ≈ 0.71 s。着地点は x = 5.0 − 5.66×0.71 = 1.0 m。着地のとき、縦の速さは vy = −10×0.71 ≈ −7.07 m/s で、着地の速さは √(5.66² + 7.07²) ≈ 9.1 m/s。</p>
+<p><label><input type="checkbox" class="check">② はね返って着地が分かった</label></p>
+<p><a class="next" href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<p><b>ステップ③ 床をすべる</b></p>
+<script type="application/json" id="scene-proj-wall-fric-slide">{"type":"projWallFric","g":10,"mKg":0.5,"v0Ms":10,"angleDeg":45,"wallXM":5.0,"eRest":0.8,"muKin":0.2,"phase":"slide"}</script>
+<svg class="fig" data-scene="scene-proj-wall-fric-slide" data-show="" width="100%" role="img" aria-label="床をすべる：摩擦で止まる"></svg>
+<p>着地の瞬間、縦の速さ 7.07 m/s は床に吸収されて 0 になる。横の速さ 5.66 m/s だけが残って、玉は床をすべる。</p>
+<p>摩擦力は f = μmg = 0.20×0.50×10 = 1.0 N。加速度は a = μg = 2.0 m/s² で、速さは直線で減っていく。</p>
+<p>止まるまでの距離は s = 5.66²/(2×2.0) = 8.0 m。時間は t = 5.66/2.0 ≈ 2.8 s。摩擦で生じる熱は、横の運動エネルギーと等しく、½×0.50×5.66² = 8.0 J。止まるのは、出発点より 7.0 m 後ろ（x = −7.0 m）だ。</p>
+<p><label><input type="checkbox" class="check">③ 床をすべるが分かった</label></p>
+<p><a class="next" href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<p><b>ステップ④ 罠：着地の KE が全部熱になると思い込む</b></p>
+<script type="application/json" id="scene-proj-wall-fric-trap">{"type":"projWallFric","g":10,"mKg":0.5,"v0Ms":10,"angleDeg":45,"wallXM":5.0,"eRest":0.8,"muKin":0.2,"phase":"trap"}</script>
+<svg class="fig" data-scene="scene-proj-wall-fric-trap" data-show="" width="100%" role="img" aria-label="罠：着地の KE が全部熱になる、はまちがい"></svg>
+<p>着地の速さは 9.1 m/s、運動エネルギーは ½×0.50×9.1² ≈ 20.5 J。でも、この 20.5 J が全部摩擦熱になるわけではない。</p>
+<p>着地の運動エネルギーは、横の 8.0 J と縦の 12.5 J に分かれる。縦の 12.5 J は、着地の瞬間に床に吸収されて、音や変形になって消える。摩擦熱になるのは、横の 8.0 J だけだ。</p>
+<p>エネルギーの行き先をたどると、はじめ 25 J → 壁で 4.5 J 失う → 着地で縦の 12.5 J 失う → 摩擦熱 8.0 J で、ちょうど 25 J になる。</p>
+<p><label><input type="checkbox" class="check">④ 罠が分かった</label></p>
+<p><a class="next" href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<p><b>ステップ⑤ 変えたら</b></p>
+<script type="application/json" id="scene-proj-wall-fric-vary">{"type":"projWallFric","g":10,"mKg":0.5,"v0Ms":10,"angleDeg":45,"wallXM":5.0,"eRest":0.8,"muKin":0.2,"phase":"vary"}</script>
+<svg class="fig" data-scene="scene-proj-wall-fric-vary" data-show="" width="100%" role="img" aria-label="変えたら：e=1.0・μ=0.40"></svg>
+<p>反発係数を 1.0（弾性）にすると、vx′ = −7.07 m/s で、着地はちょうど出発点 x = 0 になる。すべる距離は 7.07²/(2×2.0) = 12.5 m、時間は 3.5 s、熱は 12.5 J になる。</p>
+<p>動摩擦係数を 0.40 にすると、加速度は 4.0 m/s² になり、止まるまでの距離は 5.66²/(2×4.0) = 4.0 m、時間は 1.4 s になる。熱は横の運動エネルギーと等しいので、8.0 J のままだ。</p>
+<p>床がなめらか（μ=0）なら、摩擦力は 0 なので、玉は 5.66 m/s のままどこまでもすべり続ける。</p>
+<p><label><input type="checkbox" class="check">⑤ 変えたらが分かった</label></p>
+</div>
+
+<div class="donebox">
+<p id="done-message">5つのチェックをすべて入れると完了になります。</p>
+<button id="done-btn">完了にする</button>
+<p>答え：壁まで 0.71 s、高さ 2.5 m、着地 x=1.0 m、着地の速さ≈9.1 m/s、すべる距離 8.0 m、止まるまで 2.8 s、摩擦熱 8.0 J。斜方投射は<a href="projectile.html">投げ上げの動きを見る</a>、壁との衝突は<a href="proj-wall.html">組み合わせ問題AB：斜方投射＋壁との衝突</a>、斜方投射のエネルギーは<a href="proj-energy.html">組み合わせ問題G：斜方投射＋エネルギー</a>に戻って確認しよう。</p>
+<p><a href="rlc-charge.html">次：組み合わせ問題AR：RLC回路の過渡応答 →</a></p>
+</div>
+
+<a class="toplink" href="#top">↑ TOP</a>
+<script src="../../assets/js/figure.js"></script>
+<script src="../../assets/js/idb.js"></script>
+<script>
+renderAllFigures();
+const boxes = Array.from(document.querySelectorAll('.check'));
+const doneBtn = document.getElementById('done-btn');
+const doneMsg = document.getElementById('done-message');
+const doneKey = 'comboProjWallFricDone';
+const allChecked = () => boxes.every(b => b.checked);
+boxes.forEach(b => b.addEventListener('change', () => { doneBtn.disabled = !allChecked(); }));
+doneBtn.disabled = true;
+(async () => {
+  try {
+    const saved = await loadProgress();
+    if (saved && saved[doneKey]) { doneMsg.textContent = '完了済み ✓'; doneBtn.disabled = true; }
+  } catch (e) { /* IndexedDB が使えない環境では無視 */ }
+})();
+doneBtn.addEventListener('click', async () => {
+  if (!allChecked()) return;
+  try {
+    const saved = await loadProgress();
+    saved[doneKey] = true;
+    await saveProgress(saved);
+    doneMsg.textContent = '完了済み ✓';
+    doneBtn.disabled = true;
+  } catch (e) { doneMsg.textContent = '保存できませんでした（IndexedDB が使えません）。'; }
+});
+</script>
+</body>
+</html>
