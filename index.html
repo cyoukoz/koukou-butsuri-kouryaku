@@ -265,6 +265,20 @@
 </div>
 
 <div class="card">
+  <h2>第31問：二体問題・重心・相対運動</h2>
+  <p>2.0 kg の A（3.0 m/s）が 3.0 kg の B（1.0 m/s）を追いかける。重心は A から 3.0 m、速度は 1.8 m/s で等速直線運動。相対速度 −2.0 m/s で 2.5 s 後に追いつく。重心系で見ると弾性衝突は速度の反転で、衝突後は v1′= 0.60 m/s、v2′= 2.6 m/s になる。</p>
+  <p><a href="content/mechanics/two-body.html">二体問題・重心・相対運動のドリルを開く →</a></p>
+  <p id="progress-two-body">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>第32問：電磁誘導・ファラデーの法則・レンツの法則</h2>
+  <p>100 回巻き、面積 0.010 m² のコイルで、磁場が 0.10 s で 0.20 T まで増えると、磁束は 2.0×10⁻³ Wb、起電力は 2.0 V、誘導電流は 0.20 A。誘導電流は変化を妨げる向き（反時計回り）に流れる。磁場が変わらなければ起電力は 0、速く変えれば起電力は大きい。</p>
+  <p><a href="content/mechanics/induction.html">電磁誘導・ファラデーの法則・レンツの法則のドリルを開く →</a></p>
+  <p id="progress-induction">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
   <h2>動きを見る：自由落下・鉛直投げ上げ</h2>
   <p>落とすだけ、投げ上げるだけ。でも速度は1秒ごとに 9.8 m/s ずつ変わる。その動きそのものをループ再生で確かめる。落とす高さ・初速度・再生速度を変えられる。</p>
   <p><a href="content/mechanics/freefall.html">自由落下・鉛直投げ上げの動きを見る →</a></p>
@@ -356,6 +370,10 @@
       p.solenoidDone ? '進捗：第29問・ソレノイド・コイルの磁場を完了済み ✓' : '進捗：まだ第29問・ソレノイド・コイルの磁場は未完了';
     document.getElementById('progress-transient').textContent =
       p.transientDone ? '進捗：第30問・RL・RC回路の過渡現象を完了済み ✓' : '進捗：まだ第30問・RL・RC回路の過渡現象は未完了';
+    document.getElementById('progress-two-body').textContent =
+      p.twoBodyDone ? '進捗：第31問・二体問題・重心・相対運動を完了済み ✓' : '進捗：まだ第31問・二体問題・重心・相対運動は未完了';
+    document.getElementById('progress-induction').textContent =
+      p.inductionDone ? '進捗：第32問・電磁誘導・ファラデーの法則・レンツの法則を完了済み ✓' : '進捗：まだ第32問・電磁誘導・ファラデーの法則・レンツの法則は未完了';
   }).catch(() => {
     document.getElementById('progress-slope').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-ladder').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
@@ -391,6 +409,8 @@
     document.getElementById('progress-moment').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-solenoid').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-transient').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-two-body').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-induction').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
   });
   document.getElementById('export').onclick = () => exportAll()
     .then(() => { document.getElementById('data-msg').textContent = '出力しました。'; })
