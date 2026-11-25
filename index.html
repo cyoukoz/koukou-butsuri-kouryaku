@@ -138,6 +138,27 @@
 </div>
 
 <div class="card">
+  <h2>第13問：万有引力・人工衛星</h2>
+  <p>人工衛星が円軌道を回るのは、重力が向心力になるからだ。でも重力は場所によって変わる。低軌道では v = 8000 m/s、r = 2R では重力は地表の 1/4、静止軌道では重力は約 0.23 m/s²。地表の g = 10 をそのまま使うのが罠だ。</p>
+  <p><a href="content/mechanics/gravitation.html">万有引力・人工衛星のドリルを開く →</a></p>
+  <p id="progress-gravitation">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>第14問：定常波・共鳴</h2>
+  <p>弦の両端は節、開管の両端は腹、閉管は片端が節でもう片端が腹。端の条件が振動数を決める。弦は 100, 200, 300 Hz、開管は 200, 400, 600 Hz、閉管は奇数倍音だけの 100, 300, 500 Hz。</p>
+  <p><a href="content/mechanics/standing-wave.html">定常波・共鳴のドリルを開く →</a></p>
+  <p id="progress-standing-wave">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>第15問：光電効果</h2>
+  <p>光は粒としても働く。光子 1 個のエネルギー hf が仕事関数 φ を超えなければ、電子は出ない。明るくしても速さは変わらず、電子の数だけが増える。振動数が速さを、明るさが数を決める。</p>
+  <p><a href="content/mechanics/photoelectric.html">光電効果のドリルを開く →</a></p>
+  <p id="progress-photoelectric">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
   <h2>動きを見る：自由落下・鉛直投げ上げ</h2>
   <p>落とすだけ、投げ上げるだけ。でも速度は1秒ごとに 9.8 m/s ずつ変わる。その動きそのものをループ再生で確かめる。落とす高さ・初速度・再生速度を変えられる。</p>
   <p><a href="content/mechanics/freefall.html">自由落下・鉛直投げ上げの動きを見る →</a></p>
@@ -193,6 +214,12 @@
       p.shmDone ? '進捗：第11問・単振動・振り子を完了済み ✓' : '進捗：まだ第11問・単振動・振り子は未完了';
     document.getElementById('progress-collision').textContent =
       p.collisionDone ? '進捗：第12問・運動量・衝突を完了済み ✓' : '進捗：まだ第12問・運動量・衝突は未完了';
+    document.getElementById('progress-gravitation').textContent =
+      p.gravitationDone ? '進捗：第13問・万有引力・人工衛星を完了済み ✓' : '進捗：まだ第13問・万有引力・人工衛星は未完了';
+    document.getElementById('progress-standing-wave').textContent =
+      p.standingWaveDone ? '進捗：第14問・定常波・共鳴を完了済み ✓' : '進捗：まだ第14問・定常波・共鳴は未完了';
+    document.getElementById('progress-photoelectric').textContent =
+      p.photoelectricDone ? '進捗：第15問・光電効果を完了済み ✓' : '進捗：まだ第15問・光電効果は未完了';
   }).catch(() => {
     document.getElementById('progress-slope').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-ladder').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
@@ -210,6 +237,9 @@
     document.getElementById('progress-circle').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-shm').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-collision').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-gravitation').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-standing-wave').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-photoelectric').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
   });
   document.getElementById('export').onclick = () => exportAll()
     .then(() => { document.getElementById('data-msg').textContent = '出力しました。'; })

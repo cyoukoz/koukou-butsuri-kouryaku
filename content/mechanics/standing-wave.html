@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第14問：定常波・共鳴 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>第14問：定常波・共鳴</h1>
+<p><strong>問題：</strong>(1) 長さ L = 1.0 m の弦を両端で固定し、波の速さ v = 200 m/s とする。基本振動と n = 2、3 の倍音の振動数と、節・腹の位置を求めよ。(2) 長さ L = 0.85 m、音速 v = 340 m/s の気柱について、開管と閉管の基本振動数と倍音を求めよ。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js）が下の JSON データから計算して描いている。波形は節・腹の位置から計算され、赤い線が波形、赤い短い縦線が節、赤い点が腹だ。節はつねに動かない点、腹はもっとも大きく振動する点だ。</p>
+<script type="application/json" id="scene-wave-s1">{"type":"standingWave","mode":"string","n":1,"lengthM":1.0,"waveSpeedMs":200}</script>
+<script type="application/json" id="scene-wave-s2">{"type":"standingWave","mode":"string","n":2,"lengthM":1.0,"waveSpeedMs":200}</script>
+<script type="application/json" id="scene-wave-s3">{"type":"standingWave","mode":"string","n":3,"lengthM":1.0,"waveSpeedMs":200}</script>
+<script type="application/json" id="scene-wave-open">{"type":"standingWave","mode":"open","n":1,"lengthM":0.85,"waveSpeedMs":340}</script>
+<script type="application/json" id="scene-wave-closed">{"type":"standingWave","mode":"closed","n":1,"lengthM":0.85,"waveSpeedMs":340}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：定常波は「動かない波」</h2>
+  <p>弦を弾くと、波は両端で反射して往復する。行きの波と帰りの波が重なると、ある点はつねに動かず、ある点は大きく振動する、動かない形の波になる。これが定常波だ。動かない点を節、もっとも大きく振動する点を腹という。節と腹の位置は、弦の長さと端の条件だけで決まる。波が進むのではなく、形がその場で振動しているだけだ。</p>
+  <svg class="fig" data-scene="scene-wave-s1" data-show="" width="100%" role="img" aria-label="両端固定の弦（波形はまだ描いていない）"></svg>
+  <p>ここから下へ、倍音の番号を上げながら確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①基本振動</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 基本振動（n = 1）：f = 100 Hz、節は両端、腹は中央</h2>
+  <svg class="fig" data-scene="scene-wave-s1" data-show="" width="100%" role="img" aria-label="弦の基本振動の波形"></svg>
+  <p>両端固定の弦では、両端は動けないので節になる。基本振動では、弦の長さ L が半波長の 1 個分だ。波長は λ = 2L = 2.0 m、振動数は f = v / λ = 200 / 2.0 = <strong>100 Hz</strong>。節は両端の 0 m と 1.0 m、腹は中央の <strong>0.50 m</strong> だけだ。図の赤い点が腹、赤い短い縦線が節だ。</p>
+  <label><input type="checkbox" class="check"> 基本振動の振動数 100 Hz、節は両端、腹は中央 0.50 m と分かった</label>
+  <br><a class="next" href="#step2">次へ ↓ ②倍音</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 倍音：n = 2 で 200 Hz、n = 3 で 300 Hz</h2>
+  <svg class="fig" data-scene="scene-wave-s2" data-show="" width="100%" role="img" aria-label="弦の2倍音の波形"></svg>
+  <svg class="fig" data-scene="scene-wave-s3" data-show="" width="100%" role="img" aria-label="弦の3倍音の波形"></svg>
+  <p>両端固定の弦の振動数は f<sub>n</sub> = nv / 2L だ。n = 2 では f = 2 × 200 / 2.0 = <strong>200 Hz</strong>、節は 0 m、<strong>0.50 m</strong>、1.0 m、腹は 0.25 m と 0.75 m。n = 3 では f = <strong>300 Hz</strong>、節は 0 m、<strong>0.33 m</strong>、<strong>0.67 m</strong>、1.0 m、腹は 0.17 m、0.50 m、0.83 m。番号 n が上がると、半波長の個数が n 個になり、節は n + 1 個、腹は n 個になる。腹の位置が変わることに注意しよう。n = 1 の腹だった中央 0.50 m は、n = 2 では節になっている。</p>
+  <label><input type="checkbox" class="check"> n = 2 で 200 Hz、n = 3 で 300 Hz、節・腹の位置を求めた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③開管</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 開管：両端が腹、f = 200, 400, 600 Hz</h2>
+  <svg class="fig" data-scene="scene-wave-open" data-show="" width="100%" role="img" aria-label="開管の基本振動の波形"></svg>
+  <p>開管（両端が開いた気柱）では、両端は空気が自由に出入りできるので腹になる。弦と同じく f<sub>n</sub> = nv / 2L だ。L = 0.85 m、v = 340 m/s なので、基本振動は f = 340 / (2 × 0.85) = <strong>200 Hz</strong>、2 倍音は <strong>400 Hz</strong>、3 倍音は <strong>600 Hz</strong>。図の両端に赤い点（腹）がある。弦と違って、端が腹になるのが開管だ。</p>
+  <label><input type="checkbox" class="check"> 開管は両端が腹で、振動数が 200, 400, 600 Hz と分かった</label>
+  <br><a class="next" href="#step4">次へ ↓ ④閉管</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 閉管：奇数倍音だけ、f = 100, 300, 500 Hz</h2>
+  <svg class="fig" data-scene="scene-wave-closed" data-show="" width="100%" role="img" aria-label="閉管の基本振動の波形"></svg>
+  <p>閉管（片端が閉じた気柱）では、閉じた端は空気が動けないので節、開いた端は腹になる。基本振動では、管の長さ L が 1/4 波長分だ。f<sub>1</sub> = v / 4L = 340 / (4 × 0.85) = <strong>100 Hz</strong>。次は 3 倍音の <strong>300 Hz</strong>、5 倍音の <strong>500 Hz</strong> で、偶数倍音は出ない。200 Hz や 400 Hz は閉管の共鳴振動数ではない。ここが罠だ。閉管に弦や開管の式 f = nv / 2L を使うと、200 Hz を答えてしまう。端の条件を先に確かめること。</p>
+  <label><input type="checkbox" class="check"> 閉管は奇数倍音だけで、100, 300, 500 Hz と分かった</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ：境界条件が倍音を決める</h2>
+  <svg class="fig" data-scene="scene-wave-s1" data-show="" width="100%" role="img" aria-label="定常波のまとめの図"></svg>
+  <p>定常波の問題は、まず端の条件を決める。固定端・閉じた端は節、自由端・開いた端は腹だ。次に、長さ L の中に半波長（弦・開管）か 1/4 波長（閉管）が何個入るかを数える。それが振動数の式になる。波の速さ v と長さ L だけでは決まらない。端の条件が違えば、同じ L でも出る振動数が変わる。共鳴とは、振動数がこの条件に合ったときに、波が大きくなることだ。</p>
+  <label><input type="checkbox" class="check"> 端の条件（節か腹か）が振動数を決めると分かった</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 弦は f<sub>n</sub> = nv/2L で 100, 200, 300 Hz。節は n = 1 で両端、n = 2 で 0, 0.50, 1.0 m、n = 3 で 0, 0.33, 0.67, 1.0 m。(2) 開管は 200, 400, 600 Hz、閉管は 100, 300, 500 Hz。波の重ね合わせの考え方は <a href="young.html">第8問：ヤングの干渉</a>、振動の考え方は <a href="shm.html">第11問：単振動・振り子</a> でも使う。</p>
+  <p>次は準備中です。<a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.standingWaveDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>

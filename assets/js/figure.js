@@ -1,4 +1,4 @@
-// 高校物理攻略 — 図描画シミュレータ（試作 v0.8：力学の単一モデル 円運動・単振動・衝突 追加）
+// 高校物理攻略 — 図描画シミュレータ（試作 v0.9：単一モデル 万有引力・定常波・光電効果 追加）
 // 方針：図は手書きの座標を直書きしない。入力は JSON の「物理データ」だけ。
 // 描画側が角度・つり合いから矢印の向きと長さを計算する。
 // だから mg sinθ が mg と同じ長さになる、θ が消える、ラベルが切れる、
@@ -619,7 +619,154 @@ function collisionForces(data, phase) {
   return { forces, derived: d, cy };
 }
 
+// ---- 万有引力・人工衛星（M14）：地表の g0 と地球半径 R だけを JSON から受け取り、
+// 軌道の速さ・周期・軌道上の重力を描画側で計算する ----
+// 具体値（検算済み、g0=10 m/s²、R=6.4e6 m、GM=g0R²）：
+//   低軌道 r=R：v=√(GM/r)=8000 m/s、T=2π√(r³/GM)≈5027 s（約84分）、g=10 m/s²
+//   r=2R（高度 R）：v≈5657 m/s、T≈14217 s（約237分）、g=g0(R/r)²=2.5 m/s²
+//   静止軌道 r≈6.66R（高度 3.62e7 m）：v≈3100 m/s、T≈86321 s（約24時間）、g≈0.23 m/s²
+//   脱出速度 √(2g0R)≈11314 m/s（低軌道の速さの √2 倍）。
+// 図の縮尺：軌道半径はつねに 120px（場面ごとに縮尺が変わる）。地球の半径は 120×R/r px。
+// 速度の矢印は 0.01 px/(m/s)、重力の矢印は 6 px/(m/s²)。
+// 地表の g=10 を軌道高度でも使うと、速さも周期も間違う——それがこの問題の罠。
+function gravitationDerived(data) {
+  const g0 = data.g0 || 10;
+  const R = data.radiusM || 6.4e6;
+  const GM = g0 * R * R;
+  const r = R + (data.altitudeM || 0);
+  const v = Math.sqrt(GM / r);
+  const periodS = 2 * Math.PI * Math.sqrt((r * r * r) / GM);
+  const g = g0 * (R / r) * (R / r);
+  return { g0, R, GM, r, v, periodS, g };
+}
+
+function gravitationForces(data) {
+  const d = gravitationDerived(data);
+  const orbitPx = 120;
+  const earthPx = orbitPx * (d.R / d.r);
+  const sat = { x: 200, y: 150 - orbitPx };
+  return {
+    forces: [
+      { id: 'gravity', short: '重力 mg', color: 'red', vector: [0, d.g * 6], dashed: false, labelDx: 6, labelDy: -6, from: sat },
+      { id: 'velocity', short: '速度 v', color: '#d35400', vector: [d.v * 0.01, 0], dashed: true, labelDx: 6, labelDy: -8, from: sat },
+    ],
+    derived: d, orbitPx, earthPx, sat,
+  };
+}
+
+// ---- 定常波・共鳴（W3）：弦の長さ・波の速さ・倍音の番号だけを JSON から受け取り、
+// 振動数と節・腹の位置を描画側で計算する ----
+// 具体値（検算済み）：
+//   弦 L=1.0 m、v=200 m/s：f_n = nv/2L → n=1:100 Hz、n=2:200 Hz、n=3:300 Hz
+//     節：n=1 は 0, 1.0 m / n=2 は 0, 0.50, 1.0 m / n=3 は 0, 0.33, 0.67, 1.0 m
+//   開管 L=0.85 m、v=340 m/s：f_n = nv/2L → 200, 400, 600 Hz（両端が腹）
+//   閉管 L=0.85 m、v=340 m/s：f_n = (2n−1)v/4L → 100, 300, 500 Hz（奇数倍音のみ）
+//     閉じた端は節、開いた端は腹。閉管に nv/2L を使うと、偶数倍音を出してしまう罠。
+// 図の縮尺：長さ 280px（x=60〜340）。波形は節・腹の位置から計算して描く。
+function standingWaveDerived(data) {
+  const L = data.lengthM, v = data.waveSpeedMs, n = data.n;
+  let freqHz, harmonicM, nodes, antinodes;
+  if (data.mode === 'closed') {
+    harmonicM = 2 * n - 1;
+    freqHz = (harmonicM * v) / (4 * L);
+    nodes = [];
+    for (let k = 0; k <= (harmonicM - 1) / 2; k++) nodes.push((2 * k / harmonicM) * L);
+    antinodes = [];
+    for (let k = 0; k < (harmonicM + 1) / 2; k++) antinodes.push(((2 * k + 1) / harmonicM) * L);
+  } else {
+    harmonicM = n;
+    freqHz = (n * v) / (2 * L);
+    if (data.mode === 'string') {
+      nodes = [];
+      for (let k = 0; k <= n; k++) nodes.push((k / n) * L);
+      antinodes = [];
+      for (let k = 0; k < n; k++) antinodes.push(((2 * k + 1) / (2 * n)) * L);
+    } else { // open pipe：両端が腹
+      antinodes = [];
+      for (let k = 0; k <= n; k++) antinodes.push((k / n) * L);
+      nodes = [];
+      for (let k = 0; k < n; k++) nodes.push(((2 * k + 1) / (2 * n)) * L);
+    }
+  }
+  return { freqHz, harmonicM, nodes, antinodes };
+}
+
+// ---- 光電効果（A1）：波長・仕事関数だけを JSON から受け取り、光子のエネルギーと
+// 電子の最大の運動エネルギー・速さを描画側で計算する ----
+// 具体値（検算済み、φ=2.0 eV、h=4.14e-15 eV·s、c=3.0e8 m/s）：
+//   650 nm：f≈4.62e14 Hz、E=hf≈1.91 eV < φ → 電子は出ない（強くしても出ない）
+//   400 nm：f=7.50e14 Hz、E=3.10 eV、Kmax=1.10 eV、v_max≈6.2e5 m/s
+//   300 nm：f=1.00e15 Hz、E=4.14 eV、Kmax=2.14 eV、v_max≈8.7e5 m/s
+//   限界振動数 f0=φ/h≈4.83e14 Hz、限界波長 λ0=c/f0≈621 nm
+//   明るい光：光子の数が増えるだけで、1個の光子のエネルギーは変わらない。
+//   だから Kmax（電子の速さ）は変わらず、電子の数だけが増える。
+// 電子の矢印の縮尺：8.0e-5 px/(m/s)（6.22e5 m/s → 約 50px、8.68e5 m/s → 約 70px）。
+function photoelectricDerived(data) {
+  const fHz = data.cMs / (data.wavelengthNm * 1e-9);
+  const energyEv = data.hEvS * fHz;
+  const kMaxEv = Math.max(energyEv - data.workFunctionEv, 0);
+  const emitted = energyEv > data.workFunctionEv;
+  const eV = 1.602e-19, me = 9.11e-31;
+  const vMaxMs = emitted ? Math.sqrt((2 * kMaxEv * eV) / me) : 0;
+  const thresholdHz = data.workFunctionEv / data.hEvS;
+  const thresholdNm = (data.cMs / thresholdHz) * 1e9;
+  return { fHz, energyEv, kMaxEv, emitted, vMaxMs, thresholdHz, thresholdNm };
+}
+
+function photoelectricForces(data) {
+  const d = photoelectricDerived(data);
+  const plateX = 200;
+  const lightCount = data.intensity || 1;
+  const electronCount = d.emitted ? Math.min(lightCount, 2) : 0;
+  const vScale = 8.0e-5; // px/(m/s)
+  const forces = [];
+  const lightYs = lightCount === 1 ? [180] : lightCount === 2 ? [150, 210] : [140, 180, 220];
+  lightYs.forEach((y, i) => forces.push({
+    id: 'light' + (i + 1), short: i === 0 ? '光' : '', color: '#d35400',
+    vector: [100, 0], dashed: true, labelDx: -52, labelDy: -8, from: { x: 90, y },
+  }));
+  const elecYs = electronCount === 1 ? [180] : [150, 210];
+  elecYs.forEach((y, i) => forces.push({
+    id: 'electron' + (i + 1), short: i === 0 ? '電子' : '', color: 'blue',
+    vector: [d.vMaxMs * vScale, 0], dashed: false, labelDx: 6, labelDy: -8, from: { x: plateX + 10, y },
+  }));
+  return { forces, derived: d, vScale, plateX };
+}
+
 function sceneFor(type, thetaDeg, mgPx, fPx, data) {
+  if (type === 'gravitation') {
+    const r = gravitationForces(data);
+    return {
+      type, phase: data.phase,
+      g0: data.g0 || 10, radiusM: data.radiusM || 6.4e6, altitudeM: data.altitudeM || 0,
+      derived: r.derived, orbitPx: r.orbitPx, earthPx: r.earthPx,
+      center: { x: 200, y: 150 }, sat: r.sat,
+      forces: r.forces,
+    };
+  }
+  if (type === 'standingWave') {
+    const d = standingWaveDerived(data);
+    const x0 = 60, spanPx = 280;
+    return {
+      type, mode: data.mode, n: data.n, lengthM: data.lengthM, waveSpeedMs: data.waveSpeedMs,
+      derived: d, x0, spanPx, yMid: 180, ampPx: 30,
+      nodesPx: d.nodes.map((x) => x0 + (x / data.lengthM) * spanPx),
+      antinodesPx: d.antinodes.map((x) => x0 + (x / data.lengthM) * spanPx),
+      center: { x: 200, y: 180 }, centerDot: false,
+      forces: [],
+    };
+  }
+  if (type === 'photoelectric') {
+    const r = photoelectricForces(data);
+    return {
+      type, phase: data.phase,
+      wavelengthNm: data.wavelengthNm, workFunctionEv: data.workFunctionEv,
+      hEvS: data.hEvS, cMs: data.cMs, intensity: data.intensity || 1,
+      derived: r.derived, vScale: r.vScale, plateX: r.plateX,
+      center: { x: 200, y: 180 }, centerDot: false,
+      forces: r.forces,
+    };
+  }
   if (type === 'circle') {
     const phase = (data && data.phase) || 'horizontal';
     const r = circleForces(data, phase);
@@ -1050,6 +1197,51 @@ function validateScene(scene) {
     // 初期電圧が V0 = Q0/C と一致すること。
     if (Math.abs(d.v0V - scene.charge0C / scene.capacitanceF) > 1e-9) return ['初期電圧が Q0/C と一致しません'];
   }
+  if (scene.type === 'gravitation') {
+    const d = scene.derived;
+    // 円軌道の条件：v² = GM/r。ケプラーの第三法則：T² = 4π²r³/GM。
+    if (Math.abs(d.v * d.v - d.GM / d.r) / d.v > 1e-9) return ['速さが √(GM/r) と一致しません'];
+    if (Math.abs(d.periodS * d.periodS - (4 * Math.PI * Math.PI * d.r * d.r * d.r) / d.GM) / (d.periodS * d.periodS) > 1e-9) return ['周期がケプラーの第三法則と一致しません'];
+    // 軌道上の重力：g = g0(R/r)²。地表の g0 をそのまま使うと間違う。
+    if (Math.abs(d.g - d.g0 * (d.R / d.r) * (d.R / d.r)) > 1e-9) return ['軌道上の重力が g0(R/r)² と一致しません'];
+    // 図の縮尺：地球の半径は 120×R/r px、速度は 0.01 px/(m/s)、重力は 6 px/(m/s²)。
+    if (Math.abs(scene.earthPx - scene.orbitPx * (d.R / d.r)) > 0.5) return ['地球の半径の図示が R/r と一致しません'];
+    if (byId.velocity && Math.abs(byId.velocity.vector[0] - d.v * 0.01) > 0.5) return ['速度の矢印が v の縮尺と一致しません'];
+    if (byId.gravity && Math.abs(byId.gravity.vector[1] - d.g * 6) > 0.5) return ['重力の矢印が g の縮尺と一致しません'];
+  }
+  if (scene.type === 'standingWave') {
+    const d = scene.derived;
+    // 振動数の公式：弦・開管は nv/2L、閉管は (2n−1)v/4L。
+    const expectedF = scene.mode === 'closed'
+      ? ((2 * scene.n - 1) * scene.waveSpeedMs) / (4 * scene.lengthM)
+      : (scene.n * scene.waveSpeedMs) / (2 * scene.lengthM);
+    if (Math.abs(d.freqHz - expectedF) > 1e-9) return ['振動数が公式と一致しません: ' + d.freqHz.toFixed(2)];
+    // 境界条件：弦は両端が節、開管は両端が腹、閉管は左端が節・右端が腹。
+    if (scene.mode === 'string' && (Math.abs(d.nodes[0]) > 1e-9 || Math.abs(d.nodes[d.nodes.length - 1] - scene.lengthM) > 1e-9)) return ['弦の両端が節になっていません'];
+    if (scene.mode === 'string' && d.nodes.length !== scene.n + 1) return ['弦の節の数が n+1 になっていません'];
+    if (scene.mode === 'open' && (Math.abs(d.antinodes[0]) > 1e-9 || Math.abs(d.antinodes[d.antinodes.length - 1] - scene.lengthM) > 1e-9)) return ['開管の両端が腹になっていません'];
+    if (scene.mode === 'closed' && (Math.abs(d.nodes[0]) > 1e-9 || Math.abs(d.antinodes[d.antinodes.length - 1] - scene.lengthM) > 1e-9)) return ['閉管の左端が節・右端が腹になっていません'];
+    if (scene.mode === 'closed' && d.antinodes.length !== scene.n) return ['閉管の腹の数が n になっていません'];
+    // 図の節・腹の位置が計算値と一致すること。
+    if (scene.nodesPx.length !== d.nodes.length || scene.antinodesPx.length !== d.antinodes.length) return ['図の節・腹の数が計算値と一致しません'];
+    for (let i = 0; i < d.nodes.length; i++) {
+      if (Math.abs(scene.nodesPx[i] - (scene.x0 + (d.nodes[i] / scene.lengthM) * scene.spanPx)) > 0.5) return ['図の節の位置が計算値と一致しません'];
+    }
+  }
+  if (scene.type === 'photoelectric') {
+    const d = scene.derived;
+    // 光子のエネルギー E = hf。最大の運動エネルギー Kmax = hf − φ（出ないときは 0）。
+    if (Math.abs(d.energyEv - scene.hEvS * d.fHz) > 1e-9) return ['光子のエネルギーが hf と一致しません'];
+    if (d.emitted && Math.abs(d.kMaxEv - (d.energyEv - scene.workFunctionEv)) > 1e-9) return ['最大の運動エネルギーが hf − φ と一致しません'];
+    if (!d.emitted && d.kMaxEv !== 0) return ['出ないはずの電子に運動エネルギーがあります'];
+    // 限界振動数 f0 = φ/h、限界波長 λ0 = c/f0。
+    if (Math.abs(d.thresholdHz - scene.workFunctionEv / scene.hEvS) > 1) return ['限界振動数が φ/h と一致しません'];
+    if (Math.abs(d.thresholdNm - (scene.cMs / d.thresholdHz) * 1e9) > 0.5) return ['限界波長が c/f0 と一致しません'];
+    // 電子の矢印の長さが速さの縮尺どおりか（出る場合）。
+    if (d.emitted && byId.electron1 && Math.abs(byId.electron1.vector[0] - d.vMaxMs * scene.vScale) > 0.5) return ['電子の矢印が速さの縮尺と一致しません'];
+    // 明るくしても電子の速さは変わらない（Kmax が変わらない）。
+    if (d.emitted && byId.electron2 && byId.electron1 && Math.abs(byId.electron2.vector[0] - byId.electron1.vector[0]) > 0.5) return ['明るくしても電子の速さが変わっています'];
+  }
   if (scene.type === 'collision-spring') {
     const d = scene.derived, L = scene.layout;
     // 運動量保存：m1 v0 = (m1+m2) v'
@@ -1436,6 +1628,65 @@ function drawBase(svg, scene) {
       svg.appendChild(el('rect', { x: 180, y: cy - 20, width: 80, height: 40, fill: '#ffe1c2', stroke: '#333', 'stroke-width': 2 }));
       const t = el('text', { x: 214, y: cy + 5 }); t.textContent = 'A+B'; svg.appendChild(t);
     }
+  } else if (scene.type === 'gravitation') {
+    const c = scene.center, rPx = scene.orbitPx, ePx = scene.earthPx;
+    // 地球（半径は 120×R/r px）と軌道（破線の円）。衛星は軌道の真上に描く。
+    svg.appendChild(el('circle', { cx: c.x, cy: c.y, r: rPx, fill: 'none', stroke: '#333', 'stroke-width': 2, 'stroke-dasharray': '5 4' }));
+    svg.appendChild(el('circle', { cx: c.x, cy: c.y, r: ePx, fill: '#cfe3ff', stroke: '#333', 'stroke-width': 2 }));
+    const tE = el('text', { x: c.x + ePx + 8, y: c.y + 4 }); tE.textContent = '地球'; svg.appendChild(tE);
+    const tR = el('text', { x: c.x + rPx - 30, y: c.y + 16, fill: '#555' }); tR.textContent = '軌道半径 r'; svg.appendChild(tR);
+    svg.appendChild(el('circle', { cx: scene.sat.x, cy: scene.sat.y, r: 8, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+    const tS = el('text', { x: scene.sat.x + 12, y: scene.sat.y - 6 }); tS.textContent = '人工衛星'; svg.appendChild(tS);
+  } else if (scene.type === 'standingWave') {
+    const x0 = scene.x0, span = scene.spanPx, yMid = scene.yMid, amp = scene.ampPx;
+    // 波形：境界条件から計算する（弦・開管は sin/cos、閉管は sin(mπt/2)）。
+    const shapeY = (t) => {
+      if (scene.mode === 'string') return yMid - amp * Math.sin(scene.derived.harmonicM * Math.PI * t);
+      if (scene.mode === 'open') return yMid - amp * Math.cos(scene.derived.harmonicM * Math.PI * t);
+      return yMid - amp * Math.sin((scene.derived.harmonicM * Math.PI * t) / 2);
+    };
+    if (scene.mode === 'string') {
+      svg.appendChild(el('line', { x1: x0, y1: yMid, x2: x0 + span, y2: yMid, stroke: '#333', 'stroke-width': 2 }));
+      // 両端は固定端（壁の印）。
+      svg.appendChild(el('line', { x1: x0, y1: yMid - 12, x2: x0, y2: yMid + 12, stroke: '#333', 'stroke-width': 3 }));
+      svg.appendChild(el('line', { x1: x0 + span, y1: yMid - 12, x2: x0 + span, y2: yMid + 12, stroke: '#333', 'stroke-width': 3 }));
+      const tS = el('text', { x: x0, y: yMid - 52 }); tS.textContent = '弦（両端固定）'; svg.appendChild(tS);
+    } else {
+      // 気柱：管の枠。閉管は左端に壁、開管は両端が開いている。
+      svg.appendChild(el('rect', { x: x0, y: yMid - 40, width: span, height: 80, fill: '#f2f6ff', stroke: '#333', 'stroke-width': 2 }));
+      if (scene.mode === 'closed') {
+        svg.appendChild(el('line', { x1: x0, y1: yMid - 40, x2: x0, y2: yMid + 40, stroke: '#333', 'stroke-width': 4 }));
+        const tC = el('text', { x: x0, y: yMid - 52 }); tC.textContent = '閉管（左端は壁、右端は開いている）'; svg.appendChild(tC);
+      } else {
+        const tO = el('text', { x: x0, y: yMid - 52 }); tO.textContent = '開管（両端が開いている）'; svg.appendChild(tO);
+      }
+    }
+    let d = '';
+    for (let i = 0; i <= 120; i++) {
+      const t = i / 120;
+      const x = (x0 + t * span).toFixed(1), y = shapeY(t).toFixed(1);
+      d += (d ? ' L ' : 'M ') + x + ' ' + y;
+    }
+    svg.appendChild(el('path', { d, fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
+    // 節の目印：赤い短い縦線。腹の目印：波の上の点。
+    for (const nx of scene.nodesPx) {
+      svg.appendChild(el('line', { x1: nx, y1: yMid - 10, x2: nx, y2: yMid + 10, stroke: '#b00', 'stroke-width': 2 }));
+    }
+    for (const ax of scene.antinodesPx) {
+      const t = (ax - x0) / span;
+      svg.appendChild(el('circle', { cx: ax, cy: shapeY(t), r: 4, fill: '#b00' }));
+    }
+    const tN = el('text', { x: scene.nodesPx[0] - 6, y: yMid + 26, fill: '#b00' }); tN.textContent = '節'; svg.appendChild(tN);
+    const tA = el('text', { x: scene.antinodesPx[0] - 6, y: yMid + 26, fill: '#b00' }); tA.textContent = '腹'; svg.appendChild(tA);
+  } else if (scene.type === 'photoelectric') {
+    const px = scene.plateX;
+    // 金属板（縦の板）。光は左から、電子は右へ出る。
+    svg.appendChild(el('rect', { x: px - 4, y: 100, width: 8, height: 140, fill: '#cfe3ff', stroke: '#333', 'stroke-width': 2 }));
+    const tP = el('text', { x: px + 14, y: 92 }); tP.textContent = '金属板'; svg.appendChild(tP);
+    const tS = el('text', { x: 40, y: 92 }); tS.textContent = '光源'; svg.appendChild(tS);
+    if (!scene.derived.emitted) {
+      const tX = el('text', { x: px + 30, y: 180, fill: '#b00' }); tX.textContent = '電子は出ない'; svg.appendChild(tX);
+    }
   } else if (scene.type === 'ladder') {
     svg.appendChild(el('line', { x1: 80, y1: 20, x2: 80, y2: 260, stroke: '#333', 'stroke-width': 3 }));
     svg.appendChild(el('line', { x1: 80, y1: 260, x2: 380, y2: 260, stroke: '#333', 'stroke-width': 3 }));
@@ -1490,4 +1741,4 @@ function renderAllFigures() {
   });
 }
 
-if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, sceneFor, validateScene };
+if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, sceneFor, validateScene };
