@@ -1,4 +1,4 @@
-// 高校物理攻略 — 図描画シミュレータ（試作 v3.0：組み合わせAG 地球を貫くトンネル・組み合わせAH ヒーター＋気体 追加）
+// 高校物理攻略 — 図描画シミュレータ（試作 v3.1：組み合わせAI 水素のスペクトル＋光電効果＋磁場円運動・組み合わせAJ オットーサイクル 追加）
 // 方針：図は手書きの座標を直書きしない。入力は JSON の「物理データ」だけ。
 // 描画側が角度・つり合いから矢印の向きと長さを計算する。
 // だから mg sinθ が mg と同じ長さになる、θ が消える、ラベルが切れる、
@@ -2160,6 +2160,109 @@ function heaterGasForces(data) {
   ];
 }
 
+// ---- 組み合わせAI：水素のスペクトル＋光電効果＋磁場円運動（ボーア＋光電効果＋荷電粒子）----
+// 水素の出す光のエネルギーが陰極から出る電子の速さを決め、その速さが磁場中の円の半径を決める。
+const AI_E = 1.602e-19; // 電気素量 (C)
+const AI_ME = 9.11e-31; // 電子の質量 (kg)
+const AI_MP = 1.67e-27; // 陽子の質量 (kg)
+function specPhotoCircleDerived(data) {
+  const phi = data.phiEV, B = data.bT;
+  // 水素の遷移：ΔE = 13.6(1/n2^2 − 1/n1^2) eV、λ = 1240/ΔE nm。
+  const line = (n1, n2) => {
+    const eEV = 13.6 * (1 / (n2 * n2) - 1 / (n1 * n1));
+    const lamNm = 1240 / eEV;
+    const kMaxEV = eEV - phi;
+    const vMs = kMaxEV > 0 ? Math.sqrt((2 * kMaxEV * AI_E) / AI_ME) : 0;
+    const rM = kMaxEV > 0 ? (AI_ME * vMs) / (AI_E * B) : 0;
+    return { n1, n2, eEV, lamNm, kMaxEV, vMs, rM };
+  };
+  const l32 = line(3, 2), l42 = line(4, 2), l21 = line(2, 1);
+  // 122 nm の電子（Kmax = 8.2 eV）が磁場で描く円。
+  const vMaxMs = l21.vMs, rM = l21.rM;
+  const periodS = (2 * Math.PI * AI_ME) / (AI_E * B);
+  const omegaC = (AI_E * B) / AI_ME;
+  const lorentzN = AI_E * vMaxMs * B;
+  const centripetalN = (AI_ME * vMaxMs * vMaxMs) / rM;
+  // 罠の陽子：同じ 8.2 eV なら r は √(mp/me) ≈ 43 倍。
+  const vProtonMs = Math.sqrt((2 * l21.kMaxEV * AI_E) / AI_MP);
+  const rProtonM = (AI_MP * vProtonMs) / (AI_E * B);
+  const periodProtonS = (2 * Math.PI * AI_MP) / (AI_E * B);
+  const ratioProton = Math.sqrt(AI_MP / AI_ME);
+  // 変えたら：B を 2 倍にすると r は半分、T も半分。
+  const rB2M = rM / 2, periodB2S = periodS / 2;
+  // 変えたら：仕事関数が 1.0 eV なら 656 nm でも出る。
+  const kMaxPhi1EV = l32.eEV - 1.0;
+  const vPhi1Ms = Math.sqrt((2 * kMaxPhi1EV * AI_E) / AI_ME);
+  const rPhi1M = (AI_ME * vPhi1Ms) / (AI_E * B);
+  // 円の描画：中心 (200,170)、半径は 4000 px/m（9.66 mm → 38.6 px）。
+  const circleCenter = { x: 200, y: 170 };
+  const circleR = rM * 4000;
+  const electron = { x: circleCenter.x, y: circleCenter.y - circleR };
+  // 準位図の y 座標（模式的な間隔。エネルギーはラベルの数字で見る）。
+  const levelY = { 1: 240, 2: 185, 3: 130, 4: 75 };
+  return {
+    phi, B, l32, l42, l21, vMaxMs, rM, periodS, omegaC, lorentzN, centripetalN,
+    vProtonMs, rProtonM, periodProtonS, ratioProton, rB2M, periodB2S,
+    kMaxPhi1EV, vPhi1Ms, rPhi1M, circleCenter, circleR, electron, levelY,
+  };
+}
+function specPhotoCircleForces(data) {
+  const phase = (data && data.phase) || 'base';
+  if (phase !== 'circle') return [];
+  const d = specPhotoCircleDerived(data);
+  // 電子は円の頂点にいて、左向きに進む（B は紙面の裏向き）。速度は破線、ローレンツ力は中心向き。
+  // ラベルは左の空きに置く（AF の重なりを避ける）。F の短い表記は「F≈10⁻¹⁶ N」、全文は図の注記と本文に書く。
+  return [
+    { id: 'velocity', short: 'v≈1.7×10⁶ m/s', color: '#d35400', vector: [-34, 0], dashed: true, labelDx: -116, labelDy: -16, from: d.electron },
+    { id: 'lorentz', short: 'F≈10⁻¹⁶ N', color: 'red', vector: [0, 33], dashed: false, labelDx: -155, labelDy: -6, from: d.electron },
+  ];
+}
+
+// ---- 組み合わせAJ：オットーサイクル（ガソリンエンジン）（理想気体＋断熱変化＋第一法則＋サイクル）----
+// 空気（γ=1.4）を圧縮比 r=8 で断熱圧縮し、等積で加熱して 2000 K にし、断熱膨張させる。
+const AJ_R = 8.31; // J/(mol·K)
+function ottoCycleDerived(data) {
+  const gamma = data.gamma || 1.4;
+  const r = data.compRatio;
+  const n = (data.p1Pa * data.v1M3) / (AJ_R * data.t1K);
+  const cvJ = 2.5 * AJ_R, cpJ = 3.5 * AJ_R;
+  const v2M3 = data.v1M3 / r;
+  const p2Pa = data.p1Pa * Math.pow(r, gamma);
+  const t2K = data.t1K * Math.pow(r, gamma - 1);
+  const p3Pa = p2Pa * (data.t3K / t2K);
+  const t4K = data.t3K / Math.pow(r, gamma - 1);
+  const p4Pa = p3Pa / Math.pow(r, gamma);
+  const qInJ = n * cvJ * (data.t3K - t2K);
+  const qOutJ = n * cvJ * (t4K - data.t1K);
+  const wInJ = n * cvJ * (t2K - data.t1K); // A→B：外からする仕事（= ΔU）
+  const wOutJ = n * cvJ * (data.t3K - t4K); // C→D：気体のする仕事（= ΔU）
+  const wNetJ = qInJ - qOutJ;
+  const eta = wNetJ / qInJ;
+  const etaTheory = 1 - 1 / Math.pow(r, gamma - 1);
+  // 罠：カルノー効率（T3=2000 K と T1=300 K のあいだ）と、γ=5/3 としたときの効率。
+  const etaCarnot = 1 - data.t1K / data.t3K;
+  const etaWrongGamma = 1 - Math.pow(r, -(5 / 3 - 1));
+  // 変えたら：圧縮比 4 と 12。
+  const etaR4 = 1 - Math.pow(4, -(gamma - 1));
+  const etaR12 = 1 - Math.pow(12, -(gamma - 1));
+  const t2R12K = data.t1K * Math.pow(12, gamma - 1);
+  const p2R12Pa = data.p1Pa * Math.pow(12, gamma);
+  // p-V 図の断熱曲線の点列（[V, p]）。validateScene で pV^γ = 一定を確かめる。
+  const abCurve = [1.0, 0.8, 0.6, 0.45, 0.3, 0.2, 0.125].map((f) => [f * data.v1M3, data.p1Pa * Math.pow(1 / f, gamma)]);
+  const cdCurve = [0.125, 0.2, 0.3, 0.45, 0.6, 0.8, 1.0].map((f) => [f * data.v1M3, p3Pa * Math.pow(0.125 / f, gamma)]);
+  return {
+    gamma, r, nMol: n, cvJ, cpJ, v2M3, p2Pa, t2K, p3Pa, t4K, p4Pa,
+    qInJ, qOutJ, wInJ, wOutJ, wNetJ, eta, etaTheory,
+    etaCarnot, etaWrongGamma, etaR4, etaR12, t2R12K, p2R12Pa,
+    abCurve, cdCurve,
+  };
+}
+function ottoCycleForces(data) { return []; }
+
+// p-V 図の座標：V 0→1.0 L を x 60→340 px、log10(p) 1e5→1e7 Pa を y 220→50 px。
+function ottoX(vM3) { return 60 + 280 * (vM3 / 0.001); }
+function ottoY(pPa) { return 220 - 85 * (Math.log10(pPa) - 5); }
+
 // ---- 円運動（M11）：水平面内の円運動と、鉛直面内のループ ----
 // 具体値（検算済み）：m=1.0 kg、g=10 のとき
 //   水平：r=0.50 m、v=2.0 m/s → T = mv²/r = 8.0 N、ω = v/r = 4.0 rad/s、周期 ≈ 1.57 s
@@ -4082,6 +4185,27 @@ function sceneFor(type, thetaDeg, mgPx, fPx, data) {
       forces: heaterGasForces(data),
     };
   }
+  if (type === 'specPhotoCircle') {
+    const d = specPhotoCircleDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      phiEV: data.phiEV, bT: data.bT, g: data.g || 10,
+      derived: d,
+      center: d.circleCenter, centerDot: false,
+      forces: specPhotoCircleForces(data),
+    };
+  }
+  if (type === 'ottoCycle') {
+    const d = ottoCycleDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      p1Pa: data.p1Pa, v1M3: data.v1M3, t1K: data.t1K, t3K: data.t3K,
+      compRatio: data.compRatio, gamma: data.gamma || 1.4, g: data.g || 10,
+      derived: d,
+      center: { x: 200, y: 140 }, centerDot: false,
+      forces: ottoCycleForces(data),
+    };
+  }
   if (type === 'slopePulley') {
     return {
       type, phase: (data && data.phase) || 'connected',
@@ -5266,6 +5390,74 @@ function validateScene(scene) {
     // 矢印の長さが縮尺どおりか（気体・大気の力 0.02 px/N）。
     if (byId.gasForce && Math.abs(Math.hypot(byId.gasForce.vector[0], byId.gasForce.vector[1]) - 20) > 0.5) return ['気体の力の矢印が 20 px と一致しません'];
     if (byId.atmForce && Math.abs(Math.hypot(byId.atmForce.vector[0], byId.atmForce.vector[1]) - 20) > 0.5) return ['大気の力の矢印が 20 px と一致しません'];
+  }
+  if (scene.type === 'specPhotoCircle') {
+    const d = scene.derived;
+    // 水素の遷移：ΔE = 13.6(1/n2^2 − 1/n1^2) eV、λ = 1240/ΔE nm。
+    for (const [key, n1, n2] of [['l32', 3, 2], ['l42', 4, 2], ['l21', 2, 1]]) {
+      const L = d[key];
+      if (Math.abs(L.eEV - 13.6 * (1 / (n2 * n2) - 1 / (n1 * n1))) > 1e-9) return ['遷移エネルギーが 13.6(1/n2^2−1/n1^2) と一致しません'];
+      if (Math.abs(L.lamNm - 1240 / L.eEV) > 1e-9) return ['波長が 1240/ΔE と一致しません'];
+      if (Math.abs(L.kMaxEV - (L.eEV - scene.phiEV)) > 1e-9) return ['最大の運動エネルギーが ΔE − φ と一致しません'];
+      if (L.kMaxEV > 0) {
+        if (Math.abs(L.vMs - Math.sqrt((2 * L.kMaxEV * AI_E) / AI_ME)) > 1e-9) return ['最大の速さが √(2K/m) と一致しません'];
+        if (Math.abs(L.rM - (AI_ME * L.vMs) / (AI_E * scene.bT)) > 1e-9) return ['円運動の半径が mv/(qB) と一致しません'];
+      } else if (Math.abs(L.vMs) > 1e-9 || Math.abs(L.rM) > 1e-9) return ['出ないはずの電子に速さ・半径があります'];
+    }
+    // 円運動：T = 2πm/(qB)、ω = qB/m、F = qvB = mv²/r。
+    if (Math.abs(d.periodS - (2 * Math.PI * AI_ME) / (AI_E * scene.bT)) > 1e-12) return ['周期が 2πm/(qB) と一致しません'];
+    if (Math.abs(d.omegaC - (AI_E * scene.bT) / AI_ME) > 1e-9) return ['角速度が qB/m と一致しません'];
+    if (Math.abs(d.lorentzN - AI_E * d.vMaxMs * scene.bT) > 1e-9) return ['ローレンツ力が qvB と一致しません'];
+    if (Math.abs(d.centripetalN - d.lorentzN) / d.lorentzN > 1e-9) return ['ローレンツ力が向心力 mv²/r と一致しません'];
+    // 罠：同じ 8.2 eV の陽子は r = √(2mK)/(qB) で約 43 倍。
+    if (Math.abs(d.vProtonMs - Math.sqrt((2 * d.l21.kMaxEV * AI_E) / AI_MP)) > 1e-9) return ['陽子の速さが √(2K/m) と一致しません'];
+    if (Math.abs(d.rProtonM - (AI_MP * d.vProtonMs) / (AI_E * scene.bT)) > 1e-9) return ['陽子の半径が mv/(qB) と一致しません'];
+    if (Math.abs(d.ratioProton - Math.sqrt(AI_MP / AI_ME)) / d.ratioProton > 1e-3) return ['陽子と電子の半径の比が √(m_p/m_e) と一致しません'];
+    // B を 2 倍にすると半径は半分、周期も半分。
+    if (Math.abs(d.rB2M - d.rM / 2) > 1e-9) return ['B を 2 倍にした半径が半分と一致しません'];
+    if (Math.abs(d.periodB2S - d.periodS / 2) > 1e-9) return ['B を 2 倍にした周期が半分と一致しません'];
+    // 仕事関数が 1.0 eV なら 656 nm でも出る。
+    if (Math.abs(d.kMaxPhi1EV - (d.l32.eEV - 1.0)) > 1e-9) return ['φ=1.0 eV の最大の運動エネルギーが ΔE − 1.0 と一致しません'];
+    if (Math.abs(d.rPhi1M - Math.sqrt((2 * AI_ME * d.kMaxPhi1EV * AI_E)) / (AI_E * scene.bT)) > 1e-9) return ['φ=1.0 eV の半径が √(2mK)/(qB) と一致しません'];
+    // 速度とローレンツ力は直角。矢印の長さは速度 34 px、ローレンツ力 33 px。
+    if (byId.velocity && byId.lorentz) {
+      const dot = byId.velocity.vector[0] * byId.lorentz.vector[0] + byId.velocity.vector[1] * byId.lorentz.vector[1];
+      if (Math.abs(dot) > 0.5) return ['ローレンツ力が速度と直角になっていません'];
+    }
+    if (byId.velocity && Math.abs(Math.hypot(byId.velocity.vector[0], byId.velocity.vector[1]) - 34) > 0.5) return ['速度の矢印が 34 px と一致しません'];
+    if (byId.lorentz && Math.abs(Math.hypot(byId.lorentz.vector[0], byId.lorentz.vector[1]) - 33) > 0.5) return ['ローレンツ力の矢印が 33 px と一致しません'];
+  }
+  if (scene.type === 'ottoCycle') {
+    const d = scene.derived;
+    // 物質量と断熱変化：n = p1V1/RT1、p2 = p1 r^γ、T2 = T1 r^(γ−1)。
+    if (Math.abs(d.nMol - (scene.p1Pa * scene.v1M3) / (AJ_R * scene.t1K)) > 1e-9) return ['物質量が p1V1/RT1 と一致しません'];
+    if (Math.abs(d.p2Pa - scene.p1Pa * Math.pow(scene.compRatio, scene.gamma)) > 1e-9) return ['圧縮後の圧力が p1 r^γ と一致しません'];
+    if (Math.abs(d.t2K - scene.t1K * Math.pow(scene.compRatio, scene.gamma - 1)) > 1e-9) return ['圧縮後の温度が T1 r^(γ−1) と一致しません'];
+    if (Math.abs(d.p3Pa - d.p2Pa * (scene.t3K / d.t2K)) > 1e-9) return ['加熱後の圧力が p2·T3/T2 と一致しません'];
+    if (Math.abs(d.t4K - scene.t3K / Math.pow(scene.compRatio, scene.gamma - 1)) > 1e-9) return ['膨張後の温度が T3/r^(γ−1) と一致しません'];
+    if (Math.abs(d.p4Pa - d.p3Pa / Math.pow(scene.compRatio, scene.gamma)) > 1e-9) return ['膨張後の圧力が p3/r^γ と一致しません'];
+    // 熱と仕事：Q_in = nCv(T3−T2)、Q_out = nCv(T4−T1)、W = Q_in − Q_out = W_out − W_in。
+    if (Math.abs(d.qInJ - d.nMol * d.cvJ * (scene.t3K - d.t2K)) > 1e-9) return ['入る熱が nCv(T3−T2) と一致しません'];
+    if (Math.abs(d.qOutJ - d.nMol * d.cvJ * (d.t4K - scene.t1K)) > 1e-9) return ['出る熱が nCv(T4−T1) と一致しません'];
+    if (Math.abs(d.wNetJ - (d.qInJ - d.qOutJ)) > 1e-9) return ['正味の仕事が Q_in − Q_out と一致しません'];
+    if (Math.abs(d.wNetJ - (d.wOutJ - d.wInJ)) > 1e-9) return ['正味の仕事が W_out − W_in と一致しません'];
+    if (Math.abs(d.eta - d.wNetJ / d.qInJ) > 1e-9) return ['効率が W/Q_in と一致しません'];
+    if (Math.abs(d.eta - d.etaTheory) > 1e-9) return ['効率が 1−r^(1−γ) と一致しません'];
+    // 罠：カルノー効率 1−T1/T3、γ=5/3 としたときの効率。
+    if (Math.abs(d.etaCarnot - (1 - scene.t1K / scene.t3K)) > 1e-9) return ['カルノー効率が 1−T1/T3 と一致しません'];
+    if (Math.abs(d.etaWrongGamma - (1 - Math.pow(scene.compRatio, -(5 / 3 - 1)))) > 1e-9) return ['γ=5/3 の効率が 1−r^(−2/3) と一致しません'];
+    // 変えたら：圧縮比 4 と 12 の効率。
+    if (Math.abs(d.etaR4 - (1 - Math.pow(4, -(scene.gamma - 1)))) > 1e-9) return ['圧縮比 4 の効率が 1−4^(1−γ) と一致しません'];
+    if (Math.abs(d.etaR12 - (1 - Math.pow(12, -(scene.gamma - 1)))) > 1e-9) return ['圧縮比 12 の効率が 1−12^(1−γ) と一致しません'];
+    // 断熱曲線の点列：pV^γ = 一定。
+    const cAB = scene.p1Pa * Math.pow(scene.v1M3, scene.gamma);
+    for (const [v, p] of d.abCurve) {
+      if (Math.abs(p * Math.pow(v, scene.gamma) - cAB) / cAB > 1e-9) return ['A→B の断熱曲線が pV^γ = 一定と一致しません'];
+    }
+    const cCD = d.p3Pa * Math.pow(d.v2M3, scene.gamma);
+    for (const [v, p] of d.cdCurve) {
+      if (Math.abs(p * Math.pow(v, scene.gamma) - cCD) / cCD > 1e-9) return ['C→D の断熱曲線が pV^γ = 一定と一致しません'];
+    }
   }
   if (scene.type === 'charged-circle') {
     const d = scene.derived;
@@ -8475,6 +8667,220 @@ function drawBase(svg, scene) {
         note(294, 'n=0.040 mol、V0=1.0 L、T0=300 K');
       }
     }
+  } else if (scene.type === 'specPhotoCircle') {
+    const d = scene.derived;
+    const phase = scene.phase;
+    const tH = el('text', { x: 40, y: 36, fill: '#333' });
+    tH.textContent = phase === 'spectrum' ? 'スペクトル：水素の出す光'
+      : phase === 'photo' ? '光電効果：122 nm の電子'
+      : phase === 'circle' ? '磁場中の円運動：r≈9.7 mm'
+      : phase === 'trap' ? '罠：656 nm は出ない'
+      : phase === 'vary' ? '変えたら：B を 2 倍・φ=1.0 eV・陽子なら'
+      : '水素の光＋光電効果＋磁場';
+    svg.appendChild(tH);
+    const note = (y, text) => { const t = el('text', { x: 60, y, fill: '#333' }); t.textContent = text; svg.appendChild(t); };
+    if (phase === 'spectrum') {
+      // 準位図：準位の線と遷移の矢印。間隔は模式的、エネルギーはラベルの数字で見る。
+      const eVal = { 1: -13.6, 2: -3.40, 3: -1.51, 4: -0.85 };
+      for (const n of [1, 2, 3, 4]) {
+        const y = d.levelY[n];
+        svg.appendChild(el('line', { x1: 120, y1: y, x2: 340, y2: y, stroke: '#333', 'stroke-width': 2 }));
+        const tL = el('text', { x: 8, y: y + 4, fill: '#333' });
+        tL.textContent = `n=${n} ${eVal[n]} eV`;
+        svg.appendChild(tL);
+      }
+      // 遷移の矢印（下向き）。ラベルは矢印の下のほうに 2 行（上の準位の線から離す）。
+      const arrow = (x, y1, y2, label1, label2) => {
+        svg.appendChild(el('line', { x1: x, y1, x2: x, y2, stroke: '#b00', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+        const t1 = el('text', { x: x + 8, y: y2 - 30, fill: '#b00' }); t1.textContent = label1; svg.appendChild(t1);
+        const t2 = el('text', { x: x + 8, y: y2 - 14, fill: '#b00' }); t2.textContent = label2; svg.appendChild(t2);
+      };
+      arrow(160, d.levelY[3], d.levelY[2], '1.89 eV', '656 nm');
+      arrow(240, d.levelY[4], d.levelY[2], '2.55 eV', '486 nm');
+      arrow(310, d.levelY[2], d.levelY[1], '10.2 eV', '122 nm');
+      note(258, '光のエネルギー = 準位の差');
+      note(276, '3→2 は 1.89 eV・656 nm');
+      note(294, '2→1 は 10.2 eV・122 nm');
+    } else if (phase === 'photo') {
+      // エネルギーの棒グラフ（15 px/eV）。
+      const rows = [
+        { name: '光子 10.2 eV', w: d.l21.eEV * 15, val: '10.2 eV', color: '#ffd24d' },
+        { name: '仕事関数 2.0 eV', w: d.phi * 15, val: '2.0 eV', color: '#cfe3ff' },
+        { name: 'Kmax 8.2 eV', w: d.l21.kMaxEV * 15, val: '8.2 eV', color: '#b3e6b3' },
+      ];
+      rows.forEach((r, i) => {
+        const y = 75 + i * 45;
+        const tN = el('text', { x: 60, y: y - 8 }); tN.textContent = r.name; svg.appendChild(tN);
+        svg.appendChild(el('rect', { x: 140, y, width: r.w, height: 18, fill: r.color, stroke: '#333', 'stroke-width': 1 }));
+        const tV = el('text', { x: 140 + r.w + 8, y: y + 15 }); tV.textContent = r.val; svg.appendChild(tV);
+      });
+      note(258, 'Kmax = 10.2 − 2.0 = 8.2 eV');
+      note(276, 'v_max = √(2K/m) ≈ 1.7×10⁶ m/s');
+      note(294, '486 nm では Kmax = 0.55 eV');
+    } else if (phase === 'trap') {
+      // 光子のエネルギーと仕事関数の比べ（15 px/eV）。φ=2.0 eV の線をこえた光だけ出る。
+      const rows = [
+        { name: '122 nm', w: d.l21.eEV * 15, val: '10.2 eV', color: '#b3e6b3' },
+        { name: '486 nm', w: d.l42.eEV * 15, val: '2.55 eV', color: '#cfe3ff' },
+        { name: '656 nm', w: d.l32.eEV * 15, val: '1.89 eV', color: '#ffb3b3' },
+      ];
+      rows.forEach((r, i) => {
+        const y = 75 + i * 45;
+        const tN = el('text', { x: 60, y: y - 8 }); tN.textContent = r.name; svg.appendChild(tN);
+        svg.appendChild(el('rect', { x: 140, y, width: r.w, height: 18, fill: r.color, stroke: '#333', 'stroke-width': 1 }));
+        const tV = el('text', { x: 140 + r.w + 8, y: y + 15 }); tV.textContent = r.val; svg.appendChild(tV);
+      });
+      const phiX = 140 + d.phi * 15;
+      svg.appendChild(el('line', { x1: phiX, y1: 60, x2: phiX, y2: 210, stroke: '#b00', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      const tP = el('text', { x: phiX + 6, y: 68, fill: '#b00' }); tP.textContent = 'φ=2.0 eV'; svg.appendChild(tP);
+      note(258, 'φ=2.0 eV の線をこえた光だけ出る');
+      note(276, '656 nm は 1.89 eV < φ で出ない');
+      note(294, '明るくしても光子のエネルギーは変わらない');
+    } else if (phase === 'vary') {
+      // 半径の棒グラフ（12 px/mm）。
+      const rows = [
+        { name: 'もと：122 nm・B=1.0 mT', w: d.rM * 1000 * 12, val: '9.7 mm', color: '#b3e6b3' },
+        { name: 'B を 2 倍：r は半分', w: d.rB2M * 1000 * 12, val: '4.8 mm', color: '#ffd24d' },
+        { name: 'φ=1.0 eV：656 nm でも出る', w: d.rPhi1M * 1000 * 12, val: '3.2 mm', color: '#cfe3ff' },
+      ];
+      rows.forEach((r, i) => {
+        const y = 75 + i * 45;
+        const tN = el('text', { x: 60, y: y - 8 }); tN.textContent = r.name; svg.appendChild(tN);
+        svg.appendChild(el('rect', { x: 140, y, width: r.w, height: 18, fill: r.color, stroke: '#333', 'stroke-width': 1 }));
+        const tV = el('text', { x: 140 + r.w + 8, y: y + 15 }); tV.textContent = r.val; svg.appendChild(tV);
+      });
+      note(258, 'B を 2 倍にすると r=4.8 mm、T=18 ns');
+      note(276, 'φ=1.0 eV なら 656 nm でも出る');
+      note(294, '陽子なら r≈41 cm（電子の43倍）');
+    } else {
+      // base・circle：磁場（×）と円軌道。
+      for (const x of [100, 140, 180, 220, 260, 300, 340]) {
+        const tX = el('text', { x, y: 70, fill: '#888', 'font-size': 16 }); tX.textContent = '×'; svg.appendChild(tX);
+      }
+      for (const x of [100, 140, 340]) {
+        const tX = el('text', { x, y: 230, fill: '#888', 'font-size': 16 }); tX.textContent = '×'; svg.appendChild(tX);
+      }
+      const tB = el('text', { x: 300, y: 40, fill: '#555' }); tB.textContent = 'B=1.0 mT'; svg.appendChild(tB);
+      svg.appendChild(el('circle', { cx: d.circleCenter.x, cy: d.circleCenter.y, r: d.circleR, fill: 'none', stroke: '#b00', 'stroke-width': 2, 'stroke-dasharray': '5 4' }));
+      svg.appendChild(el('line', { x1: d.circleCenter.x, y1: d.circleCenter.y, x2: d.circleCenter.x + d.circleR + 6, y2: d.circleCenter.y, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      svg.appendChild(el('circle', { cx: d.electron.x, cy: d.electron.y, r: 8, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      const tR = el('text', { x: d.circleCenter.x + d.circleR + 10, y: d.circleCenter.y + 5, fill: '#555' }); tR.textContent = 'r≈9.7 mm'; svg.appendChild(tR);
+      const tC = el('text', { x: d.circleCenter.x + 6, y: d.circleCenter.y + 20, fill: '#555' }); tC.textContent = '中心'; svg.appendChild(tC);
+      if (phase === 'base') {
+        // 陰極と光、電子の通り道。
+        svg.appendChild(el('line', { x1: 60, y1: 100, x2: 60, y2: 160, stroke: '#333', 'stroke-width': 3 }));
+        svg.appendChild(el('line', { x1: 28, y1: 72, x2: 54, y2: 118, stroke: '#e6a800', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+        const tL = el('text', { x: 8, y: 64, fill: '#555' }); tL.textContent = '122 nm'; svg.appendChild(tL);
+        svg.appendChild(el('line', { x1: 60, y1: 130, x2: d.electron.x, y2: d.electron.y, stroke: '#d35400', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+        const tE = el('text', { x: 120, y: 118, fill: '#555' }); tE.textContent = '電子'; svg.appendChild(tE);
+        const tK = el('text', { x: 20, y: 178, fill: '#555' }); tK.textContent = '陰極'; svg.appendChild(tK);
+        note(258, '水素の光で電子が出る');
+        note(276, '磁場で曲がり、半径 9.7 mm の円を描く');
+        note(294, '橋渡し量は光子のエネルギーと電子の速さ');
+      } else {
+        note(258, 'F = qvB ≈ 2.7×10⁻¹⁶ N が向心力になる');
+        note(276, 'r = mv/qB ≈ 9.7 mm、T ≈ 36 ns');
+        note(294, '486 nm の電子は r≈2.5 mm');
+      }
+    }
+  } else if (scene.type === 'ottoCycle') {
+    const d = scene.derived;
+    const phase = scene.phase;
+    const tH = el('text', { x: 40, y: 36, fill: '#333' });
+    tH.textContent = phase === 'compress' ? '断熱圧縮：A→B'
+      : phase === 'heat' ? '等積加熱：B→C'
+      : phase === 'expand' ? '断熱膨張と等積冷却：C→D→A'
+      : phase === 'trap' ? '罠：カルノー効率と比べる'
+      : phase === 'vary' ? '変えたら：圧縮比を上げる'
+      : 'オットーサイクル：4つの角';
+    svg.appendChild(tH);
+    const note = (y, text) => { const t = el('text', { x: 60, y, fill: '#333' }); t.textContent = text; svg.appendChild(t); };
+    if (phase === 'trap') {
+      // 効率の棒グラフ（2 px/%）。
+      const rows = [
+        { name: 'オットー 57%', w: d.eta * 200, val: '57%', color: '#b3e6b3' },
+        { name: 'カルノー 85%', w: d.etaCarnot * 200, val: '85%', color: '#cfe3ff' },
+        { name: 'γ=5/3 の誤り 75%', w: d.etaWrongGamma * 200, val: '75%', color: '#ffb3b3' },
+      ];
+      rows.forEach((r, i) => {
+        const y = 75 + i * 45;
+        const tN = el('text', { x: 60, y: y - 8 }); tN.textContent = r.name; svg.appendChild(tN);
+        svg.appendChild(el('rect', { x: 140, y, width: r.w, height: 18, fill: r.color, stroke: '#333', 'stroke-width': 1 }));
+        const tV = el('text', { x: 140 + r.w + 8, y: y + 15 }); tV.textContent = r.val; svg.appendChild(tV);
+      });
+      note(258, 'カルノーは 2000 K と 300 K のあいだ');
+      note(276, 'オットーは熱を幅広い温度で出し入れする');
+      note(294, 'γ=5/3 はヘリウムの値（空気は 1.4）');
+    } else if (phase === 'vary') {
+      // 効率の棒グラフ（2 px/%）。圧縮比 4・8・12。
+      const rows = [
+        { name: '圧縮比 4', w: d.etaR4 * 200, val: '43%', color: '#ffb3b3' },
+        { name: '圧縮比 8（もと）', w: d.eta * 200, val: '57%', color: '#b3e6b3' },
+        { name: '圧縮比 12', w: d.etaR12 * 200, val: '63%', color: '#ffd24d' },
+      ];
+      rows.forEach((r, i) => {
+        const y = 75 + i * 45;
+        const tN = el('text', { x: 60, y: y - 8 }); tN.textContent = r.name; svg.appendChild(tN);
+        svg.appendChild(el('rect', { x: 140, y, width: r.w, height: 18, fill: r.color, stroke: '#333', 'stroke-width': 1 }));
+        const tV = el('text', { x: 140 + r.w + 8, y: y + 15 }); tV.textContent = r.val; svg.appendChild(tV);
+      });
+      note(258, '圧縮比を上げると効率は上がる');
+      note(276, 'r=12 では T2=811 K、p2=3.24×10⁶ Pa');
+      note(294, '上げすぎるとノッキングする');
+    } else {
+      // p-V 図。軸と目盛、サイクルの4辺を描く。いまの過程だけ赤くする。
+      const hl = phase === 'compress' ? 'AB' : phase === 'heat' ? 'BC' : phase === 'expand' ? 'CDDA' : 'none';
+      svg.appendChild(el('line', { x1: 50, y1: 50, x2: 50, y2: 220, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 50, y1: 220, x2: 350, y2: 220, stroke: '#333', 'stroke-width': 2 }));
+      // p の目盛（log 軸）。
+      const tP5 = el('text', { x: 8, y: 224, fill: '#555' }); tP5.textContent = '10⁵'; svg.appendChild(tP5);
+      const tP6 = el('text', { x: 8, y: 139, fill: '#555' }); tP6.textContent = '10⁶'; svg.appendChild(tP6);
+      const tP7 = el('text', { x: 8, y: 54, fill: '#555' }); tP7.textContent = '10⁷'; svg.appendChild(tP7);
+      const tPU = el('text', { x: 56, y: 58, fill: '#555' }); tPU.textContent = 'p'; svg.appendChild(tPU);
+      // V の目盛。
+      const tV0 = el('text', { x: 56, y: 236, fill: '#555' }); tV0.textContent = '0'; svg.appendChild(tV0);
+      const tV5 = el('text', { x: 192, y: 236, fill: '#555' }); tV5.textContent = '0.5 L'; svg.appendChild(tV5);
+      const tV1 = el('text', { x: 326, y: 236, fill: '#555' }); tV1.textContent = '1.0 L'; svg.appendChild(tV1);
+      const tVU = el('text', { x: 356, y: 212, fill: '#555' }); tVU.textContent = 'V'; svg.appendChild(tVU);
+      // 断熱曲線の点列を折れ線にする。
+      const poly = (pts, color, width) => {
+        const dAttr = pts.map(([v, p], i) => `${i === 0 ? 'M' : 'L'} ${ottoX(v).toFixed(1)} ${ottoY(p).toFixed(1)}`).join(' ');
+        svg.appendChild(el('path', { d: dAttr, fill: 'none', stroke: color, 'stroke-width': width }));
+      };
+      poly(d.abCurve, hl === 'AB' ? '#b00' : '#888', hl === 'AB' ? 3 : 2);
+      poly(d.cdCurve, hl === 'CDDA' ? '#b00' : '#888', hl === 'CDDA' ? 3 : 2);
+      // 等積の辺 B→C、D→A。
+      svg.appendChild(el('line', { x1: ottoX(d.v2M3), y1: ottoY(d.p2Pa), x2: ottoX(d.v2M3), y2: ottoY(d.p3Pa), stroke: hl === 'BC' ? '#b00' : '#888', 'stroke-width': hl === 'BC' ? 3 : 2 }));
+      svg.appendChild(el('line', { x1: ottoX(0.001), y1: ottoY(d.p4Pa), x2: ottoX(0.001), y2: ottoY(100000), stroke: hl === 'CDDA' ? '#b00' : '#888', 'stroke-width': hl === 'CDDA' ? 3 : 2 }));
+      // 角の点とラベル。
+      const pts = [
+        { x: ottoX(0.001), y: ottoY(100000), label: 'A', dx: -16, dy: -14 },
+        { x: ottoX(d.v2M3), y: ottoY(d.p2Pa), label: 'B', dx: 6, dy: -6 },
+        { x: ottoX(d.v2M3), y: ottoY(d.p3Pa), label: 'C', dx: 6, dy: -6 },
+        { x: ottoX(0.001), y: ottoY(d.p4Pa), label: 'D', dx: 6, dy: 4 },
+      ];
+      pts.forEach(({ x, y, label, dx, dy }) => {
+        svg.appendChild(el('circle', { cx: x, cy: y, r: 3, fill: '#333' }));
+        const t = el('text', { x: x + dx, y: y + dy, fill: '#333' }); t.textContent = label; svg.appendChild(t);
+      });
+      if (phase === 'compress') {
+        note(258, 'A→B：断熱圧縮');
+        note(276, 'p=1.84×10⁶ Pa、T=689 K');
+        note(294, '仕事 324 J が ΔU になる');
+      } else if (phase === 'heat') {
+        note(258, 'B→C：等積加熱');
+        note(276, 'T=2000 K、p=5.33×10⁶ Pa');
+        note(294, 'Q_in=1092 J、仕事は 0');
+      } else if (phase === 'expand') {
+        note(258, 'C→D：断熱膨張で 941 J の仕事をする');
+        note(276, 'D→A：等積冷却で 475 J の熱が出る');
+        note(294, '正味の仕事 617 J、効率 57%');
+      } else {
+        note(258, 'A→B 断熱圧縮、B→C 等積加熱');
+        note(276, 'C→D 断熱膨張、D→A 等積冷却');
+        note(294, 'p-V 図の面積が正味の仕事になる');
+      }
+    }
   } else if (scene.type === 'capacitor') {
     const topY = 110, dPx = scene.dPx;
     // 2枚の極板（水平）。上板が +、下板が −。
@@ -9616,4 +10022,4 @@ function renderAllFigures() {
   });
 }
 
-if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, capSpringGravDerived, capSpringGravForces, gasSpringCycleDerived, gasSpringCycleForces, slopeSpringDerived, slopeSpringForces, fallLoopDerived, fallLoopForces, beltSpringDerived, beltSpringForces, massSpecDerived, massSpecForces, coilHallDerived, coilHallForces, platformChargeDerived, platformChargeForces, pendulumCollideDerived, pendulumCollideForces, photoCapDerived, photoCapForces, orbitTransferDerived, orbitTransferForces, cyclotronDerived, cyclotronForces, slopeSpringFricDerived, slopeSpringFricForces, projWallDerived, projWallForces, railSpringDampDerived, railSpringDampForces, pendulumSpringDerived, pendulumSpringForces, gasPistonOscDerived, gasPistonOscForces, photoCircleDerived, photoCircleForces, earthTunnelDerived, earthTunnelForces, heaterGasDerived, heaterGasForces, sceneFor, validateScene, renderFigure };
+if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, capSpringGravDerived, capSpringGravForces, gasSpringCycleDerived, gasSpringCycleForces, slopeSpringDerived, slopeSpringForces, fallLoopDerived, fallLoopForces, beltSpringDerived, beltSpringForces, massSpecDerived, massSpecForces, coilHallDerived, coilHallForces, platformChargeDerived, platformChargeForces, pendulumCollideDerived, pendulumCollideForces, photoCapDerived, photoCapForces, orbitTransferDerived, orbitTransferForces, cyclotronDerived, cyclotronForces, slopeSpringFricDerived, slopeSpringFricForces, projWallDerived, projWallForces, railSpringDampDerived, railSpringDampForces, pendulumSpringDerived, pendulumSpringForces, gasPistonOscDerived, gasPistonOscForces, photoCircleDerived, photoCircleForces, earthTunnelDerived, earthTunnelForces, heaterGasDerived, heaterGasForces, specPhotoCircleDerived, specPhotoCircleForces, ottoCycleDerived, ottoCycleForces, sceneFor, validateScene, renderFigure };
