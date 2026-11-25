@@ -1172,7 +1172,8 @@ function drawBase(svg, scene) {
     // 斜面：(40,250)-(280,70)。横 240、高さ 180 の 3:4:5 なので傾きは 36.87° ≈ 37°。
     svg.appendChild(el('polygon', { points: '40,250 280,70 280,290 40,290', fill: '#eee' }));
     svg.appendChild(el('line', { x1: 40, y1: 250, x2: 280, y2: 70, stroke: '#333', 'stroke-width': 3 }));
-    const t1 = el('text', { x: 250, y: 55 }); t1.textContent = '斜面（粗い）'; svg.appendChild(t1);
+    // 「斜面（粗い）」は「滑車」ラベルと重ならないよう、左へずらす。
+    const t1 = el('text', { x: 150, y: 55 }); t1.textContent = '斜面（粗い）'; svg.appendChild(t1);
     // θ の弧：斜面の下端 (40,250) を中心に、水平と斜面のあいだ。必ず描く。
     const a = scene.thetaArc;
     const rad = deg2rad(scene.thetaDeg);
@@ -1335,7 +1336,8 @@ function drawBase(svg, scene) {
       x2: (L.tick.x + px * 7).toFixed(1), y2: (L.tick.y + py * 7).toFixed(1),
       stroke: '#b00', 'stroke-width': 2,
     }));
-    const tD = el('text', { x: L.tick.x + 10, y: L.tick.y + 16, fill: '#b00' }); tD.textContent = '光路差 3λ'; svg.appendChild(tD);
+    // 「光路差 3λ」は右端で切れないよう、目印の左側に右寄せで出す。
+    const tD = el('text', { x: L.tick.x - 10, y: L.tick.y + 16, fill: '#b00', 'text-anchor': 'end' }); tD.textContent = '光路差 3λ'; svg.appendChild(tD);
   } else if (scene.type === 'capacitor') {
     const topY = 110, dPx = scene.dPx;
     // 2枚の極板（水平）。上板が +、下板が −。
