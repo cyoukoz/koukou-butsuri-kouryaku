@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題R：落下するコイル・磁気ブレーキ — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題R：落下するコイル・磁気ブレーキ</h1>
+<p><strong>問題：</strong>質量 m = 0.10 kg、抵抗 R = 5.0 Ω の正方形コイル（辺の長さ 0.50 m）がある。磁場（紙面の裏向き、B = 2.0 T）は、上下方向に長さ 2.0 m の領域に広がっている。コイルを磁場の上端から 1.25 m 上のところから、静かに落とす。空気抵抗はないとする。(1) コイルが磁場に入るときの速さと、誘導起電力・電流・磁気の力を求めよ。(2) コイルが磁場の中に完全に入ってからは、どう運動するか。(3) コイルが磁場から抜けるときの運動はどうなるか。(4) 速さの時間変化を描け。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v2.2、fallLoop 型）が下の JSON データから計算して描く。力の矢印は 20 px/N（重力 1.0 N は 20 px）、磁気の力も同じ縮尺、磁場の × 印は 0.025 s ごとに 1 枚、電流の矢印は誘導電流の向きで決める。</p>
+<script type="application/json" id="scene-fall-loop-base">{"type":"fallLoop","mKg":0.1,"bT":2.0,"loopLM":0.5,"loopHM":0.5,"resOhm":5.0,"hDropM":1.25,"dInsideM":1.5,"g":10,"phase":"base"}</script>
+<script type="application/json" id="scene-fall-loop-enter">{"type":"fallLoop","mKg":0.1,"bT":2.0,"loopLM":0.5,"loopHM":0.5,"resOhm":5.0,"hDropM":1.25,"dInsideM":1.5,"g":10,"phase":"enter"}</script>
+<script type="application/json" id="scene-fall-loop-inside">{"type":"fallLoop","mKg":0.1,"bT":2.0,"loopLM":0.5,"loopHM":0.5,"resOhm":5.0,"hDropM":1.25,"dInsideM":1.5,"g":10,"phase":"inside"}</script>
+<script type="application/json" id="scene-fall-loop-leave">{"type":"fallLoop","mKg":0.1,"bT":2.0,"loopLM":0.5,"loopHM":0.5,"resOhm":5.0,"hDropM":1.25,"dInsideM":1.5,"g":10,"phase":"leave"}</script>
+<script type="application/json" id="scene-fall-loop-graph">{"type":"fallLoop","mKg":0.1,"bT":2.0,"loopLM":0.5,"loopHM":0.5,"resOhm":5.0,"hDropM":1.25,"dInsideM":1.5,"g":10,"phase":"graph"}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。磁場に入る場面、磁場の中にいる場面、磁場から抜ける場面では、使える式がちがう。3つをつなぐのは、コイルの速さだ。</p>
+  <table>
+    <tr><th>時間</th><th>系（何を見るか）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>はじめ（磁場の上）</td><td>コイル（磁場の外）</td><td>—</td><td>自由落下で速さが増える（はじめに）</td></tr>
+    <tr><td>磁場に入る</td><td>コイル＋磁場</td><td><strong>速さ v = 5.0 m/s</strong></td><td>誘導電流のブレーキと重力がつり合う（ステップ①）</td></tr>
+    <tr><td>磁場の中</td><td>コイル（磁場の中）</td><td><strong>磁束 Φ = 一定</strong></td><td>電流は流れず、自由落下になる（ステップ②）</td></tr>
+    <tr><td>磁場から抜ける</td><td>コイル＋磁場</td><td><strong>速さ v ≈ 7.4 m/s</strong></td><td>またブレーキがはたらく（ステップ③）</td></tr>
+    <tr><td>全体</td><td>コイル</td><td><strong>速さの時間変化</strong></td><td>入る・中・抜けるで速さの変わり方がちがう（ステップ④）</td></tr>
+  </table>
+  <p>コイルが磁場に入るとき、コイルの中の磁束が増える。だから誘導起電力が生まれ、電流が流れる。電流が磁場から受ける力は、コイルの落下をじゃまする向きにはたらく。レンツの法則だ。コイルが磁場の中に完全に入ると、磁束は変わらないので電流は 0 になる。磁気の力も 0 になる。</p>
+  <svg class="fig" data-scene="scene-fall-loop-base" data-show="gravity" width="100%" role="img" aria-label="磁場の上にコイルがある。重力 1.0 N だけがはたらき、コイルは自由落下する"></svg>
+  <p>コイルは磁場の上端から 1.25 m 上から落とす。自由落下で、磁場に入るときの速さは v = √(2gh) = √(2 × 10 × 1.25) = √25 = <strong>5.0 m/s</strong> だ。落ちる時間は t = v/g = 5.0/10 = 0.50 s になる。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①磁場に入るとき：ブレーキがはたらく</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 磁場に入るとき：ブレーキがはたらく</h2>
+  <svg class="fig" data-scene="scene-fall-loop-enter" data-show="gravity,magForce" width="100%" role="img" aria-label="コイルが磁場に入るとき。重力 1.0 N と磁気の力 1.0 N がつり合い、電流が反時計回りに流れる"></svg>
+  <p>磁場に入るときの速さは 5.0 m/s だ。コイルの下の辺が磁場を切るので、誘導起電力は ε = BLv = 2.0 × 0.50 × 5.0 = <strong>5.0 V</strong> になる。電流は I = ε/R = 5.0/5.0 = <strong>1.0 A</strong> だ。電流の向きは反時計回りで、磁束の増加をじゃまする向きになる。</p>
+  <p>電流が磁場から受ける力は、下の辺だけが磁場の中にあるので、F = BIL = 2.0 × 1.0 × 0.50 = <strong>1.0 N</strong> になる。向きは上向きで、重力 mg = 0.10 × 10 = <strong>1.0 N</strong> とぴったりつり合う。だからコイルは、磁場に入っているあいだ、速さ 5.0 m/s のまま等速で落ちる。</p>
+  <p>この速さは「終端速度」と呼ばれる。速さが 5.0 m/s より速ければ、誘導起電力も電流も磁気の力も大きくなり、重力より強くなってブレーキがかかる。速さが遅ければ、磁気の力は重力より弱くなり、重力で加速する。だから速さは 5.0 m/s に落ち着く。終端速度は v_t = mgR/(B²L²) = 0.10 × 10 × 5.0 / (2.0² × 0.50²) = 5.0/1.0 = <strong>5.0 m/s</strong> になる。</p>
+  <p>コイルが磁場に入りきるには、コイルの高さ 0.50 m を進む必要がある。速さ 5.0 m/s なので、入るのにかかる時間は 0.50/5.0 = <strong>0.10 s</strong> だ。このあいだ、重力のする仕事は mg × 0.50 = 0.50 J で、これは全部ジュール熱 I²R × 0.10 = 1.0² × 5.0 × 0.10 = <strong>0.50 J</strong> になる。速さが変わらないので運動エネルギーは変わらず、重力のした仕事は全部熱になる。</p>
+  <label><input type="checkbox" class="check"> 入るとき v = 5.0 m/s、ε = 5.0 V、I = 1.0 A、磁気の力 1.0 N が重力とつり合うことを確かめた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②磁場の中：電流は流れず、自由落下</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 磁場の中：電流は流れず、自由落下</h2>
+  <svg class="fig" data-scene="scene-fall-loop-inside" data-show="gravity" width="100%" role="img" aria-label="コイルが磁場の中に完全に入ったところ。電流は流れず、重力 1.0 N だけがはたらく"></svg>
+  <p>コイルが磁場の中に完全に入ると、コイルの中の磁束は変わらなくなる。磁場は一様で、コイルの面積も変わらないからだ。磁束が変わらなければ、誘導起電力は 0、電流は 0、磁気の力も 0 になる。だからコイルは、ただの自由落下になる。</p>
+  <p>磁場の中を落ちる距離は、磁場の長さ 2.0 m からコイルの高さ 0.50 m を引いた <strong>1.5 m</strong> だ。初速 5.0 m/s の自由落下で、1.5 m 落ちたあとの速さは、v² = 5.0² + 2 × 10 × 1.5 = 25 + 30 = 55 から、v = √55 ≈ <strong>7.4 m/s</strong> になる。かかる時間は t = (7.4 − 5.0)/10 = <strong>0.24 s</strong> だ。</p>
+  <p>この場面では、コイルは速さを上げていく。磁場の中にいるのにブレーキがかからないのは、磁束が変わらないからだ。磁気のブレーキがはたらくのは、磁束が変わっているあいだだけだ。</p>
+  <label><input type="checkbox" class="check"> 磁場の中では電流が 0 になり、自由落下で v ≈ 7.4 m/s まで加速することを確かめた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③磁場から抜けるとき：またブレーキ</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 磁場から抜けるとき：またブレーキ</h2>
+  <svg class="fig" data-scene="scene-fall-loop-leave" data-show="gravity,magForce" width="100%" role="img" aria-label="コイルが磁場から抜けるとき。重力 1.0 N と磁気の力 1.0 N がつり合い、電流が時計回りに流れる"></svg>
+  <p>コイルが磁場から抜けるとき、コイルの中の磁束が減る。だからまた誘導起電力が生まれ、電流が流れる。電流の向きは、今度は時計回りで、磁束の減少をじゃまする向きになる。磁気の力はやはり上向きで、落下をじゃまする。</p>
+  <p>抜けるときの速さは約 7.4 m/s で、終端速度 5.0 m/s より速い。だから磁気の力は重力より強く、コイルは減速する。速さが 5.0 m/s に近づくと、磁気の力は重力に近づき、ブレーキは弱くなる。速さは 5.0 m/s に近づいていくが、抜けきるまでの時間（0.10 s ほど）では 5.0 m/s には届かず、出口での速さは約 <strong>7.1 m/s</strong> になる（数値計算による）。</p>
+  <p>磁場から抜けたあとは、また電流は流れなくなり、コイルは自由落下に戻る。重力だけがはたらくので、速さはまた増えていく。</p>
+  <label><input type="checkbox" class="check"> 抜けるときもブレーキがはたらき、速さが 5.0 m/s に近づくことを確かめた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④速さの時間変化</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 速さの時間変化</h2>
+  <svg class="fig" data-scene="scene-fall-loop-graph" data-show="" width="100%" role="img" aria-label="速さの時間変化のグラフ。磁場に入るときは 5.0 m/s で横ばい、磁場の中では直線で上がり、抜けるときは 5.0 m/s に近づく曲線になる"></svg>
+  <p>速さの時間変化を描くと、3つの場面のちがいがはっきりする。磁場に入るとき（0.50 s から 0.60 s）は、速さ 5.0 m/s のまま横ばいになる。磁場の中（0.60 s から 0.84 s）は、自由落下なので速さは直線で 5.0 m/s から 7.4 m/s まで上がる。磁場から抜けるとき（0.84 s から）は、ブレーキで速さは 5.0 m/s に近づく曲線になる。</p>
+  <p>このグラフで大切なのは、磁場の中では速さが上がり続けることだ。磁気のブレーキがはたらくのは、磁束が変わっているあいだだけだ。磁場の中にいればブレーキがかかる、と思い込むと、速さが 5.0 m/s のままになるとまちがえる。</p>
+  <p>エネルギーの面でも確かめよう。磁場に入るとき、重力のした仕事 0.50 J は全部ジュール熱になった。磁場の中では、重力のした仕事は運動エネルギーの増加になる。エネルギー保存だけを使うと、ジュール熱を見落としてまちがえる。ジュール熱が出た分だけ、運動エネルギーは小さくなる。</p>
+  <label><input type="checkbox" class="check"> 速さの時間変化が、入るときは横ばい、中では直線、抜けるときは曲線になることを確かめた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ・罠の確認</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ・罠の確認</h2>
+  <svg class="fig" data-scene="scene-fall-loop-graph" data-show="" width="100%" role="img" aria-label="速さの時間変化のグラフ。磁場に入るときは 5.0 m/s で横ばい、磁場の中では直線で上がり、抜けるときは 5.0 m/s に近づく曲線になる"></svg>
+  <p>この問題の橋渡し量は、コイルの速さ v だ。磁場に入るとき、v = 5.0 m/s が終端速度と一致し、重力と磁気の力がつり合って等速で入る。磁場の中では磁束が変わらず、電流は 0 になり、自由落下で v ≈ 7.4 m/s まで加速する。磁場から抜けるとき、またブレーキがはたらき、速さは 5.0 m/s に近づく。</p>
+  <p>罠は 2 つある。1 つ目は、磁場の中でもブレーキがはたらくと思い込むことだ。磁束が変わらなければ誘導電流は流れない。2 つ目は、エネルギー保存だけで速さを求めることだ。磁気のブレーキがはたらくあいだ、重力のした仕事はジュール熱になり、運動エネルギーにはならない。保存則は、成り立つ場面と成り立たない場面を切り分けて使う。</p>
+  <label><input type="checkbox" class="check"> 橋渡し量は速さであること、磁場の中では電流が流れないこと、ジュール熱を見落とさないことを確かめた</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と系を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) v = 5.0 m/s、ε = 5.0 V、I = 1.0 A、磁気の力 1.0 N が重力とつり合う。(2) 電流は 0 になり、自由落下で v ≈ 7.4 m/s まで加速する。(3) またブレーキがはたらき、出口での速さは約 7.1 m/s。(4) 速さの時間変化は、入るときは横ばい、中では直線、抜けるときは 5.0 m/s に近づく曲線。もとになった単体モデル：電磁誘導は <a href="induction.html">第32問：電磁誘導</a>、レール上の棒は <a href="rail-rod.html">第17問：レール上の棒</a>、レールとコンデンサとコイルの組み合わせは <a href="rail-cap-coil.html">組み合わせ問題N：レール＋コンデンサ＋コイル</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboFallLoopDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
