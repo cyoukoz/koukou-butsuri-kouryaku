@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題P：気体＋ピストン＋ばね＋サイクル — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題P：気体＋ピストン＋ばね＋サイクル</h1>
+<p><strong>問題：</strong>縦のシリンダーに、面積 S = 0.010 m²、質量 m = 10 kg のピストンが入っている。ピストンの上にはばね（ばね定数 k = 1000 N/m）があり、ピストンの高さ h = 0.20 m のときにばねは自然長だ。ピストンの上は大気圧 p<sub>0</sub> = 1.0×10⁵ Pa、シリンダーの中にはヘリウム（単原子気体）が入っている。状態Aでは h = 0.20 m、T = 300 K だ。(1) 加熱してピストンを h = 0.30 m まで上げた（状態B）。p<sub>B</sub>、T<sub>B</sub>、仕事・内部エネルギーの変化・吸熱を求めよ。(2) ピストンを固定して 300 K まで冷やした（状態C）。p<sub>C</sub>、仕事・内部エネルギーの変化・熱を求めよ。(3) ピストンを手で支えながらゆっくり戻し、冷やして T = 300 K に保ちながら状態Aに戻した。仕事・内部エネルギーの変化・熱と、サイクル全体の正味の仕事・効率を求めよ。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v2.1、gasSpringCycle 型）が下の JSON データから計算して描く。力の矢印は 20 N/px（気体の力 1100 N は 55 px、大気圧 1000 N は 50 px、重力・ばね 100 N は 5 px）、ピストン高さは 400 px/m で決める。</p>
+<script type="application/json" id="scene-gas-spring-cycle-base">{"type":"gasSpringCycle","phase":"base","p0Pa":100000,"areaM2":0.01,"pistonKg":10,"kNm":1000,"hNatM":0.2,"hBM":0.3,"rGas":8.31,"tAK":300,"g":10}</script>
+<script type="application/json" id="scene-gas-spring-cycle-expand">{"type":"gasSpringCycle","phase":"expand","p0Pa":100000,"areaM2":0.01,"pistonKg":10,"kNm":1000,"hNatM":0.2,"hBM":0.3,"rGas":8.31,"tAK":300,"g":10}</script>
+<script type="application/json" id="scene-gas-spring-cycle-lock">{"type":"gasSpringCycle","phase":"lock","p0Pa":100000,"areaM2":0.01,"pistonKg":10,"kNm":1000,"hNatM":0.2,"hBM":0.3,"rGas":8.31,"tAK":300,"g":10}</script>
+<script type="application/json" id="scene-gas-spring-cycle-return">{"type":"gasSpringCycle","phase":"return","p0Pa":100000,"areaM2":0.01,"pistonKg":10,"kNm":1000,"hNatM":0.2,"hBM":0.3,"rGas":8.31,"tAK":300,"g":10}</script>
+<script type="application/json" id="scene-gas-spring-cycle-trap">{"type":"gasSpringCycle","phase":"trap","p0Pa":100000,"areaM2":0.01,"pistonKg":10,"kNm":1000,"hNatM":0.2,"hBM":0.3,"rGas":8.31,"tAK":300,"g":10}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。加熱でピストンが上がる場面、ピストンを固定して冷やす場面、等温で戻す場面では、使える式がちがう。3つをつなぐのは、気体の圧力と体積だ。</p>
+  <table>
+    <tr><th>時間</th><th>系（何を見るか）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>はじめ（状態A）</td><td>気体＋ピストン＋ばね</td><td>—</td><td>力のつり合いから p = 1.10×10⁵ Pa（はじめに）</td></tr>
+    <tr><td>A→B：加熱</td><td>気体＋ピストン＋ばね</td><td><strong>圧力 p・体積 V</strong></td><td>ばねが縮むので p も上がる。W=115 J、Q=325 J（ステップ①）</td></tr>
+    <tr><td>B→C：固定して冷却</td><td>気体（ピストンは固定）</td><td><strong>体積 V = 3.0 L</strong></td><td>W=0、p=0.73×10⁵ Pa まで下がる（ステップ②）</td></tr>
+    <tr><td>C→A：等温圧縮</td><td>気体＋ピストン</td><td><strong>温度 T = 300 K</strong></td><td>W=−89.2 J、ΔU=0、正味の仕事 25.8 J（ステップ③④）</td></tr>
+  </table>
+  <p>ピストンの力のつり合いは、pS = p<sub>0</sub>S + mg + k(h − 0.20 m) だ。ピストンが上がるとばねが縮み、気体の圧力は上がる。だから加熱は等圧変化ではない。ここがこの問題の中心だ。</p>
+  <svg class="fig" data-scene="scene-gas-spring-cycle-base" data-show="gasForce,atmForce,gravity" width="100%" role="img" aria-label="状態Aの力のつり合い。気体の力 1100 N が大気圧の力 1000 N と重力 100 N の和とつり合う"></svg>
+  <p>状態Aでは、ばねは自然長で力は 0 だ。気体の力は pS = 1.10×10⁵ × 0.010 = <strong>1100 N</strong>、大気圧の力は 1000 N、重力は mg = <strong>100 N</strong> で、1100 = 1000 + 100 とつり合う。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①A→B：加熱してピストンが上がる</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① A→B：加熱してピストンが上がる</h2>
+  <svg class="fig" data-scene="scene-gas-spring-cycle-expand" data-show="gasForce,atmForce,gravity,spring" width="100%" role="img" aria-label="状態Bの力のつり合い。気体の力 1200 N が大気圧の力 1000 N と重力 100 N とばねの力 100 N の和とつり合う"></svg>
+  <p>状態Bでは、ピストンは h = 0.30 m まで上がり、ばねは 0.10 m 縮む。ばねの力は k × 0.10 = 1000 × 0.10 = <strong>100 N</strong> だ。力のつり合いから、気体の圧力は p<sub>B</sub> = p<sub>0</sub> + mg/S + k(h − 0.20)/S = 1.0×10⁵ + 100/0.010 + 100/0.010 = 1.0×10⁵ + 1.0×10⁴ + 1.0×10⁴ = <strong>1.20×10⁵ Pa</strong> になる。体積は V<sub>B</sub> = 0.010 × 0.30 = <strong>3.0 L</strong> だ。</p>
+  <p>状態Aの pV/T から、nR = p<sub>A</sub>V<sub>A</sub>/T<sub>A</sub> = 1.10×10⁵ × 0.0020 / 300 = <strong>0.733 J/K</strong>（物質量 n ≈ 0.088 mol）。状態Bの温度は T<sub>B</sub> = p<sub>B</sub>V<sub>B</sub>/nR = 1.20×10⁵ × 0.0030 / 0.733 = 360 / 0.733 ≈ <strong>491 K</strong> になる。</p>
+  <p>仕事は p–V 図の面積だ。A→B では圧力が 1.10×10⁵ Pa から 1.20×10⁵ Pa まで直線で上がるので、仕事は台形の面積 W = (1.10×10⁵ + 1.20×10⁵)/2 × (0.0030 − 0.0020) = 1.15×10⁵ × 0.0010 = <strong>115 J</strong> になる。内部エネルギーの増加は、ヘリウムは単原子気体なので ΔU = (3/2)nRΔT = 1.5 × 0.733 × (491 − 300) = 1.5 × 0.733 × 191 ≈ <strong>210 J</strong>。吸熱は Q = ΔU + W = 210 + 115 = <strong>325 J</strong> だ。</p>
+  <label><input type="checkbox" class="check"> 状態Bで p=1.20×10⁵ Pa、T≈491 K、W=115 J、ΔU=210 J、Q=325 J を求めた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②B→C：ピストンを固定して冷やす</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② B→C：ピストンを固定して冷やす</h2>
+  <svg class="fig" data-scene="scene-gas-spring-cycle-lock" data-show="gasForce,atmForce,gravity,spring" width="100%" role="img" aria-label="状態C。ピストンを固定して冷やすと気体の力は 733 N まで下がり、大気圧と重力とばねの和 1200 N とつり合わず、留め具が支える"></svg>
+  <p>ピストンを h = 0.30 m の位置で固定し、300 K まで冷やす。体積は V = 3.0 L のまま変わらないので、圧力は p<sub>C</sub> = nRT/V = 0.733 × 300 / 0.0030 = 220 / 0.0030 ≈ <strong>0.733×10⁵ Pa</strong> まで下がる。大気圧 1.0×10⁵ Pa よりも低い。だからピストンは留め具で固定しておかないと、大気に押されて下がってしまう。</p>
+  <p>体積が変わらないので、気体のする仕事は W = <strong>0</strong> だ。内部エネルギーの変化は ΔU = (3/2)nRΔT = 1.5 × 0.733 × (300 − 491) = 1.5 × 0.733 × (−191) ≈ <strong>−210 J</strong>。熱は Q = ΔU + W = <strong>−210 J</strong> で、210 J の熱を出したことになる。ステップ①で増えた内部エネルギー 210 J が、ちょうどここで戻る。</p>
+  <p>この場面の力のつり合いに注意しよう。気体の力は p<sub>C</sub>S = 0.733×10⁵ × 0.010 ≈ <strong>733 N</strong> まで下がったのに、大気圧の力 1000 N、重力 100 N、ばねの力 100 N の和は 1200 N のままだ。差の 467 N は留め具が支えている。ピストンが固定されている場面では、力のつり合いは成り立たない。</p>
+  <label><input type="checkbox" class="check"> 状態Cで p=0.73×10⁵ Pa、W=0、ΔU=−210 J、Q=−210 J を求め、留め具が 467 N を支えることを確かめた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③C→A：等温圧縮で戻る</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ C→A：等温圧縮で戻る</h2>
+  <svg class="fig" data-scene="scene-gas-spring-cycle-return" data-show="" width="100%" role="img" aria-label="等温圧縮で戻る途中のピストン。h=0.25 m、T=300 K のままゆっくり下がる"></svg>
+  <p>留め具を外し、ピストンを手で支えながらゆっくり戻す。冷やして温度を 300 K に保つので、これは等温変化だ。体積は 3.0 L から 2.0 L まで減り、圧力は p = nRT/V = 220/V で上がっていく。V = 2.0 L では p = 220/0.0020 = 1.10×10⁵ Pa で、ちょうど状態Aに戻る。</p>
+  <p>等温変化の仕事は W = nRT ln(V<sub>A</sub>/V<sub>C</sub>) = 0.733 × 300 × ln(2.0/3.0) = 220 × ln(2/3) = 220 × (−0.405) ≈ <strong>−89.2 J</strong> だ。負の仕事は、気体が圧縮された（外から仕事をされた）ことを表す。等温変化なので内部エネルギーの変化は ΔU = <strong>0</strong>、熱は Q = ΔU + W = <strong>−89.2 J</strong> で、89.2 J の熱を出したことになる。</p>
+  <p>サイクル全体の正味の仕事は、W = 115 + 0 + (−89.2) = <strong>25.8 J</strong> だ。吸熱は A→B の 325 J だけなので、効率は η = 25.8 / 325 ≈ <strong>7.9%</strong> になる。熱の合計も確かめよう。Q = 325 − 210 − 89.2 = 25.8 J で、正味の仕事とぴったり一致する。サイクルでは、吸った熱と出した熱の差が、正味の仕事になる。</p>
+  <label><input type="checkbox" class="check"> C→A で W=−89.2 J、ΔU=0、Q=−89.2 J を求め、正味の仕事 25.8 J、効率 約 7.9% を求めた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④罠：正味の仕事と効率</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 罠：正味の仕事と効率</h2>
+  <svg class="fig" data-scene="scene-gas-spring-cycle-trap" data-show="" width="100%" role="img" aria-label="p–V 図。A→B は右上がりの直線、B→C は下向きの垂直線、C→A は等温線の曲線。囲まれた面積が正味の仕事 25.8 J"></svg>
+  <p>p–V 図を描くと、サイクルは A→B（右上がりの直線）、B→C（下向きの垂直線）、C→A（等温線の曲線）の 3 本で囲まれる。囲まれた面積が正味の仕事 25.8 J だ。A→B の台形の面積 115 J から、C→A の等温線の下の面積 89.2 J を引いたものが、囲まれた面積になる。</p>
+  <p>罠は 3 つある。1 つ目は、A→B を等圧変化だと思い込むことだ。ばねが縮むので圧力は 1.10×10⁵ Pa から 1.20×10⁵ Pa まで上がる。p<sub>A</sub> × ΔV = 110 J はまちがいで、正しくは台形の面積 115 J だ。2 つ目は、B→C で「圧力が下がったから仕事がある」と思うことだ。体積が変わらなければ仕事は 0 だ。3 つ目は、効率の分母に正味の熱（25.8 J）や吸熱と放熱の合計を使ってしまうことだ。効率は「正味の仕事 / 吸熱」で、吸熱は A→B の 325 J だけだ。放熱（210 J と 89.2 J）は分母に入らない。</p>
+  <label><input type="checkbox" class="check"> A→B が等圧ではないこと、B→C の仕事が 0 であること、効率の分母は吸熱 325 J だけであることを確かめた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ・罠の確認</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ・罠の確認</h2>
+  <svg class="fig" data-scene="scene-gas-spring-cycle-trap" data-show="" width="100%" role="img" aria-label="p–V 図。A→B は右上がりの直線、B→C は下向きの垂直線、C→A は等温線の曲線。囲まれた面積が正味の仕事 25.8 J"></svg>
+  <p>この問題の橋渡し量は圧力 p と体積 V だ。ピストンの力のつり合い p(h) = p<sub>0</sub> + mg/S + k(h − 0.20)/S が、p と V の関係を決める。A→B は加熱で p も V も上がり、W = 115 J、Q = 325 J。B→C は体積一定で W = 0、Q = −210 J。C→A は等温圧縮で W = −89.2 J、ΔU = 0、Q = −89.2 J。正味の仕事 25.8 J、効率 約 7.9% だ。</p>
+  <p>切り分けの要は、場面ごとに「何が一定か」を確かめることだ。A→B では何も一定ではない（p も V も T も変わる）。B→C では V が一定、C→A では T が一定だ。何が一定かをまちがえると、仕事も内部エネルギーも熱も、全部まちがう。</p>
+  <label><input type="checkbox" class="check"> 橋渡し量は圧力・体積であること、場面ごとに何が一定かを確認すること、罠を確認した</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と系を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) p<sub>B</sub> = 1.20×10⁵ Pa、T<sub>B</sub> ≈ 491 K、W = 115 J、ΔU = 210 J、Q = 325 J。(2) p<sub>C</sub> ≈ 0.733×10⁵ Pa、W = 0、ΔU = −210 J、Q = −210 J。(3) W = −89.2 J、ΔU = 0、Q = −89.2 J、正味の仕事 25.8 J、効率 約 7.9%。もとになった単体モデル：気体＋ピストンは <a href="gas-piston.html">第7問：気体＋ピストン</a>、熱サイクルは <a href="heat-cycle.html">第16問：熱サイクル・熱機関</a>、ばねは <a href="spring.html">第5問：ばねのつり合い</a>、内部エネルギーは <a href="kinetic-theory.html">第22問：分子運動論</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboGasSpringCycleDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
