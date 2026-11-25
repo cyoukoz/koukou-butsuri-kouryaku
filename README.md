@@ -46,3 +46,4 @@
 ## 最初のドリル
 
 - [梯子の力の図示](content/mechanics/ladder.html) — 壁はなめらか、床はそうでない場合
+<!-- trigger pages redeploy -->
