@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題AI：水素のスペクトル＋光電効果＋磁場円運動 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題AI：水素のスペクトル＋光電効果＋磁場円運動</h1>
+<p><strong>問題：</strong>水素原子の出す光を、仕事関数 φ = 2.0 eV の陰極に当てる。出た電子を磁場 B = 1.0 mT に入れる。水素の準位は E<sub>n</sub> = −13.6/n² eV とする。(1) 3→2、4→2、2→1 の遷移で出る光のエネルギーと波長を求めよ。(2) 122 nm の光で出る電子の最大の運動エネルギーと最大の速さを求めよ。486 nm ではどうなるか。(3) 122 nm の電子が磁場で描く円の半径と周期を求めよ。ローレンツ力はいくらか。(4) 656 nm の光では電子は出るか。(5) 磁場を 2 倍にするとどうなるか。仕事関数が 1.0 eV ならどうなるか。同じ 8.2 eV の陽子ならどうなるか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v3.1、specPhotoCircle 型）が下の JSON データから計算して描く。円の半径は 4000 px/m（9.66 mm → 38.6 px）だ。</p>
+<script type="application/json" id="scene-spec-photo-circle-base">{"type":"specPhotoCircle","phiEV":2.0,"bT":0.001,"g":10,"phase":"base"}</script>
+<script type="application/json" id="scene-spec-photo-circle-spectrum">{"type":"specPhotoCircle","phiEV":2.0,"bT":0.001,"g":10,"phase":"spectrum"}</script>
+<script type="application/json" id="scene-spec-photo-circle-photo">{"type":"specPhotoCircle","phiEV":2.0,"bT":0.001,"g":10,"phase":"photo"}</script>
+<script type="application/json" id="scene-spec-photo-circle-circle">{"type":"specPhotoCircle","phiEV":2.0,"bT":0.001,"g":10,"phase":"circle"}</script>
+<script type="application/json" id="scene-spec-photo-circle-trap">{"type":"specPhotoCircle","phiEV":2.0,"bT":0.001,"g":10,"phase":"trap"}</script>
+<script type="application/json" id="scene-spec-photo-circle-vary">{"type":"specPhotoCircle","phiEV":2.0,"bT":0.001,"g":10,"phase":"vary"}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。水素の出す光が、陰極から電子を出し、その電子が磁場で円を描く。光のエネルギーが電子の速さを決め、速さが円の半径を決める。</p>
+  <table>
+    <tr><th>時間</th><th>系（何を見るか）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>はじめ</td><td>水素原子</td><td>—</td><td>準位の差が光になる</td></tr>
+    <tr><td>光が出る</td><td>水素の準位</td><td><strong>光子のエネルギー</strong></td><td>3→2 は 1.89 eV、2→1 は 10.2 eV（ステップ①）</td></tr>
+    <tr><td>光が当たる</td><td>陰極の電子</td><td><strong>電子の速さ 1.7×10⁶ m/s</strong></td><td>Kmax = 8.2 eV（ステップ②）</td></tr>
+    <tr><td>磁場に入る</td><td>電子＋磁場</td><td><strong>半径 9.7 mm、周期 36 ns</strong></td><td>ローレンツ力が向心力になる（ステップ③）</td></tr>
+    <tr><td>罠・変えたら</td><td>光・磁場・陽子</td><td><strong>656 nm は出ない</strong></td><td>仕事関数との比べ（ステップ④⑤）</td></tr>
+  </table>
+  <p>光のエネルギーは準位の差で決まる。電子の速さは光のエネルギーで決まる。円の半径は電子の速さで決まる。3つの物理が、橋渡し量で1本につながる。</p>
+  <svg class="fig" data-scene="scene-spec-photo-circle-base" data-show="" width="100%" role="img" aria-label="陰極に水素の光が当たり、電子が磁場で半径 9.7 mm の円を描く"></svg>
+  <p>はじめ、水素の出す光が陰極に当たる。電子が出て、磁場 B = 1.0 mT に入ると、半径 9.7 mm の円を描く。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①スペクトル</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① スペクトル：水素の出す光</h2>
+  <svg class="fig" data-scene="scene-spec-photo-circle-spectrum" data-show="" width="100%" role="img" aria-label="水素のエネルギー準位図。3→2 は 1.89 eV・656 nm、4→2 は 2.55 eV・486 nm、2→1 は 10.2 eV・122 nm"></svg>
+  <p>まず水素だけを見る。水素の準位は、E<sub>n</sub> = −13.6/n² eV だ。n=1 は −13.6 eV、n=2 は −3.40 eV、n=3 は −1.51 eV、n=4 は −0.85 eV になる。光のエネルギーは、準位の差だ。</p>
+  <p>3→2 の遷移では、ΔE = 13.6×(1/4 − 1/9) = <strong>1.89 eV</strong> になる。波長は、λ = 1240/ΔE = 1240/1.89 ≈ <strong>656 nm</strong> だ。赤い光（Hα線）になる。</p>
+  <p>4→2 の遷移では、ΔE = 13.6×(1/4 − 1/16) = <strong>2.55 eV</strong>、λ = 1240/2.55 ≈ <strong>486 nm</strong> になる。2→1 の遷移では、ΔE = 13.6×(1 − 1/4) = <strong>10.2 eV</strong>、λ = 1240/10.2 ≈ <strong>122 nm</strong> になる。紫外線だ。</p>
+  <p>図の準位の間隔は模式的だ。エネルギーはラベルの数字で見る。光のエネルギーが大きいほど、波長は短くなる。</p>
+  <label><input type="checkbox" class="check"> 3→2 は 1.89 eV・656 nm、4→2 は 2.55 eV・486 nm、2→1 は 10.2 eV・122 nm を求めた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②光電効果</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 光電効果：122 nm の電子</h2>
+  <svg class="fig" data-scene="scene-spec-photo-circle-photo" data-show="" width="100%" role="img" aria-label="エネルギーの棒グラフ。光子 10.2 eV、仕事関数 2.0 eV、Kmax 8.2 eV"></svg>
+  <p>122 nm の光が陰極に当たる。光子のエネルギーは 10.2 eV、仕事関数は φ = 2.0 eV だ。光電効果の式 Kmax = hν − φ から、最大の運動エネルギーは、Kmax = 10.2 − 2.0 = <strong>8.2 eV</strong> になる。</p>
+  <p>最大の速さは、Kmax = (1/2)mv² から、v_max = √(2K/m) になる。K = 8.2 × 1.602×10⁻¹⁹ J、m = 9.11×10⁻³¹ kg なので、v_max = √(2 × 8.2 × 1.602×10⁻¹⁹ / 9.11×10⁻³¹) ≈ <strong>1.7×10⁶ m/s</strong> になる。光速の約 0.57% だ。</p>
+  <p>486 nm の光では、光子のエネルギーは 2.55 eV なので、Kmax = 2.55 − 2.0 = <strong>0.55 eV</strong> になる。速さは v = √(2 × 0.55 × 1.602×10⁻¹⁹ / 9.11×10⁻³¹) ≈ 4.4×10⁵ m/s だ。656 nm の光は 1.89 eV で、仕事関数より小さいので、電子は出ない（ステップ④でくわしく見る）。</p>
+  <label><input type="checkbox" class="check"> 122 nm では Kmax=8.2 eV、v_max≈1.7×10⁶ m/s、486 nm では Kmax=0.55 eV を求めた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③磁場の円運動</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 磁場の円運動：r≈9.7 mm</h2>
+  <svg class="fig" data-scene="scene-spec-photo-circle-circle" data-show="velocity,lorentz" width="100%" role="img" aria-label="磁場中の円運動。電子は半径 9.7 mm、周期 36 ns の円を描く。ローレンツ力は約 2.7×10⁻¹⁶ N"></svg>
+  <p>122 nm の電子が、磁場 B = 1.0 mT に入る。ローレンツ力 F = qvB が向心力になって、電子は円を描く。半径は、r = mv/(qB) = 9.11×10⁻³¹ × 1.70×10⁶ / (1.602×10⁻¹⁹ × 1.0×10⁻³) ≈ <strong>9.7 mm</strong> になる。</p>
+  <p>周期は、T = 2πm/(qB) = 2π × 9.11×10⁻³¹ / (1.602×10⁻¹⁹ × 1.0×10⁻³) ≈ <strong>36 ns</strong> になる。1秒間に約 28 MHz 回る。周期は速さによらない。速い電子ほど大きな円を描くが、1周の時間は同じだ。</p>
+  <p>ローレンツ力は、F = qvB = 1.602×10⁻¹⁹ × 1.70×10⁶ × 1.0×10⁻³ ≈ <strong>2.7×10⁻¹⁶ N</strong> になる。向心力 mv²/r と一致する。磁場は仕事をしないので、速さは変わらない。</p>
+  <p>486 nm の電子（v ≈ 4.4×10⁵ m/s）なら、半径は r = 9.11×10⁻³¹ × 4.40×10⁵ / (1.602×10⁻¹⁹ × 1.0×10⁻³) ≈ <strong>2.5 mm</strong> になる。周期は同じ 36 ns だ。</p>
+  <label><input type="checkbox" class="check"> r≈9.7 mm、T≈36 ns、F≈2.7×10⁻¹⁶ N を求め、486 nm では r≈2.5 mm になることを確かめた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④罠：656 nm は出ない</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 罠：656 nm は出ない</h2>
+  <svg class="fig" data-scene="scene-spec-photo-circle-trap" data-show="" width="100%" role="img" aria-label="光子のエネルギーと仕事関数の比べ。122 nm は 10.2 eV、486 nm は 2.55 eV、656 nm は 1.89 eV。仕事関数 2.0 eV の線をこえた光だけ出る"></svg>
+  <p>罠は、656 nm の光でも電子が出ると思うことだ。656 nm の光子のエネルギーは 1.89 eV で、仕事関数 φ = 2.0 eV より小さい。Kmax = 1.89 − 2.0 = −0.11 eV になってしまい、電子は出ない。光電効果には、しきい値がある。</p>
+  <p>光を明るくしても、光子の数は増えるだけで、1個の光子のエネルギーは変わらない。だから、656 nm の光をいくら強くしても、電子は出ない。明るさは電子の数を増やすだけで、速さは変えない。</p>
+  <p>出るのは、光子のエネルギーが φ = 2.0 eV をこえた光だけだ。486 nm（2.55 eV）は出るし、122 nm（10.2 eV）は出る。656 nm（1.89 eV）は出ない。限界の波長は、λ₀ = 1240/2.0 = 620 nm だ。</p>
+  <label><input type="checkbox" class="check"> 656 nm は 1.89 eV &lt; φ=2.0 eV で出ないこと、明るくしても出ないことを確かめた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤変えたら</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ 変えたら：B を 2 倍・φ=1.0 eV・陽子なら</h2>
+  <svg class="fig" data-scene="scene-spec-photo-circle-vary" data-show="" width="100%" role="img" aria-label="半径の比べ。もと 9.7 mm、B を 2 倍で 4.8 mm、仕事関数 1.0 eV では 656 nm の電子が 3.2 mm"></svg>
+  <p>磁場を 2 倍にすると、どうなるか。r = mv/(qB) なので、半径は半分の <strong>4.8 mm</strong> になる。周期 T = 2πm/(qB) も半分の <strong>18 ns</strong> になる。速さは変わらないのに、円は小さくなって、回るのも速くなる。</p>
+  <p>仕事関数が 1.0 eV の金属なら、656 nm の光でも出る。Kmax = 1.89 − 1.0 = <strong>0.89 eV</strong>、速さは v ≈ 5.6×10⁵ m/s、半径は r ≈ <strong>3.2 mm</strong> になる。しきい値が下がると、出なかった光でも出るようになる。</p>
+  <p>同じ 8.2 eV の陽子なら、どうなるか。陽子の質量は電子の約 1836 倍なので、速さは v = √(2K/m) で 1/√1836 倍の約 4.0×10⁴ m/s になる。半径は r = mv/(qB) で、√1836 ≈ 43 倍の約 <strong>41 cm</strong> になる。周期は 2πm/(qB) で 1836 倍の約 66 μs だ。同じエネルギーでも、重い粒子ほど大きな円を描く。</p>
+  <label><input type="checkbox" class="check"> B 2 倍では r=4.8 mm・T=18 ns、φ=1.0 eV では 656 nm でも出て r=3.2 mm、陽子では r≈41 cm になることを確かめた</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と系を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 3→2 は 1.89 eV・656 nm、4→2 は 2.55 eV・486 nm、2→1 は 10.2 eV・122 nm。(2) 122 nm では Kmax=8.2 eV、v_max≈1.7×10⁶ m/s、486 nm では Kmax=0.55 eV、v≈4.4×10⁵ m/s。(3) r≈9.7 mm、T≈36 ns、F≈2.7×10⁻¹⁶ N、486 nm では r≈2.5 mm。(4) 656 nm は 1.89 eV &lt; φ=2.0 eV で出ない。限界の波長は 620 nm。(5) B 2 倍では r=4.8 mm、T=18 ns。φ=1.0 eV なら 656 nm でも Kmax=0.89 eV、r=3.2 mm。陽子なら r≈41 cm、T≈66 μs。もとになった単体モデル：ボーア・ドブロイは <a href="bohr.html">第21問：ボーア・ドブロイ</a>、光電効果は <a href="photoelectric.html">第15問：光電効果</a>、荷電粒子＋円運動は <a href="charged-circle.html">組み合わせ問題C：荷電粒子＋円運動</a>、光電効果＋磁場円運動は <a href="photo-circle.html">組み合わせ問題AF：光電効果＋磁場円運動</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboSpecPhotoDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>

@@ -306,6 +306,20 @@
 </div>
 
 <div class="card">
+  <h2>組み合わせ問題AI：水素のスペクトル＋光電効果＋磁場円運動</h2>
+  <p>水素の出す光を仕事関数 2.0 eV の陰極に当てると、電子が出て磁場 B = 1.0 mT で円を描く。3→2 は 1.89 eV・656 nm、4→2 は 2.55 eV・486 nm、2→1 は 10.2 eV・122 nm だ。122 nm の光では Kmax = 8.2 eV、最大の速さは 1.7×10⁶ m/s、半径は 9.7 mm、周期は 36 ns になる。656 nm は 1.89 eV &lt; φ で出ない罠があり、磁場を 2 倍にすると半径は 4.8 mm、同じ 8.2 eV の陽子なら半径は約 41 cm になる。橋渡し量は「光子のエネルギーと電子の速さ」。</p>
+  <p><a href="content/mechanics/spec-photo-circle.html">水素のスペクトル＋光電効果＋磁場円運動のドリルを開く →</a></p>
+  <p id="progress-combo-spec-photo">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>組み合わせ問題AJ：オットーサイクル（ガソリンエンジン）</h2>
+  <p>空気 0.040 mol を圧縮比 8 で断熱圧縮し、等積で加熱して 2000 K にし、断熱膨張させるガソリンエンジンのサイクル。圧縮後は p = 1.84×10⁶ Pa、T = 689 K で、圧縮の仕事は 324 J。加熱で入る熱は 1092 J、膨張の仕事は 941 J、正味の仕事は 617 J、効率は 57% になる。カルノー効率 85% には届かず、γ=5/3 とすると 75% になってしまう罠がある。圧縮比 12 では効率は 63% になる。橋渡し量は「各角の圧力・体積・温度」。</p>
+  <p><a href="content/mechanics/otto-cycle.html">オットーサイクルのドリルを開く →</a></p>
+  <p id="progress-combo-otto">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
   <h2>第7問：気体＋ピストン</h2>
   <p>シリンダーにピストンがのっている。ピストンの力のつり合いから気体の圧力を、状態方程式から体積と高さを求める。加熱するとピストンが上がる等圧変化で、仕事・内部エネルギー・熱を区別しよう。</p>
   <p><a href="content/mechanics/gas-piston.html">気体＋ピストンのドリルを開く →</a></p>
@@ -592,6 +606,10 @@
       p.comboEarthTunnelDone ? '進捗：組み合わせ問題AG・地球を貫くトンネルを完了済み ✓' : '進捗：まだ組み合わせ問題AG・地球を貫くトンネルは未完了';
     document.getElementById('progress-combo-heater-gas').textContent =
       p.comboHeaterGasDone ? '進捗：組み合わせ問題AH・ヒーターで気体をふくらませるを完了済み ✓' : '進捗：まだ組み合わせ問題AH・ヒーターで気体をふくらませるは未完了';
+    document.getElementById('progress-combo-spec-photo').textContent =
+      p.comboSpecPhotoDone ? '進捗：組み合わせ問題AI・水素のスペクトル＋光電効果＋磁場円運動を完了済み ✓' : '進捗：まだ組み合わせ問題AI・水素のスペクトル＋光電効果＋磁場円運動は未完了';
+    document.getElementById('progress-combo-otto').textContent =
+      p.comboOttoDone ? '進捗：組み合わせ問題AJ・オットーサイクルを完了済み ✓' : '進捗：まだ組み合わせ問題AJ・オットーサイクルは未完了';
     document.getElementById('progress-gas-piston').textContent =
       p.gasPistonDone ? '進捗：第7問・気体＋ピストンを完了済み ✓' : '進捗：まだ第7問・気体＋ピストンは未完了';
     document.getElementById('progress-young').textContent =
@@ -685,6 +703,8 @@
     document.getElementById('progress-combo-photo-circle').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-earth-tunnel').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-heater-gas').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-spec-photo').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-otto').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-gas-piston').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-young').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-capacitor').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
