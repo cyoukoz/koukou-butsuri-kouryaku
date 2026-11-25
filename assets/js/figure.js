@@ -647,8 +647,9 @@ function gravitationForces(data) {
   const sat = { x: 200, y: 150 - orbitPx };
   return {
     forces: [
-      { id: 'gravity', short: '重力 mg', color: 'red', vector: [0, d.g * 6], dashed: false, labelDx: 6, labelDy: -6, from: sat },
-      { id: 'velocity', short: '速度 v', color: '#d35400', vector: [d.v * 0.01, 0], dashed: true, labelDx: 6, labelDy: -8, from: sat },
+      // ラベルは衛星の近くで重ならないよう、重力は左側、速度は矢印の下側に出す。
+      { id: 'gravity', short: '重力 mg', color: 'red', vector: [0, d.g * 6], dashed: false, labelDx: -60, labelDy: -6, from: sat },
+      { id: 'velocity', short: '速度 v', color: '#d35400', vector: [d.v * 0.01, 0], dashed: true, labelDx: 6, labelDy: 16, from: sat },
     ],
     derived: d, orbitPx, earthPx, sat,
   };
