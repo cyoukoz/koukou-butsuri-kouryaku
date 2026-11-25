@@ -180,6 +180,20 @@
 </div>
 
 <div class="card">
+  <h2>組み合わせ問題Q：斜面＋ばね＋エネルギー</h2>
+  <p>高さ 1.8 m、傾き 30° のなめらかな斜面を滑り落ちた 2.0 kg の小物体が、ばね定数 200 N/m のばねに当たる。下端の速さは 6.0 m/s、運動エネルギー 36 J は全部ばねに移り、最大の縮みは 0.60 m、最大の力は 120 N だ。ばねに触れているあいだは単振動で、角振動数 10 rad/s、接触時間は半周期の 0.31 s になる。橋渡し量は「下端の速さ」v。</p>
+  <p><a href="content/mechanics/slope-spring.html">斜面＋ばね＋エネルギーのドリルを開く →</a></p>
+  <p id="progress-combo-slope-spring">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>組み合わせ問題R：落下するコイル・磁気ブレーキ</h2>
+  <p>質量 0.10 kg、抵抗 5.0 Ω の正方形コイル（辺 0.50 m）を、磁場 B = 2.0 T の上 1.25 m から落とす。磁場に入るときの速さ 5.0 m/s は終端速度と一致し、誘導起電力 5.0 V、電流 1.0 A、磁気の力 1.0 N が重力とつり合って等速で入る。磁場の中では電流は流れず自由落下で約 7.4 m/s まで加速し、抜けるときはまたブレーキがかかる。橋渡し量は「速さ」v。</p>
+  <p><a href="content/mechanics/fall-loop.html">落下するコイル・磁気ブレーキのドリルを開く →</a></p>
+  <p id="progress-combo-fall-loop">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
   <h2>第7問：気体＋ピストン</h2>
   <p>シリンダーにピストンがのっている。ピストンの力のつり合いから気体の圧力を、状態方程式から体積と高さを求める。加熱するとピストンが上がる等圧変化で、仕事・内部エネルギー・熱を区別しよう。</p>
   <p><a href="content/mechanics/gas-piston.html">気体＋ピストンのドリルを開く →</a></p>
@@ -430,6 +444,10 @@
       p.comboCapSpringGravDone ? '進捗：組み合わせ問題O・コンデンサ＋ばね＋重力を完了済み ✓' : '進捗：まだ組み合わせ問題O・コンデンサ＋ばね＋重力は未完了';
     document.getElementById('progress-combo-gas-spring-cycle').textContent =
       p.comboGasSpringCycleDone ? '進捗：組み合わせ問題P・気体＋ピストン＋ばね＋サイクルを完了済み ✓' : '進捗：まだ組み合わせ問題P・気体＋ピストン＋ばね＋サイクルは未完了';
+    document.getElementById('progress-combo-slope-spring').textContent =
+      p.comboSlopeSpringDone ? '進捗：組み合わせ問題Q・斜面＋ばね＋エネルギーを完了済み ✓' : '進捗：まだ組み合わせ問題Q・斜面＋ばね＋エネルギーは未完了';
+    document.getElementById('progress-combo-fall-loop').textContent =
+      p.comboFallLoopDone ? '進捗：組み合わせ問題R・落下するコイル・磁気ブレーキを完了済み ✓' : '進捗：まだ組み合わせ問題R・落下するコイル・磁気ブレーキは未完了';
     document.getElementById('progress-gas-piston').textContent =
       p.gasPistonDone ? '進捗：第7問・気体＋ピストンを完了済み ✓' : '進捗：まだ第7問・気体＋ピストンは未完了';
     document.getElementById('progress-young').textContent =
@@ -505,6 +523,8 @@
     document.getElementById('progress-combo-rail-cap-coil').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-cap-spring-grav').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-gas-spring-cycle').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-slope-spring').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-fall-loop').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-gas-piston').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-young').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-capacitor').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
