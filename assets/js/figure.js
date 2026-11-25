@@ -4206,13 +4206,16 @@ function drawBase(svg, scene) {
       for (const [y0, pLabel] of [[90, 'p=1.0×10⁵ Pa、T=300 K'], [180, 'p=2.0×10⁵ Pa、T=300 K']]) {
         const tP = el('text', { x: 60, y: y0 - 10, fill: '#555' }); tP.textContent = pLabel; svg.appendChild(tP);
         svg.appendChild(el('rect', { x: 60, y: y0, width: 280, height: 40, fill: '#eee', stroke: '#333', 'stroke-width': 2 }));
-        const tV = el('text', { x: 250, y: y0 + 25, fill: '#b00' }); tV.textContent = 'v≈1020 m/s（同じ）'; svg.appendChild(tV);
+        const tV = el('text', { x: 140, y: y0 + 25, fill: '#b00' }); tV.textContent = 'v≈1020 m/s（同じ）'; svg.appendChild(tV);
       }
-      const tN = el('text', { x: 40, y: 258, fill: '#555' });
-      tN.textContent = '圧力が 2 倍でも音速は同じ（v=√(γRT/M) に p はない）';
+      const tN = el('text', { x: 40, y: 244, fill: '#555' });
+      tN.textContent = '圧力が 2 倍でも音速は同じ';
       svg.appendChild(tN);
-      const tN2 = el('text', { x: 40, y: 280, fill: '#555' });
-      tN2.textContent = '両端閉管の式 v/(4L) では 300 Hz（まちがい）';
+      const tN1 = el('text', { x: 40, y: 266, fill: '#555' });
+      tN1.textContent = 'v=√(γRT/M) に p はない';
+      svg.appendChild(tN1);
+      const tN2 = el('text', { x: 40, y: 288, fill: '#555' });
+      tN2.textContent = '閉管の式 v/(4L) は 300 Hz（まちがい）';
       svg.appendChild(tN2);
     } else {
       // 管と音源。音源は管の左端の外側。
