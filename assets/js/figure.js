@@ -1,4 +1,4 @@
-// 高校物理攻略 — 図描画シミュレータ（試作 v1.5：単一モデル 二体問題・重心・相対運動・電磁誘導 追加）
+// 高校物理攻略 — 図描画シミュレータ（試作 v1.6：組み合わせE 弾道振り子・組み合わせF ループ・ザ・ループ 追加）
 // 方針：図は手書きの座標を直書きしない。入力は JSON の「物理データ」だけ。
 // 描画側が角度・つり合いから矢印の向きと長さを計算する。
 // だから mg sinθ が mg と同じ長さになる、θ が消える、ラベルが切れる、
@@ -1454,6 +1454,151 @@ function inductionForces(data) {
   return []; // ×印の磁場・誘導電流の円矢印・B–t グラフは drawBase で式から描く。直線の力の矢印はない。
 }
 
+// ---- 弾道振り子（組み合わせE：衝突＋振り子・エネルギー）----
+// 具体値（検算済み）：弾丸 m=0.010 kg、v0=400 m/s、おもり M=1.99 kg（合計 2.00 kg）、
+//   糸の長さ L=1.0 m、g=10 のとき
+//   運動量 p = mv0 = 4.0 kg·m/s。衝突直後（完全非弾性）は v' = p/(m+M) = 2.0 m/s。
+//   運動エネルギー：衝突前 1/2 mv0² = 800 J → 衝突直後 1/2 (m+M)v'² = 4.0 J（796 J 失われる）。
+//   振り上がりの最大の高さ h = v'²/(2g) = 0.20 m。cosθ = 1 − h/L = 0.80、θ ≈ 36.9°。
+//   最下点の張力 T = (m+M)g + (m+M)v'²/L = 20 + 8 = 28 N。
+//   最大の高さでの張力 T = (m+M)g cosθ = 20 × 0.80 = 16 N（ここでは速さ 0）。
+//   周期 T = 2π√(L/g) ≈ 1.99 s。最下点から最大の高さまで T/4 ≈ 0.50 s。
+// 罠：エネルギー保存を衝突の瞬間をまたいで使ってはいけない（800 J と 4.0 J は別物）。
+//   衝突では運動量保存だけ、その後の振り上がりではエネルギー保存だけを使う。
+// 矢印の縮尺：力は 2 px/N（重力 20 N → 40、張力 28 N → 56）。衝突直後の速さは
+//   30 px/(m/s)（v'=2.0 → 60）。弾丸の速さ v0=400 m/s は v' の 200 倍で同じ縮尺では
+//   描けないので、弾丸の速度矢印は方向だけの固定長 60 px とし、ページに明記する。
+// 図の配置：支点 (200,60)、糸の長さ 140 px（1.0 m）、最下点のおもりの中心 (200,200)。
+function ballisticDerived(data) {
+  const mTotal = data.mBulletKg + data.bobMassKg;
+  const momentum = data.mBulletKg * data.v0Ms;
+  const vPrime = momentum / mTotal;
+  const keBefore = 0.5 * data.mBulletKg * data.v0Ms * data.v0Ms;
+  const keAfter = 0.5 * mTotal * vPrime * vPrime;
+  const keLost = keBefore - keAfter;
+  const hMaxM = (vPrime * vPrime) / (2 * data.g);
+  const cosTheta = 1 - hMaxM / data.lengthM;
+  const thetaDeg = (Math.acos(cosTheta) * 180) / Math.PI;
+  const tensionBottomN = mTotal * data.g + (mTotal * vPrime * vPrime) / data.lengthM;
+  const tensionMaxN = mTotal * data.g * cosTheta;
+  const periodS = 2 * Math.PI * Math.sqrt(data.lengthM / data.g);
+  const stringPx = data.lengthM * 140;
+  const pivot = { x: 200, y: 60 };
+  const bobBottom = { x: 200, y: pivot.y + stringPx };
+  const sinTheta = Math.sqrt(1 - cosTheta * cosTheta);
+  const bobMax = { x: pivot.x + stringPx * sinTheta, y: pivot.y + stringPx * cosTheta };
+  return {
+    mTotal, momentum, vPrime, keBefore, keAfter, keLost, hMaxM, cosTheta, thetaDeg,
+    tensionBottomN, tensionMaxN, periodS, tToMaxS: periodS / 4,
+    stringPx, pivot, bobBottom, bobMax, sinTheta,
+    gravityN: mTotal * data.g,
+  };
+}
+
+function ballisticForces(data) {
+  const d = ballisticDerived(data);
+  const fScale = 2; // px/N
+  const vScale = 30; // px/(m/s)：衝突直後の速さ用
+  if (data.phase === 'before') {
+    return [
+      // 弾丸の速度矢印は方向だけ（固定長 60 px）。v0=400 m/s は v' の 200 倍で同じ縮尺では描けない。
+      { id: 'velocity0', short: 'v0', color: '#d35400', vector: [60, 0], dashed: true, labelDx: 6, labelDy: -8, from: { x: 78, y: 200 } },
+    ];
+  }
+  if (data.phase === 'impact') {
+    const bob = d.bobBottom;
+    return [
+      { id: 'velocityAfter', short: "v'=2.0 m/s", color: '#d35400', vector: [d.vPrime * vScale, 0], dashed: true, labelDx: 6, labelDy: -8, from: { x: bob.x + 18, y: bob.y } },
+      { id: 'gravity', short: '重力 20 N', color: 'red', vector: [0, d.gravityN * fScale], dashed: false, labelDx: 6, labelDy: -6, from: bob },
+      { id: 'tension', short: '張力 28 N', color: 'blue', vector: [0, -d.tensionBottomN * fScale], dashed: false, labelDx: 6, labelDy: -6, from: bob },
+    ];
+  }
+  if (data.phase === 'max') {
+    const bob = d.bobMax;
+    // 張力は支点向き（糸に沿う）。重力は鉛直下向き。
+    const tPx = d.tensionMaxN * fScale;
+    return [
+      { id: 'gravity', short: '重力 20 N', color: 'red', vector: [0, d.gravityN * fScale], dashed: false, labelDx: 6, labelDy: -6, from: bob },
+      // 張力のラベルは糸と重ならないよう、矢印の先の左側に出す。
+      { id: 'tension', short: '張力 16 N', color: 'blue', vector: [-d.sinTheta * tPx, -d.cosTheta * tPx], dashed: false, labelDx: -110, labelDy: -8, from: bob },
+    ];
+  }
+  return [];
+}
+
+// ---- ループ・ザ・ループ（組み合わせF：エネルギー＋円運動）----
+// 具体値（検算済み）：m=1.0 kg、ループの半径 R=0.50 m、g=10 のとき
+//   h=2.0 m から静かに落とすと、最下点 v = √(2gh) ≈ 6.3 m/s、N = mg + mv²/R = 90 N。
+//   頂点 v = √(2g(h−2R)) ≈ 4.5 m/s、N = mv²/R − mg = 30 N。
+//   頂点をちょうど回れる最小の高さ h = 2.5R = 1.25 m。そのとき v_top = √(gR) ≈ 2.2 m/s、N = 0。
+//   h=1.0 m では頂点まで届かず、cosφ = 2(h−R)/(3R) = 0.67、φ ≈ 48° の点でレールから離れる。
+//   その点の高さ y = R + R cosφ ≈ 0.83 m、速さ v = √(2g(h−y)) ≈ 1.8 m/s。
+// 罠：「向心力」は新しい力ではない。重力と垂直抗力の合力が向心力の役目をする。
+//   N = 0 になる点が、レールから離れる点。離れたあとは斜方投射になる。
+// 矢印の縮尺：速度 10 px/(m/s)、力 1 px/N（最下点の N=90 N → 90 px）。
+// 図の配置：ループの中心 (200,220)、半径 60 px（0.50 m → 120 px/m）。最下点 y=280 が地面。
+// 高さも同じ 120 px/m で描く（h=2.0 m → 地面から 240 px 上の y=40）。
+function loopDerived(data) {
+  const g = data.g || 10;
+  const m = data.mKg, r = data.loopRM, h = data.hM;
+  const vBottom = Math.sqrt(2 * g * h);
+  const vTop = Math.sqrt(Math.max(0, 2 * g * (h - 2 * r)));
+  const nBottom = m * g + (m * vBottom * vBottom) / r;
+  const nTop = (m * vTop * vTop) / r - m * g;
+  const hMinM = 2.5 * r;
+  const vTopMin = Math.sqrt(g * r);
+  // h < 2.5R のときだけ、レールから離れる点がある（cosφ = 2(h−R)/(3R)）。
+  const fallCos = h < 2.5 * r ? (2 * (h - r)) / (3 * r) : null;
+  const fallPhiDeg = fallCos === null ? null : (Math.acos(fallCos) * 180) / Math.PI;
+  const fallYM = fallCos === null ? null : r + r * fallCos;
+  const fallV = fallYM === null ? null : Math.sqrt(2 * g * (h - fallYM));
+  const center = { x: 200, y: 220 };
+  const rPx = r * 120;
+  const fallSin = fallCos === null ? null : Math.sqrt(1 - fallCos * fallCos);
+  const fallPos = fallCos === null ? null : { x: center.x + rPx * fallSin, y: center.y - rPx * fallCos };
+  return {
+    vBottom, vTop, nBottom, nTop, hMinM, vTopMin,
+    fallCos, fallPhiDeg, fallYM, fallV, center, rPx, fallSin, fallPos,
+    gravityN: m * g,
+  };
+}
+
+function loopForces(data) {
+  const d = loopDerived(data);
+  const vScale = 10; // px/(m/s)
+  const fScale = 1; // px/N
+  if (data.phase === 'bottom') {
+    const ball = { x: 200, y: 270 };
+    return [
+      { id: 'velocity', short: 'v=' + d.vBottom.toFixed(1) + ' m/s', color: '#d35400', vector: [d.vBottom * vScale, 0], dashed: true, labelDx: 6, labelDy: -8, from: ball },
+      // 垂直抗力のラベルは、矢印の先の右側（ループの外）に出す。
+      { id: 'normal', short: 'N=' + d.nBottom.toFixed(0) + ' N', color: 'blue', vector: [0, -d.nBottom * fScale], dashed: false, labelDx: 54, labelDy: -6, from: ball },
+      // 重力の矢印は 10 px と短いので、ラベルは地面の下に出す。
+      { id: 'gravity', short: '重力 10 N', color: 'red', vector: [0, d.gravityN * fScale], dashed: false, labelDx: 6, labelDy: 16, from: ball },
+    ];
+  }
+  if (data.phase === 'top') {
+    const ball = { x: 200, y: 170 };
+    return [
+      { id: 'velocity', short: 'v=' + d.vTop.toFixed(1) + ' m/s', color: '#d35400', vector: [-d.vTop * vScale, 0], dashed: true, labelDx: -80, labelDy: -8, from: ball },
+      // 重力と垂直抗力はどちらも下向き。矢印が重ならないよう、中心から左右に 6 px ずらす。
+      // ラベルはループの弧と重ならないよう、重力は玉の左上、垂直抗力は矢印の先の右側に出す。
+      { id: 'gravity', short: '重力 10 N', color: 'red', vector: [0, d.gravityN * fScale], dashed: false, labelDx: -70, labelDy: -40, from: { x: ball.x - 6, y: ball.y } },
+      { id: 'normal', short: 'N=' + d.nTop.toFixed(0) + ' N', color: 'blue', vector: [0, d.nTop * fScale], dashed: false, labelDx: 54, labelDy: -6, from: { x: ball.x + 6, y: ball.y } },
+    ];
+  }
+  if (data.phase === 'fall' && d.fallPos) {
+    const ball = d.fallPos;
+    // 離れる点での速度は、接線方向（左上向き）。成分は (−cosφ, −sinφ) × v。
+    const vx = -d.fallCos * d.fallV * vScale, vy = -d.fallSin * d.fallV * vScale;
+    return [
+      { id: 'velocity', short: 'v=' + d.fallV.toFixed(1) + ' m/s', color: '#d35400', vector: [vx, vy], dashed: true, labelDx: 10, labelDy: -20, from: ball },
+      { id: 'gravity', short: '重力 10 N', color: 'red', vector: [0, d.gravityN * fScale], dashed: false, labelDx: 6, labelDy: -6, from: ball },
+    ];
+  }
+  return []; // drop：静かに落とすので、速度の矢印はない。
+}
+
 function sceneFor(type, thetaDeg, mgPx, fPx, data) {
   if (type === 'dcCircuit') {
     const d = dcCircuitDerived(data);
@@ -1772,6 +1917,27 @@ function sceneFor(type, thetaDeg, mgPx, fPx, data) {
       forces: r.forces,
     };
   }
+  if (type === 'ballistic') {
+    const d = ballisticDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'before',
+      mBulletKg: data.mBulletKg, v0Ms: data.v0Ms, bobMassKg: data.bobMassKg,
+      lengthM: data.lengthM, g: (data && data.g) || 10,
+      derived: d,
+      center: { x: 200, y: 200 }, centerDot: false,
+      forces: ballisticForces(data),
+    };
+  }
+  if (type === 'loop') {
+    const d = loopDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'drop',
+      mKg: data.mKg, loopRM: data.loopRM, hM: data.hM, g: (data && data.g) || 10,
+      derived: d,
+      center: { x: 200, y: 170 }, centerDot: false,
+      forces: loopForces(data),
+    };
+  }
   if (type === 'slopePulley') {
     return {
       type, phase: (data && data.phase) || 'connected',
@@ -2070,6 +2236,67 @@ function validateScene(scene) {
       if (Math.abs(accPx - aAfter * 5) > 0.5) return ["切れたあとの減速の矢印が a' と一致しません: " + accPx.toFixed(2)];
       // 張力がないこと（after の forces に tensionA / tensionB が含まれていないこと）。
       if (byId.tensionA || byId.tensionB) return ['切れたあとの図に張力が残っています'];
+    }
+  }
+  if (scene.type === 'ballistic') {
+    const d = scene.derived;
+    const m = scene.mBulletKg, M = scene.bobMassKg, g = scene.g;
+    // 運動量保存：v' = mv0/(m+M)。衝突直後の運動エネルギーは衝突前より小さいこと。
+    if (Math.abs(d.momentum - m * scene.v0Ms) > 1e-9) return ['運動量が mv0 と一致しません'];
+    if (Math.abs(d.vPrime - (m * scene.v0Ms) / (m + M)) > 1e-9) return ['衝突直後の速さが運動量保存と一致しません'];
+    if (Math.abs(d.keBefore - 0.5 * m * scene.v0Ms * scene.v0Ms) > 1e-9) return ['衝突前の運動エネルギーが一致しません'];
+    if (Math.abs(d.keAfter - 0.5 * (m + M) * d.vPrime * d.vPrime) > 1e-9) return ['衝突直後の運動エネルギーが一致しません'];
+    if (!(d.keLost > 0)) return ['完全非弾性衝突なのに運動エネルギーが失われていません'];
+    // 振り上がり：h = v'²/(2g)、cosθ = 1 − h/L、sin²θ + cos²θ = 1。
+    if (Math.abs(d.hMaxM - (d.vPrime * d.vPrime) / (2 * g)) > 1e-9) return ['最大の高さが v\'²/(2g) と一致しません'];
+    if (Math.abs(d.cosTheta - (1 - d.hMaxM / scene.lengthM)) > 1e-9) return ['cosθ が 1 − h/L と一致しません'];
+    if (Math.abs(d.sinTheta * d.sinTheta + d.cosTheta * d.cosTheta - 1) > 1e-9) return ['sin²θ + cos²θ が 1 になりません'];
+    // 張力：最下点 (m+M)(g + v'²/L)、最大の高さ (m+M)g cosθ。
+    if (Math.abs(d.tensionBottomN - (m + M) * (g + (d.vPrime * d.vPrime) / scene.lengthM)) > 1e-9) return ['最下点の張力が一致しません'];
+    if (Math.abs(d.tensionMaxN - (m + M) * g * d.cosTheta) > 1e-9) return ['最大の高さの張力が一致しません'];
+    // 周期：T = 2π√(L/g)。最大の高さまでの時間は T/4。
+    if (Math.abs(d.periodS - 2 * Math.PI * Math.sqrt(scene.lengthM / g)) > 1e-9) return ['周期が 2π√(L/g) と一致しません'];
+    if (Math.abs(d.tToMaxS - d.periodS / 4) > 1e-9) return ['最大の高さまでの時間が T/4 と一致しません'];
+    // 矢印の長さが縮尺どおりか。重力 20 N → 40、張力（最下点 28 N → 56、最大 16 N → 32）。
+    if (byId.velocityAfter && Math.abs(Math.hypot(byId.velocityAfter.vector[0], byId.velocityAfter.vector[1]) - d.vPrime * 30) > 0.5) return ['衝突直後の速度の矢印が v\' の縮尺と一致しません'];
+    if (byId.gravity && Math.abs(Math.hypot(byId.gravity.vector[0], byId.gravity.vector[1]) - d.gravityN * 2) > 0.5) return ['重力の矢印が mg の縮尺と一致しません'];
+    if (scene.phase === 'impact' && byId.tension && Math.abs(Math.hypot(byId.tension.vector[0], byId.tension.vector[1]) - d.tensionBottomN * 2) > 0.5) return ['最下点の張力の矢印が T の縮尺と一致しません'];
+    if (scene.phase === 'max' && byId.tension && Math.abs(Math.hypot(byId.tension.vector[0], byId.tension.vector[1]) - d.tensionMaxN * 2) > 0.5) return ['最大の高さの張力の矢印が T の縮尺と一致しません'];
+    // 最大の高さのおもりの位置が、支点から糸の長さだけ離れていること。
+    if (scene.phase === 'max') {
+      const dx = d.bobMax.x - d.pivot.x, dy = d.bobMax.y - d.pivot.y;
+      if (Math.abs(Math.hypot(dx, dy) - d.stringPx) > 0.5) return ['最大の高さのおもりが糸の長さだけ支点から離れていません'];
+      if (Math.abs(d.bobMax.y - (d.bobBottom.y - d.hMaxM * 140)) > 0.5) return ['最大の高さのおもりの上がり方が h と一致しません'];
+    }
+  }
+  if (scene.type === 'loop') {
+    const d = scene.derived;
+    const m = scene.mKg, r = scene.loopRM, h = scene.hM, g = scene.g;
+    // エネルギー保存：最下点 v² = 2gh、頂点 v² = 2g(h−2R)。
+    if (Math.abs(d.vBottom * d.vBottom - 2 * g * h) > 1e-9) return ['最下点の速さがエネルギー保存と一致しません'];
+    if (Math.abs(d.vTop * d.vTop - Math.max(0, 2 * g * (h - 2 * r))) > 1e-9) return ['頂点の速さがエネルギー保存と一致しません'];
+    // 垂直抗力：最下点 N = mg + mv²/R、頂点 N = mv²/R − mg。
+    if (Math.abs(d.nBottom - (m * g + (m * d.vBottom * d.vBottom) / r)) > 1e-9) return ['最下点の垂直抗力が一致しません'];
+    if (Math.abs(d.nTop - ((m * d.vTop * d.vTop) / r - m * g)) > 1e-9) return ['頂点の垂直抗力が一致しません'];
+    // 最小の高さ h = 2.5R、そのときの頂点の速さ √(gR) と N = 0。
+    if (Math.abs(d.hMinM - 2.5 * r) > 1e-9) return ['最小の高さが 2.5R と一致しません'];
+    if (Math.abs(d.vTopMin * d.vTopMin - g * r) > 1e-9) return ['最小の頂点の速さが √(gR) と一致しません'];
+    // 矢印の長さが縮尺どおりか。速度 10 px/(m/s)、力 1 px/N。
+    if (scene.phase === 'bottom' && byId.velocity && Math.abs(Math.hypot(byId.velocity.vector[0], byId.velocity.vector[1]) - d.vBottom * 10) > 0.5) return ['最下点の速度の矢印が v の縮尺と一致しません'];
+    if (scene.phase === 'bottom' && byId.normal && Math.abs(Math.hypot(byId.normal.vector[0], byId.normal.vector[1]) - d.nBottom) > 0.5) return ['最下点の垂直抗力の矢印が N の縮尺と一致しません'];
+    if (scene.phase === 'top' && byId.velocity && Math.abs(Math.hypot(byId.velocity.vector[0], byId.velocity.vector[1]) - d.vTop * 10) > 0.5) return ['頂点の速度の矢印が v の縮尺と一致しません'];
+    if (scene.phase === 'top' && byId.normal && Math.abs(Math.hypot(byId.normal.vector[0], byId.normal.vector[1]) - Math.abs(d.nTop)) > 0.5) return ['頂点の垂直抗力の矢印が N の縮尺と一致しません'];
+    if (scene.phase === 'top' && byId.gravity && byId.normal) {
+      // 頂点では重力と垂直抗力の合力が向心力：N + mg = mv²/R。
+      if (Math.abs(d.nTop + m * g - (m * d.vTop * d.vTop) / r) > 1e-9) return ['頂点で N + mg が向心力と一致しません'];
+    }
+    // 離れる点（h < 2.5R のとき）：cosφ = 2(h−R)/(3R)、その点で mv²/R = mg cosφ。
+    if (scene.phase === 'fall' && d.fallCos !== null) {
+      if (Math.abs(d.fallCos - (2 * (h - r)) / (3 * r)) > 1e-9) return ['離れる点の cosφ が一致しません'];
+      if (Math.abs(d.fallYM - (r + r * d.fallCos)) > 1e-9) return ['離れる点の高さが一致しません'];
+      if (Math.abs(d.fallV * d.fallV - 2 * g * (h - d.fallYM)) > 1e-9) return ['離れる点の速さがエネルギー保存と一致しません'];
+      if (Math.abs((m * d.fallV * d.fallV) / r - m * g * d.fallCos) > 1e-9) return ['離れる点で mv²/R が mg cosφ と一致しません'];
+      if (byId.velocity && Math.abs(Math.hypot(byId.velocity.vector[0], byId.velocity.vector[1]) - d.fallV * 10) > 0.5) return ['離れる点の速度の矢印が v の縮尺と一致しません'];
     }
   }
   if (scene.type === 'charged-circle') {
@@ -3723,6 +3950,95 @@ function drawBase(svg, scene) {
         const lD = el('text', { x: 250, y: 260, fill: '#d35400' }); lD.textContent = '誘導電流の磁場'; svg.appendChild(lD);
       }
     }
+  } else if (scene.type === 'ballistic') {
+    const d = scene.derived;
+    const pivot = d.pivot;
+    // 天井と支点。
+    svg.appendChild(el('line', { x1: 160, y1: pivot.y, x2: 240, y2: pivot.y, stroke: '#333', 'stroke-width': 3 }));
+    svg.appendChild(el('circle', { cx: pivot.x, cy: pivot.y, r: 4, fill: '#333' }));
+    const tH = el('text', { x: 40, y: 36, fill: '#555' });
+    tH.textContent = scene.phase === 'before' ? '弾丸がおもりに向かって飛んでくる'
+      : scene.phase === 'impact' ? '衝突直後：弾丸がめり込んで一緒に動く'
+      : '最大の高さ：ここで一瞬止まる';
+    svg.appendChild(tH);
+    if (scene.phase === 'before') {
+      // 糸とおもり（最下点）、弾丸は左から飛んでくる。
+      const bob = d.bobBottom;
+      svg.appendChild(el('line', { x1: pivot.x, y1: pivot.y, x2: bob.x, y2: bob.y, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx: bob.x, cy: bob.y, r: 18, fill: '#cfe3ff', stroke: '#333', 'stroke-width': 2 }));
+      const tZ = el('text', { x: bob.x - 15, y: bob.y - 26 }); tZ.textContent = 'v = 0'; svg.appendChild(tZ);
+      const tB = el('text', { x: bob.x - 30, y: bob.y + 40, fill: '#555' }); tB.textContent = 'おもり'; svg.appendChild(tB);
+      svg.appendChild(el('circle', { cx: 70, cy: 200, r: 6, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      const tM = el('text', { x: 56, y: 228 }); tM.textContent = '弾丸'; svg.appendChild(tM);
+    } else if (scene.phase === 'impact') {
+      // 弾丸がめり込んだおもり。弾丸はおもりの左端に描く。
+      const bob = d.bobBottom;
+      svg.appendChild(el('line', { x1: pivot.x, y1: pivot.y, x2: bob.x, y2: bob.y, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx: bob.x, cy: bob.y, r: 18, fill: '#cfe3ff', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx: bob.x - 15, cy: bob.y, r: 6, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      // 「おもり＋弾丸」は重力のラベルと重ならないよう、下へ出す。
+      const tB = el('text', { x: bob.x - 30, y: bob.y + 62, fill: '#555' }); tB.textContent = 'おもり＋弾丸'; svg.appendChild(tB);
+    } else {
+      // 最大の高さ：糸が θ だけ傾いた位置。θ の弧は支点に描く。
+      const bob = d.bobMax;
+      svg.appendChild(el('line', { x1: pivot.x, y1: pivot.y, x2: bob.x, y2: bob.y, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx: bob.x, cy: bob.y, r: 18, fill: '#cfe3ff', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx: bob.x - 15, cy: bob.y, r: 6, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      // θ の弧：鉛直下向きと糸のあいだ。弧の半径 30。
+      const rad = (d.thetaDeg * Math.PI) / 180;
+      const x2 = pivot.x + 30 * Math.sin(rad);
+      const y2 = pivot.y + 30 * Math.cos(rad);
+      svg.appendChild(el('path', { d: `M ${pivot.x} ${pivot.y + 30} A 30 30 0 0 0 ${x2.toFixed(1)} ${y2.toFixed(1)}`, fill: 'none', stroke: '#333', 'stroke-width': 1.5 }));
+      const th = el('text', { x: pivot.x + 36, y: pivot.y + 34 }); th.textContent = 'θ'; svg.appendChild(th);
+      // 最下点の高さの破線と、上がった高さ h の矢印。
+      svg.appendChild(el('line', { x1: 200, y1: d.bobBottom.y, x2: bob.x, y2: d.bobBottom.y, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      svg.appendChild(el('line', { x1: bob.x, y1: d.bobBottom.y, x2: bob.x, y2: bob.y, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      // h のラベルは重力のラベルと重ならないよう、破線の左側に出す。
+      const tHm = el('text', { x: 190, y: 192, fill: '#555' }); tHm.textContent = 'h=0.20 m'; svg.appendChild(tHm);
+      const tZ = el('text', { x: bob.x + 22, y: bob.y - 4 }); tZ.textContent = 'v = 0'; svg.appendChild(tZ);
+    }
+  } else if (scene.type === 'loop') {
+    const d = scene.derived;
+    const c = d.center, rPx = d.rPx;
+    const tH = el('text', { x: 40, y: 36, fill: '#555' });
+    tH.textContent = scene.phase === 'drop' ? '高さ h から静かに落とす'
+      : scene.phase === 'bottom' ? '最下点：速さ最大、垂直抗力も最大'
+      : scene.phase === 'top' ? '頂点：重力と垂直抗力の合力が向心力'
+      : '途中でレールから離れる';
+    svg.appendChild(tH);
+    // ループのレールと地面。地面 y=280、最下点の玉の中心は (200,270)。
+    svg.appendChild(el('circle', { cx: c.x, cy: c.y, r: rPx, fill: 'none', stroke: '#333', 'stroke-width': 3 }));
+    svg.appendChild(el('line', { x1: 40, y1: 280, x2: 360, y2: 280, stroke: '#333', 'stroke-width': 2 }));
+    if (scene.phase === 'drop') {
+      // 出発点の高さ h：右側の台の上。破線で高さを測る（120 px/m）。
+      // 玉は見出しと重ならないよう、右側に置く。静かに落とすので v = 0 の表示はいらない。
+      const yTop = 280 - scene.hM * 120;
+      const ballX = 310, ballY = yTop - 10;
+      svg.appendChild(el('line', { x1: 260, y1: yTop, x2: 360, y2: yTop, stroke: '#333', 'stroke-width': 3 }));
+      svg.appendChild(el('circle', { cx: ballX, cy: ballY, r: 10, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: ballX, y1: yTop, x2: ballX, y2: 280, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      const tHm = el('text', { x: 40, y: 170, fill: '#555' }); tHm.textContent = 'h=' + scene.hM.toFixed(2) + ' m'; svg.appendChild(tHm);
+    } else if (scene.phase === 'bottom') {
+      svg.appendChild(el('circle', { cx: 200, cy: 270, r: 10, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      const tB = el('text', { x: 40, y: 295, fill: '#555' }); tB.textContent = '最下点'; svg.appendChild(tB);
+    } else if (scene.phase === 'top') {
+      svg.appendChild(el('circle', { cx: 200, cy: 170, r: 10, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      const tT = el('text', { x: 240, y: 150, fill: '#555' }); tT.textContent = '頂点'; svg.appendChild(tT);
+    } else if (scene.phase === 'fall' && d.fallPos) {
+      // 離れる点の玉と、そのあとの放物線（破線）。放物線は時刻 0〜0.5 s を 0.05 s 刻みで描く。
+      const ball = d.fallPos;
+      svg.appendChild(el('circle', { cx: ball.x, cy: ball.y, r: 10, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      const vx = -d.fallCos * d.fallV, vy = -d.fallSin * d.fallV; // m/s（上向きが負）
+      let p = '';
+      for (let i = 0; i <= 10; i++) {
+        const t = i * 0.05;
+        const x = ball.x + vx * t * 120;
+        const y = ball.y + vy * t * 120 + 0.5 * (scene.g || 10) * t * t * 120;
+        p += (p ? ' L ' : 'M ') + x.toFixed(1) + ' ' + y.toFixed(1);
+      }
+      svg.appendChild(el('path', { d: p, fill: 'none', stroke: '#b00', 'stroke-width': 2, 'stroke-dasharray': '5 4' }));
+      const tL = el('text', { x: 300, y: 110, fill: '#b00' }); tL.textContent = 'ここで離れる'; svg.appendChild(tL);
+    }
   }
   // 中心の黒点は、力の作用点がある型だけに描く。young・capacitor には作用点がないので描かない。
   if (scene.centerDot !== false) svg.appendChild(el('circle', { cx: scene.center.x, cy: scene.center.y, r: 4, fill: '#333' }));
@@ -3776,4 +4092,4 @@ function renderAllFigures() {
   });
 }
 
-if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, sceneFor, validateScene, renderFigure };
+if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, sceneFor, validateScene, renderFigure };
