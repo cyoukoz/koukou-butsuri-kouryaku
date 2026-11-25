@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>組み合わせ問題AT：交流RLC回路＋共振＋電力</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body { max-width: 760px; margin: 0 auto; padding: 16px; font-family: sans-serif; line-height: 1.8; }
+h1 { font-size: 22px; }
+.step { border-top: 2px solid #eee; padding: 18px 0; }
+.fig { margin: 12px 0; }
+.fig svg { width: 100%; height: auto; display: block; }
+.check { font-size: 18px; margin-right: 8px; }
+.next { display: inline-block; margin-top: 8px; }
+.toplink { position: fixed; right: 12px; bottom: 12px; background: #fff; border: 1px solid #ccc; padding: 6px 10px; border-radius: 6px; text-decoration: none; }
+.donebox { border: 2px solid #4a4; padding: 14px; margin: 20px 0; }
+table { border-collapse: collapse; margin: 10px 0; }
+th, td { border: 1px solid #999; padding: 6px 8px; text-align: left; }
+</style>
+</head>
+<body id="top">
+<h1>組み合わせ問題AT：交流RLC回路＋共振＋電力</h1>
+<p>交流電源（実効値 100 V、周波数 50 Hz）に、抵抗 R = 100 Ω、コイル L = 0.32 H、コンデンサ C = 100 μF を直列につないだ回路を考える。(1) 角振動数、誘導リアクタンス、容量リアクタンス、インピーダンス、電流の実効値、位相を求めよ。(2) 消費する有効電力、皮相電力、無効電力を求めよ。また、抵抗・コイル・コンデンサにかかる電圧の実効値を求めよ。(3) 周波数を変えたとき、電流が最大になる共振周波数と、そのときの電流・電力を求めよ。</p>
+
+<div class="step">
+<p><b>はじめに：どう切り分けるか</b></p>
+<p>インピーダンス → 電力 → 共振 → 罠 → 変えたら、の順に区切る。橋渡し量は「電流（とインピーダンス）」だ。</p>
+<table>
+<tr><th>いつ</th><th>何が起きるか</th><th>橋渡し量</th><th>どこで解くか</th></tr>
+<tr><td>はじめ</td><td>インピーダンス</td><td>Z ≈ 121 Ω、I ≈ 0.82 A、φ ≈ 34°</td><td>ステップ①</td></tr>
+<tr><td>電力</td><td>有効電力</td><td>P ≈ 68 W、V<sub>R</sub> ≈ 82 V、V<sub>L</sub> ≈ 83 V</td><td>ステップ②</td></tr>
+<tr><td>共振</td><td>周波数</td><td>f0 ≈ 28 Hz、I = 1.0 A、P = 100 W</td><td>ステップ③</td></tr>
+<tr><td>罠・変えたら</td><td>最大値</td><td>最大値で計算すると 165 W</td><td>ステップ④⑤</td></tr>
+</table>
+<p>図：交流電源・抵抗・コイル・コンデンサの直列回路。サイトではじめての交流回路だ。</p>
+<script type="application/json" id="scene-acRlc-base">{"type":"acRlc","emfEffV":100,"freqHz":50,"rOhm":100,"indH":0.32,"capF":0.0001,"phase":"base"}</script>
+<svg class="fig" data-scene="scene-acRlc-base" data-show="" width="100%" role="img" aria-label="交流RLC直列回路の図。電源 100 V、周波数 50 Hz、抵抗 100 Ω、コンデンサ 100 μF、コイル 0.32 H、スイッチ"></svg>
+</div>
+
+<div class="step">
+<p><b>ステップ① インピーダンス：Z≈121 Ω、電流 0.82 A</b></p>
+<script type="application/json" id="scene-acRlc-impedance">{"type":"acRlc","emfEffV":100,"freqHz":50,"rOhm":100,"indH":0.32,"capF":0.0001,"phase":"impedance"}</script>
+<svg class="fig" data-scene="scene-acRlc-impedance" data-show="" width="100%" role="img" aria-label="インピーダンスの三角形。抵抗 100 Ω、リアクタンスの差 69 Ω、インピーダンス 121 Ω、位相 34°"></svg>
+<p>角振動数は ω = 2πf = 2π × 50 ≈ 314 rad/s。誘導リアクタンスは X<sub>L</sub> = ωL = 314 × 0.32 ≈ 100 Ω、容量リアクタンスは X<sub>C</sub> = 1/(ωC) = 1/(314 × 100×10<sup>−6</sup>) ≈ 32 Ω。</p>
+<p>インピーダンスは Z = √(R² + (X<sub>L</sub> − X<sub>C</sub>)²) = √(100² + 69²) ≈ 121 Ω。電流の実効値は I = E/Z = 100/121 ≈ 0.82 A。</p>
+<p>位相は tanφ = (X<sub>L</sub> − X<sub>C</sub>)/R = 69/100 より φ ≈ 34°。X<sub>L</sub> &gt; X<sub>C</sub> なので、電流は電圧より 34° 遅れる。力率は cosφ = R/Z = 100/121 ≈ 0.82 である。</p>
+<p><label><input type="checkbox" class="check">① インピーダンスが分かった</label></p>
+<p><a class="next" href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<p><b>ステップ② 電力：P = EI cosφ ≈ 68 W</b></p>
+<script type="application/json" id="scene-acRlc-power">{"type":"acRlc","emfEffV":100,"freqHz":50,"rOhm":100,"indH":0.32,"capF":0.0001,"phase":"power"}</script>
+<svg class="fig" data-scene="scene-acRlc-power" data-show="" width="100%" role="img" aria-label="電力の棒グラフ。有効電力 68 W、皮相電力 82 VA、無効電力 47 var"></svg>
+<p>有効電力（実際に消費する電力）は P = EI cosφ = 100 × 0.82 × 0.82 ≈ 68 W。皮相電力は S = EI = 100 × 0.82 ≈ 82 VA、無効電力は Q = EI sinφ = 100 × 0.82 × 0.57 ≈ 47 var である。</p>
+<p>各部にかかる電圧の実効値は、V<sub>R</sub> = IR = 0.82 × 100 ≈ 82 V、V<sub>L</sub> = IX<sub>L</sub> = 0.82 × 100 ≈ 83 V、V<sub>C</sub> = IX<sub>C</sub> = 0.82 × 32 ≈ 26 V。</p>
+<p>そのまま足すと 82 + 83 + 26 = 192 V になるが、これは電源電圧 100 V と一致しない。コイルとコンデンサの電圧は位相が 180° ずれているので、ベクトル和で √(82² + (83 − 26)²) = 100 V になる。</p>
+<p><label><input type="checkbox" class="check">② 電力が分かった</label></p>
+<p><a class="next" href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<p><b>ステップ③ 共振：f0≈28 Hz で電流が最大になる</b></p>
+<script type="application/json" id="scene-acRlc-resonance">{"type":"acRlc","emfEffV":100,"freqHz":50,"rOhm":100,"indH":0.32,"capF":0.0001,"phase":"resonance"}</script>
+<svg class="fig" data-scene="scene-acRlc-resonance" data-show="" width="100%" role="img" aria-label="電流と周波数のグラフ。共振周波数 28 Hz で電流 1.0 A のピーク"></svg>
+<p>周波数を変えると、X<sub>L</sub> = ωL は周波数に比例して大きくなり、X<sub>C</sub> = 1/(ωC) は周波数に反比例して小さくなる。X<sub>L</sub> = X<sub>C</sub> となるとき、インピーダンスは最小の Z = R になり、電流が最大になる。</p>
+<p>この共振周波数は、ω<sub>0</sub> = 1/√(LC) より、f<sub>0</sub> = 1/(2π√(LC)) = 1/(2π√(0.32 × 100×10<sup>−6</sup>)) ≈ 28 Hz。このとき X<sub>L0</sub> = X<sub>C0</sub> ≈ 57 Ω、電流は I = E/R = 100/100 = 1.0 A、電力は P = E²/R = 100 W になる。</p>
+<p>コイルとコンデンサの電圧は V<sub>L</sub> = V<sub>C</sub> ≈ 57 V で、位相が 180° ずれているので打ち消し合う。</p>
+<p><label><input type="checkbox" class="check">③ 共振が分かった</label></p>
+<p><a class="next" href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<p><b>ステップ④ 罠：最大値で電力を計算すると 165 W</b></p>
+<script type="application/json" id="scene-acRlc-trap">{"type":"acRlc","emfEffV":100,"freqHz":50,"rOhm":100,"indH":0.32,"capF":0.0001,"phase":"trap"}</script>
+<svg class="fig" data-scene="scene-acRlc-trap" data-show="" width="100%" role="img" aria-label="電力の比べ。最大値で計算すると 165 W、cosφ を忘れると 82 W、正しい電力は 68 W"></svg>
+<p>交流の電圧と電流には、実効値と最大値がある。最大値は E<sub>max</sub> = √2 × 100 ≈ 141 V、I<sub>max</sub> = √2 × 0.82 ≈ 1.17 A である。最大値どうしをかけると 141 × 1.17 ≈ 165 W になるが、これはまちがいである。</p>
+<p>電力は実効値で計算し、さらに力率 cosφ をかけなければならない。cosφ を忘れて P = EI = 82 W とするのもまちがいである。正しい電力は P = EI cosφ ≈ 68 W である。</p>
+<p>同じように、各部の電圧をそのまま足して 192 V とするのもまちがいである。コイルとコンデンサの電圧は位相が 180° ずれているので、ベクトルとして足す。</p>
+<p><label><input type="checkbox" class="check">④ 罠が分かった</label></p>
+<p><a class="next" href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<p><b>ステップ⑤ 変えたら：f=100 Hz、R=200 Ω</b></p>
+<script type="application/json" id="scene-acRlc-vary">{"type":"acRlc","emfEffV":100,"freqHz":50,"rOhm":100,"indH":0.32,"capF":0.0001,"phase":"vary"}</script>
+<svg class="fig" data-scene="scene-acRlc-vary" data-show="" width="100%" role="img" aria-label="電流の比べ。共振で 1.0 A、もとの 50 Hz で 0.82 A、100 Hz で 0.48 A、抵抗 200 Ω で 0.47 A"></svg>
+<p>周波数を 100 Hz にすると、X<sub>L</sub> = 2π × 100 × 0.32 ≈ 201 Ω、X<sub>C</sub> = 1/(2π × 100 × 100×10<sup>−6</sup>) ≈ 16 Ω、Z = √(100² + (201 − 16)²) ≈ 210 Ω、I = 100/210 ≈ 0.48 A、φ ≈ 62°、P = EI cosφ ≈ 23 W になる。</p>
+<p>抵抗を 200 Ω にすると、Z = √(200² + 69²) ≈ 211 Ω、I ≈ 0.47 A、φ ≈ 19°、P ≈ 45 W になる。共振周波数 f<sub>0</sub> は R によらないので、28 Hz のままである。</p>
+<p><label><input type="checkbox" class="check">⑤ 変えたらが分かった</label></p>
+</div>
+
+<div class="donebox">
+<p id="done-message">5つのチェックをすべて入れると完了になります。</p>
+<button id="done-btn">完了にする</button>
+<p>答え：ω ≈ 314 rad/s、X<sub>L</sub> ≈ 100 Ω、X<sub>C</sub> ≈ 32 Ω、Z ≈ 121 Ω、I ≈ 0.82 A、φ ≈ 34°、P ≈ 68 W、S ≈ 82 VA、Q ≈ 47 var、f<sub>0</sub> ≈ 28 Hz、共振で I = 1.0 A、P = 100 W。直流回路は<a href="dc-circuit.html">第19問：直流回路</a>、過渡現象は<a href="transient.html">第30問：RL・RC回路の過渡現象</a>、LC振動は<a href="lc.html">組み合わせ問題D：LC回路＋単振動</a>、RLCのステップ応答は<a href="rlc-charge.html">組み合わせ問題AR：RLC回路の過渡応答</a>に戻って確認しよう。</p>
+<p><a href="photo-cap-circle.html">← 組み合わせ問題AS：光電効果＋コンデンサ＋磁場円運動</a></p>
+</div>
+
+<a class="toplink" href="#top">↑ TOP</a>
+<script src="../../assets/js/figure.js"></script>
+<script src="../../assets/js/idb.js"></script>
+<script>
+renderAllFigures();
+const boxes = Array.from(document.querySelectorAll('.check'));
+const doneBtn = document.getElementById('done-btn');
+const doneMsg = document.getElementById('done-message');
+const doneKey = 'comboAcRlcDone';
+const allChecked = () => boxes.every(b => b.checked);
+boxes.forEach(b => b.addEventListener('change', () => { doneBtn.disabled = !allChecked(); }));
+doneBtn.disabled = true;
+(async () => {
+  try {
+    const saved = await loadProgress();
+    if (saved && saved[doneKey]) { doneMsg.textContent = '完了済み ✓'; doneBtn.disabled = true; }
+  } catch (e) { /* IndexedDB が使えない環境では無視 */ }
+})();
+doneBtn.addEventListener('click', async () => {
+  if (!allChecked()) return;
+  try {
+    const saved = await loadProgress();
+    saved[doneKey] = true;
+    await saveProgress(saved);
+    doneMsg.textContent = '完了済み ✓';
+    doneBtn.disabled = true;
+  } catch (e) { doneMsg.textContent = '保存できませんでした（IndexedDB が使えません）。'; }
+});
+</script>
+</body>
+</html>
