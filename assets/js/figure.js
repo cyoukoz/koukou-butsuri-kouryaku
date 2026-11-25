@@ -1,4 +1,4 @@
-// 高校物理攻略 — 図描画シミュレータ（試作 v1.9：組み合わせK 斜面＋摩擦＋エネルギー・組み合わせL 誘導＋LC回路 追加）
+// 高校物理攻略 — 図描画シミュレータ（試作 v2.0：組み合わせM 気体＋共鳴管・組み合わせN レール＋コンデンサ＋コイル 追加）
 // 方針：図は手書きの座標を直書きしない。入力は JSON の「物理データ」だけ。
 // 描画側が角度・つり合いから矢印の向きと長さを計算する。
 // だから mg sinθ が mg と同じ長さになる、θ が消える、ラベルが切れる、
@@ -708,6 +708,106 @@ function inductionLCForces(data) {
     ];
   }
   return []; // charge・graph・trap：電流の矢印はない。
+}
+
+// ---- 組み合わせM：気体＋共鳴管（T1/T3+W3）----
+// 具体値（検算済み）：ヘリウム（単原子、γ=5/3、M=4.0 g/mol）を体積 V=1.0 L の管に封入。
+//   はじめ p1=1.0×10⁵ Pa、T1=300 K。物質量 n = pV/RT ≈ 0.040 mol。
+//   定積加熱で T2=600 K にすると p2=2.0×10⁵ Pa、W=0、ΔU=(3/2)nRΔT=150 J、Q=150 J。
+//   音速 v=√(γRT/M)：300 K で約 1020 m/s、600 K で約 1440 m/s（√2 倍）。
+//   両端閉管（長さ L=0.85 m）の共鳴振動数 f_n = nv/(2L)：
+//     f1 = 600 Hz → 847 Hz、f2 = 1200 Hz → 1695 Hz。
+//   応用：f1=1200 Hz なら v=2Lf=2040 m/s、T=300×(2040/1020)²≈1200 K。
+// 罠：圧力を 2 倍にしても（温度が同じなら）音速は変わらない。v=√(γRT/M) に p はない。
+//   両端閉管を片端閉管の式 f=v/(4L) で計算すると 300 Hz になってしまう。
+// 図の矢印：M は力の矢印を使わない（音速・振動数は数字と棒グラフで示す）。
+function gasResonanceDerived(data) {
+  const nMol = (data.p1Pa * data.volM3) / (data.rGas * data.t1K);
+  const p2Pa = data.p1Pa * (data.t2K / data.t1K);
+  const dUJ = 1.5 * nMol * data.rGas * (data.t2K - data.t1K);
+  const wJ = 0; // 定積変化なので仕事は 0。吸熱 Q = ΔU。
+  const qJ = dUJ + wJ;
+  const v1Ms = Math.sqrt((data.gamma * data.rGas * data.t1K) / data.molarMassKg);
+  const v2Ms = Math.sqrt((data.gamma * data.rGas * data.t2K) / data.molarMassKg);
+  const f1aHz = v1Ms / (2 * data.pipeLM);
+  const f1bHz = v2Ms / (2 * data.pipeLM);
+  const f2aHz = v1Ms / data.pipeLM;
+  const f2bHz = v2Ms / data.pipeLM;
+  const fWrongHz = v1Ms / (4 * data.pipeLM); // 片端閉管の式をまちがえて使った値
+  // 応用：基本振動数 1200 Hz から温度を逆算する。
+  const vAppMs = 2 * data.pipeLM * 1200;
+  const tAppK = data.t1K * (vAppMs / v1Ms) * (vAppMs / v1Ms);
+  return {
+    nMol, p2Pa, dUJ, wJ, qJ, v1Ms, v2Ms, f1aHz, f1bHz, f2aHz, f2bHz,
+    fWrongHz, vAppMs, tAppK,
+  };
+}
+
+function gasResonanceForces(/* data */) {
+  return []; // 力の矢印はない。音速・振動数は drawBase の棒グラフとラベルで示す。
+}
+
+// ---- 組み合わせN：レール＋コンデンサ＋コイル（E6+E2+E7、X7型）----
+// 具体値（検算済み）：B=1.0 T（裏向き）、レール幅 L=1.0 m、棒 m=0.50 kg、v0=2.0 m/s、
+//   コンデンサ C=0.50 F、コイル L=0.50 H。
+//   はじめの誘導起電力 ε0 = BLv0 = 2.0 V。
+//   棒がコンデンサを充電しながらすべる：力積と電荷の保存から決まる。
+//     運動量の変化 m(v1−v0) = −BLQ、充電後の Q = CBLv1。
+//     → v1 = mv0/(m + B²L²C) = 1.0 m/s（B²L²C = 0.50 kg が「効き目の質量」）。
+//     Q = CBLv1 = 0.50 C、U = Q²/(2C) = 0.25 J。
+//     エネルギー：はじめ ½mv0² = 1.0 J → あと ½mv1² + U = 0.25 + 0.25 = 0.50 J。
+//     残りの 0.50 J は充電の瞬間の電流のジュール熱になる（エネルギー保存だけでは v1 は求まらない）。
+//   スイッチを切り替えてコイルにつなぐと LC 振動：ω = 1/√(LC) = 2.0 rad/s、
+//     T = 2π/ω ≈ 3.14 s、f ≈ 0.32 Hz、I0 = Qω = 1.0 A、½LI0² = 0.25 J（= U）。
+//     T/4 ≈ 0.79 s で q=0、i は最大になる。
+// 罠：エネルギー保存だけを使うと v1 = v0/√(1 + B²L²C/m) ≈ 1.41 m/s になってしまう。
+//   充電の瞬間はジュール熱が出るので、エネルギーは保存されない。力積 BLQ を使う。
+// 図の矢印：速度の矢印は 30 px/(m/s)、電流の矢印は方向だけの固定長 60 px。
+function railCapCoilDerived(data) {
+  const effMassKg = data.bT * data.bT * data.railLM * data.railLM * data.capF;
+  const eps0V = data.bT * data.railLM * data.v0Ms;
+  const v1Ms = (data.mKg * data.v0Ms) / (data.mKg + effMassKg);
+  const qC = data.capF * data.bT * data.railLM * v1Ms;
+  const uJ = (qC * qC) / (2 * data.capF);
+  const ke0J = 0.5 * data.mKg * data.v0Ms * data.v0Ms;
+  const ke1J = 0.5 * data.mKg * v1Ms * v1Ms;
+  const jouleJ = ke0J - ke1J - uJ;
+  const vEnergyWrongMs = data.v0Ms / Math.sqrt(1 + effMassKg / data.mKg);
+  const omega = 1 / Math.sqrt(data.indH * data.capF);
+  const periodS = (2 * Math.PI) / omega;
+  const freqHz = 1 / periodS;
+  const i0A = qC * omega;
+  const uCoilJ = 0.5 * data.indH * i0A * i0A;
+  const qAt = (t) => qC * Math.cos(omega * t);
+  const iAt = (t) => -i0A * Math.sin(omega * t);
+  return {
+    effMassKg, eps0V, v1Ms, qC, uJ, ke0J, ke1J, jouleJ, vEnergyWrongMs,
+    omega, periodS, freqHz, i0A, uCoilJ,
+    tQuarterS: periodS / 4, tHalfS: periodS / 2, qAt, iAt,
+  };
+}
+
+function railCapCoilForces(data) {
+  const d = railCapCoilDerived(data);
+  const vScale = 30; // px/(m/s)
+  if (data.phase === 'base') {
+    return [
+      { id: 'velocity', short: 'v0=2.0 m/s', color: '#d35400', vector: [data.v0Ms * vScale, 0], dashed: true, labelDx: 6, labelDy: -8, from: { x: 140, y: 150 } },
+    ];
+  }
+  if (data.phase === 'charge') {
+    return [
+      { id: 'velocity', short: 'v=1.0 m/s', color: '#d35400', vector: [d.v1Ms * vScale, 0], dashed: true, labelDx: 6, labelDy: -8, from: { x: 140, y: 150 } },
+      // 充電電流は上の配線を右向きに流れる（矢印は方向だけ、60 px 固定）。
+      { id: 'current', short: 'I（充電）', color: '#d35400', vector: [60, 0], dashed: true, labelDx: 6, labelDy: -8, from: { x: 170, y: 90 } },
+    ];
+  }
+  if (data.phase === 'lc') {
+    return [
+      { id: 'current', short: 'I', color: '#d35400', vector: [60, 0], dashed: true, labelDx: 6, labelDy: -8, from: { x: 120, y: 80 } },
+    ];
+  }
+  return []; // graph・trap：矢印はない。
 }
 
 // ---- 円運動（M11）：水平面内の円運動と、鉛直面内のループ ----
@@ -2395,6 +2495,29 @@ function sceneFor(type, thetaDeg, mgPx, fPx, data) {
       forces: inductionLCForces(data),
     };
   }
+  if (type === 'gasResonance') {
+    const d = gasResonanceDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      p1Pa: data.p1Pa, volM3: data.volM3, t1K: data.t1K, t2K: data.t2K,
+      gamma: data.gamma, rGas: data.rGas, molarMassKg: data.molarMassKg,
+      pipeLM: data.pipeLM,
+      derived: d,
+      center: { x: 200, y: 150 }, centerDot: false,
+      forces: gasResonanceForces(data),
+    };
+  }
+  if (type === 'railCapCoil') {
+    const d = railCapCoilDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      bT: data.bT, railLM: data.railLM, mKg: data.mKg, v0Ms: data.v0Ms,
+      capF: data.capF, indH: data.indH,
+      derived: d,
+      center: { x: 200, y: 150 }, centerDot: false,
+      forces: railCapCoilForces(data),
+    };
+  }
   if (type === 'slopePulley') {
     return {
       type, phase: (data && data.phase) || 'connected',
@@ -2929,6 +3052,64 @@ function validateScene(scene) {
     if (Math.abs(d.vDoubleV - 2 * d.vIndV) > 1e-9) return ['Δt を半分にした誘導起電力が 2 倍になっていません'];
     if (Math.abs(d.qDoubleC - 2 * d.qC) > 1e-12) return ['Δt を半分にした電荷が 2 倍になっていません'];
     // 矢印の長さが縮尺どおりか。電流の矢印は方向だけ（60 px 固定）。
+    if (byId.current && Math.abs(Math.hypot(byId.current.vector[0], byId.current.vector[1]) - 60) > 0.5) return ['電流の矢印が固定長 60 px と一致しません'];
+  }
+  if (scene.type === 'gasResonance') {
+    const d = scene.derived;
+    // 物質量 n = pV/RT、定積加熱で p2 = p1×T2/T1。
+    if (Math.abs(d.nMol - (scene.p1Pa * scene.volM3) / (scene.rGas * scene.t1K)) > 1e-9) return ['物質量が pV/RT と一致しません'];
+    if (Math.abs(d.p2Pa - scene.p1Pa * (scene.t2K / scene.t1K)) > 1e-9) return ['加熱後の圧力が p1×T2/T1 と一致しません'];
+    // 内部エネルギーの増加 ΔU = (3/2)nRΔT、定積なので W=0、Q=ΔU。
+    if (Math.abs(d.dUJ - 1.5 * d.nMol * scene.rGas * (scene.t2K - scene.t1K)) > 1e-9) return ['内部エネルギーの増加が (3/2)nRΔT と一致しません'];
+    if (Math.abs(d.wJ) > 1e-12) return ['定積変化なのに仕事が 0 になっていません'];
+    if (Math.abs(d.qJ - d.dUJ) > 1e-9) return ['吸熱が ΔU と一致しません'];
+    // 音速 v=√(γRT/M)、温度が 2 倍なら √2 倍。
+    if (Math.abs(d.v1Ms - Math.sqrt((scene.gamma * scene.rGas * scene.t1K) / scene.molarMassKg)) > 1e-9) return ['音速が √(γRT/M) と一致しません'];
+    if (Math.abs(d.v2Ms - d.v1Ms * Math.sqrt(scene.t2K / scene.t1K)) > 1e-9) return ['600 K の音速が 300 K の √2 倍になっていません'];
+    // 両端閉管 f_n = nv/(2L)。基本振動数と 2 倍音。
+    if (Math.abs(d.f1aHz - d.v1Ms / (2 * scene.pipeLM)) > 1e-9) return ['基本振動数が v/(2L) と一致しません'];
+    if (Math.abs(d.f1bHz - d.v2Ms / (2 * scene.pipeLM)) > 1e-9) return ['600 K の基本振動数が v/(2L) と一致しません'];
+    if (Math.abs(d.f2aHz - 2 * d.f1aHz) > 1e-9) return ['2 倍音が基本振動数の 2 倍になっていません'];
+    if (Math.abs(d.f2bHz - 2 * d.f1bHz) > 1e-9) return ['600 K の 2 倍音が基本振動数の 2 倍になっていません'];
+    // 罠の値：片端閉管の式 v/(4L) は基本振動数の半分になる。
+    if (Math.abs(d.fWrongHz - d.f1aHz / 2) > 1e-9) return ['片端閉管の式の値が基本振動数の半分になっていません'];
+    // 応用：f1=1200 Hz なら v=2Lf、T=T1×(v/v1)²。
+    if (Math.abs(d.vAppMs - 2 * scene.pipeLM * 1200) > 1e-9) return ['応用の音速が 2Lf と一致しません'];
+    if (Math.abs(d.tAppK - scene.t1K * (d.vAppMs / d.v1Ms) * (d.vAppMs / d.v1Ms)) > 1e-9) return ['応用の温度が T1×(v/v1)² と一致しません'];
+  }
+  if (scene.type === 'railCapCoil') {
+    const d = scene.derived;
+    // はじめの誘導起電力 ε0 = BLv0。
+    if (Math.abs(d.eps0V - scene.bT * scene.railLM * scene.v0Ms) > 1e-9) return ['はじめの誘導起電力が BLv0 と一致しません'];
+    // 「効き目の質量」B²L²C と、力積から決まる充電後の速さ v1 = mv0/(m + B²L²C)。
+    if (Math.abs(d.effMassKg - scene.bT * scene.bT * scene.railLM * scene.railLM * scene.capF) > 1e-12) return ['効き目の質量が B²L²C と一致しません'];
+    if (Math.abs(d.v1Ms - (scene.mKg * scene.v0Ms) / (scene.mKg + d.effMassKg)) > 1e-9) return ['充電後の速さが mv0/(m+B²L²C) と一致しません'];
+    if (!(d.v1Ms < scene.v0Ms)) return ['充電後の速さがはじめより遅くなっていません'];
+    // 電荷 Q = CBLv1、エネルギー U = Q²/(2C)。
+    if (Math.abs(d.qC - scene.capF * scene.bT * scene.railLM * d.v1Ms) > 1e-12) return ['電荷が CBLv1 と一致しません'];
+    if (Math.abs(d.uJ - (d.qC * d.qC) / (2 * scene.capF)) > 1e-15) return ['静電エネルギーが Q²/(2C) と一致しません'];
+    // エネルギーの行き先：KE0 = KE1 + U + ジュール熱。ジュール熱は正でなければならない。
+    if (Math.abs(d.ke0J - 0.5 * scene.mKg * scene.v0Ms * scene.v0Ms) > 1e-9) return ['はじめの運動エネルギーが (1/2)mv0² と一致しません'];
+    if (Math.abs(d.ke1J - 0.5 * scene.mKg * d.v1Ms * d.v1Ms) > 1e-9) return ['あとの運動エネルギーが (1/2)mv1² と一致しません'];
+    if (Math.abs(d.jouleJ - (d.ke0J - d.ke1J - d.uJ)) > 1e-9) return ['ジュール熱が KE0−KE1−U と一致しません'];
+    if (!(d.jouleJ > 0)) return ['ジュール熱が正になっていません'];
+    // 罠の値：エネルギー保存だけを使うと v0/√(1 + B²L²C/m) になる（正しい v1 より速い）。
+    if (Math.abs(d.vEnergyWrongMs - scene.v0Ms / Math.sqrt(1 + d.effMassKg / scene.mKg)) > 1e-9) return ['エネルギー保存だけの速さが v0/√(1+B²L²C/m) と一致しません'];
+    if (!(d.vEnergyWrongMs > d.v1Ms)) return ['エネルギー保存だけの速さが正しい速さより速くなっていません'];
+    // LC 振動：ω = 1/√(LC)、T = 2π/ω、I0 = Qω、½LI0² = U。
+    if (Math.abs(d.omega - 1 / Math.sqrt(scene.indH * scene.capF)) > 1e-9) return ['角振動数が 1/√(LC) と一致しません'];
+    if (Math.abs(d.periodS - (2 * Math.PI) / d.omega) > 1e-12) return ['周期が 2π/ω と一致しません'];
+    if (Math.abs(d.freqHz - 1 / d.periodS) > 1e-9) return ['振動数が 1/T と一致しません'];
+    if (Math.abs(d.i0A - d.qC * d.omega) > 1e-9) return ['最大電流が Qω と一致しません'];
+    if (Math.abs(d.uCoilJ - d.uJ) > 1e-15) return ['コイルのエネルギーがコンデンサのエネルギーと一致しません'];
+    // q(t) = Q cos ωt、i(t) = −I0 sin ωt。T/4 で q=0、i は最大。
+    if (Math.abs(d.qAt(0) - d.qC) > 1e-15) return ['t=0 の電荷が Q と一致しません'];
+    if (Math.abs(d.qAt(d.tQuarterS)) > 1e-12) return ['T/4 の電荷が 0 になっていません'];
+    if (Math.abs(d.iAt(d.tQuarterS) + d.i0A) > 1e-12) return ['T/4 の電流が最大になっていません'];
+    if (Math.abs(d.qAt(d.tHalfS) + d.qC) > 1e-12) return ['T/2 の電荷が −Q になっていません'];
+    // 矢印の長さが縮尺どおりか。速度は 30 px/(m/s)、電流は方向だけ（60 px 固定）。
+    if (byId.velocity && scene.phase === 'base' && Math.abs(byId.velocity.vector[0] - scene.v0Ms * 30) > 0.5) return ['はじめの速度の矢印が v0 の縮尺と一致しません'];
+    if (byId.velocity && scene.phase === 'charge' && Math.abs(byId.velocity.vector[0] - d.v1Ms * 30) > 0.5) return ['充電後の速度の矢印が v1 の縮尺と一致しません'];
     if (byId.current && Math.abs(Math.hypot(byId.current.vector[0], byId.current.vector[1]) - 60) > 0.5) return ['電流の矢印が固定長 60 px と一致しません'];
   }
   if (scene.type === 'charged-circle') {
@@ -3993,6 +4174,179 @@ function drawBase(svg, scene) {
       const tC = el('text', { x: 296, y: 142 }); tC.textContent = 'C=100 μF'; svg.appendChild(tC);
       const tB = el('text', { x: 120, y: 226, fill: '#b00' }); tB.textContent = 'B（裏向き）'; svg.appendChild(tB);
       const tS = el('text', { x: 230, y: 226, fill: '#555' }); tS.textContent = 'S=0.010 m²'; svg.appendChild(tS);
+    }
+  } else if (scene.type === 'gasResonance') {
+    const d = scene.derived;
+    // 管：横 x=60〜340（0.85 m）、縦 y=120〜180。両端とも閉じている。
+    const tH = el('text', { x: 40, y: 36, fill: '#555' });
+    tH.textContent = scene.phase === 'heat' ? '定積加熱：T=300 K → 600 K、p は 2 倍に'
+      : scene.phase === 'sound' ? '基本振動：両端が節、中央が腹'
+      : scene.phase === 'resonance' ? '共鳴振動数：温度が 2 倍で √2 倍になる'
+      : scene.phase === 'trap' ? '罠：圧力が変わっても音速は変わらない'
+      : 'ヘリウムを管に封入：定積加熱と共鳴';
+    svg.appendChild(tH);
+    if (scene.phase === 'resonance') {
+      // 振動数の棒グラフ：棒の長さは 0.15 px/Hz で計算値から決める。
+      const rows = [
+        [`f1（300 K）${d.f1aHz.toFixed(0)} Hz`, d.f1aHz * 0.15, '#cfe3ff'],
+        [`f1（600 K）${d.f1bHz.toFixed(0)} Hz`, d.f1bHz * 0.15, '#ffb3b3'],
+        [`f2（300 K）${d.f2aHz.toFixed(0)} Hz`, d.f2aHz * 0.15, '#b3e6b3'],
+        [`f2（600 K）${d.f2bHz.toFixed(0)} Hz`, d.f2bHz * 0.15, '#ffd24d'],
+      ];
+      rows.forEach(([label, w, fill], i) => {
+        const y = 80 + i * 50;
+        const tL = el('text', { x: 40, y: y - 8, fill: '#555' }); tL.textContent = label; svg.appendChild(tL);
+        svg.appendChild(el('rect', { x: 60, y, width: w, height: 18, fill, stroke: '#333', 'stroke-width': 1.5 }));
+      });
+      const tN = el('text', { x: 40, y: 272, fill: '#555' });
+      tN.textContent = '温度が 2 倍 → 音速は √2 倍 → 振動数も √2 倍';
+      svg.appendChild(tN);
+    } else if (scene.phase === 'trap') {
+      // 圧力だけが違う 2 本の管：温度が同じなら音速も振動数も同じ。
+      for (const [y0, pLabel] of [[90, 'p=1.0×10⁵ Pa、T=300 K'], [180, 'p=2.0×10⁵ Pa、T=300 K']]) {
+        const tP = el('text', { x: 60, y: y0 - 10, fill: '#555' }); tP.textContent = pLabel; svg.appendChild(tP);
+        svg.appendChild(el('rect', { x: 60, y: y0, width: 280, height: 40, fill: '#eee', stroke: '#333', 'stroke-width': 2 }));
+        const tV = el('text', { x: 250, y: y0 + 25, fill: '#b00' }); tV.textContent = 'v≈1020 m/s（同じ）'; svg.appendChild(tV);
+      }
+      const tN = el('text', { x: 40, y: 258, fill: '#555' });
+      tN.textContent = '圧力が 2 倍でも音速は同じ（v=√(γRT/M) に p はない）';
+      svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 280, fill: '#555' });
+      tN2.textContent = '両端閉管の式 v/(4L) では 300 Hz（まちがい）';
+      svg.appendChild(tN2);
+    } else {
+      // 管と音源。音源は管の左端の外側。
+      svg.appendChild(el('circle', { cx: 48, cy: 150, r: 7, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      const tS = el('text', { x: 28, y: 128 }); tS.textContent = '音源'; svg.appendChild(tS);
+      svg.appendChild(el('rect', { x: 60, y: 120, width: 280, height: 60, fill: '#eee', stroke: '#333', 'stroke-width': 2 }));
+      const tL = el('text', { x: 160, y: 205, fill: '#555' }); tL.textContent = 'L=0.85 m（両端閉管）'; svg.appendChild(tL);
+      if (scene.phase === 'heat') {
+        const tT = el('text', { x: 150, y: 110, fill: '#b00' }); tT.textContent = 'T=600 K'; svg.appendChild(tT);
+        const tP = el('text', { x: 150, y: 232, fill: '#555' }); tP.textContent = 'p=2.0×10⁵ Pa'; svg.appendChild(tP);
+        const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = 'V=1.0 L（変わらない）、W=0'; svg.appendChild(tN);
+        const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = 'ΔU=150 J、Q=150 J'; svg.appendChild(tN2);
+      } else if (scene.phase === 'sound') {
+        // 基本振動の変位の包絡線：両端が節、中央が腹。y=150±40·sin(π(x−60)/280)。
+        let pUp = '', pDn = '';
+        for (let i = 0; i <= 40; i++) {
+          const x = 60 + (i / 40) * 280;
+          const a = 40 * Math.sin((Math.PI * (x - 60)) / 280);
+          pUp += (pUp ? ' L ' : 'M ') + x.toFixed(1) + ' ' + (150 - a).toFixed(1);
+          pDn += (pDn ? ' L ' : 'M ') + x.toFixed(1) + ' ' + (150 + a).toFixed(1);
+        }
+        svg.appendChild(el('path', { d: pUp, fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
+        svg.appendChild(el('path', { d: pDn, fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
+        svg.appendChild(el('line', { x1: 60, y1: 150, x2: 340, y2: 150, stroke: '#888', 'stroke-width': 1, 'stroke-dasharray': '4 3' }));
+        const tN1 = el('text', { x: 52, y: 112 }); tN1.textContent = '節'; svg.appendChild(tN1);
+        const tN2 = el('text', { x: 330, y: 112 }); tN2.textContent = '節'; svg.appendChild(tN2);
+        const tA = el('text', { x: 192, y: 96, fill: '#b00' }); tA.textContent = '腹'; svg.appendChild(tA);
+        const tLam = el('text', { x: 60, y: 232, fill: '#555' }); tLam.textContent = 'λ=2L=1.7 m'; svg.appendChild(tLam);
+        const tV = el('text', { x: 230, y: 232, fill: '#555' }); tV.textContent = 'v≈1020 m/s'; svg.appendChild(tV);
+        const tF = el('text', { x: 40, y: 272, fill: '#555' }); tF.textContent = `f1 = v/(2L) ≈ ${d.f1aHz.toFixed(0)} Hz`; svg.appendChild(tF);
+      } else {
+        const tHe = el('text', { x: 180, y: 154, fill: '#555' }); tHe.textContent = 'ヘリウム'; svg.appendChild(tHe);
+        const tN = el('text', { x: 40, y: 250, fill: '#555' }); tN.textContent = 'p=1.0×10⁵ Pa、T=300 K、V=1.0 L、n≈0.040 mol'; svg.appendChild(tN);
+      }
+    }
+  } else if (scene.type === 'railCapCoil') {
+    const d = scene.derived;
+    const tH = el('text', { x: 40, y: 36, fill: '#555' });
+    tH.textContent = scene.phase === 'charge' ? 'コンデンサにためる：Q=0.50 C、U=0.25 J'
+      : scene.phase === 'lc' ? 'スイッチを切り替える：LC 振動がはじまる'
+      : scene.phase === 'graph' ? 'q と i の時間変化（1周期 T≈3.14 s）'
+      : scene.phase === 'trap' ? '罠：エネルギーは半分、ジュール熱になる'
+      : '棒がすべるとコンデンサが充電される';
+    svg.appendChild(tH);
+    if (scene.phase === 'lc') {
+      // LC 回路：左にコンデンサ、右にコイル（3つの丸）。
+      svg.appendChild(el('line', { x1: 100, y1: 80, x2: 280, y2: 80, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 100, y1: 200, x2: 280, y2: 200, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 100, y1: 80, x2: 100, y2: 135, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 100, y1: 147, x2: 100, y2: 200, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 86, y1: 135, x2: 114, y2: 135, stroke: '#333', 'stroke-width': 3 }));
+      svg.appendChild(el('line', { x1: 86, y1: 147, x2: 114, y2: 147, stroke: '#333', 'stroke-width': 3 }));
+      svg.appendChild(el('line', { x1: 280, y1: 80, x2: 280, y2: 105, stroke: '#333', 'stroke-width': 2 }));
+      for (const cy of [115, 145, 175]) {
+        svg.appendChild(el('circle', { cx: 280, cy, r: 10, fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      }
+      svg.appendChild(el('line', { x1: 280, y1: 185, x2: 280, y2: 200, stroke: '#333', 'stroke-width': 2 }));
+      const tC = el('text', { x: 40, y: 64 }); tC.textContent = 'C=0.50 F'; svg.appendChild(tC);
+      const tL = el('text', { x: 300, y: 64 }); tL.textContent = 'L=0.50 H'; svg.appendChild(tL);
+      const tN = el('text', { x: 40, y: 240, fill: '#555' }); tN.textContent = 'ω=2.0 rad/s、T≈3.14 s、f≈0.32 Hz'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 262, fill: '#555' }); tN2.textContent = 'Q0=0.50 C、I0=1.0 A'; svg.appendChild(tN2);
+    } else if (scene.phase === 'graph') {
+      // q(t) = Q cos ωt（赤）、i(t) = −I0 sin ωt（青）。中心 y=150、振幅 90 px。
+      const x0 = 60, x1 = 340, yC = 150;
+      const xOf = (t) => x0 + (t / d.periodS) * (x1 - x0);
+      svg.appendChild(el('line', { x1: x0, y1: 240, x2: x1, y2: 240, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: x0, y1: 60, x2: x0, y2: 240, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: x0, y1: yC, x2: x1, y2: yC, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      let pq = '', pi = '';
+      for (let i = 0; i <= 100; i++) {
+        const t = (i / 100) * d.periodS;
+        const x = xOf(t).toFixed(1);
+        pq += (pq ? ' L ' : 'M ') + x + ' ' + (yC - (d.qAt(t) / d.qC) * 90).toFixed(1);
+        pi += (pi ? ' L ' : 'M ') + x + ' ' + (yC - (d.iAt(t) / d.i0A) * 90).toFixed(1);
+      }
+      svg.appendChild(el('path', { d: pq, fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
+      svg.appendChild(el('path', { d: pi, fill: 'none', stroke: 'blue', 'stroke-width': 2 }));
+      const tQ = el('text', { x: 70, y: 56, fill: '#b00' }); tQ.textContent = 'q 最大 0.50 C'; svg.appendChild(tQ);
+      const tI = el('text', { x: 210, y: 56, fill: 'blue' }); tI.textContent = 'i 最大 1.0 A'; svg.appendChild(tI);
+      const t0 = el('text', { x: 56, y: 258, fill: '#555' }); t0.textContent = '0'; svg.appendChild(t0);
+      const tQ4 = el('text', { x: 118, y: 258, fill: '#555' }); tQ4.textContent = 'T/4'; svg.appendChild(tQ4);
+      const tT = el('text', { x: 330, y: 258, fill: '#555' }); tT.textContent = 'T'; svg.appendChild(tT);
+      const tN = el('text', { x: 40, y: 278, fill: '#555' }); tN.textContent = 'T/4≈0.79 s で q=0、i は最大になる'; svg.appendChild(tN);
+    } else if (scene.phase === 'trap') {
+      // エネルギーの行き先の棒グラフ：棒の長さは 150 px/J で計算値から決める。
+      const rows = [
+        [`はじめの運動エネルギー ${d.ke0J.toFixed(2)} J`, d.ke0J * 150, '#cfe3ff'],
+        [`あとの運動エネルギー ${d.ke1J.toFixed(2)} J`, d.ke1J * 150, '#b3e6b3'],
+        [`コンデンサのエネルギー ${d.uJ.toFixed(2)} J`, d.uJ * 150, '#ffd24d'],
+        [`ジュール熱 ${d.jouleJ.toFixed(2)} J`, d.jouleJ * 150, '#ffb3b3'],
+      ];
+      rows.forEach(([label, w, fill], i) => {
+        const y = 80 + i * 50;
+        const tL = el('text', { x: 40, y: y - 8, fill: '#555' }); tL.textContent = label; svg.appendChild(tL);
+        svg.appendChild(el('rect', { x: 60, y, width: w, height: 18, fill, stroke: '#333', 'stroke-width': 1.5 }));
+      });
+      const tN = el('text', { x: 40, y: 266, fill: '#555' });
+      tN.textContent = '1.0 = 0.25 + 0.25 + 0.50 J';
+      svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 286, fill: '#555' });
+      tN2.textContent = 'エネルギー保存だけでは v1 は求まらない';
+      svg.appendChild(tN2);
+    } else {
+      // レール回路：上の配線 y=90、下の配線 y=210、左は棒（x=140）、右はコンデンサ。
+      svg.appendChild(el('line', { x1: 60, y1: 90, x2: 300, y2: 90, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 60, y1: 210, x2: 300, y2: 210, stroke: '#333', 'stroke-width': 2 }));
+      // 棒：太い縦線。レール幅 L=1.0 m は破線で示す。
+      svg.appendChild(el('line', { x1: 140, y1: 90, x2: 140, y2: 210, stroke: '#333', 'stroke-width': 6 }));
+      const tRod = el('text', { x: 132, y: 82 }); tRod.textContent = '棒'; svg.appendChild(tRod);
+      svg.appendChild(el('line', { x1: 118, y1: 90, x2: 118, y2: 210, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+      const tL = el('text', { x: 36, y: 154 }); tL.textContent = 'L=1.0 m'; svg.appendChild(tL);
+      // コンデンサ：右の配線の中の 2 枚の極板（水平線）。
+      svg.appendChild(el('line', { x1: 300, y1: 90, x2: 300, y2: 140, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 288, y1: 140, x2: 312, y2: 140, stroke: '#333', 'stroke-width': 3 }));
+      svg.appendChild(el('line', { x1: 288, y1: 152, x2: 312, y2: 152, stroke: '#333', 'stroke-width': 3 }));
+      svg.appendChild(el('line', { x1: 300, y1: 152, x2: 300, y2: 210, stroke: '#333', 'stroke-width': 2 }));
+      const tC = el('text', { x: 316, y: 146 }); tC.textContent = 'C=0.50 F'; svg.appendChild(tC);
+      // 磁場（裏向き）の × 印：棒と速度の矢印と重ならない位置に置く。
+      // 中段（y=150）は速度の矢印と充電ラベルの場所なので置かない。
+      for (const cx of [220, 260]) {
+        for (const cy of [115, 185]) {
+          svg.appendChild(el('line', { x1: cx - 5, y1: cy - 5, x2: cx + 5, y2: cy + 5, stroke: '#b00', 'stroke-width': 2 }));
+          svg.appendChild(el('line', { x1: cx + 5, y1: cy - 5, x2: cx - 5, y2: cy + 5, stroke: '#b00', 'stroke-width': 2 }));
+        }
+      }
+      const tB = el('text', { x: 225, y: 226, fill: '#b00' }); tB.textContent = 'B（裏向き）'; svg.appendChild(tB);
+      if (scene.phase === 'charge') {
+        // 充電後の電荷：上の極板が ＋、下の極板が −。
+        const tQ1 = el('text', { x: 296, y: 128, fill: '#b00' }); tQ1.textContent = '＋0.50 C'; svg.appendChild(tQ1);
+        const tQ2 = el('text', { x: 250, y: 172, fill: 'blue' }); tQ2.textContent = '−0.50 C'; svg.appendChild(tQ2);
+        const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = '棒の速さは 2.0 m/s → 1.0 m/s に落ちる'; svg.appendChild(tN);
+      } else {
+        const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = 'B=1.0 T（裏向き）、棒 m=0.50 kg'; svg.appendChild(tN);
+      }
     }
   } else if (scene.type === 'capacitor') {
     const topY = 110, dPx = scene.dPx;
@@ -5135,4 +5489,4 @@ function renderAllFigures() {
   });
 }
 
-if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, sceneFor, validateScene, renderFigure };
+if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, sceneFor, validateScene, renderFigure };
