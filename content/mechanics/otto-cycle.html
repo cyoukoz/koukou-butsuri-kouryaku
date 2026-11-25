@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題AJ：オットーサイクル（ガソリンエンジン） — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題AJ：オットーサイクル（ガソリンエンジン）</h1>
+<p><strong>問題：</strong>ガソリンエンジンのシリンダーに、空気 n = 0.040 mol が入っている。はじめ A：p1 = 1.0×10⁵ Pa、V1 = 1.0 L、T1 = 300 K だ。ピストンで圧縮比 r = 8 まで断熱圧縮し（A→B）、等積で加熱して T3 = 2000 K にし（B→C）、断熱膨張させ（C→D）、等積で冷やしてはじめに戻す（D→A）。空気は二原子分子気体で γ = 1.4、Cv = (5/2)R とする。(1) B の圧力と温度、圧縮に必要な仕事を求めよ。(2) C の圧力と、入る熱を求めよ。(3) D の圧力と温度、膨張の仕事と出る熱、正味の仕事と効率を求めよ。(4) カルノー効率と比べよ。(5) 圧縮比を 4・12 にすると効率はどうなるか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v3.1、ottoCycle 型）が下の JSON データから計算して描く。p-V 図の縦軸は対数軸で、断熱曲線は pV^γ = 一定から計算した点列だ。</p>
+<script type="application/json" id="scene-otto-cycle-base">{"type":"ottoCycle","p1Pa":100000,"v1M3":0.001,"t1K":300,"t3K":2000,"compRatio":8,"gamma":1.4,"g":10,"phase":"base"}</script>
+<script type="application/json" id="scene-otto-cycle-compress">{"type":"ottoCycle","p1Pa":100000,"v1M3":0.001,"t1K":300,"t3K":2000,"compRatio":8,"gamma":1.4,"g":10,"phase":"compress"}</script>
+<script type="application/json" id="scene-otto-cycle-heat">{"type":"ottoCycle","p1Pa":100000,"v1M3":0.001,"t1K":300,"t3K":2000,"compRatio":8,"gamma":1.4,"g":10,"phase":"heat"}</script>
+<script type="application/json" id="scene-otto-cycle-expand">{"type":"ottoCycle","p1Pa":100000,"v1M3":0.001,"t1K":300,"t3K":2000,"compRatio":8,"gamma":1.4,"g":10,"phase":"expand"}</script>
+<script type="application/json" id="scene-otto-cycle-trap">{"type":"ottoCycle","p1Pa":100000,"v1M3":0.001,"t1K":300,"t3K":2000,"compRatio":8,"gamma":1.4,"g":10,"phase":"trap"}</script>
+<script type="application/json" id="scene-otto-cycle-vary">{"type":"ottoCycle","p1Pa":100000,"v1M3":0.001,"t1K":300,"t3K":2000,"compRatio":8,"gamma":1.4,"g":10,"phase":"vary"}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。サイクルは4つの過程に切る。過程ごとに、状態方程式と熱力学第一法則と断熱の式を使い分ける。</p>
+  <table>
+    <tr><th>時間</th><th>過程</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>はじめ</td><td>A：p1・V1・T1</td><td>—</td><td>n = 0.040 mol</td></tr>
+    <tr><td>圧縮</td><td>A→B：断熱圧縮</td><td><strong>p2 = 1.84×10⁶ Pa、T2 = 689 K</strong></td><td>仕事 324 J が入る（ステップ①）</td></tr>
+    <tr><td>加熱</td><td>B→C：等積加熱</td><td><strong>Q_in = 1092 J、T3 = 2000 K</strong></td><td>体積は変わらない（ステップ②）</td></tr>
+    <tr><td>膨張・冷却</td><td>C→D→A</td><td><strong>W = 617 J、効率 57%</strong></td><td>正味の仕事と効率（ステップ③）</td></tr>
+    <tr><td>罠・変えたら</td><td>効率の比べ</td><td><strong>カルノー 85%</strong></td><td>圧縮比を変える（ステップ④⑤）</td></tr>
+  </table>
+  <p>断熱変化では pV^γ = 一定、等積変化では W = 0 だ。過程ごとに使える式がちがう。p-V 図の面積が、正味の仕事になる。</p>
+  <svg class="fig" data-scene="scene-otto-cycle-base" data-show="" width="100%" role="img" aria-label="オットーサイクルの p-V 図。A→B 断熱圧縮、B→C 等積加熱、C→D 断熱膨張、D→A 等積冷却"></svg>
+  <p>はじめ、A は p1 = 1.0×10⁵ Pa、V1 = 1.0 L、T1 = 300 K だ。物質量は、n = p1V1/(RT1) = 1.0×10⁵ × 1.0×10⁻³ / (8.31 × 300) ≈ <strong>0.040 mol</strong> になる。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①断熱圧縮</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 断熱圧縮：A→B</h2>
+  <svg class="fig" data-scene="scene-otto-cycle-compress" data-show="" width="100%" role="img" aria-label="p-V 図の A→B 断熱圧縮。圧力は 1.84×10⁶ Pa、温度は 689 K になる"></svg>
+  <p>まず A→B の断熱圧縮だけを見る。体積は、圧縮比 r = 8 なので、V2 = V1/8 = 1.0/8 = <strong>0.125 L</strong> になる。断熱変化では pV^γ = 一定なので、圧力は p2 = p1 × r^γ = 1.0×10⁵ × 8^1.4 ≈ <strong>1.84×10⁶ Pa</strong> になる。</p>
+  <p>温度は、T2 = T1 × r^(γ−1) = 300 × 8^0.4 ≈ <strong>689 K</strong> になる。断熱変化では、熱の出入りがないので、入った仕事が全部内部エネルギーの増加になる。圧縮に必要な仕事は、W_in = ΔU = nCv(T2 − T1) = 0.040 × 20.8 × (689 − 300) ≈ <strong>324 J</strong> だ。</p>
+  <p>圧力が 18 倍にもなるのは、体積が 1/8 になるだけでなく、温度も上がるからだ。pV^γ = 一定の式に、T2/T1 = (V1/V2)^(γ−1) の関係が入っている。</p>
+  <label><input type="checkbox" class="check"> V2=0.125 L、p2=1.84×10⁶ Pa、T2=689 K、W_in=324 J を求めた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②等積加熱</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 等積加熱：B→C</h2>
+  <svg class="fig" data-scene="scene-otto-cycle-heat" data-show="" width="100%" role="img" aria-label="p-V 図の B→C 等積加熱。温度は 2000 K、圧力は 5.33×10⁶ Pa、入る熱は 1092 J"></svg>
+  <p>次に B→C の等積加熱だけを見る。ガソリンに点火して、体積を変えずに熱を入れる。温度は T3 = <strong>2000 K</strong> まで上がる。体積は変わらないので、圧力は温度に比例して上がる。p3 = p2 × T3/T2 = 1.84×10⁶ × 2000/689 ≈ <strong>5.33×10⁶ Pa</strong> になる。</p>
+  <p>入る熱は、等積変化なので Q_in = nCv(T3 − T2) になる。Cv = (5/2)R = 20.8 J/(mol·K) なので、Q_in = 0.040 × 20.8 × (2000 − 689) ≈ <strong>1092 J</strong> だ。体積は変わらないので、仕事は W = 0 で、熱は全部内部エネルギーの増加になる。</p>
+  <p>ここで Cp ではなく Cv を使うのが大事だ。体積が変わらないので、定積熱容量 Cv を使う。Cp を使うと、1092 J ではなく 1529 J になってしまう。</p>
+  <label><input type="checkbox" class="check"> p3=5.33×10⁶ Pa、Q_in=1092 J、W=0 を求めた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③断熱膨張と等積冷却</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 断熱膨張と等積冷却：C→D→A</h2>
+  <svg class="fig" data-scene="scene-otto-cycle-expand" data-show="" width="100%" role="img" aria-label="p-V 図の C→D 断熱膨張と D→A 等積冷却。正味の仕事は 617 J、効率は 57%"></svg>
+  <p>次に C→D の断熱膨張を見る。体積が 0.125 L から 1.0 L に戻る。温度は、T4 = T3/r^(γ−1) = 2000/8^0.4 ≈ <strong>871 K</strong> になる。圧力は、p4 = p3/r^γ = 5.33×10⁶/8^1.4 ≈ <strong>2.90×10⁵ Pa</strong> になる。</p>
+  <p>膨張で気体のする仕事は、W_out = ΔU = nCv(T3 − T4) = 0.040 × 20.8 × (2000 − 871) ≈ <strong>941 J</strong> だ。圧縮で入れた 324 J より大きい。差が、正味の仕事になる。</p>
+  <p>最後に D→A の等積冷却で、はじめに戻る。出る熱は、Q_out = nCv(T4 − T1) = 0.040 × 20.8 × (871 − 300) ≈ <strong>475 J</strong> だ。正味の仕事は、W = Q_in − Q_out = 1092 − 475 = <strong>617 J</strong> になる。941 − 324 = 617 J とも一致する。効率は、η = W/Q_in = 617/1092 ≈ <strong>57%</strong> だ。理論式 η = 1 − 1/r^(γ−1) = 1 − 1/8^0.4 ≈ 0.565 とも一致する。</p>
+  <label><input type="checkbox" class="check"> T4=871 K、p4=2.90×10⁵ Pa、W_out=941 J、Q_out=475 J、W=617 J、η=57% を求めた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④罠：カルノー効率と比べる</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 罠：カルノー効率と比べる</h2>
+  <svg class="fig" data-scene="scene-otto-cycle-trap" data-show="" width="100%" role="img" aria-label="効率の比べ。オットー 57%、カルノー 85%、γ=5/3 の誤り 75%"></svg>
+  <p>罠は、オットーサイクルの効率がカルノー効率と同じになると思うことだ。2000 K と 300 K のあいだのカルノー効率は、η_C = 1 − 300/2000 = <strong>85%</strong> になる。オットーの 57% よりずっと大きい。カルノー効率は、同じ 2 つの温度のあいだで動く熱機関の上限だ。オットーは 85% をこえられない。</p>
+  <p>なぜオットーは 85% に届かないのか。カルノーサイクルは、熱を 2000 K でだけ入れ、300 K でだけ出す。オットーは、加熱のあいだ温度が 689 K から 2000 K まで変わり、冷却のあいだも 871 K から 300 K まで変わる。熱を、最高温度より低い温度でも入れているので、効率が下がる。</p>
+  <p>もう1つの罠は、γ の取り違えだ。空気は二原子分子気体で γ = 1.4 だが、ヘリウムの γ = 5/3 を使うと、η = 1 − 8^(−2/3) = <strong>75%</strong> になってしまう。気体がちがえば、γ も Cv もちがう。問題文の気体を確かめてから計算する。</p>
+  <label><input type="checkbox" class="check"> カルノー効率 85% とオットー 57% のちがい、γ=5/3 では 75% になってしまう罠を確かめた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤変えたら</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ 変えたら：圧縮比を上げる</h2>
+  <svg class="fig" data-scene="scene-otto-cycle-vary" data-show="" width="100%" role="img" aria-label="効率と圧縮比の比べ。圧縮比 4 では 43%、8 では 57%、12 では 63%"></svg>
+  <p>圧縮比を変えると、効率はどうなるか。効率は η = 1 − 1/r^(γ−1) だけで決まる。圧縮比 r = 4 なら、η = 1 − 4^(−0.4) ≈ <strong>43%</strong> になる。r = 8 なら 57%、r = 12 なら、η = 1 − 12^(−0.4) ≈ <strong>63%</strong> になる。圧縮比を上げると、効率は上がる。</p>
+  <p>r = 12 のとき、圧縮後の温度は T2 = 300 × 12^0.4 ≈ <strong>811 K</strong>、圧力は p2 = 1.0×10⁵ × 12^1.4 ≈ <strong>3.24×10⁶ Pa</strong> になる。圧縮後の温度が高くなるほど、加熱で入る熱の割合が増え、効率が上がる。</p>
+  <p>実際のガソリンエンジンの圧縮比は、10 前後だ。上げすぎると、点火する前に混合気が爆発するノッキングが起きる。効率を上げるには、圧縮比を上げるだけでなく、ノッキングを防ぐ工夫もいる。</p>
+  <label><input type="checkbox" class="check"> r=4 では 43%、r=12 では 63%、r=12 では T2=811 K・p2=3.24×10⁶ Pa になることを確かめた</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と系を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) V2=0.125 L、p2=1.84×10⁶ Pa、T2=689 K、W_in=324 J。(2) p3=5.33×10⁶ Pa、Q_in=1092 J、W=0。(3) T4=871 K、p4=2.90×10⁵ Pa、W_out=941 J、Q_out=475 J、W=617 J、η=57%。(4) カルノー効率は 85%。γ=5/3 とすると 75% になってしまう。(5) r=4 では 43%、r=12 では 63%、r=12 では T2=811 K、p2=3.24×10⁶ Pa。もとになった単体モデル：理想気体は <a href="gas-piston.html">第7問：気体・ピストン</a>、熱サイクルは <a href="heat-cycle.html">第16問：熱サイクル</a>、気体＋ピストン＋ばね＋サイクルは <a href="gas-spring-cycle.html">組み合わせ問題P：気体＋ピストン＋ばね＋サイクル</a>、気体＋共鳴管は <a href="gas-resonance.html">組み合わせ問題M：気体＋共鳴管</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboOttoDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
