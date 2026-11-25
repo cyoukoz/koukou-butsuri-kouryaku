@@ -244,6 +244,27 @@
 </div>
 
 <div class="card">
+  <h2>第28問：剛体のモーメント</h2>
+  <p>長さ 4.0 m の板を、左端から 1.5 m の支点で支える。左端に 20 kg の子どもがのると、モーメントは 300 N·m。右端を 100 N で押すとつり合う。力の大きさだけでなく、支点からの距離（うで）がモーメントを決める。</p>
+  <p><a href="content/mechanics/moment.html">剛体のモーメントのドリルを開く →</a></p>
+  <p id="progress-moment">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>第29問：ソレノイド・コイルの磁場</h2>
+  <p>長さ 0.20 m に 200 回巻いたソレノイドに 2.0 A を流すと、内部の磁場は約 2.5 mT。電流 2 倍で磁場も 2 倍。1 巻きのコイルの中心は約 25 μT で、ソレノイドは約 100 倍強い。磁場を決めるのは巻き数の合計ではなく、巻き数密度だ。</p>
+  <p><a href="content/mechanics/solenoid.html">ソレノイド・コイルの磁場のドリルを開く →</a></p>
+  <p id="progress-solenoid">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>第30問：RL・RC回路の過渡現象</h2>
+  <p>抵抗 1000 Ω、コンデンサ 100 μF の充電は、時定数 τ = 0.10 s。τ で 6.3 V、3τ で 9.5 V。放電は τ で 3.7 V。コイル 1.0 H、抵抗 10 Ω も τ = 0.10 s で、電流は τ で 0.63 A。コンデンサは電圧が、コイルは電流が急に変わらない。</p>
+  <p><a href="content/mechanics/transient.html">RL・RC回路の過渡現象のドリルを開く →</a></p>
+  <p id="progress-transient">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
   <h2>動きを見る：自由落下・鉛直投げ上げ</h2>
   <p>落とすだけ、投げ上げるだけ。でも速度は1秒ごとに 9.8 m/s ずつ変わる。その動きそのものをループ再生で確かめる。落とす高さ・初速度・再生速度を変えられる。</p>
   <p><a href="content/mechanics/freefall.html">自由落下・鉛直投げ上げの動きを見る →</a></p>
@@ -329,6 +350,12 @@
       p.dragDone ? '進捗：第26問・空気抵抗・終端速度を完了済み ✓' : '進捗：まだ第26問・空気抵抗・終端速度は未完了';
     document.getElementById('progress-decay').textContent =
       p.decayDone ? '進捗：第27問・放射性崩壊を完了済み ✓' : '進捗：まだ第27問・放射性崩壊は未完了';
+    document.getElementById('progress-moment').textContent =
+      p.momentDone ? '進捗：第28問・剛体のモーメントを完了済み ✓' : '進捗：まだ第28問・剛体のモーメントは未完了';
+    document.getElementById('progress-solenoid').textContent =
+      p.solenoidDone ? '進捗：第29問・ソレノイド・コイルの磁場を完了済み ✓' : '進捗：まだ第29問・ソレノイド・コイルの磁場は未完了';
+    document.getElementById('progress-transient').textContent =
+      p.transientDone ? '進捗：第30問・RL・RC回路の過渡現象を完了済み ✓' : '進捗：まだ第30問・RL・RC回路の過渡現象は未完了';
   }).catch(() => {
     document.getElementById('progress-slope').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-ladder').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
@@ -361,6 +388,9 @@
     document.getElementById('progress-calorimetry').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-drag').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-decay').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-moment').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-solenoid').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-transient').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
   });
   document.getElementById('export').onclick = () => exportAll()
     .then(() => { document.getElementById('data-msg').textContent = '出力しました。'; })
