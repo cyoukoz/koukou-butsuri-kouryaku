@@ -159,6 +159,27 @@
 </div>
 
 <div class="card">
+  <h2>第16問：熱サイクル・熱機関</h2>
+  <p>p–V図の長方形のサイクルを1周する。1サイクルの仕事は図の面積で 400 J、吸収した熱は 1800 J、効率は約 22%。等圧と等積で使う比熱が違うこと、効率の分母は吸収した熱の合計であることに注意しよう。</p>
+  <p><a href="content/mechanics/heat-cycle.html">熱サイクル・熱機関のドリルを開く →</a></p>
+  <p id="progress-heat-cycle">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>第17問：レール＋棒の電磁誘導</h2>
+  <p>磁場の中を棒が動くと、磁束の変化で起電力が生まれ、電流が流れ、磁場の力が運動を妨げる。速くなると力が大きくなり、終端速度 4.0 m/s でつり合う。外力の仕事はすべてジュール熱になる。</p>
+  <p><a href="content/mechanics/rail-rod.html">レール＋棒の電磁誘導のドリルを開く →</a></p>
+  <p id="progress-rail-rod">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>第18問：ドップラー効果</h2>
+  <p>音源が動くときは波長が変わり、観測者が動くときは波を横切る速さが変わる。反射波は2回シフトして約 538 Hz になる。うなりは振動数の差で 4.0 Hz だ。</p>
+  <p><a href="content/mechanics/doppler.html">ドップラー効果のドリルを開く →</a></p>
+  <p id="progress-doppler">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
   <h2>動きを見る：自由落下・鉛直投げ上げ</h2>
   <p>落とすだけ、投げ上げるだけ。でも速度は1秒ごとに 9.8 m/s ずつ変わる。その動きそのものをループ再生で確かめる。落とす高さ・初速度・再生速度を変えられる。</p>
   <p><a href="content/mechanics/freefall.html">自由落下・鉛直投げ上げの動きを見る →</a></p>
@@ -220,6 +241,12 @@
       p.standingWaveDone ? '進捗：第14問・定常波・共鳴を完了済み ✓' : '進捗：まだ第14問・定常波・共鳴は未完了';
     document.getElementById('progress-photoelectric').textContent =
       p.photoelectricDone ? '進捗：第15問・光電効果を完了済み ✓' : '進捗：まだ第15問・光電効果は未完了';
+    document.getElementById('progress-heat-cycle').textContent =
+      p.heatCycleDone ? '進捗：第16問・熱サイクル・熱機関を完了済み ✓' : '進捗：まだ第16問・熱サイクル・熱機関は未完了';
+    document.getElementById('progress-rail-rod').textContent =
+      p.railRodDone ? '進捗：第17問・レール＋棒の電磁誘導を完了済み ✓' : '進捗：まだ第17問・レール＋棒の電磁誘導は未完了';
+    document.getElementById('progress-doppler').textContent =
+      p.dopplerDone ? '進捗：第18問・ドップラー効果を完了済み ✓' : '進捗：まだ第18問・ドップラー効果は未完了';
   }).catch(() => {
     document.getElementById('progress-slope').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-ladder').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
@@ -240,6 +267,9 @@
     document.getElementById('progress-gravitation').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-standing-wave').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-photoelectric').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-heat-cycle').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-rail-rod').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-doppler').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
   });
   document.getElementById('export').onclick = () => exportAll()
     .then(() => { document.getElementById('data-msg').textContent = '出力しました。'; })
