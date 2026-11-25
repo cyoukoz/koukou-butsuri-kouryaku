@@ -9759,9 +9759,9 @@ function drawBase(svg, scene) {
         // m1 の垂直抗力（17 N）：斜面に垂直に上向き 26 px。
         svg.appendChild(el('line', { x1: 160, y1: 188, x2: 147, y2: 166, stroke: 'blue', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
         const tN = el('text', { x: 60, y: 142, fill: 'blue' }); tN.textContent = '垂直抗力 17 N'; svg.appendChild(tN);
-        // m1 の張力（10 N）：斜面に沿って上向き 15 px。
+        // m1 の張力（10 N）：斜面に沿って上向き 15 px。ラベルは斜面の上の空きに置く（m2 の枠と重ならないよう、矢印の右には置かない）。
         svg.appendChild(el('line', { x1: 177, y1: 178, x2: 190, y2: 170, stroke: '#d35400', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
-        const tT = el('text', { x: 196, y: 168, fill: '#d35400' }); tT.textContent = '張力 10 N'; svg.appendChild(tT);
+        const tT = el('text', { x: 230, y: 118, 'text-anchor': 'end', fill: '#d35400' }); tT.textContent = '張力 10 N'; svg.appendChild(tT);
         // m2 の張力（10 N）：上向き 15 px。
         svg.appendChild(el('line', { x1: 250, y1: 155, x2: 250, y2: 140, stroke: '#d35400', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
         const tT2 = el('text', { x: 280, y: 148, fill: '#d35400' }); tT2.textContent = '張力 10 N'; svg.appendChild(tT2);
@@ -9981,9 +9981,9 @@ function drawBase(svg, scene) {
       // θ の弧：支点を中心に、鉛直（下向き）と糸のあいだ。
       svg.appendChild(el('path', { d: 'M 200 68 A 28 28 0 0 0 216.8 62.4', fill: 'none', stroke: '#333', 'stroke-width': 1.5 }));
       const tT = el('text', { x: 172, y: 78, 'text-anchor': 'end' }); tT.textContent = 'θ=37°'; svg.appendChild(tT);
-      const tB = el('text', { x: 224, y: 38 }); tB.textContent = '支点'; svg.appendChild(tB);
+      const tB = el('text', { x: 226, y: 58 }); tB.textContent = '支点'; svg.appendChild(tB);
       const tL = el('text', { x: 240, y: 78 }); tL.textContent = 'L=1.0 m'; svg.appendChild(tL);
-      const tR = el('text', { x: 212, y: 140, 'text-anchor': 'middle' }); tR.textContent = 'r=0.60 m'; svg.appendChild(tR);
+      const tR = el('text', { x: 212, y: 154, 'text-anchor': 'middle' }); tR.textContent = 'r=0.60 m'; svg.appendChild(tR);
       // 玉の高さ：破線で地面まで。
       svg.appendChild(el('line', { x1: 260, y1: 120, x2: 296, y2: 120, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
       svg.appendChild(el('line', { x1: 296, y1: 120, x2: 296, y2: 240, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
@@ -10044,7 +10044,7 @@ function drawBase(svg, scene) {
       // 玉の高さ：破線で地面まで。
       svg.appendChild(el('line', { x1: 260, y1: 125, x2: 260, y2: 235, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
       const tH2 = el('text', { x: 200, y: 185, 'text-anchor': 'end' }); tH2.textContent = 'h=1.2 m'; svg.appendChild(tH2);
-      const tB = el('text', { x: 224, y: 38 }); tB.textContent = '支点'; svg.appendChild(tB);
+      const tB = el('text', { x: 226, y: 58 }); tB.textContent = '支点'; svg.appendChild(tB);
       note(258, '切れたあとは水平投射になる');
       note(276, '落下時間 0.49 s、水平に 1.04 m');
       note(294, '着地の速さ 5.3 m/s');
