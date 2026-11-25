@@ -272,9 +272,23 @@
 
 <div class="card">
   <h2>組み合わせ問題AD：振り子＋弾性衝突＋ばね</h2>
-  <p>高さ 0.20 m から振り子を振り下ろすと、最下点の速さは 2.0 m/s、運動エネルギーは 2.0 J になる。等しい質量のブロックに弾性衝突すると、玉は止まり、ブロックが 2.0 m/s でもらう。ブロックはばね（k = 100 N/m）で単振動し、振幅は 0.20 m、最大のばねの力は 20 N、最大の加速度は 20 m/s² になる。エネルギー 2.0 J は形を変えて移る。くっついたら速さ 1.0 m/s、KE 1.0 J、振幅 0.10 m になる罠がある。橋渡し量は「最下点の速さ」。</p>
+  <p>高さ 0.20 m から振り子を振り下ろすと、最下点の速さは 2.0 m/s、運動エネルギーは 2.0 J になる。等しい質量のブロックに弾性衝突すると、玉は止まり、ブロックが 2.0 m/s でもらう。ブロックはばね（k = 100 N/m）で単振動し、振幅は 0.20 m、最大のばねの力は 20 N、最大の加速度は 20 m/s² になる。エネルギー 2.0 J は形を変えて移る。くっついたら速さ 1.0 m/s、KE 1.0 J、振幅 0.14 m、最大のばねの力 14 N になる罠がある。橋渡し量は「最下点の速さ」。</p>
   <p><a href="content/mechanics/pendulum-spring.html">振り子＋弾性衝突＋ばねのドリルを開く →</a></p>
   <p id="progress-combo-pendulum-spring">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>組み合わせ問題AE：気体ピストンの断熱振動</h2>
+  <p>水平なシリンダーのヘリウム気体（V0 = 1.0 L、p0 = 1.0×10⁵ Pa、T0 = 300 K）に、質量 5.0 kg のピストンがのっている。ピストンを 0.010 m 押し込むと、圧力は 1.17×10⁵ Pa、温度は 320 K になり、合力 170 N が元に戻る向きにはたらく。気体の力がばねになり、周期は約 0.11 s、最大の速さは 0.58 m/s になる。人の仕事 0.9 J と大気の仕事 10 J が、気体の内部エネルギーの増加 11 J になる。等温とすると周期は 0.14 s になる罠があり、周期から γ ≈ 1.67 が出るリュシャルトの実験につながる。橋渡し量は「圧力と体積」。</p>
+  <p><a href="content/mechanics/gas-piston-osc.html">気体ピストンの断熱振動のドリルを開く →</a></p>
+  <p id="progress-combo-gas-piston-osc">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>組み合わせ問題AF：光電効果＋磁場円運動</h2>
+  <p>仕事関数 2.0 eV の陰極に 400 nm の光を当てると、最大の運動エネルギー 1.10 eV、最大の速さ 6.2×10⁵ m/s の電子が出る。電子が磁場 B = 1.0 mT に入ると、ローレンツ力 1.0×10⁻¹⁶ N が向心力になり、半径 3.5 mm、周期 36 ns の円を描く。300 nm の光では半径は 4.9 mm、B を 2 倍にすると半径は 1.8 mm になり、明るい光では半径は変わらない。同じ 1.10 eV の陽子なら半径は約 15 cm、電子の約43倍になる罠がある。橋渡し量は「電子の速さ」。</p>
+  <p><a href="content/mechanics/photo-circle.html">光電効果＋磁場円運動のドリルを開く →</a></p>
+  <p id="progress-combo-photo-circle">進捗：読み込み中…</p>
 </div>
 
 <div class="card">
@@ -556,6 +570,10 @@
       p.comboRailSpringDampDone ? '進捗：組み合わせ問題AC・レール＋ばね＋電磁誘導を完了済み ✓' : '進捗：まだ組み合わせ問題AC・レール＋ばね＋電磁誘導は未完了';
     document.getElementById('progress-combo-pendulum-spring').textContent =
       p.comboPendulumSpringDone ? '進捗：組み合わせ問題AD・振り子＋弾性衝突＋ばねを完了済み ✓' : '進捗：まだ組み合わせ問題AD・振り子＋弾性衝突＋ばねは未完了';
+    document.getElementById('progress-combo-gas-piston-osc').textContent =
+      p.comboGasPistonOscDone ? '進捗：組み合わせ問題AE・気体ピストンの断熱振動を完了済み ✓' : '進捗：まだ組み合わせ問題AE・気体ピストンの断熱振動は未完了';
+    document.getElementById('progress-combo-photo-circle').textContent =
+      p.comboPhotoCircleDone ? '進捗：組み合わせ問題AF・光電効果＋磁場円運動を完了済み ✓' : '進捗：まだ組み合わせ問題AF・光電効果＋磁場円運動は未完了';
     document.getElementById('progress-gas-piston').textContent =
       p.gasPistonDone ? '進捗：第7問・気体＋ピストンを完了済み ✓' : '進捗：まだ第7問・気体＋ピストンは未完了';
     document.getElementById('progress-young').textContent =
@@ -645,6 +663,8 @@
     document.getElementById('progress-combo-proj-wall').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-rail-spring-damp').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-pendulum-spring').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-gas-piston-osc').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-photo-circle').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-gas-piston').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-young').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-capacitor').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
