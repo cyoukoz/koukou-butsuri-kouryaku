@@ -96,6 +96,20 @@
 </div>
 
 <div class="card">
+  <h2>組み合わせ問題E：弾道振り子（衝突＋振り子）</h2>
+  <p>弾丸がおもりにめり込む完全非弾性衝突と、そのあとの振り上がりを組み合わせる。衝突の瞬間は運動量保存だけ、振り上がりはエネルギー保存だけ。橋渡し量は「衝突直後の速さ v′ = 2.0 m/s」。エネルギー保存を衝突の瞬間をまたいで使うと h = 40 m になってしまう罠を、切り分けマップで確かめる。</p>
+  <p><a href="content/mechanics/ballistic.html">弾道振り子のドリルを開く →</a></p>
+  <p id="progress-combo-ballistic">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>組み合わせ問題F：ループ・ザ・ループ（エネルギー＋円運動）</h2>
+  <p>小球をループのレールに沿って1周させる。落下から頂点まではエネルギー保存で速さを求め、各点では「合力 = mv²/R」で垂直抗力を求める。最小の高さは h = 2.5R = 1.25 m。向心力は新しい力ではなく、重力と垂直抗力の合力の役目だということに注意しよう。</p>
+  <p><a href="content/mechanics/loop.html">ループ・ザ・ループのドリルを開く →</a></p>
+  <p id="progress-combo-loop">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
   <h2>第7問：気体＋ピストン</h2>
   <p>シリンダーにピストンがのっている。ピストンの力のつり合いから気体の圧力を、状態方程式から体積と高さを求める。加熱するとピストンが上がる等圧変化で、仕事・内部エネルギー・熱を区別しよう。</p>
   <p><a href="content/mechanics/gas-piston.html">気体＋ピストンのドリルを開く →</a></p>
@@ -322,6 +336,10 @@
       p.crossChargedCircleDone ? '進捗：組み合わせC・荷電粒子＋円運動を完了済み ✓' : '進捗：まだ組み合わせC・荷電粒子＋円運動は未完了';
     document.getElementById('progress-cross-lc').textContent =
       p.crossLCDone ? '進捗：組み合わせD・LC回路＋単振動を完了済み ✓' : '進捗：まだ組み合わせD・LC回路＋単振動は未完了';
+    document.getElementById('progress-combo-ballistic').textContent =
+      p.comboBallisticDone ? '進捗：組み合わせ問題E・弾道振り子を完了済み ✓' : '進捗：まだ組み合わせ問題E・弾道振り子は未完了';
+    document.getElementById('progress-combo-loop').textContent =
+      p.comboLoopDone ? '進捗：組み合わせ問題F・ループ・ザ・ループを完了済み ✓' : '進捗：まだ組み合わせ問題F・ループ・ザ・ループは未完了';
     document.getElementById('progress-gas-piston').textContent =
       p.gasPistonDone ? '進捗：第7問・気体＋ピストンを完了済み ✓' : '進捗：まだ第7問・気体＋ピストンは未完了';
     document.getElementById('progress-young').textContent =
@@ -385,6 +403,8 @@
     document.getElementById('progress-combo-collision-spring').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-cross-charged-circle').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-cross-lc').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-ballistic').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-loop').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-gas-piston').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-young').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-capacitor').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
