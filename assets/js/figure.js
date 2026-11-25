@@ -6254,8 +6254,9 @@ function drawBase(svg, scene) {
       const tF = el('text', { x: 205, y: 207, fill: '#0066cc' }); tF.textContent = '摩擦力 2.0 N'; svg.appendChild(tF);
       svg.appendChild(el('line', { x1: 335, y1: 221, x2: 365, y2: 221, stroke: '#d35400', 'stroke-width': 2, 'stroke-dasharray': '5 4', 'marker-end': 'url(#fig-arrow)' }));
       const tV = el('text', { x: 305, y: 205, fill: '#d35400' }); tV.textContent = 'v=1.0 m/s'; svg.appendChild(tV);
-      const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = '摩擦力 2.0 N で減速：0.75 m 進んだとき v=1.0 m/s'; svg.appendChild(tN);
-      const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = '止まるまでに 1.0 m、時間は 1.0 s'; svg.appendChild(tN2);
+      const tN = el('text', { x: 40, y: 244, fill: '#555' }); tN.textContent = '摩擦力 2.0 N で減速：'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 266, fill: '#555' }); tN2.textContent = '0.75 m 進んだとき v=1.0 m/s'; svg.appendChild(tN2);
+      const tN3 = el('text', { x: 40, y: 288, fill: '#555' }); tN3.textContent = '止まるまでに 1.0 m、時間は 1.0 s'; svg.appendChild(tN3);
     } else {
       // base・swing・collision：支点・糸・玉・床・ブロック。玉の位置は場面で決まる。
       // 支点 (200,124)、糸 100 px、玉の半径 12 px、床 y=240。
