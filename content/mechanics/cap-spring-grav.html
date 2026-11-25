@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題O：コンデンサ＋ばね＋重力 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題O：コンデンサ＋ばね＋重力</h1>
+<p><strong>問題：</strong>上極板（質量 m = 0.020 kg）がばね（ばね定数 k = 100 N/m）でつるされ、下極板は固定されている。極板の面積は S = 0.020 m²、ばねが自然長のときの板間隔は 6.0 mm だ。電池 V = 3000 V をつなぐ。(1) 電池をつながないときのつり合いの板間隔と、そのまわりの単振動の周期を求めよ。(2) 電池をつないだときのつり合いの板間隔を求めよ。(3) 電池をつないだあとの単振動の周期と、電池をつないだ瞬間の振幅・最大の速さを求めよ。(4) 電圧を 4000 V にするとどうなるか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v2.1、capSpringGrav 型）が下の JSON データから計算して描く。力の矢印は 150 px/N（重力 0.20 N は 30 px、ばね 0.28 N は 42 px、静電気力 0.076 N は 11 px）、板間隔は 10 px/mm で決める。</p>
+<script type="application/json" id="scene-cap-spring-grav-base">{"type":"capSpringGrav","phase":"base","eps0":8.85e-12,"areaM2":0.02,"voltV":3000,"voltTrapV":4000,"mKg":0.02,"kNm":100,"dNatMm":6.0,"g":10}</script>
+<script type="application/json" id="scene-cap-spring-grav-charge">{"type":"capSpringGrav","phase":"charge","eps0":8.85e-12,"areaM2":0.02,"voltV":3000,"voltTrapV":4000,"mKg":0.02,"kNm":100,"dNatMm":6.0,"g":10}</script>
+<script type="application/json" id="scene-cap-spring-grav-shm">{"type":"capSpringGrav","phase":"shm","eps0":8.85e-12,"areaM2":0.02,"voltV":3000,"voltTrapV":4000,"mKg":0.02,"kNm":100,"dNatMm":6.0,"g":10}</script>
+<script type="application/json" id="scene-cap-spring-grav-graph">{"type":"capSpringGrav","phase":"graph","eps0":8.85e-12,"areaM2":0.02,"voltV":3000,"voltTrapV":4000,"mKg":0.02,"kNm":100,"dNatMm":6.0,"g":10}</script>
+<script type="application/json" id="scene-cap-spring-grav-trap">{"type":"capSpringGrav","phase":"trap","eps0":8.85e-12,"areaM2":0.02,"voltV":3000,"voltTrapV":4000,"mKg":0.02,"kNm":100,"dNatMm":6.0,"g":10}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。電池をつながない場面ではばねと重力だけ、電池をつないだ場面では静電気力が加わる。2つをつなぐのは、極板のあいだの距離（板間隔）だ。</p>
+  <table>
+    <tr><th>時間</th><th>系（何を見るか）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>電池なし</td><td>上極板＋ばね</td><td>板間隔 d<sub>0</sub> = 4.0 mm</td><td>ばねと重力のつり合い、周期 約 0.089 s（はじめに）</td></tr>
+    <tr><td>電池をつなぐ</td><td>上極板＋ばね＋電池</td><td><strong>板間隔 d</strong></td><td>静電気力とつり合いの板間隔 d ≈ 3.2 mm（ステップ①）</td></tr>
+    <tr><td>つり合いのまわりで振動</td><td>上極板＋ばね＋電池</td><td><strong>板間隔 d</strong></td><td>実効ばね定数と周期 約 0.12 s、振幅 0.76 mm（ステップ②③）</td></tr>
+    <tr><td>電圧を上げる</td><td>上極板＋ばね＋電池</td><td><strong>板間隔 d</strong></td><td>4000 V ではつり合いがなくなり吸いつく（ステップ④）</td></tr>
+  </table>
+  <p>電池をつないだまま（V 一定）では、静電気力は F = ε<sub>0</sub>SV²/(2d²) だ。板間隔 d が変わると力も変わる。ここが、電荷 Q 一定の場合（F は d によらない）とのいちばんの違いだ。</p>
+  <svg class="fig" data-scene="scene-cap-spring-grav-base" data-show="spring,gravity" width="100%" role="img" aria-label="電池なしのつり合い。ばね 0.20 N と重力 0.20 N がつり合い、板間隔は 4.0 mm"></svg>
+  <p>ばねが自然長のとき板間隔は 6.0 mm だが、極板の重さでばねが伸び、電池なしのつり合いでは板間隔は 4.0 mm になる。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①電池をつないだつり合い</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 電池をつないだつり合い</h2>
+  <svg class="fig" data-scene="scene-cap-spring-grav-charge" data-show="spring,gravity,elec" width="100%" role="img" aria-label="電池ありのつり合い。ばね 0.28 N が重力 0.20 N と静電気力 0.076 N の和とつり合い、板間隔は約 3.2 mm"></svg>
+  <p>まず(1) 電池なしのつり合いだ。重力は mg = 0.020 × 10 = <strong>0.20 N</strong>。ばねの伸びを y<sub>0</sub> とすると、ばねの力 ky<sub>0</sub> = mg から、y<sub>0</sub> = 0.20 / 100 = 2.0 mm。板間隔は d<sub>0</sub> = 6.0 − 2.0 = <strong>4.0 mm</strong> になる。単振動の角振動数は ω<sub>0</sub> = √(k/m) = √(100 / 0.020) = √5000 ≈ <strong>71 rad/s</strong>、周期は T<sub>0</sub> = 2π/ω<sub>0</sub> ≈ <strong>0.089 s</strong> だ。</p>
+  <p>次に(2) 電池をつなぐ。V 一定のときの静電気力は F = ε<sub>0</sub>SV²/(2d²) だ。ε<sub>0</sub>SV²/2 = 8.85×10⁻¹² × 0.020 × 3000² / 2 = 7.965×10⁻⁷ N·m² と置くと、F = 7.965×10⁻⁷/d²（d は m 単位）になる。d = 4.0 mm では F = 7.965×10⁻⁷/(4.0×10⁻³)² ≈ <strong>0.050 N</strong> だ。</p>
+  <p>つり合いでは、ばねの力 = 重力 + 静電気力、つまり k(6.0 mm − d) = 0.20 + 7.965×10⁻⁷/d² だ。d = 3.2 mm を入れて確かめると、左辺は 100 × (6.0 − 3.2)×10⁻³ = <strong>0.28 N</strong>、右辺は 0.20 + 7.965×10⁻⁷/(3.2×10⁻³)² = 0.20 + 0.078 = <strong>0.28 N</strong> で、ぴったりつり合う。つり合いの板間隔は d<sub>1</sub> ≈ <strong>3.2 mm</strong>、このときの静電気力は F<sub>1</sub> ≈ <strong>0.076 N</strong>、ばねの力は 0.28 N だ。</p>
+  <label><input type="checkbox" class="check"> 電池なしで d0=4.0 mm、電池ありで d1≈3.2 mm、静電気力 F≈0.076 N を求めた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②つり合いのまわりの単振動</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② つり合いのまわりの単振動</h2>
+  <svg class="fig" data-scene="scene-cap-spring-grav-shm" data-show="spring,gravity,elec" width="100%" role="img" aria-label="単振動の上端。板間隔 4.0 mm の瞬間、ばね 0.20 N、重力 0.20 N、静電気力 0.050 N で合力は下向き"></svg>
+  <p>つり合いのまわりで極板が少し動くと、ばねの力と静電気力が両方変わる。板間隔が d<sub>1</sub> から Δd だけ増えた（板が上がった）とき、ばねの力は kΔd だけ減り、静電気力も d が増えるので弱くなる。合力は、板を下（つり合いの向き）に引く。</p>
+  <p>板間隔が Δd だけ増えたとき、ばねの力の変化は −kΔd、静電気力の変化は F の微分から −(2C<sub>e</sub>/d<sub>1</sub>³)Δd だ。つまり、ばねの力の変化と静電気力の変化が、ばね定数を弱める向きにはたらく。実効ばね定数は k<sub>eff</sub> = k − 2C<sub>e</sub>/d<sub>1</sub>³ = 100 − 2 × 7.965×10⁻⁷/(3.24×10⁻³)³ ≈ 100 − 47 = <strong>53 N/m</strong> になる。静電気力が、ばねを半分近く弱めている。</p>
+  <p>角振動数は ω = √(k<sub>eff</sub>/m) = √(53 / 0.020) = √2650 ≈ <strong>52 rad/s</strong>、周期は T = 2π/ω ≈ <strong>0.12 s</strong> だ。電池なしの 0.089 s より長くなる。電池をつないだ瞬間、板は d<sub>0</sub> = 4.0 mm の位置で静止しているので、振幅は A = d<sub>0</sub> − d<sub>1</sub> = 4.0 − 3.24 ≈ <strong>0.76 mm</strong>、最大の速さは v<sub>max</sub> = ωA ≈ 52 × 0.76×10⁻³ ≈ <strong>0.039 m/s</strong> になる。</p>
+  <label><input type="checkbox" class="check"> 実効ばね定数 約 53 N/m、周期 約 0.12 s、振幅 0.76 mm、最大の速さ 約 0.039 m/s を求めた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③正味の力のグラフ</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 正味の力のグラフ：安定と不安定</h2>
+  <svg class="fig" data-scene="scene-cap-spring-grav-graph" data-show="" width="100%" role="img" aria-label="正味の上向きの力 G(d) のグラフ。d=3.2 mm で安定なつり合い、d=2.0 mm で不安定なつり合いがある"></svg>
+  <p>正味の上向きの力を G(d) = k(6.0 mm − d) − mg − C<sub>e</sub>/d² と置く。G(d) = 0 がつり合いだ。グラフを見ると、G(d) = 0 になるのは 2 か所ある。d ≈ <strong>3.2 mm</strong> と d ≈ <strong>2.0 mm</strong> だ。</p>
+  <p>2 か所のちがいは、G(d) の傾きだ。d ≈ 3.2 mm では、d が増えると G が負になる（板を下に引く）。d が減ると G が正になる（板を上に押す）。どちらも板をつり合いに戻すので、<strong>安定なつり合い</strong>だ。d ≈ 2.0 mm では逆で、d が少し増えると G が正になって板はさらに上がり、d が少し減ると G が負になって板はさらに下がる。<strong>不安定なつり合い</strong>で、板はそこにとどまれない。</p>
+  <p>2 つのつり合いのあいだには、G(d) がいちばん大きくなる点がある。d<sub>c</sub> = (2C<sub>e</sub>/k)<sup>1/3</sup> ≈ <strong>2.5 mm</strong> で、G(d<sub>c</sub>) ≈ +0.023 N とまだ正だ。だから 2 つのつり合いが存在する。電圧を上げるとこの山が下がり、山が 0 になったところで 2 つのつり合いは消える。</p>
+  <label><input type="checkbox" class="check"> 安定なつり合い 3.2 mm と不安定なつり合い 2.0 mm を、G(d) の傾きで見分けた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④罠：電圧を上げすぎると吸いつく</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 罠：電圧を上げすぎると吸いつく</h2>
+  <svg class="fig" data-scene="scene-cap-spring-grav-trap" data-show="" width="100%" role="img" aria-label="電圧 4000 V ではつり合いがなくなり、極板が下極板に吸いついた図"></svg>
+  <p>(4) 電圧を 4000 V にすると、C<sub>e</sub> = ε<sub>0</sub>SV²/2 = 1.416×10⁻⁶ N·m² になる。臨界の板間隔は d<sub>c</sub> = (2C<sub>e</sub>/k)<sup>1/3</sup> ≈ 3.0 mm で、その点での正味の力は G(d<sub>c</sub>) ≈ −0.057 N と負になる。G(d) がどこでも負、つまり正味の力がつねに下向きなので、<strong>つり合いはどこにもない</strong>。板は下極板まで吸いついてしまう。これがプルイン（引き込み）だ。</p>
+  <p>罠は 2 つある。1 つ目は、静電気力を「Q 一定の式」で計算してしまうことだ。電池につないだまま（V 一定）では F ∝ 1/d² で、板が近づくほど力が急に強くなる。Q 一定なら F は d によらず、つり合いはいつでも 1 つだけになる。2 つ目は、「ばねがあればいつでもつり合う」と思い込むことだ。電圧が大きすぎると、ばねの力の増え方より静電気力の増え方のほうが速く、つり合いそのものが消える。</p>
+  <label><input type="checkbox" class="check"> 4000 V ではつり合いがなくなり極板が吸いつくこと、V 一定では F∝1/d² であることを確かめた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ・罠の確認</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ・罠の確認</h2>
+  <svg class="fig" data-scene="scene-cap-spring-grav-graph" data-show="" width="100%" role="img" aria-label="正味の上向きの力 G(d) のグラフ。d=3.2 mm で安定なつり合い、d=2.0 mm で不安定なつり合いがある"></svg>
+  <p>この問題の橋渡し量は板間隔 d だ。d が決まれば、ばねの力も静電気力も決まる。電池なしでは d<sub>0</sub> = 4.0 mm、電池ありでは d<sub>1</sub> ≈ 3.2 mm、周期は 0.089 s から 0.12 s に長くなる。静電気力がばねを弱める（実効ばね定数 約 53 N/m）からだ。</p>
+  <p>エネルギーの行き先も確かめておこう。電池をつなぐと、電荷は Q<sub>0</sub> ≈ 0.133 μC から Q<sub>1</sub> ≈ 0.164 μC に増える。電池のする仕事は VΔQ ≈ <strong>9.3×10⁻⁵ J</strong> で、静電エネルギーの増加 ΔU ≈ <strong>4.7×10⁻⁵ J</strong> のちょうど 2 倍だ。残りの半分は、ばねのエネルギーの増加（+1.8×10⁻⁴ J）と重力のエネルギーの減少（−1.5×10⁻⁴ J）の差し引きと、ジュール熱（≈ 1.8×10⁻⁵ J）になる。電池の仕事が静電エネルギーの増加の 2 倍になるのは、V 一定の充電ではいつでも成り立つ。</p>
+  <p>罠は、V 一定の静電気力を Q 一定の式で計算することと、「ばねがあればいつでもつり合う」と思い込むことだ。電圧を上げすぎるとつり合いそのものが消え、極板は吸いつく。</p>
+  <label><input type="checkbox" class="check"> 橋渡し量は板間隔 d であること、電池の仕事が静電エネルギーの増加の 2 倍になること、罠を確認した</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と系を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 電池なし：d<sub>0</sub> = 4.0 mm、T<sub>0</sub> ≈ 0.089 s。(2) 電池あり：d<sub>1</sub> ≈ 3.2 mm、F<sub>1</sub> ≈ 0.076 N。(3) 周期 T ≈ 0.12 s、振幅 A ≈ 0.76 mm、最大の速さ v<sub>max</sub> ≈ 0.039 m/s。(4) 4000 V ではつり合いがなくなり、極板が下極板に吸いつく。もとになった単体モデル：コンデンサは <a href="capacitor.html">第9問：コンデンサ</a>、ばねは <a href="spring.html">第5問：ばねのつり合い</a>、単振動は <a href="shm.html">第11問：単振動・振り子</a>、Q 一定のコンデンサ＋ばねは <a href="cap-spring.html">組み合わせ問題J：コンデンサ＋ばね</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboCapSpringGravDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
