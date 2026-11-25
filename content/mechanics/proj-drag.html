@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>組み合わせ問題AU：斜方投射＋空気抵抗＋エネルギー</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body { max-width: 760px; margin: 0 auto; padding: 16px; font-family: sans-serif; line-height: 1.8; }
+h1 { font-size: 22px; }
+.step { border-top: 2px solid #eee; padding: 18px 0; }
+.fig { margin: 12px 0; }
+.fig svg { width: 100%; height: auto; display: block; }
+.check { font-size: 18px; margin-right: 8px; }
+.next { display: inline-block; margin-top: 8px; }
+.toplink { position: fixed; right: 12px; bottom: 12px; background: #fff; border: 1px solid #ccc; padding: 6px 10px; border-radius: 6px; text-decoration: none; }
+.donebox { border: 2px solid #4a4; padding: 14px; margin: 20px 0; }
+table { border-collapse: collapse; margin: 10px 0; }
+th, td { border: 1px solid #999; padding: 6px 8px; text-align: left; }
+</style>
+</head>
+<body id="top">
+<h1>組み合わせ問題AU：斜方投射＋空気抵抗＋エネルギー</h1>
+<p>質量 0.50 kg の玉を、速さ 20 m/s、仰角 45° で投げる。空気抵抗は速さの 2 乗に比例し、F = k v²（k = 0.010 kg/m）とする。重力加速度は g = 10 m/s² とする。(1) 終端速度と、打ち出しの瞬間の空気抵抗の大きさを求めよ。(2) 飛距離、滞空時間、最高点の高さ、着地の速さを求めよ。抵抗がない場合と比べよ。(3) はじめの運動エネルギーと着地の運動エネルギーを求め、失われたエネルギーがどこへ行ったか答えよ。</p>
+
+<div class="step">
+<p><b>はじめに：どう切り分けるか</b></p>
+<p>空気抵抗の力 → 軌道（数値積分） → エネルギー → 罠 → 変えたら、の順に区切る。橋渡し量は「速さ・エネルギー」だ。</p>
+<table>
+<tr><th>いつ</th><th>何が起きるか</th><th>橋渡し量</th><th>どこで解くか</th></tr>
+<tr><td>はじめ</td><td>空気抵抗 F = k v²</td><td>F = 4.0 N、終端速度 22 m/s</td><td>ステップ①</td></tr>
+<tr><td>飛ぶあいだ</td><td>軌道（数値積分）</td><td>飛距離 26 m、滞空 2.5 s</td><td>ステップ②</td></tr>
+<tr><td>着地</td><td>エネルギー</td><td>KE 100 J → 46 J、仕事 54 J</td><td>ステップ③</td></tr>
+<tr><td>罠・変えたら</td><td>着地の速さ</td><td>14 m/s（20 m/s ではない）</td><td>ステップ④⑤</td></tr>
+</table>
+<p>図：打ち出しの直後の力。重力と空気抵抗がはたらき、初速度は 45° 上向き。斜方投射は<a href="proj-energy.html">組み合わせ問題G：斜方投射＋エネルギー</a>、空気抵抗は<a href="drag.html">第26問：空気抵抗</a>に戻って確認しよう。</p>
+<script type="application/json" id="scene-projDrag-base">{"type":"projDrag","mKg":0.5,"v0Ms":20,"angDeg":45,"kKgPerM":0.01,"g":10,"phase":"base"}</script>
+<svg class="fig" data-scene="scene-projDrag-base" data-show="gravity,drag,velocity" width="100%" role="img" aria-label="打ち出しの直後の力。重力 5.0 N、空気抵抗 4.0 N、初速度 20 m/s、仰角 45°"></svg>
+</div>
+
+<div class="step">
+<p><b>ステップ① 空気抵抗：F = k v²、終端速度 22 m/s</b></p>
+<script type="application/json" id="scene-projDrag-drag">{"type":"projDrag","mKg":0.5,"v0Ms":20,"angDeg":45,"kKgPerM":0.01,"g":10,"phase":"drag"}</script>
+<svg class="fig" data-scene="scene-projDrag-drag" data-show="" width="100%" role="img" aria-label="空気抵抗と速さのグラフ。F = k v² の曲線、打ち出し 4.0 N、終端速度 22 m/s"></svg>
+<p>空気抵抗は F = k v²。速さ 20 m/s では F = 0.010 × 20² = 4.0 N。重力 mg = 0.50 × 10 = 5.0 N と同じくらい大きい。だから無視できない。</p>
+<p>速さが 2 倍になると力は 4 倍になる：v = 10 m/s で 1.0 N、v = 5.0 m/s で 0.25 N。速さに比例するのではない（1 次の抵抗 F = kv とはちがう）。</p>
+<p>終端速度は、抵抗と重力がつり合う速さである。k v<sub>t</sub>² = mg より、v<sub>t</sub> = √(mg/k) = √(0.50 × 10 / 0.010) = √500 ≈ 22 m/s。</p>
+<p>静かに落とすと、速さは終端速度に近づいていく：v(t) = v<sub>t</sub> tanh(gt/v<sub>t</sub>)。t = 2.0 s では v ≈ 16 m/s（抵抗がなければ 20 m/s）。いつまでも速くはならない。</p>
+<p><label><input type="checkbox" class="check">① 空気抵抗と終端速度が分かった</label></p>
+<p><a class="next" href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<p><b>ステップ② 軌道：飛距離 26 m、滞空 2.5 s、最高点 7.7 m</b></p>
+<script type="application/json" id="scene-projDrag-traj">{"type":"projDrag","mKg":0.5,"v0Ms":20,"angDeg":45,"kKgPerM":0.01,"g":10,"phase":"traj"}</script>
+<svg class="fig" data-scene="scene-projDrag-traj" data-show="" width="100%" role="img" aria-label="2つの軌道。抵抗あり 26 m、抵抗なし 40 m、最高点 7.7 m と 10 m"></svg>
+<p>空気抵抗があると、運動方程式は ma = mg + F（F は速度と反対向き）で、速さが変わるたびに抵抗も変わる。だから手計算では解けない。0.001 s 刻みで数値積分する（刻みを半分にしても 3 桁まで同じ値になる）。</p>
+<p>結果：飛距離 26 m、滞空 2.5 s、最高点 7.7 m。抵抗がなければ 40 m、2.8 s、10 m。飛距離は 0.64 倍まで縮む。</p>
+<p>着地の速さ：vx = 7.64 m/s、vy = −11.2 m/s より、v = √(7.64² + 11.2²) ≈ 14 m/s。打ち出しの 20 m/s より遅い。</p>
+<p>なぜ横の速さも落ちるか：抵抗は速度と反対向きにはたらくので、水平成分も減らす。抵抗がなければ vx は 14 m/s のままである。</p>
+<p><label><input type="checkbox" class="check">② 抵抗のある軌道が分かった</label></p>
+<p><a class="next" href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<p><b>ステップ③ エネルギー：100 J = 46 J + 54 J</b></p>
+<script type="application/json" id="scene-projDrag-energy">{"type":"projDrag","mKg":0.5,"v0Ms":20,"angDeg":45,"kKgPerM":0.01,"g":10,"phase":"energy"}</script>
+<svg class="fig" data-scene="scene-projDrag-energy" data-show="" width="100%" role="img" aria-label="エネルギーの棒グラフ。はじめ 100 J、着地 46 J、抵抗の仕事 54 J"></svg>
+<p>はじめの運動エネルギーは KE = ½ × 0.50 × 20² = 100 J。</p>
+<p>着地の運動エネルギーは、横の成分 ½ × 0.50 × 7.64² ≈ 15 J と縦の成分 ½ × 0.50 × 11.2² ≈ 31 J の和で、KE ≈ 46 J。</p>
+<p>差の 54 J は空気抵抗の仕事（負の仕事）で、空気の熱になった。力学的エネルギーは保存しない（抵抗が非保存力だから）。</p>
+<p>抵抗がなければ着地の KE も 100 J（速さ 20 m/s のまま）。出発点と着地点の高さは同じなので、重力の仕事は往復で 0 になる。</p>
+<p><label><input type="checkbox" class="check">③ エネルギーの行き先が分かった</label></p>
+<p><a class="next" href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<p><b>ステップ④ 罠：着地の速さは 20 m/s ではない</b></p>
+<script type="application/json" id="scene-projDrag-trap">{"type":"projDrag","mKg":0.5,"v0Ms":20,"angDeg":45,"kKgPerM":0.01,"g":10,"phase":"trap"}</script>
+<svg class="fig" data-scene="scene-projDrag-trap" data-show="" width="100%" role="img" aria-label="着地の速さの比べ。まちがい 20 m/s、正しい 14 m/s、終端速度 22 m/s"></svg>
+<p>「高さが同じだから、エネルギー保存で着地の速さは打ち出しと同じ 20 m/s」——まちがい。エネルギー保存は、保存力だけがはたらくときにしか使えない。空気抵抗は非保存力で、54 J を奪う。</p>
+<p>「終端速度 22 m/s に達したら、それ以上速くならないから着地は 22 m/s」——まちがい。終端速度は「静かに落としたときに近づく速さ」であって、投げた玉が必ずその速さになるわけではない。この玉は 22 m/s に達しないまま 14 m/s で着地する。</p>
+<p>「空気抵抗は速さに比例する」——まちがい。F = k v² で、速さの 2 乗に比例する。速さが半分になれば力は 4 分の 1 になる。</p>
+<p><label><input type="checkbox" class="check">④ 罠が分かった</label></p>
+<p><a class="next" href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<p><b>ステップ⑤ 変えたら：m=1.0 kg・v0=10 m/s</b></p>
+<script type="application/json" id="scene-projDrag-vary">{"type":"projDrag","mKg":0.5,"v0Ms":20,"angDeg":45,"kKgPerM":0.01,"g":10,"phase":"vary"}</script>
+<svg class="fig" data-scene="scene-projDrag-vary" data-show="" width="100%" role="img" aria-label="飛距離の比べ。抵抗なし 40 m、m=1.0 kg 31 m、もと 26 m、v0=10 m/s 8.7 m"></svg>
+<p>質量を 1.0 kg にすると、終端速度は √(1.0 × 10 / 0.010) ≈ 32 m/s になり、飛距離は 31 m、滞空 2.6 s、最高点 8.6 m、着地 16 m/s。重いほど抵抗の影響は小さい（重力は質量に比例して大きくなるが、抵抗は速さだけで決まるから）。</p>
+<p>初速度を 10 m/s にすると、飛距離は 8.7 m（抵抗なしなら 10 m）、滞空 1.4 s、最高点 2.3 m、着地 8.7 m/s。遅い投げでは抵抗の影響は小さい（F = 0.010 × 10² = 1.0 N）。</p>
+<p>k = 0（抵抗なし）なら 40 m、2.8 s、20 m/s に戻る。</p>
+<p><label><input type="checkbox" class="check">⑤ 変えたらが分かった</label></p>
+</div>
+
+<div class="donebox">
+<p id="done-message">5つのチェックをすべて入れると完了になります。</p>
+<button id="done-btn">完了にする</button>
+<p>答え：終端速度 ≈ 22 m/s、打ち出しの抵抗 4.0 N、飛距離 26 m、滞空 2.5 s、最高点 7.7 m、着地 14 m/s、KE 100 J → 46 J、抵抗の仕事 54 J。斜方投射は<a href="proj-energy.html">組み合わせ問題G：斜方投射＋エネルギー</a>、空気抵抗は<a href="drag.html">第26問：空気抵抗</a>、壁と摩擦のある投射は<a href="proj-wall-fric.html">組み合わせ問題AQ：斜方投射＋壁＋床の摩擦</a>に戻って確認しよう。</p>
+<p><a href="ac-rlc.html">← 組み合わせ問題AT：交流RLC回路＋共振＋電力</a></p>
+</div>
+
+<a class="toplink" href="#top">↑ TOP</a>
+<script src="../../assets/js/figure.js"></script>
+<script src="../../assets/js/idb.js"></script>
+<script>
+renderAllFigures();
+const boxes = Array.from(document.querySelectorAll('.check'));
+const doneBtn = document.getElementById('done-btn');
+const doneMsg = document.getElementById('done-message');
+const doneKey = 'comboProjDragDone';
+const allChecked = () => boxes.every(b => b.checked);
+boxes.forEach(b => b.addEventListener('change', () => { doneBtn.disabled = !allChecked(); }));
+doneBtn.disabled = true;
+(async () => {
+  try {
+    const saved = await loadProgress();
+    if (saved && saved[doneKey]) { doneMsg.textContent = '完了済み ✓'; doneBtn.disabled = true; }
+  } catch (e) { /* IndexedDB が使えない環境では無視 */ }
+})();
+doneBtn.addEventListener('click', async () => {
+  if (!allChecked()) return;
+  try {
+    const saved = await loadProgress();
+    saved[doneKey] = true;
+    await saveProgress(saved);
+    doneMsg.textContent = '完了済み ✓';
+    doneBtn.disabled = true;
+  } catch (e) { doneMsg.textContent = '保存できませんでした（IndexedDB が使えません）。'; }
+});
+</script>
+</body>
+</html>
