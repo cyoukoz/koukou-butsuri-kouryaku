@@ -1,4 +1,4 @@
-// 高校物理攻略 — 図描画シミュレータ（試作 v2.3：組み合わせS 斜面＋ベルト＋ばね＋2物体単振動・組み合わせT 速度選別＋質量分析計 追加）
+// 高校物理攻略 — 図描画シミュレータ（試作 v2.4：組み合わせU 円形コイル＋干渉計＋ホール効果・組み合わせV 動く台＋荷電粒子＋衝突 追加）
 // 方針：図は手書きの座標を直書きしない。入力は JSON の「物理データ」だけ。
 // 描画側が角度・つり合いから矢印の向きと長さを計算する。
 // だから mg sinθ が mg と同じ長さになる、θ が消える、ラベルが切れる、
@@ -1320,6 +1320,115 @@ function massSpecForces(data) {
     ];
   }
   return []; // graph・trap：力の矢印はない（棒グラフ）。
+}
+
+// ---- 組み合わせU：円形コイル＋干渉計＋ホール効果（東大2023第2問型）----
+// 具体値（検算済み）：N=100回、R=0.050 m、I=1.0 A のとき
+//   中心の磁場 B = μ0NI/(2R) = 4π×10⁻⁷×100×1.0/0.10 ≈ 1.26×10⁻³ T ≈ 1.3 mT
+//   ホール素子（I_H=0.10 A、n=1.0×10²¹ m⁻³、d=1.0 mm）：
+//     V_H = I_H·B/(nqd) = 0.10×1.26×10⁻³/0.16 ≈ 7.9×10⁻⁴ V ≈ 0.79 mV
+//   導線（ℓ=0.10 m、I_w=0.50 A）：F = I_w·ℓ·B ≈ 6.3×10⁻⁵ N
+//   ばね（k=10 N/m）：Δx = F/k ≈ 6.3 μm
+//   干渉計（λ=633 nm）：縞のずれ ΔN = 2Δx/λ ≈ 20（往復で 2 倍）
+//   電流が 2 倍なら B・V_H・F・Δx・ΔN は全部 2 倍（ΔN≈40）。
+//   罠：往復の 2 を忘れると ΔN = Δx/λ ≈ 10 になってしまう。
+// 橋渡し量：磁場 B、変位 Δx。
+function coilHallDerived(data) {
+  const mu0 = 4 * Math.PI * 1e-7;
+  const bT = (mu0 * data.turnsN * data.coilIA) / (2 * data.coilRM);
+  const vH = (data.hallIHA * bT) / (data.hallN * data.hallQC * data.hallDM);
+  const forceN = data.wireIA * data.wireLM * bT;
+  const dxM = forceN / data.springKNm;
+  const dN = (2 * dxM) / data.lambdaNm;
+  const dNWrong = dxM / data.lambdaNm;
+  // 電流が 2 倍・0.5 倍のとき（B・V_H・F・Δx・ΔN は全部、電流に比例する）。
+  const b2T = 2 * bT, vH2 = 2 * vH, force2N = 2 * forceN, dx2M = 2 * dxM, dN2 = 2 * dN;
+  const bHalfT = bT / 2, dNHalf = dN / 2;
+  return {
+    mu0, bT, vH, forceN, dxM, dN, dNWrong,
+    b2T, vH2, force2N, dx2M, dN2, bHalfT, dNHalf,
+    // 力の矢印の縮尺：F = 6.3×10⁻⁵ N を 40 px で描く。
+    fScaleNperPx: forceN / 40,
+  };
+}
+
+function coilHallForces(data) {
+  const d = coilHallDerived(data);
+  if (data.phase === 'wire') {
+    // 導線にはたらく力 F = I_w·ℓ·B（下向き）。矢印は 40 px 固定。
+    // ラベルは矢印の先端から左の空きに置く（ばねのジグザグと重ならない）。
+    return [
+      { id: 'magForce', short: 'F≈6.3×10⁻⁵ N', color: 'red', vector: [0, 40], dashed: false, labelDx: -120, labelDy: -6, from: { x: 200, y: 150 } },
+    ];
+  }
+  return []; // base・hall・graph・trap：力の矢印はない。
+}
+
+// ---- 組み合わせV：動く台＋荷電粒子＋衝突（京大2026型）----
+// 具体値（検算済み）：玉 m=0.50 kg、q=+1.0×10⁻⁵ C、E=2.0×10³ V/m、壁まで L=0.50 m、台車 M=2.0 kg のとき
+//   電気の力 F = qE = 0.020 N、加速度 a = F/m = 0.040 m/s²
+//   壁に着くとき v = √(2aL) = 0.20 m/s、時間 t = v/a = 5.0 s
+//   電場の仕事 W = FL = qEL = 0.010 J = 運動エネルギー（電位差 EL = 1000 V、qΔV = 0.010 J）
+//   弾性衝突（台車は静止）：玉 v1' = (m−M)/(m+M)·v = −0.12 m/s、台車 v2' = 2m/(m+M)·v = 0.080 m/s
+//   運動量：衝突前 mv = 0.10 kg·m/s、衝突後も 0.10 kg·m/s
+//   運動エネルギー：衝突前 0.010 J、衝突後も 0.010 J
+//   その後：玉は電場で減速し、3.0 s 後に止まる（0.18 m 進む）。台車は 0.080 m/s で進み続ける（3.0 s で 0.24 m）。
+//   罠：くっついたとすると v' = mv/(m+M) = 0.040 m/s、運動エネルギーは 0.0020 J まで減る。
+//        また、電場で加速されているあいだは電場が外力なので運動量は保存しない。
+// 橋渡し量：壁に着くときの速さ v = 0.20 m/s、衝突後の速さ（玉 −0.12 m/s、台車 0.080 m/s）。
+function platformChargeDerived(data) {
+  const forceN = data.qC * data.eVm;
+  const accel = forceN / data.mKg;
+  const vMs = Math.sqrt(2 * accel * data.lengthM);
+  const tS = vMs / accel;
+  const workJ = forceN * data.lengthM;
+  const dVV = data.eVm * data.lengthM;
+  const mTotal = data.mKg + data.cartMKg;
+  const v1p = ((data.mKg - data.cartMKg) / mTotal) * vMs;
+  const v2p = ((2 * data.mKg) / mTotal) * vMs;
+  const pBefore = data.mKg * vMs;
+  const pAfter = data.mKg * v1p + data.cartMKg * v2p;
+  const keBefore = 0.5 * data.mKg * vMs * vMs;
+  const keAfter = 0.5 * data.mKg * v1p * v1p + 0.5 * data.cartMKg * v2p * v2p;
+  const tStopS = Math.abs(v1p) / accel;
+  const sStopM = (v1p * v1p) / (2 * accel);
+  const cartMoveM = v2p * tStopS;
+  const vStick = (data.mKg * vMs) / mTotal;
+  const keStick = 0.5 * mTotal * vStick * vStick;
+  // 図の配置：台車は x=100〜300、壁は x=290〜300、床は y=240。
+  // 玉が壁に着くまでの距離 0.50 m は 160 px（320 px/m）。玉の出発点は x=130。
+  const pxPerM = 320;
+  const ballStartX = 130;
+  const wallX = 290;
+  return {
+    forceN, accel, vMs, tS, workJ, dVV, mTotal, v1p, v2p,
+    pBefore, pAfter, keBefore, keAfter, tStopS, sStopM, cartMoveM,
+    vStick, keStick, pxPerM, ballStartX, wallX,
+    // 速度の矢印の縮尺：300 px/(m/s)。v=0.20 m/s → 60 px、v1'=−0.12 m/s → 36 px、v2'=0.080 m/s → 24 px。
+    vScalePxPerMs: 300,
+    // 力の矢印の縮尺：F = 0.020 N を 40 px で描く。
+    fScaleNperPx: forceN / 40,
+  };
+}
+
+function platformChargeForces(data) {
+  const d = platformChargeDerived(data);
+  if (data.phase === 'accel') {
+    // 電気の力 qE（右向き）。矢印は 40 px 固定。
+    // ラベルは矢印の先端から上の空きに置く（壁の上端・E の矢印と重ならない）。
+    return [
+      { id: 'elecForce', short: 'qE=0.020 N', color: 'blue', vector: [40, 0], dashed: false, labelDx: 6, labelDy: -45, from: { x: 200, y: 195 } },
+    ];
+  }
+  if (data.phase === 'collision') {
+    // 衝突後の速さ（破線。力ではない）。玉は左へ、台車は右へ。
+    // 玉のラベルは台車の箱の中の空きに、台車のラベルは箱の右の空きに置く。
+    return [
+      { id: 'velocity1p', short: '玉 −0.12 m/s', color: '#d35400', vector: [-36, 0], dashed: true, labelDx: -60, labelDy: 14, from: { x: 280, y: 195 } },
+      { id: 'velocity2p', short: '0.080 m/s', color: '#0066cc', vector: [24, 0], dashed: true, labelDx: 0, labelDy: -12, from: { x: 300, y: 222 } },
+    ];
+  }
+  return []; // base・after・trap：力の矢印はない（after はグラフ、trap は棒グラフ）。
 }
 
 // ---- 円運動（M11）：水平面内の円運動と、鉛直面内のループ ----
@@ -3095,6 +3204,28 @@ function sceneFor(type, thetaDeg, mgPx, fPx, data) {
       forces: massSpecForces(data),
     };
   }
+  if (type === 'coilHall') {
+    const d = coilHallDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      turnsN: data.turnsN, coilRM: data.coilRM, coilIA: data.coilIA,
+      hallIHA: data.hallIHA, hallN: data.hallN, hallQC: data.hallQC, hallDM: data.hallDM,
+      wireIA: data.wireIA, wireLM: data.wireLM, springKNm: data.springKNm, lambdaNm: data.lambdaNm,
+      derived: d,
+      center: { x: 200, y: 150 }, centerDot: false,
+      forces: coilHallForces(data),
+    };
+  }
+  if (type === 'platformCharge') {
+    const d = platformChargeDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      mKg: data.mKg, qC: data.qC, eVm: data.eVm, lengthM: data.lengthM, cartMKg: data.cartMKg, g: data.g || 10,
+      derived: d,
+      center: { x: 200, y: 150 }, centerDot: false,
+      forces: platformChargeForces(data),
+    };
+  }
   if (type === 'slopePulley') {
     return {
       type, phase: (data && data.phase) || 'connected',
@@ -3915,6 +4046,56 @@ function validateScene(scene) {
     if (byId.elecForce && Math.abs(byId.elecForce.vector[1] - 40) > 0.5) return ['電気の力の矢印が 40 px になっていません'];
     if (byId.magForce && Math.abs(-byId.magForce.vector[1] - 40) > 0.5) return ['磁気の力の矢印が 40 px になっていません'];
     if (byId.lorentz && Math.abs(byId.lorentz.vector[1] - 40) > 0.5) return ['ローレンツ力の矢印が 40 px になっていません'];
+  }
+  if (scene.type === 'coilHall') {
+    const d = scene.derived;
+    // コイルの中心の磁場：B = μ0NI/(2R)。
+    if (Math.abs(d.bT - (d.mu0 * scene.turnsN * scene.coilIA) / (2 * scene.coilRM)) > 1e-12) return ['中心の磁場が μ0NI/(2R) と一致しません'];
+    // ホール電圧：V_H = I_H·B/(nqd)。
+    if (Math.abs(d.vH - (scene.hallIHA * d.bT) / (scene.hallN * scene.hallQC * scene.hallDM)) > 1e-12) return ['ホール電圧が I_H·B/(nqd) と一致しません'];
+    // 導線にはたらく力：F = I_w·ℓ·B。ばねの伸び：Δx = F/k。
+    if (Math.abs(d.forceN - scene.wireIA * scene.wireLM * d.bT) > 1e-12) return ['導線の力が I_w·ℓ·B と一致しません'];
+    if (Math.abs(d.dxM - d.forceN / scene.springKNm) > 1e-12) return ['ばねの伸びが F/k と一致しません'];
+    // 干渉計：縞のずれ ΔN = 2Δx/λ（往復で 2 倍）。罠は Δx/λ。
+    if (Math.abs(d.dN - (2 * d.dxM) / scene.lambdaNm) > 1e-9) return ['縞のずれが 2Δx/λ と一致しません'];
+    if (Math.abs(d.dNWrong - d.dxM / scene.lambdaNm) > 1e-9) return ['罠の縞のずれが Δx/λ と一致しません'];
+    if (!(d.dN > d.dNWrong)) return ['正しい縞のずれが罠より大きくなっていません'];
+    // 電流が 2 倍なら B・V_H・F・Δx・ΔN は全部 2 倍。0.5 倍なら半分。
+    if (Math.abs(d.b2T - 2 * d.bT) > 1e-12) return ['電流 2 倍のときの磁場が 2 倍になっていません'];
+    if (Math.abs(d.dN2 - 2 * d.dN) > 1e-9) return ['電流 2 倍のときの縞のずれが 2 倍になっていません'];
+    if (Math.abs(d.dNHalf - d.dN / 2) > 1e-9) return ['電流 0.5 倍のときの縞のずれが半分になっていません'];
+    // 力の矢印の長さが縮尺どおりか（F の矢印は 40 px）。
+    if (byId.magForce && Math.abs(byId.magForce.vector[1] - 40) > 0.5) return ['磁気の力の矢印が 40 px になっていません'];
+    if (byId.magForce && Math.abs(Math.hypot(byId.magForce.vector[0], byId.magForce.vector[1]) - d.forceN / d.fScaleNperPx) > 0.5) return ['磁気の力の矢印が F の縮尺と一致しません'];
+  }
+  if (scene.type === 'platformCharge') {
+    const d = scene.derived;
+    // 電気の力：F = qE。加速度：a = F/m。
+    if (Math.abs(d.forceN - scene.qC * scene.eVm) > 1e-12) return ['電気の力が qE と一致しません'];
+    if (Math.abs(d.accel - d.forceN / scene.mKg) > 1e-12) return ['加速度が F/m と一致しません'];
+    // 壁に着くとき：v² = 2aL、t = v/a。電場の仕事：W = FL = qEL = qΔV。
+    if (Math.abs(d.vMs * d.vMs - 2 * d.accel * scene.lengthM) > 1e-12) return ['壁に着くときの速さが √(2aL) と一致しません'];
+    if (Math.abs(d.tS - d.vMs / d.accel) > 1e-12) return ['加速の時間が v/a と一致しません'];
+    if (Math.abs(d.workJ - d.forceN * scene.lengthM) > 1e-12) return ['電場の仕事が FL と一致しません'];
+    if (Math.abs(d.workJ - scene.qC * d.dVV) > 1e-12) return ['電場の仕事が qΔV と一致しません'];
+    if (Math.abs(d.workJ - 0.5 * scene.mKg * d.vMs * d.vMs) > 1e-12) return ['電場の仕事が運動エネルギーと一致しません'];
+    // 弾性衝突：v1' = (m−M)/(m+M)·v、v2' = 2m/(m+M)·v。
+    if (Math.abs(d.v1p - ((scene.mKg - scene.cartMKg) / d.mTotal) * d.vMs) > 1e-12) return ["玉の衝突後の速さが弾性衝突の公式と一致しません"];
+    if (Math.abs(d.v2p - ((2 * scene.mKg) / d.mTotal) * d.vMs) > 1e-12) return ['台車の衝突後の速さが弾性衝突の公式と一致しません'];
+    // 衝突の前後で運動量と運動エネルギーが保存すること。
+    if (Math.abs(d.pBefore - d.pAfter) > 1e-12) return ['衝突で運動量が保存していません'];
+    if (Math.abs(d.keBefore - d.keAfter) > 1e-12) return ['弾性衝突で運動エネルギーが保存していません'];
+    // その後：玉は電場で減速し、t = |v1'|/a で止まる。止まるまでの距離は |v1'|²/(2a)。
+    if (Math.abs(d.tStopS - Math.abs(d.v1p) / d.accel) > 1e-12) return ['玉が止まるまでの時間が |v1\'|/a と一致しません'];
+    if (Math.abs(d.sStopM - (d.v1p * d.v1p) / (2 * d.accel)) > 1e-12) return ['玉が止まるまでの距離が |v1\'|²/(2a) と一致しません'];
+    if (Math.abs(d.cartMoveM - d.v2p * d.tStopS) > 1e-12) return ['台車の移動距離が v2\'×t と一致しません'];
+    // 罠（くっついたら）：v' = mv/(m+M)、運動エネルギーは減る。
+    if (Math.abs(d.vStick - (scene.mKg * d.vMs) / d.mTotal) > 1e-12) return ['くっついたときの速さが mv/(m+M) と一致しません'];
+    if (!(d.keStick < d.keBefore)) return ['くっついたときの運動エネルギーが減っていません'];
+    // 矢印の長さが縮尺どおりか（電気の力は 40 px、速度は 300 px/(m/s)）。
+    if (byId.elecForce && Math.abs(byId.elecForce.vector[0] - 40) > 0.5) return ['電気の力の矢印が 40 px になっていません'];
+    if (byId.velocity1p && Math.abs(-byId.velocity1p.vector[0] - Math.abs(d.v1p) * d.vScalePxPerMs) > 0.5) return ["玉の速さの矢印が v1' の縮尺と一致しません"];
+    if (byId.velocity2p && Math.abs(byId.velocity2p.vector[0] - d.v2p * d.vScalePxPerMs) > 0.5) return ['台車の速さの矢印が v2\' の縮尺と一致しません'];
   }
   if (scene.type === 'charged-circle') {
     const d = scene.derived;
@@ -5664,6 +5845,184 @@ function drawBase(svg, scene) {
       const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = '陽子は静止から加速される'; svg.appendChild(tN);
       const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = 'qV = 1.6×10⁻¹⁶ J、v ≈ 4.4×10⁵ m/s'; svg.appendChild(tN2);
     }
+  } else if (scene.type === 'coilHall') {
+    const d = scene.derived;
+    const tH = el('text', { x: 40, y: 36, fill: '#555' });
+    tH.textContent = scene.phase === 'hall' ? 'ホール素子：磁場を電圧で測る'
+      : scene.phase === 'wire' ? '導線にはたらく力：ばねが伸びる'
+      : scene.phase === 'graph' ? '縞のずれ：電流に比例する'
+      : scene.phase === 'trap' ? '罠：往復で 2 倍になるのを忘れる'
+      : '円形コイル：中心の磁場を求める';
+    svg.appendChild(tH);
+    if (scene.phase === 'graph') {
+      // 棒グラフ：縞のずれ ΔN とコイルの電流 I（5 px/縞）。I=0.50 A → 10、I=1.0 A → 20、I=2.0 A → 40。
+      const rows = [
+        ['I=0.50 A → 10', d.dNHalf * 5, '#cfe3ff'],
+        ['I=1.0 A → 20', d.dN * 5, '#ffb3b3'],
+        ['I=2.0 A → 40', d.dN2 * 5, '#b3e6b3'],
+      ];
+      rows.forEach(([label, w, fill], i) => {
+        const y = 100 + i * 50;
+        const tL = el('text', { x: 60, y: y - 8 }); tL.textContent = label; svg.appendChild(tL);
+        svg.appendChild(el('rect', { x: 60, y, width: w, height: 18, fill, stroke: '#333', 'stroke-width': 1.5 }));
+      });
+      const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = '縞のずれ ΔN は電流 I に比例する'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = 'I が 2 倍なら ΔN も 2 倍（40）'; svg.appendChild(tN2);
+    } else if (scene.phase === 'trap') {
+      // 棒グラフ：往復の 2 を忘れたときの 10 と、正しい 20。
+      const rows = [
+        ['2 を忘れると 10', d.dNWrong * 5, '#ffb3b3'],
+        ['正しくは 2Δx/λ で 20', d.dN * 5, '#b3e6b3'],
+      ];
+      rows.forEach(([label, w, fill], i) => {
+        const y = 120 + i * 50;
+        const tL = el('text', { x: 60, y: y - 8 }); tL.textContent = label; svg.appendChild(tL);
+        svg.appendChild(el('rect', { x: 60, y, width: w, height: 18, fill, stroke: '#333', 'stroke-width': 1.5 }));
+      });
+      const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = '往復で 2 倍になるのを忘れると半分になる'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = 'ΔN = 2Δx/λ'; svg.appendChild(tN2);
+    } else if (scene.phase === 'hall') {
+      // ホール素子：x=120〜280、y=130〜170 の板。磁場は紙面の表向き（⊙）。
+      svg.appendChild(el('rect', { x: 120, y: 130, width: 160, height: 40, fill: '#e8f4ff', stroke: '#333', 'stroke-width': 2 }));
+      // 磁場の ⊙ 印は板の両端の内側に置く（制御電流の矢印 y=150 と重ならないよう、上下にずらす）。
+      for (const [cx, cy] of [[140, 140], [260, 160]]) {
+        svg.appendChild(el('circle', { cx, cy, r: 5, fill: 'none', stroke: '#999', 'stroke-width': 1.5 }));
+        svg.appendChild(el('circle', { cx, cy, r: 1.5, fill: '#999' }));
+      }
+      // 制御電流 I_H の矢印（板を貫く）。ラベルは板の上の空きに置く。
+      svg.appendChild(el('line', { x1: 100, y1: 150, x2: 300, y2: 150, stroke: 'blue', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+      const tI = el('text', { x: 50, y: 125, fill: 'blue' }); tI.textContent = 'I_H=0.10 A'; svg.appendChild(tI);
+      // ホール電圧：板の上辺が ＋、下辺が －。破線で測る場所を示す。
+      svg.appendChild(el('line', { x1: 192, y1: 122, x2: 192, y2: 188, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+      const s1 = el('text', { x: 185, y: 118, fill: '#b00', 'font-size': 18 }); s1.textContent = '＋'; svg.appendChild(s1);
+      const s2 = el('text', { x: 185, y: 192, fill: '#b00', 'font-size': 18 }); s2.textContent = '－'; svg.appendChild(s2);
+      const tV = el('text', { x: 215, y: 118, fill: '#b00' }); tV.textContent = 'V_H≈0.79 mV'; svg.appendChild(tV);
+      const tB = el('text', { x: 60, y: 205 }); tB.textContent = 'B（表向き）'; svg.appendChild(tB);
+      const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = 'ホール電圧 V_H = I_H·B/(nqd)'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = 'V_H ≈ 0.79 mV（I_H=0.10 A）'; svg.appendChild(tN2);
+    } else if (scene.phase === 'wire') {
+      // 磁場の ⊙ 印は四隅に置く（導線・ばね・力のラベルと重ならない）。
+      for (const [cx, cy] of [[100, 100], [300, 100], [100, 220], [300, 220]]) {
+        svg.appendChild(el('circle', { cx, cy, r: 5, fill: 'none', stroke: '#999', 'stroke-width': 1.5 }));
+        svg.appendChild(el('circle', { cx, cy, r: 1.5, fill: '#999' }));
+      }
+      // ばね（天井 y=60 から導線 y=150 まで）。ジグザグは長さから計算する。
+      let zig = '';
+      const nSeg = 12;
+      for (let i = 0; i <= nSeg; i++) {
+        const y = 60 + ((150 - 60) * i) / nSeg;
+        const x = i === 0 || i === nSeg ? 200 : (i % 2 === 1 ? 188 : 212);
+        zig += (zig ? ' L ' : 'M ') + x + ' ' + y.toFixed(1);
+      }
+      svg.appendChild(el('path', { d: zig, fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      // 導線（x=120〜280、y=150）。電流は右向き。
+      svg.appendChild(el('line', { x1: 120, y1: 150, x2: 280, y2: 150, stroke: '#333', 'stroke-width': 3 }));
+      svg.appendChild(el('line', { x1: 140, y1: 150, x2: 170, y2: 150, stroke: 'blue', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+      const tI = el('text', { x: 60, y: 135, fill: 'blue' }); tI.textContent = 'I_w=0.50 A'; svg.appendChild(tI);
+      // もとの位置（y=130）の破線。ばねと重ならないよう、ばねの左右で分けて描く。
+      svg.appendChild(el('line', { x1: 120, y1: 130, x2: 185, y2: 130, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+      svg.appendChild(el('line', { x1: 215, y1: 130, x2: 280, y2: 130, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+      // 変位 Δx の目印（右端の縦の両矢印）。ラベルは短く「Δx」だけにする。
+      svg.appendChild(el('line', { x1: 320, y1: 132, x2: 320, y2: 148, stroke: '#333', 'stroke-width': 1.5, 'marker-end': 'url(#fig-arrow)' }));
+      const tD = el('text', { x: 326, y: 144 }); tD.textContent = 'Δx'; svg.appendChild(tD);
+      // 力の矢印 F は図描画シミュレータが描く（下向き 40 px）。
+      const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = 'F = I_w·ℓ·B ≈ 6.3×10⁻⁵ N'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = 'ばねの伸び Δx = F/k ≈ 6.3 μm'; svg.appendChild(tN2);
+    } else {
+      // base：円形コイル（中心 (200,150)、半径 70 px）。磁場は中心で紙面の表向き（⊙）。
+      svg.appendChild(el('circle', { cx: 200, cy: 150, r: 70, fill: 'none', stroke: '#333', 'stroke-width': 3 }));
+      // 電流の向き：コイルの上の弧に矢印を描く。
+      svg.appendChild(el('path', { d: 'M 176 84 A 70 70 0 0 1 224 84', fill: 'none', stroke: 'blue', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+      const tI = el('text', { x: 240, y: 70, fill: 'blue' }); tI.textContent = 'I=1.0 A'; svg.appendChild(tI);
+      // 中心の ⊙ 印と B のラベル。
+      svg.appendChild(el('circle', { cx: 200, cy: 150, r: 7, fill: 'none', stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('circle', { cx: 200, cy: 150, r: 2, fill: '#333' }));
+      const tB = el('text', { x: 214, y: 154 }); tB.textContent = 'B'; svg.appendChild(tB);
+      const tB2 = el('text', { x: 60, y: 240 }); tB2.textContent = 'B≈1.3 mT'; svg.appendChild(tB2);
+      // 半径の目印（中心から右上へ）。ラベルはコイルの外の空きに置く。
+      svg.appendChild(el('line', { x1: 200, y1: 150, x2: 249, y2: 101, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+      const tR = el('text', { x: 252, y: 95 }); tR.textContent = 'R=0.050 m'; svg.appendChild(tR);
+      const tNn = el('text', { x: 255, y: 205 }); tNn.textContent = 'N=100回'; svg.appendChild(tNn);
+      const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = '中心の磁場 B = μ0NI/2R'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = 'N=100回、R=0.050 m、I=1.0 A'; svg.appendChild(tN2);
+    }
+  } else if (scene.type === 'platformCharge') {
+    const d = scene.derived;
+    const tH = el('text', { x: 40, y: 36, fill: '#555' });
+    tH.textContent = scene.phase === 'accel' ? '電場で加速：壁に着くときの速さ'
+      : scene.phase === 'collision' ? '弾性衝突：玉と台車に分かれる'
+      : scene.phase === 'after' ? 'その後：玉は止まり、台車は進む'
+      : scene.phase === 'trap' ? '罠：くっついたらエネルギーは減る'
+      : '動く台の上の荷電粒子：電場・衝突・台車';
+    svg.appendChild(tH);
+    if (scene.phase === 'after') {
+      // v–t グラフ：玉の速さは −0.12 m/s から 0 まで上がり（電場で減速）、台車は 0.080 m/s で一定。
+      // 横軸 t：0〜3.5 s（80 px/s）、縦軸 v：−0.15〜+0.15 m/s（600 px/(m/s)、v=0 は y=150）。
+      const xOf = (t) => 60 + t * 80;
+      const yOf = (v) => 150 - v * 600;
+      svg.appendChild(el('line', { x1: 60, y1: 240, x2: 340, y2: 240, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: 60, y1: 60, x2: 60, y2: 240, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: 60, y1: 150, x2: 340, y2: 150, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      // 玉の速さの三角形の面積（= 止まるまでの距離 0.18 m）を薄く塗る。
+      svg.appendChild(el('path', { d: `M ${xOf(0)} ${yOf(-0.12)} L ${xOf(3.0)} ${yOf(0)} L ${xOf(3.0)} ${yOf(-0.12)} Z`, fill: '#ffe8e8', stroke: 'none' }));
+      svg.appendChild(el('line', { x1: xOf(0), y1: yOf(-0.12), x2: xOf(3.0), y2: yOf(0), stroke: '#b00', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: xOf(0), y1: yOf(0.08), x2: xOf(3.5), y2: yOf(0.08), stroke: '#0066cc', 'stroke-width': 2 }));
+      const tC = el('text', { x: 200, y: 95, fill: '#0066cc' }); tC.textContent = '台車 0.080 m/s'; svg.appendChild(tC);
+      const tB = el('text', { x: 70, y: 215, fill: '#b00' }); tB.textContent = '玉'; svg.appendChild(tB);
+      const t0 = el('text', { x: 64, y: 145 }); t0.textContent = 'v=0'; svg.appendChild(t0);
+      const tT = el('text', { x: 295, y: 168 }); tT.textContent = '3.0 s'; svg.appendChild(tT);
+      const tX = el('text', { x: 344, y: 244 }); tX.textContent = 't'; svg.appendChild(tX);
+      const tY = el('text', { x: 48, y: 56 }); tY.textContent = 'v'; svg.appendChild(tY);
+      const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = '玉は 3.0 s 後に止まる（面積 = 0.18 m）'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = '台車は 0.080 m/s で進み続ける'; svg.appendChild(tN2);
+    } else if (scene.phase === 'trap') {
+      // 棒グラフ：運動エネルギー。衝突前 0.010 J、くっついたら 0.0020 J、弾性衝突のあと 0.010 J（10000 px/J）。
+      const rows = [
+        ['衝突前 0.010 J', d.keBefore * 10000, '#cfe3ff'],
+        ['くっついたら 0.0020 J', d.keStick * 10000, '#ffb3b3'],
+        ['弾性衝突のあと 0.010 J', d.keAfter * 10000, '#b3e6b3'],
+      ];
+      rows.forEach(([label, w, fill], i) => {
+        const y = 100 + i * 50;
+        const tL = el('text', { x: 60, y: y - 8 }); tL.textContent = label; svg.appendChild(tL);
+        svg.appendChild(el('rect', { x: 60, y, width: w, height: 18, fill, stroke: '#333', 'stroke-width': 1.5 }));
+      });
+      const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = 'くっつくと 0.0080 J 失われる'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = '弾性衝突では運動エネルギーも保存する'; svg.appendChild(tN2);
+    } else {
+      // 台車と玉と壁。床は y=240、台車は x=100〜300・y=205〜240、壁は x=290〜300・y=170〜240。
+      // 玉の位置は場面で決まる（base：x=130、accel：x=200、collision：x=280）。
+      const ballX = scene.phase === 'collision' ? 280 : scene.phase === 'accel' ? 200 : 130;
+      svg.appendChild(el('line', { x1: 40, y1: 240, x2: 390, y2: 240, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('rect', { x: 100, y: 205, width: 200, height: 35, fill: '#f5f5f5', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('rect', { x: 290, y: 170, width: 10, height: 70, fill: '#888', stroke: '#333', 'stroke-width': 1.5 }));
+      // 電場の矢印（上向きではなく右向き）。ラベルは右上の空きに置く。
+      for (const ex of [120, 200, 280]) {
+        svg.appendChild(el('line', { x1: ex, y1: 90, x2: ex + 30, y2: 90, stroke: 'blue', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+      }
+      const tE = el('text', { x: 230, y: 70, fill: 'blue' }); tE.textContent = 'E=2.0×10³ V/m'; svg.appendChild(tE);
+      // 玉（円）。電気の力の矢印は図描画シミュレータが描く。
+      svg.appendChild(el('circle', { cx: ballX, cy: 195, r: 10, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      const tW = el('text', { x: 305, y: 170 }); tW.textContent = '壁'; svg.appendChild(tW);
+      const tC = el('text', { x: 130, y: 228 }); tC.textContent = '台車 M=2.0 kg'; svg.appendChild(tC);
+      if (scene.phase === 'base') {
+        const tB = el('text', { x: 100, y: 185 }); tB.textContent = '玉'; svg.appendChild(tB);
+        const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = '玉 m=0.50 kg、q=+1.0×10⁻⁵ C'; svg.appendChild(tN);
+        const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = '壁まで 0.50 m、電場で右へ加速される'; svg.appendChild(tN2);
+      } else if (scene.phase === 'accel') {
+        // 速さの矢印（破線）は玉の右上の空きに描く（力の矢印・壁と重ならない）。
+        svg.appendChild(el('line', { x1: 212, y1: 183, x2: 272, y2: 183, stroke: '#d35400', 'stroke-width': 2, 'stroke-dasharray': '5 4', 'marker-end': 'url(#fig-arrow)' }));
+        const tV = el('text', { x: 142, y: 171, fill: '#d35400' }); tV.textContent = 'v=0.20 m/s'; svg.appendChild(tV);
+        const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = '電場の仕事 W = qEL = 0.010 J'; svg.appendChild(tN);
+        const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = 'v = √(2aL) = 0.20 m/s、t = 5.0 s'; svg.appendChild(tN2);
+      } else {
+        // collision：壁に着くときの速さの矢印（破線）は玉の左の空きに描く。
+        svg.appendChild(el('line', { x1: 210, y1: 195, x2: 270, y2: 195, stroke: '#d35400', 'stroke-width': 2, 'stroke-dasharray': '5 4', 'marker-end': 'url(#fig-arrow)' }));
+        const tV = el('text', { x: 140, y: 180, fill: '#d35400' }); tV.textContent = 'v=0.20 m/s'; svg.appendChild(tV);
+        const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = '玉 −0.12 m/s、台車 +0.080 m/s'; svg.appendChild(tN);
+        const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = '運動量 0.10 kg·m/s、運動エネルギー 0.010 J'; svg.appendChild(tN2);
+      }
+    }
   } else if (scene.type === 'capacitor') {
     const topY = 110, dPx = scene.dPx;
     // 2枚の極板（水平）。上板が +、下板が −。
@@ -6805,4 +7164,4 @@ function renderAllFigures() {
   });
 }
 
-if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, capSpringGravDerived, capSpringGravForces, gasSpringCycleDerived, gasSpringCycleForces, slopeSpringDerived, slopeSpringForces, fallLoopDerived, fallLoopForces, beltSpringDerived, beltSpringForces, massSpecDerived, massSpecForces, sceneFor, validateScene, renderFigure };
+if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, capSpringGravDerived, capSpringGravForces, gasSpringCycleDerived, gasSpringCycleForces, slopeSpringDerived, slopeSpringForces, fallLoopDerived, fallLoopForces, beltSpringDerived, beltSpringForces, massSpecDerived, massSpecForces, coilHallDerived, coilHallForces, platformChargeDerived, platformChargeForces, sceneFor, validateScene, renderFigure };
