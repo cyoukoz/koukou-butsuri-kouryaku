@@ -348,6 +348,20 @@
 </div>
 
 <div class="card">
+  <h2>組み合わせ問題AO：円錐振り子＋糸が切れる＋斜方投射</h2>
+  <p>質量 1.0 kg の玉を長さ 1.0 m の糸でつるし、角 37° で水平面を回す円錐振り子。張力は T = mg/cosθ ≈ 12.5 N、速さは約 2.1 m/s、周期は 2π√(L cosθ/g) ≈ 1.78 s。糸が切れると玉はそのときの速さのまま水平に飛び出し、高さ 1.2 m から 0.49 s で 1.04 m 先に着地し、着地の速さは約 5.3 m/s。単振り子の周期 2.0 s をそのまま使う罠があり、角を 53° にすると周期は 1.54 s、糸を 2.0 m にすると 2.51 s になるが張力は 12.5 N のままだ。橋渡し量は「速さと周期」。</p>
+  <p><a href="content/mechanics/conical-pendulum.html">円錐振り子＋糸が切れる＋斜方投射のドリルを開く →</a></p>
+  <p id="progress-combo-conical-pendulum">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>組み合わせ問題AP：RC回路の充電とエネルギー</h2>
+  <p>起電力 12 V の電池に抵抗 100 Ω とコンデンサ 100 μF を直列につないで充電する。時定数は τ = RC = 10 ms、最終の電気量は 1.2 mC、初めの電流は 120 mA。コンデンサにたまるエネルギーは 7.2 mJ だが、電池のした仕事は 14.4 mJ で、残り半分の 7.2 mJ は抵抗で熱になる。t=τ ではすでに熱が 6.2 mJ 出ている。電池の仕事が全部たまるとする罠があり、R を 200 Ω にしてもエネルギーは変わらず、C を 200 μF にすると 14.4 mJ、E を 24 V にすると 28.8 mJ になる。橋渡し量は「電気量とエネルギー」。</p>
+  <p><a href="content/mechanics/rc-charge.html">RC回路の充電とエネルギーのドリルを開く →</a></p>
+  <p id="progress-combo-rc-charge">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
   <h2>第7問：気体＋ピストン</h2>
   <p>シリンダーにピストンがのっている。ピストンの力のつり合いから気体の圧力を、状態方程式から体積と高さを求める。加熱するとピストンが上がる等圧変化で、仕事・内部エネルギー・熱を区別しよう。</p>
   <p><a href="content/mechanics/gas-piston.html">気体＋ピストンのドリルを開く →</a></p>
@@ -646,6 +660,10 @@
       p.comboSlopePulleySpringDone ? '進捗：組み合わせ問題AM・斜面＋滑車＋ばねの2物体単振動を完了済み ✓' : '進捗：まだ組み合わせ問題AM・斜面＋滑車＋ばねの2物体単振動は未完了';
     document.getElementById('progress-combo-cathode-ray').textContent =
       p.comboCathodeRayDone ? '進捗：組み合わせ問題AN・陰極線管を完了済み ✓' : '進捗：まだ組み合わせ問題AN・陰極線管は未完了';
+    document.getElementById('progress-combo-conical-pendulum').textContent =
+      p.comboConicalPendulumDone ? '進捗：組み合わせ問題AO・円錐振り子＋糸が切れる＋斜方投射を完了済み ✓' : '進捗：まだ組み合わせ問題AO・円錐振り子＋糸が切れる＋斜方投射は未完了';
+    document.getElementById('progress-combo-rc-charge').textContent =
+      p.comboRcChargeDone ? '進捗：組み合わせ問題AP・RC回路の充電とエネルギーを完了済み ✓' : '進捗：まだ組み合わせ問題AP・RC回路の充電とエネルギーは未完了';
     document.getElementById('progress-gas-piston').textContent =
       p.gasPistonDone ? '進捗：第7問・気体＋ピストンを完了済み ✓' : '進捗：まだ第7問・気体＋ピストンは未完了';
     document.getElementById('progress-young').textContent =
@@ -745,6 +763,8 @@
     document.getElementById('progress-combo-explode').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-slope-pulley-spring').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-cathode-ray').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-conical-pendulum').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-rc-charge').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-gas-piston').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-young').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-capacitor').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
