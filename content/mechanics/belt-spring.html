@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題S：斜面＋動くベルト＋ばね＋2物体単振動 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題S：斜面＋動くベルト＋ばね＋2物体単振動</h1>
+<p><strong>問題：</strong>質量 m1 = 1.0 kg の小物体（玉1）が、傾き θ = 30°、高さ h = 0.80 m のなめらかな斜面の頂上から静かに滑り落ちる。斜面の下端には、速さ u = 2.0 m/s で右向きに動くベルトがある。玉1はベルトに乗り、ベルトとのあいだの動摩擦係数は μ = 0.20 だ。ベルトの先には、ばね定数 k = 100 N/m のばねがついた質量 m2 = 1.0 kg の玉2が静止している。床はなめらかだ。(1) 斜面の下端での速さを求めよ。(2) ベルトの上で玉1が滑る時間と、熱になるエネルギーを求めよ。滑らなくなったときの速さも求めよ。(3) ばねが最も縮むときの縮みと、ばねの最大の力を求めよ。(4) ばねに触れているあいだの運動を求め、接触時間と、離れたあとの 2 つの玉の速さを求めよ。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v2.3、beltSpring 型）が下の JSON データから計算して描く。力の矢印は斜面では 2 px/N（重力 10 N は 20 px）、ベルトでは摩擦力 10 px/N（2.0 N は 20 px）、速さの矢印は 15 px/(m/s)（4.0 m/s は 60 px）、ばねの力は 3 px/N（最大 14 N は 42 px）で決める。</p>
+<script type="application/json" id="scene-belt-spring-base">{"type":"beltSpring","thetaDeg":30,"hM":0.8,"m1Kg":1.0,"m2Kg":1.0,"kNm":100,"beltUMs":2.0,"mu":0.2,"g":10,"phase":"base"}</script>
+<script type="application/json" id="scene-belt-spring-belt">{"type":"beltSpring","thetaDeg":30,"hM":0.8,"m1Kg":1.0,"m2Kg":1.0,"kNm":100,"beltUMs":2.0,"mu":0.2,"g":10,"phase":"belt"}</script>
+<script type="application/json" id="scene-belt-spring-spring">{"type":"beltSpring","thetaDeg":30,"hM":0.8,"m1Kg":1.0,"m2Kg":1.0,"kNm":100,"beltUMs":2.0,"mu":0.2,"g":10,"phase":"spring"}</script>
+<script type="application/json" id="scene-belt-spring-shm">{"type":"beltSpring","thetaDeg":30,"hM":0.8,"m1Kg":1.0,"m2Kg":1.0,"kNm":100,"beltUMs":2.0,"mu":0.2,"g":10,"phase":"shm"}</script>
+<script type="application/json" id="scene-belt-spring-trap">{"type":"beltSpring","thetaDeg":30,"hM":0.8,"m1Kg":1.0,"m2Kg":1.0,"kNm":100,"beltUMs":2.0,"mu":0.2,"g":10,"phase":"trap"}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。斜面を滑る場面、ベルトの上で滑る場面、ばねに触れている場面では、使える式がちがう。3つをつなぐのは、玉1の速さだ。</p>
+  <table>
+    <tr><th>時間</th><th>系（何を見るか）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>はじめ（斜面の上）</td><td>玉1（斜面上）</td><td>—</td><td>重力の斜面方向の成分が加速度を決める（はじめに）</td></tr>
+    <tr><td>斜面を滑る</td><td>玉1（斜面上）</td><td><strong>下端の速さ v = 4.0 m/s</strong></td><td>エネルギー保存で v を求める（はじめに）</td></tr>
+    <tr><td>ベルトの上</td><td>玉1＋ベルト</td><td><strong>速さ 4.0 → 2.0 m/s、熱 2.0 J</strong></td><td>摩擦で減速する（ステップ①）</td></tr>
+    <tr><td>ばねが縮む</td><td>玉1＋ばね＋玉2</td><td><strong>運動エネルギー 2.0 J</strong></td><td>エネルギーがばねに移る（ステップ②）</td></tr>
+    <tr><td>ばねに触れているあいだ</td><td>玉1＋ばね＋玉2</td><td><strong>換算質量 0.50 kg</strong></td><td>2物体の単振動（ステップ③）</td></tr>
+    <tr><td>離れたあと</td><td>玉1、玉2</td><td><strong>玉1は 0、玉2は 2.0 m/s</strong></td><td>弾性衝突と同じ結果（ステップ⑤）</td></tr>
+  </table>
+  <p>斜面では、重力 mg = 10 N のうち斜面に沿った成分 mg sinθ = 10 × 0.50 = 5.0 N が玉1を加速する。斜面に垂直な成分 mg cosθ ≈ 8.7 N は垂直抗力とつり合う。斜面がなめらかなら、摩擦はない。だから下端での速さは、高さだけで決まる。</p>
+  <svg class="fig" data-scene="scene-belt-spring-base" data-show="gravity,normal" width="100%" role="img" aria-label="斜面の上の玉1。重力 10 N の斜面方向の成分が 5.0 N で、垂直抗力は約 8.7 N"></svg>
+  <p>斜面の長さは L = h / sinθ = 0.80 / 0.50 = <strong>1.6 m</strong> だ。加速度は a = g sinθ = 10 × 0.50 = <strong>5.0 m/s²</strong> で、滑る時間は t = √(2L/a) = √(3.2/5.0) = √0.64 = <strong>0.80 s</strong> になる。下端での速さは v = √(2gh) = √(2 × 10 × 0.80) = √16 = <strong>4.0 m/s</strong>、運動エネルギーは (1/2) × 1.0 × 4.0² = <strong>8.0 J</strong> だ。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①動くベルトの上で摩擦がはたらく</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 動くベルトの上で摩擦がはたらく</h2>
+  <svg class="fig" data-scene="scene-belt-spring-belt" data-show="friction,velocity" width="100%" role="img" aria-label="ベルトの上の玉1。摩擦力 2.0 N が左向きにはたらき、速さ 4.0 m/s で右に進む。ベルトは 2.0 m/s で右に動く"></svg>
+  <p>玉1は速さ 4.0 m/s でベルトに乗る。ベルトは 2.0 m/s で右に動いているので、玉1はベルトに対して 2.0 m/s だけ速い。だから摩擦力は、玉1の動きをじゃまする左向きにはたらく。摩擦力の大きさは F = μmg = 0.20 × 1.0 × 10 = <strong>2.0 N</strong> だ。</p>
+  <p>玉1の減速の加速度は a = F/m = 2.0/1.0 = <strong>2.0 m/s²</strong> だ。ベルトの速さ 2.0 m/s まで減速するのにかかる時間は、t = (4.0 − 2.0)/2.0 = <strong>1.0 s</strong> になる。このあいだ、玉1は (4.0 + 2.0)/2 × 1.0 = <strong>3.0 m</strong> 進み、ベルトは 2.0 × 1.0 = <strong>2.0 m</strong> 進む。だから玉1とベルトのあいだのすべりは 3.0 − 2.0 = <strong>1.0 m</strong> だ。</p>
+  <p>エネルギーを見よう。玉1の運動エネルギーは、(1/2) × 1.0 × 4.0² = 8.0 J から (1/2) × 1.0 × 2.0² = 2.0 J へ、<strong>6.0 J</strong> 減る。でも熱になるのは 6.0 J ではない。ベルトはモーターで動いているので、摩擦力に逆らわずに進むために仕事をする。ベルトのする仕事は、摩擦力 2.0 N × ベルトの移動距離 2.0 m = <strong>4.0 J</strong> だ。だから熱になるのは 6.0 − 4.0 = <strong>2.0 J</strong> で、これは μmg × すべり距離 = 2.0 × 1.0 = 2.0 J と一致する。滑らなくなったあと、玉1はベルトの速さ <strong>2.0 m/s</strong> で進む。</p>
+  <label><input type="checkbox" class="check"> ベルトの上で滑る時間 1.0 s、熱 2.0 J、滑らなくなったあとの速さ 2.0 m/s を確かめた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②ばねが最も縮む：0.141 m</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② ばねが最も縮む：0.141 m</h2>
+  <svg class="fig" data-scene="scene-belt-spring-spring" data-show="springForce1,springForce2" width="100%" role="img" aria-label="ばねが最も縮んだとき。縮み 0.141 m、ばねの力は 14 N で、両方の玉に逆向きにはたらく"></svg>
+  <p>玉1は速さ 2.0 m/s でばねに当たる。ばねのもう一方の端には玉2（1.0 kg）がついていて、はじめは静止している。玉1がばねを押すと、ばねは縮み、玉2も動き出す。ばねが最も縮んだとき、2 つの玉は同じ速さで動く。その速さは重心の速さで、V_G = (1.0 × 2.0 + 1.0 × 0)/(1.0 + 1.0) = <strong>1.0 m/s</strong> だ。</p>
+  <p>最大の縮みは、2 つの玉を 1 つの単振動として考える。換算質量は μ_r = m1m2/(m1+m2) = 1.0 × 1.0/2.0 = <strong>0.50 kg</strong> だ。玉1と玉2の相対速度ははじめ 2.0 m/s で、最も縮んだとき 0 になる。相対運動のエネルギーは (1/2) × 0.50 × 2.0² = <strong>1.0 J</strong> で、これが全部ばねのエネルギーになる。(1/2)kx² = 1.0 から、x² = 1.0 × 2/100 = 0.020、x = <strong>0.141 m</strong> になる。</p>
+  <p>ばねの最大の力は F = kx = 100 × 0.141 ≈ <strong>14 N</strong> だ。エネルギーの検算をしよう。最も縮んだとき、2 つの玉の運動エネルギーは (1/2) × 2.0 × 1.0² = 1.0 J、ばねのエネルギーは (1/2) × 100 × 0.141² = 1.0 J で、合計 2.0 J は、ばねに当たったときの玉1の運動エネルギー (1/2) × 1.0 × 2.0² = 2.0 J と一致する。</p>
+  <label><input type="checkbox" class="check"> 最も縮んだとき x = 0.141 m、ばねの力 14 N、2つの玉の速さ 1.0 m/s を求めた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③2物体の単振動：ω ≈ 14 rad/s</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 2物体の単振動：ω ≈ 14 rad/s</h2>
+  <svg class="fig" data-scene="scene-belt-spring-shm" data-show="" width="100%" role="img" aria-label="ばねに触れているあいだの相対座標のグラフ。x = 0.141 sin(14t) で、0.22 s 後にばねは自然長に戻る"></svg>
+  <p>ばねに触れているあいだ、玉1と玉2は 2物体の単振動をする。換算質量 0.50 kg を使うと、運動方程式は 1 つの玉の単振動と同じ形になり、角振動数は ω = √(k/μ_r) = √(100/0.50) = √200 ≈ <strong>14 rad/s</strong> になる。</p>
+  <p>単振動の周期は T = 2π/ω = 2π/14 ≈ <strong>0.44 s</strong> だ。ただし玉1がばねに触れているのは、自然長から最も縮んで、また自然長に戻るまでの、半周期だけだ。だから接触する時間は T/2 ≈ <strong>0.22 s</strong> になる。相対座標（ばねの縮み）は x = 0.141 sin(14t) と変わり、t = 0.22 s で x = 0 に戻る。</p>
+  <p>重心から見ると、玉1と玉2は逆向きに振動する。玉1の重心に対する振幅は、換算質量の比から (m2/(m1+m2)) × 0.141 = 0.50 × 0.141 ≈ 0.071 m で、玉1の速さは重心速度 1.0 m/s を中心に 0 から 2.0 m/s まで変わる。玉2も同じように 0 から 2.0 m/s まで変わる。ばねが最も縮んだとき、2 つの玉はどちらも 1.0 m/s で、相対速度は 0 だ。</p>
+  <label><input type="checkbox" class="check"> ω ≈ 14 rad/s、T ≈ 0.44 s、接触時間 0.22 s、2つの玉の速さが 0〜2.0 m/s で変わることを確かめた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④罠：1つの玉の単振動ではない</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 罠：1つの玉の単振動ではない</h2>
+  <svg class="fig" data-scene="scene-belt-spring-trap" data-show="" width="100%" role="img" aria-label="棒グラフ。正しい最大の縮み 0.141 m と、1つの玉の単振動でまちがえたときの縮み 0.20 m の比較"></svg>
+  <p>罠は、ばねに触れている運動を、玉1だけの単振動だと思い込むことだ。玉1だけの単振動なら、角振動数は ω = √(k/m1) = √(100/1.0) = 10 rad/s になる。最大の縮みは x = v/ω = 2.0/10 = <strong>0.20 m</strong> になってしまう。正しい 0.141 m より大きい。</p>
+  <p>まちがいの原因は、玉2が動くことを忘れていることだ。ばねが縮むとき、玉2も右に動くので、ばねの縮みは玉1の移動距離より小さくなる。2 つの玉の相対運動で考えるのが正しく、換算質量 0.50 kg を使うと、ω = √(100/0.50) ≈ 14 rad/s、x = 2.0/14 ≈ 0.141 m になる。</p>
+  <p>ベルトの場面にも罠がある。玉1の運動エネルギーは 6.0 J 減ったが、熱になるのは 6.0 J ではない。ベルトがモーターで動き続けるために 4.0 J の仕事をするので、熱は 6.0 − 4.0 = 2.0 J だ。摩擦のする仕事と熱を同じだと思うと、まちがえる。熱は、摩擦力 × 相対すべり距離 = 2.0 × 1.0 = 2.0 J で求める。</p>
+  <label><input type="checkbox" class="check"> 1つの玉の単振動だと縮みが 0.20 m になるまちがいと、熱が 2.0 J であることを確かめた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ・罠の確認</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ・罠の確認</h2>
+  <svg class="fig" data-scene="scene-belt-spring-shm" data-show="" width="100%" role="img" aria-label="ばねに触れているあいだの相対座標のグラフ。x = 0.141 sin(14t) で、0.22 s 後にばねは自然長に戻る"></svg>
+  <p>この問題の橋渡し量は、玉1の速さ v だ。斜面ではエネルギー保存で v = √(2gh) = 4.0 m/s を求め、ベルトでは摩擦で 2.0 m/s まで減速し、熱は 2.0 J になる。ばねでは、2 つの玉の相対運動のエネルギー 1.0 J がばねに移り、最大の縮みは 0.141 m、最大の力は 14 N だ。ばねに触れているあいだは 2物体の単振動で、ω ≈ 14 rad/s、接触時間は半周期の 0.22 s だ。</p>
+  <p>ばねが自然長に戻ったとき、玉1と玉2は離れる。離れたあとの速さは、重心速度 1.0 m/s を中心に、玉1は 1.0 − 1.0 = <strong>0 m/s</strong>、玉2は 1.0 + 1.0 = <strong>2.0 m/s</strong> になる。運動量は 1.0 × 0 + 1.0 × 2.0 = 2.0 kg·m/s で、ばねに当たる前の 1.0 × 2.0 = 2.0 kg·m/s と一致し、エネルギーは (1/2) × 1.0 × 2.0² = 2.0 J で一致する。ばねによる衝突は、弾性衝突と同じ結果になる。</p>
+  <label><input type="checkbox" class="check"> 橋渡し量は玉1の速さであること、離れたあと玉1は 0、玉2は 2.0 m/s になること、罠を確認した</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と系を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) v = 4.0 m/s。(2) 滑る時間 1.0 s、熱 2.0 J、滑らなくなったあとの速さ 2.0 m/s。(3) 最大の縮み 0.141 m、最大の力 14 N。(4) 2物体の単振動で ω ≈ 14 rad/s、T ≈ 0.44 s、接触時間 0.22 s、離れたあと玉1は 0、玉2は 2.0 m/s。もとになった単体モデル：斜面は <a href="slope.html">第1問：斜面上の物体</a>、ばねは <a href="spring.html">第5問：ばねのつり合い</a>、単振動は <a href="shm.html">第11問：単振動・振り子</a>、二体問題は <a href="two-body.html">第31問：二体問題・重心・相対運動</a>、斜面とばねの組み合わせは <a href="slope-spring.html">組み合わせ問題Q：斜面＋ばね＋エネルギー</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboBeltSpringDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>

@@ -194,6 +194,20 @@
 </div>
 
 <div class="card">
+  <h2>組み合わせ問題S：斜面＋動くベルト＋ばね＋2物体単振動</h2>
+  <p>傾き 30°、高さ 0.80 m の斜面を滑り落ちた玉が、速さ 2.0 m/s で動くベルトの上で摩擦に逆らって減速し、ばねについたもう1つの玉に当たる。下端の速さは 4.0 m/s、ベルトの上で滑る時間は 1.0 s、熱は 2.0 J。ばねが最も縮むのは 0.141 m で、そのあいだの運動は換算質量 0.50 kg の2物体の単振動（ω ≈ 14 rad/s）になる。玉1だけの単振動だと 0.20 m になってしまう罠がある。橋渡し量は「玉の速さ」v。東大2024第1問の型。</p>
+  <p><a href="content/mechanics/belt-spring.html">斜面＋動くベルト＋ばね＋2物体単振動のドリルを開く →</a></p>
+  <p id="progress-combo-belt-spring">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>組み合わせ問題T：速度選別＋質量分析計</h2>
+  <p>陽子と重水素を電圧 1000 V で加速し、電場と磁場が直交する速度選別器を通して、磁場だけの場所で半円を描かせて検出器で分ける。陽子の速さは 4.4×10⁵ m/s、選別の電場は 4.4×10⁴ V/m、半径は陽子 0.046 m、重水素 0.065 m で、検出器での間隔は 0.038 m になる。半径は質量の平方根に比例し、電圧を 2 倍にしても半径は √2 倍にしかならない罠がある。橋渡し量は「粒子の速さ」v。</p>
+  <p><a href="content/mechanics/mass-spec.html">速度選別＋質量分析計のドリルを開く →</a></p>
+  <p id="progress-combo-mass-spec">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
   <h2>第7問：気体＋ピストン</h2>
   <p>シリンダーにピストンがのっている。ピストンの力のつり合いから気体の圧力を、状態方程式から体積と高さを求める。加熱するとピストンが上がる等圧変化で、仕事・内部エネルギー・熱を区別しよう。</p>
   <p><a href="content/mechanics/gas-piston.html">気体＋ピストンのドリルを開く →</a></p>
@@ -448,6 +462,10 @@
       p.comboSlopeSpringDone ? '進捗：組み合わせ問題Q・斜面＋ばね＋エネルギーを完了済み ✓' : '進捗：まだ組み合わせ問題Q・斜面＋ばね＋エネルギーは未完了';
     document.getElementById('progress-combo-fall-loop').textContent =
       p.comboFallLoopDone ? '進捗：組み合わせ問題R・落下するコイル・磁気ブレーキを完了済み ✓' : '進捗：まだ組み合わせ問題R・落下するコイル・磁気ブレーキは未完了';
+    document.getElementById('progress-combo-belt-spring').textContent =
+      p.comboBeltSpringDone ? '進捗：組み合わせ問題S・斜面＋動くベルト＋ばね＋2物体単振動を完了済み ✓' : '進捗：まだ組み合わせ問題S・斜面＋動くベルト＋ばね＋2物体単振動は未完了';
+    document.getElementById('progress-combo-mass-spec').textContent =
+      p.comboMassSpecDone ? '進捗：組み合わせ問題T・速度選別＋質量分析計を完了済み ✓' : '進捗：まだ組み合わせ問題T・速度選別＋質量分析計は未完了';
     document.getElementById('progress-gas-piston').textContent =
       p.gasPistonDone ? '進捗：第7問・気体＋ピストンを完了済み ✓' : '進捗：まだ第7問・気体＋ピストンは未完了';
     document.getElementById('progress-young').textContent =
@@ -525,6 +543,8 @@
     document.getElementById('progress-combo-gas-spring-cycle').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-slope-spring').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-fall-loop').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-belt-spring').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-mass-spec').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-gas-piston').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-young').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-capacitor').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';

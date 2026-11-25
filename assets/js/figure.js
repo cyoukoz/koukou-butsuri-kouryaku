@@ -1,4 +1,4 @@
-// 高校物理攻略 — 図描画シミュレータ（試作 v2.2：組み合わせQ 斜面＋ばね＋エネルギー・組み合わせR 落下するコイル・磁気ブレーキ 追加）
+// 高校物理攻略 — 図描画シミュレータ（試作 v2.3：組み合わせS 斜面＋ベルト＋ばね＋2物体単振動・組み合わせT 速度選別＋質量分析計 追加）
 // 方針：図は手書きの座標を直書きしない。入力は JSON の「物理データ」だけ。
 // 描画側が角度・つり合いから矢印の向きと長さを計算する。
 // だから mg sinθ が mg と同じ長さになる、θ が消える、ラベルが切れる、
@@ -1161,6 +1161,165 @@ function fallLoopForces(data) {
     );
   }
   return forces;
+}
+
+// ---- 組み合わせS：斜面＋動くベルト＋摩擦＋ばね＋2物体単振動（東大2024第1問型）----
+// 具体値（検算済み）：m1=m2=1.0 kg、斜面 θ=30°、h=0.80 m、ベルト u=2.0 m/s、
+//   μ=0.20、ばね k=100 N/m、g=10 のとき
+//   斜面：L = h/sinθ = 1.6 m、a = g sinθ = 5.0 m/s²、v1 = √(2gh) = 4.0 m/s、
+//     t = 0.80 s、KE = 8.0 J、mg = 10 N、N = mg cosθ ≈ 8.7 N。
+//   ベルト：摩擦力 F = μmg = 2.0 N、滑る時間 1.0 s、相対すべり距離 1.0 m、
+//     玉の移動距離 3.0 m、ベルトの移動距離 2.0 m、運動エネルギーの減少 6.0 J、
+//     ベルトのする仕事 4.0 J、熱 2.0 J（= μmg×相対距離）。
+//   ばね＋2物体：換算質量 μ_r = 0.50 kg、ω = √(k/μ_r) ≈ 14 rad/s、T ≈ 0.44 s、
+//     最大の縮み x = 0.141 m、最大の力 14 N、重心速度 1.0 m/s、
+//     離れるとき v1 = 0、v2 = 2.0 m/s（弾性衝突と同じ結果）。
+// 罠：1つの玉の単振動 ω=√(k/m1)=10 で計算すると縮み 0.20 m になる。
+//   摩擦の熱を運動エネルギーの減少 6.0 J とするとまちがえる（ベルトの仕事 4.0 J を引く）。
+function beltSpringDerived(data) {
+  const g = data.g || 10;
+  const thetaRad = deg2rad(data.thetaDeg || 30);
+  const sinT = Math.sin(thetaRad), cosT = Math.cos(thetaRad);
+  const hM = data.hM;
+  const slopeLM = hM / sinT;
+  const aMs2 = g * sinT;
+  const vMs = Math.sqrt(2 * g * hM);
+  const tSlopeS = vMs / aMs2;
+  const m1Kg = data.m1Kg, m2Kg = data.m2Kg, kNm = data.kNm;
+  const mgN = m1Kg * g;
+  const nN = mgN * cosT;
+  const keJ = 0.5 * m1Kg * vMs * vMs;
+  // ベルト：玉は 4.0 m/s で乗り、摩擦で 2.0 m/s まで減速する。
+  const uMs = data.beltUMs, mu = data.mu;
+  const fN = mu * mgN;
+  const aBeltMs2 = mu * g;
+  const tSlipS = (vMs - uMs) / aBeltMs2;
+  const sRelM = ((vMs - uMs) * (vMs - uMs)) / (2 * aBeltMs2);
+  const sBlockM = ((vMs + uMs) / 2) * tSlipS;
+  const sBeltM = uMs * tSlipS;
+  const keLossJ = 0.5 * m1Kg * (vMs * vMs - uMs * uMs);
+  const wBeltJ = fN * sBeltM;
+  const heatJ = keLossJ - wBeltJ;
+  // ばね＋2物体：換算質量で 1 つの単振動になる。相対速度が 0 になるのが最大の縮み。
+  const muRMass = (m1Kg * m2Kg) / (m1Kg + m2Kg);
+  const omega = Math.sqrt(kNm / muRMass);
+  const periodS = (2 * Math.PI) / omega;
+  const tContactS = periodS / 2;
+  const vRelMs = uMs; // ばねに当たるときの相対速度（玉2 は静止）。
+  const xMaxM = vRelMs * Math.sqrt(muRMass / kNm);
+  const fMaxN = kNm * xMaxM;
+  const vGM = (m1Kg * uMs) / (m1Kg + m2Kg);
+  const keAfterJ = 0.5 * m1Kg * uMs * uMs;
+  const uJ = 0.5 * kNm * xMaxM * xMaxM;
+  // 離れるとき：重心系では速度が反転するので、v1 = 0、v2 = 2.0 m/s。
+  const v1AfterMs = vGM - (m2Kg / (m1Kg + m2Kg)) * vRelMs;
+  const v2AfterMs = vGM + (m1Kg / (m1Kg + m2Kg)) * vRelMs;
+  // 罠（1つの玉の単振動のまちがい）：ω=√(k/m1) で計算した縮み。
+  const xWrongM = vRelMs / Math.sqrt(kNm / m1Kg);
+  // 図の配置：斜面は (60,240) から (300,101)（θ=30°）。床は y=240。
+  // ばねは自然長 100 px、最も縮むと 86 px（0.141 m を 100 px/m で描く）。
+  const slopeTop = { x: 300, y: 240 - 240 * Math.tan(thetaRad) };
+  const blockOnSlope = { x: 240, y: 240 - 0.75 * 240 * Math.tan(thetaRad) };
+  return {
+    g, sinT, cosT, hM, slopeLM, aMs2, vMs, tSlopeS, m1Kg, m2Kg, kNm,
+    mgN, nN, keJ, uMs, mu, fN, aBeltMs2, tSlipS, sRelM, sBlockM, sBeltM,
+    keLossJ, wBeltJ, heatJ, muRMass, omega, periodS, tContactS, vRelMs,
+    xMaxM, fMaxN, vGM, keAfterJ, uJ, v1AfterMs, v2AfterMs, xWrongM,
+    slopeTop, blockOnSlope,
+  };
+}
+
+function beltSpringForces(data) {
+  const d = beltSpringDerived(data);
+  if (data.phase === 'base') {
+    // 斜面の上の玉：重力 10 N と垂直抗力 8.7 N。重力のラベルは左下の空きに置く。
+    const fScale = 2; // px/N（重力 10 N は 20 px）
+    return [
+      { id: 'gravity', short: '重力 10 N', color: 'red', vector: [0, d.mgN * fScale], dashed: false, labelDx: -70, labelDy: 14, from: { x: d.blockOnSlope.x, y: d.blockOnSlope.y } },
+      { id: 'normal', short: 'N≈8.7 N', color: 'blue', vector: [d.nN * fScale * d.sinT, -d.nN * fScale * d.cosT], dashed: false, labelDx: -80, labelDy: -8, from: { x: d.blockOnSlope.x, y: d.blockOnSlope.y } },
+    ];
+  }
+  if (data.phase === 'belt') {
+    // ベルトの上の玉：摩擦力 2.0 N（左向き）と速さの矢印（破線）。
+    // 摩擦力のラベルは玉の左上の空き、速さのラベルは矢印の上の空きに置く。
+    return [
+      { id: 'friction', short: '摩擦力 2.0 N', color: 'green', vector: [-d.fN * 10, 0], dashed: false, labelDx: -80, labelDy: -24, from: { x: 170, y: 220 } },
+      { id: 'velocity', short: 'v=4.0 m/s', color: '#d35400', vector: [d.vMs * 15, 0], dashed: true, labelDx: -60, labelDy: -20, from: { x: 200, y: 215 } },
+    ];
+  }
+  if (data.phase === 'spring') {
+    // 最も縮んだ瞬間：ばねの力 14 N が両方の玉にはたらく（逆向き）。
+    // ラベルは玉の上の空きに置く（下は床の線と重なるため）。
+    // 玉1のラベルは矢印の左の空き、玉2のラベルは矢印の右の空きに置く（「玉1」「玉2」「ばね」と重ならないようにする）。
+    return [
+      { id: 'springForce1', short: 'ばねの力 14 N', color: 'green', vector: [-d.fMaxN * 3, 0], dashed: false, labelDx: -105, labelDy: -24, from: { x: 160, y: 220 } },
+      { id: 'springForce2', short: '14 N', color: 'green', vector: [d.fMaxN * 3, 0], dashed: false, labelDx: 10, labelDy: -24, from: { x: 246, y: 220 } },
+    ];
+  }
+  return []; // shm・trap：力の矢印はない（グラフと棒グラフ）。
+}
+
+// ---- 組み合わせT：速度選別＋質量分析計（加速＋交差場＋円運動）----
+// 具体値（検算済み）：陽子 q=1.60×10⁻¹⁹ C、m=1.67×10⁻²⁷ kg、
+//   重水素 q は同じ、m=3.34×10⁻²⁷ kg、加速電圧 V=1000 V、磁場 B=0.10 T、g は使わない。
+//   加速：KE = qV = 1.6×10⁻¹⁶ J = 1000 eV、
+//     陽子の速さ v = √(2qV/m) ≈ 4.4×10⁵ m/s、重水素は v/√2 ≈ 3.1×10⁵ m/s。
+//   速度選別：qE = qvB のときだけまっすぐ進む。E = vB ≈ 4.4×10⁴ V/m。
+//   円運動：r = mv/qB。陽子 r ≈ 0.046 m、重水素 r ≈ 0.065 m（√2 倍）。
+//     検出器での間隔 2(r_d − r_p) ≈ 0.038 m。陽子の周期 T = 2πm/qB ≈ 0.66 μs、半周 ≈ 0.33 μs。
+// 罠：電圧を 2 倍にすると半径も 2 倍になると思うこと（r ∝ √V なので √2 倍で 0.065 m）。
+//   重水素も陽子と同じ半径だと思うこと（同じ qV でも質量が 2 倍なら半径は √2 倍）。
+function massSpecDerived(data) {
+  const qC = data.qC, mPC = data.mPC, mDC = data.mDC;
+  const voltV = data.voltV, bT = data.bT;
+  const vP = Math.sqrt((2 * qC * voltV) / mPC);
+  const vD = vP / Math.sqrt(2);
+  const eVm = vP * bT;
+  const rP = (mPC * vP) / (qC * bT);
+  const rD = (mDC * vD) / (qC * bT);
+  const periodP = (2 * Math.PI * mPC) / (qC * bT);
+  const halfPeriodP = periodP / 2;
+  const sepM = 2 * (rD - rP);
+  const keJ = qC * voltV;
+  // 罠（電圧 2 倍のとき）：v は √2 倍、r も √2 倍。2 倍だと思うのはまちがい。
+  const vP2 = Math.sqrt(2) * vP;
+  const rP2 = Math.sqrt(2) * rP;
+  const rWrong = 2 * rP;
+  // 図の配置：円運動の図示は 1300 px/m。陽子の半径 60 px、重水素の半径 85 px。
+  // 陽子の円の中心 (200,200)、重水素の円の中心 (225,200)、どちらも入口 (140,200) から出る。
+  const rPxP = 60, rPxD = 60 * Math.SQRT2;
+  return {
+    qC, mPC, mDC, voltV, bT, vP, vD, eVm, rP, rD, periodP, halfPeriodP,
+    sepM, keJ, vP2, rP2, rWrong, rPxP, rPxD,
+  };
+}
+
+function massSpecForces(data) {
+  const d = massSpecDerived(data);
+  if (data.phase === 'base') {
+    // 加速された陽子の速さの矢印（破線。力ではない）。
+    // ラベルは矢印の上の空きに置く（極板と重ならないよう、極板のあいだに収める）。
+    return [
+      { id: 'velocity', short: 'v≈4.4×10⁵ m/s', color: '#d35400', vector: [60, 0], dashed: true, labelDx: -120, labelDy: -20, from: { x: 200, y: 150 } },
+    ];
+  }
+  if (data.phase === 'selector') {
+    // 速度選別：電気の力（下向き）と磁気の力（上向き）がつり合う。どちらも図示 40 px。
+    // ラベルは矢印の先端から左の空きに置く（× 印・E の矢印と重ならない）。
+    return [
+      { id: 'elecForce', short: '電気の力 qE', color: 'blue', vector: [0, 40], dashed: false, labelDx: -30, labelDy: 20, from: { x: 200, y: 150 } },
+      { id: 'magForce', short: '磁気の力 qvB', color: 'red', vector: [0, -40], dashed: false, labelDx: -30, labelDy: -10, from: { x: 200, y: 150 } },
+    ];
+  }
+  if (data.phase === 'circle') {
+    // 入口での速さの矢印（破線）と、円の頂点でのローレンツ力（中心向き）。
+    // ローレンツ力のラベルは短く「qvB」だけにして、円弧と重ならないようにする。
+    return [
+      { id: 'velocity', short: 'v=4.4×10⁵ m/s', color: '#d35400', vector: [60, 0], dashed: true, labelDx: -70, labelDy: -15, from: { x: 80, y: 200 } },
+      { id: 'lorentz', short: 'qvB', color: 'red', vector: [0, 40], dashed: false, labelDx: 6, labelDy: -6, from: { x: 200, y: 140 } },
+    ];
+  }
+  return []; // graph・trap：力の矢印はない（棒グラフ）。
 }
 
 // ---- 円運動（M11）：水平面内の円運動と、鉛直面内のループ ----
@@ -2915,6 +3074,27 @@ function sceneFor(type, thetaDeg, mgPx, fPx, data) {
       forces: fallLoopForces(data),
     };
   }
+  if (type === 'beltSpring') {
+    const d = beltSpringDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      thetaDeg: data.thetaDeg, hM: data.hM, m1Kg: data.m1Kg, m2Kg: data.m2Kg,
+      kNm: data.kNm, beltUMs: data.beltUMs, mu: data.mu, g: data.g || 10,
+      derived: d,
+      center: { x: 200, y: 150 }, centerDot: false,
+      forces: beltSpringForces(data),
+    };
+  }
+  if (type === 'massSpec') {
+    const d = massSpecDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      qC: data.qC, mPC: data.mPC, mDC: data.mDC, voltV: data.voltV, bT: data.bT,
+      derived: d,
+      center: { x: 200, y: 150 }, centerDot: false,
+      forces: massSpecForces(data),
+    };
+  }
   if (type === 'slopePulley') {
     return {
       type, phase: (data && data.phase) || 'connected',
@@ -3651,6 +3831,90 @@ function validateScene(scene) {
     // 矢印の長さが縮尺（20 px/N）どおりか。
     if (byId.gravity && Math.abs(byId.gravity.vector[1] - d.mgN * 20) > 0.5) return ['重力の矢印が mg の縮尺と一致しません'];
     if (byId.magForce && Math.abs(-byId.magForce.vector[1] - d.fMagN * 20) > 0.5) return ['磁気の力の矢印が F の縮尺と一致しません'];
+  }
+  if (scene.type === 'beltSpring') {
+    const d = scene.derived;
+    // 斜面：L = h/sinθ、a = g sinθ、v = √(2gh)、t = v/a、L = (1/2)at²。
+    if (Math.abs(d.slopeLM - d.hM / d.sinT) > 1e-9) return ['斜面の長さが h/sinθ と一致しません'];
+    if (Math.abs(d.aMs2 - d.g * d.sinT) > 1e-9) return ['斜面の加速度が g sinθ と一致しません'];
+    if (Math.abs(d.vMs * d.vMs - 2 * d.g * d.hM) > 1e-9) return ['斜面下端の速さが √(2gh) と一致しません'];
+    if (Math.abs(d.tSlopeS - d.vMs / d.aMs2) > 1e-9) return ['滑る時間が v/a と一致しません'];
+    if (Math.abs(d.slopeLM - 0.5 * d.aMs2 * d.tSlopeS * d.tSlopeS) > 1e-9) return ['斜面の長さが (1/2)at² と一致しません'];
+    // エネルギー：(1/2)mv² = mgh。
+    if (Math.abs(d.keJ - 0.5 * d.m1Kg * d.vMs * d.vMs) > 1e-9) return ['運動エネルギーが (1/2)mv² と一致しません'];
+    if (Math.abs(d.keJ - d.mgN * d.hM) > 1e-9) return ['運動エネルギーが mgh と一致しません'];
+    // 垂直抗力：N = mg cosθ。
+    if (Math.abs(d.nN - d.mgN * d.cosT) > 1e-9) return ['垂直抗力が mg cosθ と一致しません'];
+    // ベルト：摩擦力 F = μmg、滑る時間 = (v−u)/μg、相対距離 = (v−u)²/(2μg)。
+    if (Math.abs(d.fN - d.mu * d.mgN) > 1e-9) return ['摩擦力が μmg と一致しません'];
+    if (Math.abs(d.aBeltMs2 - d.mu * d.g) > 1e-9) return ['ベルト上での加速度が μg と一致しません'];
+    if (Math.abs(d.tSlipS - (d.vMs - d.uMs) / d.aBeltMs2) > 1e-9) return ['滑る時間が (v−u)/μg と一致しません'];
+    if (Math.abs(d.sRelM - ((d.vMs - d.uMs) * (d.vMs - d.uMs)) / (2 * d.aBeltMs2)) > 1e-9) return ['相対すべり距離が (v−u)²/(2μg) と一致しません'];
+    if (Math.abs(d.sBlockM - ((d.vMs + d.uMs) / 2) * d.tSlipS) > 1e-9) return ['玉の移動距離が平均の速さ×時間と一致しません'];
+    if (Math.abs(d.sBeltM - d.uMs * d.tSlipS) > 1e-9) return ['ベルトの移動距離が u×時間と一致しません'];
+    if (Math.abs(d.sRelM - (d.sBlockM - d.sBeltM)) > 1e-9) return ['相対距離が玉の移動距離−ベルトの移動距離と一致しません'];
+    // エネルギー収支：運動エネルギーの減少 = ベルトの仕事 + 熱、熱 = μmg×相対距離。
+    if (Math.abs(d.keLossJ - 0.5 * d.m1Kg * (d.vMs * d.vMs - d.uMs * d.uMs)) > 1e-9) return ['運動エネルギーの減少が (1/2)m(v²−u²) と一致しません'];
+    if (Math.abs(d.wBeltJ - d.fN * d.sBeltM) > 1e-9) return ['ベルトの仕事が F×ベルトの移動距離と一致しません'];
+    if (Math.abs(d.heatJ - (d.keLossJ - d.wBeltJ)) > 1e-9) return ['熱が運動エネルギーの減少−ベルトの仕事と一致しません'];
+    if (Math.abs(d.heatJ - d.fN * d.sRelM) > 1e-9) return ['熱が μmg×相対距離と一致しません'];
+    if (!(d.heatJ < d.keLossJ)) return ['熱が運動エネルギーの減少より小さくなっていません'];
+    // ばね＋2物体：換算質量、ω = √(k/μ_r)、x = v√(μ_r/k)、F = kx。
+    if (Math.abs(d.muRMass - (d.m1Kg * d.m2Kg) / (d.m1Kg + d.m2Kg)) > 1e-12) return ['換算質量が m1m2/(m1+m2) と一致しません'];
+    if (Math.abs(d.omega - Math.sqrt(d.kNm / d.muRMass)) > 1e-9) return ['角振動数が √(k/μ_r) と一致しません'];
+    if (Math.abs(d.periodS - (2 * Math.PI) / d.omega) > 1e-9) return ['周期が 2π/ω と一致しません'];
+    if (Math.abs(d.tContactS - d.periodS / 2) > 1e-9) return ['接触時間が半周期と一致しません'];
+    if (Math.abs(d.xMaxM - d.vRelMs * Math.sqrt(d.muRMass / d.kNm)) > 1e-9) return ['ばねの最大の縮みが v√(μ_r/k) と一致しません'];
+    if (Math.abs(d.fMaxN - d.kNm * d.xMaxM) > 1e-9) return ['ばねの最大の力が kx と一致しません'];
+    if (Math.abs(d.uJ - 0.5 * d.kNm * d.xMaxM * d.xMaxM) > 1e-9) return ['ばねのエネルギーが (1/2)kx² と一致しません'];
+    if (Math.abs(d.uJ - 0.5 * d.muRMass * d.vRelMs * d.vRelMs) > 1e-9) return ['ばねのエネルギーが (1/2)μ_r v² と一致しません'];
+    // 重心：V_G = m1u/(m1+m2)。最大の縮みでは 2 つの玉はどちらも V_G で動き、
+    // 運動エネルギー + ばねのエネルギーが、ばねに当たったときの運動エネルギーと一致する。
+    if (Math.abs(d.vGM - (d.m1Kg * d.uMs) / (d.m1Kg + d.m2Kg)) > 1e-9) return ['重心速度が m1u/(m1+m2) と一致しません'];
+    if (Math.abs((0.5 * (d.m1Kg + d.m2Kg) * d.vGM * d.vGM + d.uJ) - d.keAfterJ) > 1e-9) return ['最大の縮みでのエネルギーが合っていません'];
+    // 離れるとき：v1 = 0、v2 = 2.0 m/s。運動量とエネルギーが保存されていること。
+    if (Math.abs(d.v1AfterMs - (d.vGM - (d.m2Kg / (d.m1Kg + d.m2Kg)) * d.vRelMs)) > 1e-9) return ['離れるときの玉1の速さが合っていません'];
+    if (Math.abs(d.v2AfterMs - (d.vGM + (d.m1Kg / (d.m1Kg + d.m2Kg)) * d.vRelMs)) > 1e-9) return ['離れるときの玉2の速さが合っていません'];
+    if (Math.abs((d.m1Kg * d.v1AfterMs + d.m2Kg * d.v2AfterMs) - d.m1Kg * d.uMs) > 1e-9) return ['離れたあとの運動量が保存されていません'];
+    if (Math.abs((0.5 * d.m1Kg * d.v1AfterMs * d.v1AfterMs + 0.5 * d.m2Kg * d.v2AfterMs * d.v2AfterMs) - d.keAfterJ) > 1e-9) return ['離れたあとのエネルギーが保存されていません'];
+    // 罠（1つの玉の単振動のまちがい）：縮みは本当の値より大きい。
+    if (Math.abs(d.xWrongM - d.vRelMs / Math.sqrt(d.kNm / d.m1Kg)) > 1e-9) return ['罠の縮みが v/√(k/m1) と一致しません'];
+    if (!(d.xWrongM > d.xMaxM)) return ['罠の縮みが本当の縮みより大きくなっていません'];
+    // 矢印の長さが縮尺どおりか（重力・垂直抗力は 2 px/N、摩擦力は 10 px/N、速さは 15 px/(m/s)、ばねの力は 3 px/N）。
+    if (byId.gravity && Math.abs(byId.gravity.vector[1] - d.mgN * 2) > 0.5) return ['重力の矢印が mg の縮尺と一致しません'];
+    if (byId.normal && Math.abs(Math.hypot(byId.normal.vector[0], byId.normal.vector[1]) - d.nN * 2) > 0.5) return ['垂直抗力の矢印が N の縮尺と一致しません'];
+    if (byId.friction && Math.abs(-byId.friction.vector[0] - d.fN * 10) > 0.5) return ['摩擦力の矢印が F の縮尺と一致しません'];
+    if (byId.velocity && Math.abs(byId.velocity.vector[0] - d.vMs * 15) > 0.5) return ['速度の矢印が v の縮尺と一致しません'];
+    if (byId.springForce1 && Math.abs(-byId.springForce1.vector[0] - d.fMaxN * 3) > 0.5) return ['ばねの力の矢印が F の縮尺と一致しません'];
+    if (byId.springForce2 && Math.abs(byId.springForce2.vector[0] - d.fMaxN * 3) > 0.5) return ['ばねの力の矢印が F の縮尺と一致しません'];
+  }
+  if (scene.type === 'massSpec') {
+    const d = scene.derived;
+    // 加速：KE = qV、v = √(2qV/m)。重水素の速さは陽子の 1/√2 倍。
+    if (Math.abs(d.keJ - d.qC * d.voltV) > 1e-24) return ['運動エネルギーが qV と一致しません'];
+    if (Math.abs(d.vP * d.vP - (2 * d.qC * d.voltV) / d.mPC) > 1) return ['陽子の速さが √(2qV/m) と一致しません'];
+    if (Math.abs(d.vD - d.vP / Math.sqrt(2)) > 1) return ['重水素の速さが陽子の 1/√2 倍になっていません'];
+    // 速度選別：E = vB。
+    if (Math.abs(d.eVm - d.vP * d.bT) > 1) return ['選別の電場が vB と一致しません'];
+    // 円運動：r = mv/qB。重水素の半径は陽子の √2 倍。
+    if (Math.abs(d.rP - (d.mPC * d.vP) / (d.qC * d.bT)) > 1e-9) return ['陽子の半径が mv/qB と一致しません'];
+    if (Math.abs(d.rD - (d.mDC * d.vD) / (d.qC * d.bT)) > 1e-9) return ['重水素の半径が mv/qB と一致しません'];
+    if (Math.abs(d.rD / d.rP - Math.sqrt(2)) > 1e-9) return ['重水素の半径が陽子の √2 倍になっていません'];
+    // 周期：T = 2πm/qB。検出器での間隔は 2(r_d − r_p)。
+    if (Math.abs(d.periodP - (2 * Math.PI * d.mPC) / (d.qC * d.bT)) > 1e-12) return ['陽子の周期が 2πm/qB と一致しません'];
+    if (Math.abs(d.halfPeriodP - d.periodP / 2) > 1e-12) return ['半周の時間が周期の半分になっていません'];
+    if (Math.abs(d.sepM - 2 * (d.rD - d.rP)) > 1e-9) return ['検出器での間隔が 2(r_d − r_p) と一致しません'];
+    // 図示の半径の比が、物理の半径の比と一致すること。
+    if (Math.abs(d.rPxD / d.rPxP - d.rD / d.rP) > 1e-9) return ['図示の半径の比が物理の半径の比と一致しません'];
+    // 罠（電圧 2 倍のとき）：r は √2 倍。2 倍だと思うのはまちがい。
+    if (Math.abs(d.rP2 - Math.sqrt(2) * d.rP) > 1e-9) return ['電圧 2 倍のときの半径が √2 倍になっていません'];
+    if (Math.abs(d.rWrong - 2 * d.rP) > 1e-9) return ['罠の半径が 2 倍になっていません'];
+    if (!(d.rWrong > d.rP2)) return ['罠の半径が本当の半径より大きくなっていません'];
+    // 矢印の長さが縮尺どおりか（速さの矢印は 60 px、ローレンツ力は図示 40 px）。
+    if (byId.velocity && Math.abs(byId.velocity.vector[0] - 60) > 0.5) return ['速度の矢印が 60 px になっていません'];
+    if (byId.elecForce && Math.abs(byId.elecForce.vector[1] - 40) > 0.5) return ['電気の力の矢印が 40 px になっていません'];
+    if (byId.magForce && Math.abs(-byId.magForce.vector[1] - 40) > 0.5) return ['磁気の力の矢印が 40 px になっていません'];
+    if (byId.lorentz && Math.abs(byId.lorentz.vector[1] - 40) > 0.5) return ['ローレンツ力の矢印が 40 px になっていません'];
   }
   if (scene.type === 'charged-circle') {
     const d = scene.derived;
@@ -5224,6 +5488,182 @@ function drawBase(svg, scene) {
         const tN = el('text', { x: 40, y: 288, fill: '#555' }); tN.textContent = '抜けるときもブレーキ'; svg.appendChild(tN);
       }
     }
+  } else if (scene.type === 'beltSpring') {
+    const d = scene.derived;
+    const tH = el('text', { x: 40, y: 36, fill: '#555' });
+    tH.textContent = scene.phase === 'belt' ? '動くベルトの上で摩擦がはたらく'
+      : scene.phase === 'spring' ? 'ばねが最も縮む：0.141 m'
+      : scene.phase === 'shm' ? '2物体の単振動：ω ≈ 14 rad/s'
+      : scene.phase === 'trap' ? '罠：1つの玉の単振動ではない'
+      : '斜面を滑り落ちる：高さ 0.80 m';
+    svg.appendChild(tH);
+    if (scene.phase === 'shm') {
+      // 相対座標のグラフ：x = 0.141 sin(14.1t)、t = 0〜0.22 s。t 軸 0〜0.30 s、x 軸 0〜0.20 m。
+      // 縦軸の範囲は 0.20 m まで広げてあるので、曲線の頂点（0.141 m）は枠の中に収まる。
+      const xOf = (tS) => 60 + (tS / 0.30) * 280;
+      const yOf = (xM) => 240 - (xM / 0.20) * 180;
+      svg.appendChild(el('line', { x1: 60, y1: 240, x2: 340, y2: 240, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: 60, y1: 60, x2: 60, y2: 240, stroke: '#333', 'stroke-width': 1.5 }));
+      let pth = '';
+      for (let i = 0; i <= 40; i++) {
+        const tS = (i / 40) * d.tContactS;
+        const xM = d.xMaxM * Math.sin(d.omega * tS);
+        pth += (pth ? ' L ' : 'M ') + xOf(tS).toFixed(1) + ' ' + yOf(xM).toFixed(1);
+      }
+      svg.appendChild(el('path', { d: pth, fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
+      // 頂点の目印。ラベルは曲線の上（y=113 より上）の空きに置く。
+      svg.appendChild(el('circle', { cx: xOf(d.periodS / 4), cy: yOf(d.xMaxM), r: 4, fill: '#b00', stroke: '#333', 'stroke-width': 1 }));
+      const tP = el('text', { x: 140, y: 95, fill: '#b00' }); tP.textContent = 'x=0.141 m'; svg.appendChild(tP);
+      // 接触の終わり（破線）。ラベルは曲線のない右上に置く。
+      svg.appendChild(el('line', { x1: xOf(d.tContactS), y1: 60, x2: xOf(d.tContactS), y2: 240, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+      const tE = el('text', { x: 270, y: 80, fill: '#555' }); tE.textContent = '接触 0.22 s'; svg.appendChild(tE);
+      const tX = el('text', { x: 344, y: 244 }); tX.textContent = 't'; svg.appendChild(tX);
+      const tY = el('text', { x: 48, y: 56 }); tY.textContent = 'x'; svg.appendChild(tY);
+      const tT = el('text', { x: 140, y: 232, fill: '#555' }); tT.textContent = '0.10 s'; svg.appendChild(tT);
+      const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = '2物体の単振動：ω ≈ 14 rad/s'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = '接触時間は半周期の 0.22 s'; svg.appendChild(tN2);
+    } else if (scene.phase === 'trap') {
+      // 棒グラフ：本当の縮み 0.141 m と、1つの玉の単振動でまちがえたときの 0.20 m。
+      const bar = (y, w, fill) => svg.appendChild(el('rect', { x: 60, y, width: w, height: 18, fill, stroke: '#333', 'stroke-width': 1.5 }));
+      bar(120, d.xMaxM * 600, '#b3e6b3');
+      bar(170, d.xWrongM * 600, '#ffb3b3');
+      const t1 = el('text', { x: 60, y: 110 }); t1.textContent = '本当は 0.141 m'; svg.appendChild(t1);
+      const t2 = el('text', { x: 60, y: 160 }); t2.textContent = '1つの玉だと 0.20 m'; svg.appendChild(t2);
+      const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = '換算質量 0.50 kg で計算する'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = '1つの玉の ω=10 では 0.20 m になる'; svg.appendChild(tN2);
+    } else if (scene.phase === 'belt') {
+      // 水平な床とベルト。玉はベルトの上で滑りながら減速する。
+      svg.appendChild(el('line', { x1: 60, y1: 240, x2: 340, y2: 240, stroke: '#333', 'stroke-width': 3 }));
+      // ベルトの動きの目印：右向きの矢印。ラベルは矢印の上の空きに置く。
+      svg.appendChild(el('line', { x1: 250, y1: 170, x2: 310, y2: 170, stroke: '#333', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+      const tB = el('text', { x: 250, y: 160 }); tB.textContent = 'ベルト 2.0 m/s'; svg.appendChild(tB);
+      // 玉（60×40 px）。摩擦力の矢印は玉の中心から左向きに描く。
+      svg.appendChild(el('rect', { x: 140, y: 200, width: 60, height: 40, fill: '#cfe3ff', stroke: '#333', 'stroke-width': 2 }));
+      const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = 'ベルトの速さ 2.0 m/s まで減速する'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = '熱 2.0 J、ベルトの仕事 4.0 J'; svg.appendChild(tN2);
+    } else if (scene.phase === 'spring') {
+      // 床と 2 つの玉とばね。玉1（x=100〜160）、ばね（x=160〜246）、玉2（x=246〜306）。
+      svg.appendChild(el('line', { x1: 60, y1: 240, x2: 340, y2: 240, stroke: '#333', 'stroke-width': 3 }));
+      svg.appendChild(el('rect', { x: 100, y: 200, width: 60, height: 40, fill: '#cfe3ff', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('rect', { x: 246, y: 200, width: 60, height: 40, fill: '#ffe0b3', stroke: '#333', 'stroke-width': 2 }));
+      // ばね（ジグザグは長さから計算）。自然長 100 px、最も縮むと 86 px。
+      let zig = '';
+      const nSeg = 8;
+      for (let i = 0; i <= nSeg; i++) {
+        const x = 160 + ((246 - 160) * i) / nSeg;
+        const y = i === 0 || i === nSeg ? 220 : (i % 2 === 1 ? 212 : 228);
+        zig += (zig ? ' L ' : 'M ') + x.toFixed(1) + ' ' + y;
+      }
+      svg.appendChild(el('path', { d: zig, fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      const tS = el('text', { x: 185, y: 200 }); tS.textContent = 'ばね'; svg.appendChild(tS);
+      // 玉の名前は下の空きに置く（床の線と重ならないよう、玉の上に置く）。
+      const t1 = el('text', { x: 118, y: 190 }); t1.textContent = '玉1'; svg.appendChild(t1);
+      const t2 = el('text', { x: 264, y: 190 }); t2.textContent = '玉2'; svg.appendChild(t2);
+      const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = '最も縮む：x = 0.141 m、F = 14 N'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = '2つの玉はどちらも 1.0 m/s'; svg.appendChild(tN2);
+    } else {
+      // base：斜面と床と玉。斜面は (60,240) から (300,101)（θ=30°）。
+      svg.appendChild(el('polygon', { points: `60,240 ${d.slopeTop.x},${d.slopeTop.y.toFixed(1)} ${d.slopeTop.x},240`, fill: '#eee' }));
+      svg.appendChild(el('line', { x1: 60, y1: 240, x2: d.slopeTop.x, y2: d.slopeTop.y, stroke: '#333', 'stroke-width': 3 }));
+      svg.appendChild(el('line', { x1: 60, y1: 240, x2: 340, y2: 240, stroke: '#333', 'stroke-width': 3 }));
+      // θ の弧：床と斜面のあいだ。θ が図にない、という誤りを防ぐために必ず描く。
+      const aCx = 60, aCy = 240, aR = 36;
+      const ax2 = aCx + aR * Math.cos(deg2rad(30));
+      const ay2 = aCy - aR * Math.sin(deg2rad(30));
+      svg.appendChild(el('path', { d: `M ${aCx + aR} ${aCy} A ${aR} ${aR} 0 0 0 ${ax2.toFixed(1)} ${ay2.toFixed(1)}`, fill: 'none', stroke: '#333', 'stroke-width': 1.5 }));
+      const tTh = el('text', { x: 104, y: 226 }); tTh.textContent = 'θ=30°'; svg.appendChild(tTh);
+      // 高さ h の目印（破線）。ラベルは斜面の右の空きに置く。
+      svg.appendChild(el('line', { x1: 300, y1: d.slopeTop.y, x2: 300, y2: 240, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+      const tHh = el('text', { x: 306, y: 175 }); tHh.textContent = 'h=0.80 m'; svg.appendChild(tHh);
+      // 玉（斜面の上）。
+      const g = el('g', { transform: `rotate(-30 ${d.blockOnSlope.x} ${d.blockOnSlope.y})` });
+      g.appendChild(el('rect', { x: d.blockOnSlope.x - 28, y: d.blockOnSlope.y - 17, width: 56, height: 34, fill: '#cfe3ff', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(g);
+      const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = '高さ 0.80 m、斜面の長さ 1.6 m'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = 'a = 5.0 m/s²、t = 0.80 s'; svg.appendChild(tN2);
+    }
+  } else if (scene.type === 'massSpec') {
+    const d = scene.derived;
+    const tH = el('text', { x: 40, y: 36, fill: '#555' });
+    tH.textContent = scene.phase === 'selector' ? '速度選別：まっすぐ進む速さだけが通る'
+      : scene.phase === 'circle' ? '磁場だけの場所：半円を描いて検出器へ'
+      : scene.phase === 'graph' ? '半径の比較：重水素は陽子の √2 倍'
+      : scene.phase === 'trap' ? '罠：電圧 2 倍で半径は 2 倍ではない'
+      : '加速：1000 V で陽子を速くする';
+    svg.appendChild(tH);
+    if (scene.phase === 'graph') {
+      // 棒グラフ：陽子の半径 0.046 m と重水素の半径 0.065 m（2000 px/m）。
+      const bar = (y, w, fill) => svg.appendChild(el('rect', { x: 60, y, width: w, height: 18, fill, stroke: '#333', 'stroke-width': 1.5 }));
+      bar(120, d.rP * 2000, '#cfe3ff');
+      bar(170, d.rD * 2000, '#ffb3b3');
+      const t1 = el('text', { x: 60, y: 110 }); t1.textContent = '陽子 0.046 m'; svg.appendChild(t1);
+      const t2 = el('text', { x: 60, y: 160 }); t2.textContent = '重水素 0.065 m'; svg.appendChild(t2);
+      const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = 'r = mv/qB、同じ qV なら r ∝ √m'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = '重水素の半径は陽子の √2 倍'; svg.appendChild(tN2);
+    } else if (scene.phase === 'trap') {
+      // 棒グラフ：電圧 2 倍のとき、2 倍だと思った半径 0.091 m と本当の √2 倍の半径 0.065 m。
+      const bar = (y, w, fill) => svg.appendChild(el('rect', { x: 60, y, width: w, height: 18, fill, stroke: '#333', 'stroke-width': 1.5 }));
+      bar(120, d.rWrong * 2000, '#ffb3b3');
+      bar(170, d.rP2 * 2000, '#b3e6b3');
+      const t1 = el('text', { x: 60, y: 110 }); t1.textContent = '2 倍だと思うと 0.091 m'; svg.appendChild(t1);
+      const t2 = el('text', { x: 60, y: 160 }); t2.textContent = '本当は √2 倍で 0.065 m'; svg.appendChild(t2);
+      const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = 'r ∝ √V なので、V が 2 倍でも r は √2 倍'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = 'v ∝ √V、r = mv/qB'; svg.appendChild(tN2);
+    } else if (scene.phase === 'selector') {
+      // 速度選別の場所：x=120〜280、y=100〜200。電場は下向き、磁場は裏向き（× 印）。
+      svg.appendChild(el('rect', { x: 120, y: 100, width: 160, height: 100, fill: '#f5f5f5', stroke: '#333', 'stroke-width': 2 }));
+      // 磁場の × 印は下のほうに置く（上の帯は力のラベルと重ならないよう空ける）。
+      for (const [cx, cy] of [[135, 165], [135, 185], [265, 165], [265, 185]]) {
+        svg.appendChild(el('line', { x1: cx - 4, y1: cy - 4, x2: cx + 4, y2: cy + 4, stroke: '#999', 'stroke-width': 1.5 }));
+        svg.appendChild(el('line', { x1: cx - 4, y1: cy + 4, x2: cx + 4, y2: cy - 4, stroke: '#999', 'stroke-width': 1.5 }));
+      }
+      // 電場の下向きの矢印。ラベルは矢印の上の空きに置く。
+      for (const ex of [140, 260]) {
+        svg.appendChild(el('line', { x1: ex, y1: 110, x2: ex, y2: 135, stroke: 'blue', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+      }
+      const tE = el('text', { x: 135, y: 95, fill: 'blue' }); tE.textContent = 'E'; svg.appendChild(tE);
+      const tB = el('text', { x: 285, y: 110 }); tB.textContent = 'B（裏向き）'; svg.appendChild(tB);
+      // 陽子（円）。力の矢印は図描画シミュレータが中心から描く。
+      svg.appendChild(el('circle', { cx: 200, cy: 150, r: 8, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = 'qE = qvB のときだけまっすぐ進む'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = 'v = E/B = 4.4×10⁵ m/s'; svg.appendChild(tN2);
+    } else if (scene.phase === 'circle') {
+      // 磁場だけの場所：x=60〜340、y=80〜240。陽子は半径 60 px、重水素は半径 85 px の半円を描く。
+      svg.appendChild(el('rect', { x: 60, y: 80, width: 280, height: 160, fill: '#f5f5f5', stroke: '#333', 'stroke-width': 2 }));
+      // 磁場の × 印は円弧と重ならない場所に置く。右下の隅は検出器のラベルがあるので、右の辺の中央あたりに置く。
+      for (const [cx, cy] of [[100, 100], [320, 100], [100, 220], [335, 150]]) {
+        svg.appendChild(el('line', { x1: cx - 4, y1: cy - 4, x2: cx + 4, y2: cy + 4, stroke: '#999', 'stroke-width': 1.5 }));
+        svg.appendChild(el('line', { x1: cx - 4, y1: cy + 4, x2: cx + 4, y2: cy - 4, stroke: '#999', 'stroke-width': 1.5 }));
+      }
+      // 陽子の半円（赤）：中心 (200,200)、半径 60 px。重水素の半円（青）：中心 (225,200)、半径 85 px。
+      // どちらも入口 (140,200) から出る。半円は SVG の弧で描く。
+      svg.appendChild(el('path', { d: 'M 140 200 A 60 60 0 0 1 260 200', fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
+      svg.appendChild(el('path', { d: 'M 140 200 A 85 85 0 0 1 310 200', fill: 'none', stroke: '#0066cc', 'stroke-width': 2 }));
+      // 検出器に着いた目印。ラベルは着地点の下の空きに置く。
+      svg.appendChild(el('circle', { cx: 260, cy: 200, r: 4, fill: '#b00', stroke: '#333', 'stroke-width': 1 }));
+      svg.appendChild(el('circle', { cx: 310, cy: 200, r: 4, fill: '#0066cc', stroke: '#333', 'stroke-width': 1 }));
+      const tP = el('text', { x: 250, y: 215, fill: '#b00' }); tP.textContent = '陽子'; svg.appendChild(tP);
+      const tD = el('text', { x: 300, y: 215, fill: '#0066cc' }); tD.textContent = '重水素'; svg.appendChild(tD);
+      // 円弧の名前は、円弧の上の空きに置く。
+      const tP2 = el('text', { x: 180, y: 100, fill: '#b00' }); tP2.textContent = '陽子'; svg.appendChild(tP2);
+      const tD2 = el('text', { x: 260, y: 95, fill: '#0066cc' }); tD2.textContent = '重水素'; svg.appendChild(tD2);
+      const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = '陽子は r=0.046 m、重水素は r=0.065 m'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = '検出器での間隔は 0.038 m'; svg.appendChild(tN2);
+    } else {
+      // base：加速の場所。2 枚の極板（x=80 と x=320、y=100〜200）。右の極板には穴がある。
+      svg.appendChild(el('line', { x1: 80, y1: 100, x2: 80, y2: 200, stroke: '#333', 'stroke-width': 3 }));
+      svg.appendChild(el('line', { x1: 320, y1: 100, x2: 320, y2: 140, stroke: '#333', 'stroke-width': 3 }));
+      svg.appendChild(el('line', { x1: 320, y1: 160, x2: 320, y2: 200, stroke: '#333', 'stroke-width': 3 }));
+      const s1 = el('text', { x: 60, y: 155, fill: '#b00', 'font-size': 18 }); s1.textContent = '＋'; svg.appendChild(s1);
+      const s2 = el('text', { x: 326, y: 155, fill: '#b00', 'font-size': 18 }); s2.textContent = '－'; svg.appendChild(s2);
+      const tV = el('text', { x: 60, y: 80 }); tV.textContent = 'V=1000 V'; svg.appendChild(tV);
+      // 陽子（円）。速さの矢印は図描画シミュレータが描く。
+      // 「陽子」のラベルは陽子の下の空きに置く（上は速さの矢印のラベルがある）。
+      svg.appendChild(el('circle', { cx: 200, cy: 150, r: 8, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      const tP = el('text', { x: 185, y: 175 }); tP.textContent = '陽子'; svg.appendChild(tP);
+      const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = '陽子は静止から加速される'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = 'qV = 1.6×10⁻¹⁶ J、v ≈ 4.4×10⁵ m/s'; svg.appendChild(tN2);
+    }
   } else if (scene.type === 'capacitor') {
     const topY = 110, dPx = scene.dPx;
     // 2枚の極板（水平）。上板が +、下板が −。
@@ -6365,4 +6805,4 @@ function renderAllFigures() {
   });
 }
 
-if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, capSpringGravDerived, capSpringGravForces, gasSpringCycleDerived, gasSpringCycleForces, slopeSpringDerived, slopeSpringForces, fallLoopDerived, fallLoopForces, sceneFor, validateScene, renderFigure };
+if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, capSpringGravDerived, capSpringGravForces, gasSpringCycleDerived, gasSpringCycleForces, slopeSpringDerived, slopeSpringForces, fallLoopDerived, fallLoopForces, beltSpringDerived, beltSpringForces, massSpecDerived, massSpecForces, sceneFor, validateScene, renderFigure };
