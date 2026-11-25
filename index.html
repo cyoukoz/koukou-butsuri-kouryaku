@@ -264,6 +264,20 @@
 </div>
 
 <div class="card">
+  <h2>組み合わせ問題AC：レール＋ばね＋電磁誘導</h2>
+  <p>レール上の棒（m = 0.50 kg）にばね（k = 50 N/m）をつなぎ、磁場 B = 1.0 T の中で振動させる。棒を 0.20 m 引いて放すと、ばねの力は 10 N、加速度は 20 m/s² だ。はじめてつり合い位置を通るとき、速さは 1.85 m/s、誘導起電力は 1.85 V、電流は 0.92 A、磁場の力は 0.92 N になる。振幅は 0.20 e^(−0.5t) m で指数で減り、1周期後は 0.146 m、1.00 J のエネルギーのうち 0.47 J が1周期でジュール熱になる。誘導を無視すると振幅は減らない罠がある。橋渡し量は「速さ」と「エネルギー」。</p>
+  <p><a href="content/mechanics/rail-spring-damp.html">レール＋ばね＋電磁誘導のドリルを開く →</a></p>
+  <p id="progress-combo-rail-spring-damp">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>組み合わせ問題AD：振り子＋弾性衝突＋ばね</h2>
+  <p>高さ 0.20 m から振り子を振り下ろすと、最下点の速さは 2.0 m/s、運動エネルギーは 2.0 J になる。等しい質量のブロックに弾性衝突すると、玉は止まり、ブロックが 2.0 m/s でもらう。ブロックはばね（k = 100 N/m）で単振動し、振幅は 0.20 m、最大のばねの力は 20 N、最大の加速度は 20 m/s² になる。エネルギー 2.0 J は形を変えて移る。くっついたら速さ 1.0 m/s、KE 1.0 J、振幅 0.10 m になる罠がある。橋渡し量は「最下点の速さ」。</p>
+  <p><a href="content/mechanics/pendulum-spring.html">振り子＋弾性衝突＋ばねのドリルを開く →</a></p>
+  <p id="progress-combo-pendulum-spring">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
   <h2>第7問：気体＋ピストン</h2>
   <p>シリンダーにピストンがのっている。ピストンの力のつり合いから気体の圧力を、状態方程式から体積と高さを求める。加熱するとピストンが上がる等圧変化で、仕事・内部エネルギー・熱を区別しよう。</p>
   <p><a href="content/mechanics/gas-piston.html">気体＋ピストンのドリルを開く →</a></p>
@@ -538,6 +552,10 @@
       p.comboSlopeSpringFricDone ? '進捗：組み合わせ問題AA・斜面上のばね振り子＋摩擦を完了済み ✓' : '進捗：まだ組み合わせ問題AA・斜面上のばね振り子＋摩擦は未完了';
     document.getElementById('progress-combo-proj-wall').textContent =
       p.comboProjWallDone ? '進捗：組み合わせ問題AB・斜方投射＋壁との衝突を完了済み ✓' : '進捗：まだ組み合わせ問題AB・斜方投射＋壁との衝突は未完了';
+    document.getElementById('progress-combo-rail-spring-damp').textContent =
+      p.comboRailSpringDampDone ? '進捗：組み合わせ問題AC・レール＋ばね＋電磁誘導を完了済み ✓' : '進捗：まだ組み合わせ問題AC・レール＋ばね＋電磁誘導は未完了';
+    document.getElementById('progress-combo-pendulum-spring').textContent =
+      p.comboPendulumSpringDone ? '進捗：組み合わせ問題AD・振り子＋弾性衝突＋ばねを完了済み ✓' : '進捗：まだ組み合わせ問題AD・振り子＋弾性衝突＋ばねは未完了';
     document.getElementById('progress-gas-piston').textContent =
       p.gasPistonDone ? '進捗：第7問・気体＋ピストンを完了済み ✓' : '進捗：まだ第7問・気体＋ピストンは未完了';
     document.getElementById('progress-young').textContent =
@@ -625,6 +643,8 @@
     document.getElementById('progress-combo-cyclotron').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-slope-spring-fric').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-proj-wall').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-rail-spring-damp').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-pendulum-spring').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-gas-piston').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-young').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-capacitor').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
