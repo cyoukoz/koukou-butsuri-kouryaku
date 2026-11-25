@@ -223,6 +223,27 @@
 </div>
 
 <div class="card">
+  <h2>第25問：熱量・比熱</h2>
+  <p>水 0.20 kg を 20°C から 80°C に温めるのに 50400 J、熱容量は 840 J/K。同じ 9750 J でも、銅は 50 K 上がり、水は約 12 K しか上がらない。80°C の水と 20°C の水を混ぜると 44°C。氷 0.10 kg をとかすのに 33000 J かかり、そのあいだ温度は 0°C のままだ。</p>
+  <p><a href="content/mechanics/calorimetry.html">熱量・比熱のドリルを開く →</a></p>
+  <p id="progress-calorimetry">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>第26問：空気抵抗・終端速度</h2>
+  <p>空気抵抗 F = kv があると、玉は速くなるほど抵抗が増えて、やがて重力とつり合う。質量 0.50 kg の玉の終端速度は 20 m/s。2.0 s 後は速さ 12.6 m/s、加速度 3.68 m/s²。重い玉は終端速度 40 m/s で、真空なら重さによらず同じ速さになる。</p>
+  <p><a href="content/mechanics/drag.html">空気抵抗・終端速度のドリルを開く →</a></p>
+  <p id="progress-drag">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>第27問：放射性崩壊</h2>
+  <p>ヨウ素131（半減期 8.0 日）は、8 日で半分、16 日で 1/4 になる。はじめの放射能は約 1.0 Bq。炭素14 が 1/8 だけ残っている試料は、3 半減期で 17190 年前のものだ。減り方は直線ではなく、指数関数的だ。</p>
+  <p><a href="content/mechanics/decay.html">放射性崩壊のドリルを開く →</a></p>
+  <p id="progress-decay">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
   <h2>動きを見る：自由落下・鉛直投げ上げ</h2>
   <p>落とすだけ、投げ上げるだけ。でも速度は1秒ごとに 9.8 m/s ずつ変わる。その動きそのものをループ再生で確かめる。落とす高さ・初速度・再生速度を変えられる。</p>
   <p><a href="content/mechanics/freefall.html">自由落下・鉛直投げ上げの動きを見る →</a></p>
@@ -302,6 +323,12 @@
       p.travellingWaveDone ? '進捗：第23問・進行波・位相を完了済み ✓' : '進捗：まだ第23問・進行波・位相は未完了';
     document.getElementById('progress-coulomb-field').textContent =
       p.coulombFieldDone ? '進捗：第24問・クーロンの法則・電場を完了済み ✓' : '進捗：まだ第24問・クーロンの法則・電場は未完了';
+    document.getElementById('progress-calorimetry').textContent =
+      p.calorimetryDone ? '進捗：第25問・熱量・比熱を完了済み ✓' : '進捗：まだ第25問・熱量・比熱は未完了';
+    document.getElementById('progress-drag').textContent =
+      p.dragDone ? '進捗：第26問・空気抵抗・終端速度を完了済み ✓' : '進捗：まだ第26問・空気抵抗・終端速度は未完了';
+    document.getElementById('progress-decay').textContent =
+      p.decayDone ? '進捗：第27問・放射性崩壊を完了済み ✓' : '進捗：まだ第27問・放射性崩壊は未完了';
   }).catch(() => {
     document.getElementById('progress-slope').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-ladder').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
@@ -331,6 +358,9 @@
     document.getElementById('progress-kinetic-theory').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-travelling-wave').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-coulomb-field').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-calorimetry').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-drag').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-decay').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
   });
   document.getElementById('export').onclick = () => exportAll()
     .then(() => { document.getElementById('data-msg').textContent = '出力しました。'; })

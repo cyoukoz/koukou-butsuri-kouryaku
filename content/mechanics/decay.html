@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第27問：放射性崩壊 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>第27問：放射性崩壊</h1>
+<p><strong>問題：</strong>ヨウ素131（半減期 8.0 日）の原子核が、はじめ 1.0×10⁶ 個ある。(1) 8.0 日後、16 日後に残っている原子核の数を求めよ。(2) はじめの放射能を求めよ。8.0 日後、24 日後、32 日後の放射能も求めよ。(3) 炭素14（半減期 5730 年）で年代を測る。生きていたときの 1/8 だけ残っている試料は、何年前のものか。(4) 1 個の原子核がいつ崩壊するかは予測できるか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js）が下の JSON データから計算して描いている。崩壊曲線は N(t) = N<sub>0</sub>・(1/2)<sup>t/T</sup> の式から描き、半減期ごとの点の位置も式から計算している。年代の棒の高さも、残った割合そのものから計算している。ラベルは短い名前だけにして、枠からはみ出さないよう描画側で調整している。</p>
+<script type="application/json" id="scene-dec-curve">{"type":"decay","phase":"curve","halfLifeDays":8,"n0":1000000,"carbonHalfLifeYr":5730,"measuredFraction":0.125}</script>
+<script type="application/json" id="scene-dec-half">{"type":"decay","phase":"half","halfLifeDays":8,"n0":1000000,"carbonHalfLifeYr":5730,"measuredFraction":0.125}</script>
+<script type="application/json" id="scene-dec-quarter">{"type":"decay","phase":"quarter","halfLifeDays":8,"n0":1000000,"carbonHalfLifeYr":5730,"measuredFraction":0.125}</script>
+<script type="application/json" id="scene-dec-activity">{"type":"decay","phase":"activity","halfLifeDays":8,"n0":1000000,"carbonHalfLifeYr":5730,"measuredFraction":0.125}</script>
+<script type="application/json" id="scene-dec-dating">{"type":"decay","phase":"dating","halfLifeDays":8,"n0":1000000,"carbonHalfLifeYr":5730,"measuredFraction":0.125}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：半減期ごとに半分になる</h2>
+  <p>放射性の原子核は、時間がたつと別の原子核に変わる。これを崩壊という。崩壊したあとの数は、N = N<sub>0</sub>・(1/2)<sup>t/T</sup> で表される。N<sub>0</sub> ははじめの数、T は半減期だ。半減期は、数が半分になるまでの時間で、原子核の種類ごとに決まっている。ヨウ素131 の半減期は 8.0 日だ。</p>
+  <p>1 秒あたりに崩壊する数を放射能といい、A = λN で表される。λ は崩壊定数で、λ = ln2 / T だ。単位はベクレル（Bq）で、1 Bq は 1 秒に 1 個の崩壊だ。放射能も、原子核の数と同じ割合で減っていく。</p>
+  <svg class="fig" data-scene="scene-dec-curve" data-show="" width="100%" role="img" aria-label="放射性崩壊の曲線"></svg>
+  <p>図の曲線は、半減期ごとに半分になっていくようすだ。まっすぐ下がる直線ではない。ここから、半減期ごとの数を確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①1半減期後</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 1 半減期後：8 日で 5.0×10⁵ 個、放射能 0.50 Bq</h2>
+  <svg class="fig" data-scene="scene-dec-half" data-show="" width="100%" role="img" aria-label="8日後の崩壊曲線"></svg>
+  <p>半減期 8.0 日が 1 回たつと、数は半分になる。はじめ 1.0×10⁶ 個あった原子核は、8.0 日後には 1.0×10⁶ × 1/2 = <strong>5.0×10⁵ 個</strong> になる。</p>
+  <p>放射能も同じ割合で減る。崩壊定数は λ = ln2 / 8.0 ≈ 0.0866 /日。はじめの放射能は、A<sub>0</sub> = λN<sub>0</sub> = 0.0866 × 1.0×10⁶ ≈ 86600 /日。これを 1 秒あたりに直すと、86600 / 86400 ≈ <strong>1.0 Bq</strong> になる。8.0 日後の放射能は、その半分の約 <strong>0.50 Bq</strong> だ。放射能の単位を「1 日あたり」のままにすると、ここで間違う。Bq は 1 秒あたりの数だ。</p>
+  <label><input type="checkbox" class="check"> 8 日後は 5.0×10⁵ 個、放射能は約 0.50 Bq と分かった</label>
+  <br><a class="next" href="#step2">次へ ↓ ②2半減期後</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 2 半減期後：16 日で 2.5×10⁵ 個、1/4 になる</h2>
+  <svg class="fig" data-scene="scene-dec-quarter" data-show="" width="100%" role="img" aria-label="16日後の崩壊曲線"></svg>
+  <p>もう 1 半減期たつと、数はさらに半分になる。16 日後には、1.0×10⁶ × (1/2)² = 1.0×10⁶ × 1/4 = <strong>2.5×10⁵ 個</strong> が残っている。放射能も 1/4 の約 0.25 Bq だ。</p>
+  <p>ここで間違いやすいのは、「半減期が 2 回たったから、なくなった」と考えることだ。半分ずつ減るのであって、半減期ごとに同じ数が減るのではない。8 日間で 5.0×10⁵ 個減ったが、次の 8 日間で減るのは 2.5×10⁵ 個だ。減り方は直線ではなく、指数関数的だ。図の曲線がだんだんなだらかになっているのが、その証拠だ。2 半減期たっても、まだ 1/4 が残っている。</p>
+  <label><input type="checkbox" class="check"> 16 日後は 2.5×10⁵ 個で、まだ 1/4 が残ると分かった</label>
+  <br><a class="next" href="#step3">次へ ↓ ③放射能</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 放射能：24 日後 0.13 Bq、32 日後 0.063 Bq</h2>
+  <svg class="fig" data-scene="scene-dec-activity" data-show="" width="100%" role="img" aria-label="放射能の減り方を示す崩壊曲線"></svg>
+  <p>放射能は、残っている原子核の数に比例する。数が半分になれば、放射能も半分になる。はじめ約 1.0 Bq だった放射能は、8 日後に約 0.50 Bq、16 日後に約 0.25 Bq になる。</p>
+  <p>24 日後は 3 半減期なので、残りは 1/8。放射能は 1.0 × 1/8 ≈ <strong>0.13 Bq</strong> になる。32 日後は 4 半減期で、残りは 1/16。放射能は 1.0 × 1/16 ≈ <strong>0.063 Bq</strong> だ。数が 1.0×10⁶ 個から 6.25×10⁴ 個まで減っても、0 にはならない。指数関数的に減るというのは、そういうことだ。</p>
+  <label><input type="checkbox" class="check"> 放射能は数と同じ割合で減り、24 日後 0.13 Bq、32 日後 0.063 Bq と分かった</label>
+  <br><a class="next" href="#step4">次へ ↓ ④年代測定</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 年代測定：¹⁴C が 1/8 なら 17190 年前</h2>
+  <svg class="fig" data-scene="scene-dec-dating" data-show="" width="100%" role="img" aria-label="炭素14の年代測定の棒グラフ"></svg>
+  <p>生きている生物は、空気中の炭素14（¹⁴C）を体に取り込んでいる。死ぬと取り込みが止まり、¹⁴C は崩壊するだけになる。だから、残っている ¹⁴C の割合から、死んでからの時間が分かる。¹⁴C の半減期は 5730 年だ。</p>
+  <p>試料の ¹⁴C が、生きていたときの 1/8 だけ残っているとする。1/8 = (1/2)³ だから、3 半減期がたっている。年代は、3 × 5730 = <strong>17190 年前</strong> だ。1/4 残っていれば 2 半減期で 11460 年前、1/2 残っていれば 1 半減期で 5730 年前になる。割合を半減期の回数に直すのが、年代測定の中心だ。なお、1 個の原子核がいつ崩壊するかは、誰にも予測できない。予測できるのは、たくさんの原子核の集まりが、どれだけの割合で減るかだけだ。</p>
+  <label><input type="checkbox" class="check"> 1/8 残っている試料は 3 半減期で 17190 年前と分かった</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ：半減期ごとに半分、直線ではない</h2>
+  <svg class="fig" data-scene="scene-dec-curve" data-show="" width="100%" role="img" aria-label="放射性崩壊のまとめの図"></svg>
+  <p>N = N<sub>0</sub>・(1/2)<sup>t/T</sup>。半減期ごとに半分になるので、2 半減期で 1/4、3 半減期で 1/8 が残る。放射能 A = λN も同じ割合で減る。年代測定は、残った割合を半減期の回数に直す。1 個の崩壊は予測できないが、集まりの減り方は予測できる。この4つを区別できれば、放射性崩壊の問題は解ける。</p>
+  <label><input type="checkbox" class="check"> 半減期ごとに半分になり、減り方は直線ではないと分かった</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 8 日後 5.0×10⁵ 個、16 日後 2.5×10⁵ 個。(2) はじめ約 1.0 Bq、8 日後約 0.50 Bq、24 日後約 0.13 Bq、32 日後約 0.063 Bq。(3) 17190 年前。(4) 1 個の崩壊は予測できない。原子のエネルギー準位は <a href="bohr.html">第21問：ボーア模型・ド・ブロイ波長</a>、光の粒子性は <a href="photoelectric.html">第15問：光電効果</a> でも確かめられる。</p>
+  <p>次は準備中です。<a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.decayDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
