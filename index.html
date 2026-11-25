@@ -180,6 +180,27 @@
 </div>
 
 <div class="card">
+  <h2>第19問：直流回路</h2>
+  <p>電池には内部抵抗があり、端子電圧は起電力そのものではない。並列の合成抵抗は 4.0 Ω、全電流は約 1.33 A、端子電圧は約 10.7 V。分流は I2 ≈ 0.89 A、I3 ≈ 0.44 A で、電池の 16 W が 4 つのジュール熱の和になる。</p>
+  <p><a href="content/mechanics/dc-circuit.html">直流回路のドリルを開く →</a></p>
+  <p id="progress-dc-circuit">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>第20問：屈折・レンズ</h2>
+  <p>入射角 60° の光はガラスで約 35° に屈折する。ガラスから出るときの臨界角は約 41.8° で、入射角 50° なら全反射する。凸レンズは a = 15 cm なら 2 倍の倒立実像、a = 5.0 cm なら 2 倍の正立虚像になる。b の符号が像の種類を決める。</p>
+  <p><a href="content/mechanics/refraction-lens.html">屈折・レンズのドリルを開く →</a></p>
+  <p id="progress-refraction-lens">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>第21問：ボーア模型・ド・ブロイ波長</h2>
+  <p>水素の 3 → 2 は 1.89 eV、656 nm の赤い光、2 → 1 は 10.2 eV、122 nm の紫外線。n = 1 の電子のド・ブロイ波長は約 0.33 nm で、軌道の円周に波が 1 個ちょうど入る。電子は小さな惑星のように回っているのではない。</p>
+  <p><a href="content/mechanics/bohr.html">ボーア模型・ド・ブロイ波長のドリルを開く →</a></p>
+  <p id="progress-bohr">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
   <h2>動きを見る：自由落下・鉛直投げ上げ</h2>
   <p>落とすだけ、投げ上げるだけ。でも速度は1秒ごとに 9.8 m/s ずつ変わる。その動きそのものをループ再生で確かめる。落とす高さ・初速度・再生速度を変えられる。</p>
   <p><a href="content/mechanics/freefall.html">自由落下・鉛直投げ上げの動きを見る →</a></p>
@@ -247,6 +268,12 @@
       p.railRodDone ? '進捗：第17問・レール＋棒の電磁誘導を完了済み ✓' : '進捗：まだ第17問・レール＋棒の電磁誘導は未完了';
     document.getElementById('progress-doppler').textContent =
       p.dopplerDone ? '進捗：第18問・ドップラー効果を完了済み ✓' : '進捗：まだ第18問・ドップラー効果は未完了';
+    document.getElementById('progress-dc-circuit').textContent =
+      p.dcCircuitDone ? '進捗：第19問・直流回路を完了済み ✓' : '進捗：まだ第19問・直流回路は未完了';
+    document.getElementById('progress-refraction-lens').textContent =
+      p.refractionLensDone ? '進捗：第20問・屈折・レンズを完了済み ✓' : '進捗：まだ第20問・屈折・レンズは未完了';
+    document.getElementById('progress-bohr').textContent =
+      p.bohrDone ? '進捗：第21問・ボーア模型・ド・ブロイ波長を完了済み ✓' : '進捗：まだ第21問・ボーア模型・ド・ブロイ波長は未完了';
   }).catch(() => {
     document.getElementById('progress-slope').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-ladder').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
@@ -270,6 +297,9 @@
     document.getElementById('progress-heat-cycle').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-rail-rod').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-doppler').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-dc-circuit').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-refraction-lens').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-bohr').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
   });
   document.getElementById('export').onclick = () => exportAll()
     .then(() => { document.getElementById('data-msg').textContent = '出力しました。'; })

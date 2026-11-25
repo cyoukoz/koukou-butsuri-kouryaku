@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第21問：ボーア模型・ド・ブロイ波長 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>第21問：ボーア模型・ド・ブロイ波長</h1>
+<p><strong>問題：</strong>水素原子の電子のエネルギーは、E<sub>n</sub> = −13.6/n² eV（n = 1, 2, 3, …）で表される。(1) n = 3 から n = 2 へ移るときに出る光のエネルギーと波長を求めよ。(2) n = 2 から n = 1 へ移るときに出る光のエネルギーと波長を求めよ。(3) n = 1 の電子の速さは約 2.19×10⁶ m/s である。電子のド・ブロイ波長を求め、軌道半径 a0 = 0.529×10⁻¹⁰ m の円周と比べよ。(4) 100 V で加速した電子の速さとド・ブロイ波長を求め、面間隔 d = 0.20 nm の結晶でブラッグ反射が起こる角度を求めよ。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js）が下の JSON データから計算して描いている。準位図の高さは 15 px/eV で、遷移の矢印の長さはエネルギー差×15 px になっている。ド・ブロイ波の図では、円周に沿う波を 1 波長分だけ描いている。ラベルは短い名前だけにして、枠からはみ出さないよう描画側で調整している。</p>
+<script type="application/json" id="scene-bohr-levels">{"type":"bohr","phase":"levels","rhydbergEv":13.6,"a0M":5.29e-11,"hJs":6.63e-34,"meKg":9.11e-31,"v1Ms":2190000.0,"hcEvNm":1240,"accelVoltageV":100,"braggDM":2e-10}</script>
+<script type="application/json" id="scene-bohr-lyman">{"type":"bohr","phase":"lyman","rhydbergEv":13.6,"a0M":5.29e-11,"hJs":6.63e-34,"meKg":9.11e-31,"v1Ms":2190000.0,"hcEvNm":1240,"accelVoltageV":100,"braggDM":2e-10}</script>
+<script type="application/json" id="scene-bohr-debroglie">{"type":"bohr","phase":"debroglie","rhydbergEv":13.6,"a0M":5.29e-11,"hJs":6.63e-34,"meKg":9.11e-31,"v1Ms":2190000.0,"hcEvNm":1240,"accelVoltageV":100,"braggDM":2e-10}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：エネルギーはとびとびで、しかも負の値</h2>
+  <p>水素原子の電子は、どんなエネルギーでも取れるわけではない。取れるのは、E<sub>n</sub> = −13.6/n² eV という、とびとびの値だけだ。n = 1 なら −13.6 eV、n = 2 なら −3.40 eV、n = 3 なら −1.51 eV になる。エネルギーが負なのは、電子が原子核に引きつけられて「束縛されている」からで、0 になるのは、電子が原子から逃げて自由になったとき（イオン化）だ。</p>
+  <svg class="fig" data-scene="scene-bohr-levels" data-show="" width="100%" role="img" aria-label="水素原子のエネルギー準位図"></svg>
+  <p>図の横線が準位で、上が 0 eV（イオン化）、下に行くほどエネルギーが低い。電子が上の準位から下の準位へ移るとき、その差のエネルギーを光として出す。</p>
+  <a class="next" href="#step1">次へ ↓ ①バルマー線</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① バルマー線：3 → 2 は 1.89 eV、656 nm の赤い光</h2>
+  <svg class="fig" data-scene="scene-bohr-levels" data-show="trans32" width="100%" role="img" aria-label="n=3 から n=2 への遷移の矢印"></svg>
+  <p>n = 3（−1.51 eV）から n = 2（−3.40 eV）へ移るとき、電子はエネルギーを失う。その差は、ΔE = (−1.51) − (−3.40) = <strong>1.89 eV</strong> で、このエネルギーが光になる。光の波長は、λ = hc/ΔE = 1240 / 1.89 ≈ <strong>656 nm</strong> だ。赤い光で、水素のスペクトルの Hα 線と呼ばれるものだ。</p>
+  <p>光のエネルギーは、波長が短いほど大きい。656 nm は可視光の赤い方のはしで、目に見える。図の矢印の長さは、1.89 eV を 15 px/eV で描いたものだ。</p>
+  <label><input type="checkbox" class="check"> 3 → 2 の光は 1.89 eV、656 nm の赤い光と分かった</label>
+  <br><a class="next" href="#step2">次へ ↓ ②ライマン線</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② ライマン線：2 → 1 は 10.2 eV、122 nm の紫外線</h2>
+  <svg class="fig" data-scene="scene-bohr-lyman" data-show="trans21" width="100%" role="img" aria-label="n=2 から n=1 への遷移の矢印"></svg>
+  <p>n = 2（−3.40 eV）から n = 1（−13.6 eV）へ移るとき、エネルギーの差は、ΔE = (−3.40) − (−13.6) = <strong>10.2 eV</strong> になる。波長は、λ = 1240 / 10.2 ≈ <strong>122 nm</strong> だ。可視光（400〜700 nm）よりずっと短く、目には見えない紫外線になる。</p>
+  <p>下の準位へ落ちる幅が大きいほど、出る光のエネルギーは大きく、波長は短くなる。図の矢印が①よりずっと長いのは、そのためだ。n = 1 への遷移は、すべて紫外線になる（ライマン系列）。</p>
+  <label><input type="checkbox" class="check"> 2 → 1 の光は 10.2 eV、122 nm の紫外線と分かった</label>
+  <br><a class="next" href="#step3">次へ ↓ ③ド・ブロイ波長</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ ド・ブロイ波長：n = 1 の円周に、波が 1 個ちょうど入る</h2>
+  <svg class="fig" data-scene="scene-bohr-debroglie" data-show="" width="100%" role="img" aria-label="n=1 の軌道に波が1個入る図"></svg>
+  <p>電子にも波の性質があり、波長は λ = h/mv で決まる。n = 1 の電子は、速さ v ≈ 2.19×10⁶ m/s で、λ = 6.63×10⁻³⁴ / (9.11×10⁻³¹ × 2.19×10⁶) ≈ 3.32×10⁻¹⁰ m ≈ <strong>0.33 nm</strong> になる。</p>
+  <p>一方、n = 1 の軌道の円周は、2πa0 = 2π × 0.529×10⁻¹⁰ m ≈ 3.32×10⁻¹⁰ m ≈ <strong>0.33 nm</strong> で、ド・ブロイ波長と一致する。つまり、n = 1 の軌道には、波がちょうど 1 個入っている。波が円周にぴったり入るから、波が自分自身と打ち消し合わずに、安定して存在できる。これが、とびとびの準位の理由だ。n = 2 なら波が 2 個、n = 3 なら 3 個入る。</p>
+  <label><input type="checkbox" class="check"> n = 1 の円周にド・ブロイ波が 1 個ちょうど入ると分かった</label>
+  <br><a class="next" href="#step4">次へ ↓ ④100 V の電子とブラッグ反射</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 100 V の電子：λ ≈ 0.123 nm、ブラッグ反射角は約 17.9°</h2>
+  <svg class="fig" data-scene="scene-bohr-debroglie" data-show="" width="100%" role="img" aria-label="電子の波としての性質のまとめの図"></svg>
+  <p>100 V で加速した電子は、運動エネルギーが 100 eV になる。速さは、v = √(2eV/m) = √(2 × 1.602×10⁻¹⁹ × 100 / 9.11×10⁻³¹) ≈ <strong>5.93×10⁶ m/s</strong> だ。ド・ブロイ波長は、λ = h/mv ≈ <strong>0.123 nm</strong> になる。光の波長（数百 nm）よりずっと短いが、結晶の原子の間隔（0.20 nm）と比べると、同じくらいの大きさだ。</p>
+  <p>だから、電子の波は結晶で回折・反射する。面間隔 d = 0.20 nm の結晶では、ブラッグの条件 2d・sinθ = λ から、sinθ = 0.123 / (2 × 0.20) ≈ 0.308 になり、θ ≈ <strong>17.9°</strong> だ。電子が波であることの、直接の証拠になる実験だ。</p>
+  <label><input type="checkbox" class="check"> 100 V の電子の波長は約 0.123 nm、ブラッグ角は約 17.9° と分かった</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ：電子は「小さな惑星」ではない</h2>
+  <svg class="fig" data-scene="scene-bohr-levels" data-show="trans32" width="100%" role="img" aria-label="ボーア模型のまとめの図"></svg>
+  <p>ボーア模型の軌道の絵は、電子が原子核のまわりを小さな惑星のように回っている、という意味ではない。電子は、軌道の円周に波がちょうど整数個入る「定常波」として存在している。軌道の絵は、波の腹がどこにあるかを示す目安であって、電子の通り道の地図ではない。ここを古典的な絵のまま捉えると、量子力学に入ったときに間違う。</p>
+  <p>光のエネルギーは E = hν = hc/λ で、電子の波長は λ = h/mv だ。光も電子も、粒子と波の両方の性質をもつ。光の粒子性は <a href="photoelectric.html">第15問：光電効果</a>、光の波性は <a href="young.html">第8問：ヤングの干渉</a> でも確かめられる。</p>
+  <label><input type="checkbox" class="check"> 電子は定常波として存在し、軌道の絵は通り道の地図ではないと分かった</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 3 → 2 は 1.89 eV、656 nm（赤）。(2) 2 → 1 は 10.2 eV、122 nm（紫外）。(3) n = 1 のド・ブロイ波長は約 0.33 nm で、円周 2πa0 と一致する（波が 1 個）。(4) 100 V の電子は v ≈ 5.93×10⁶ m/s、λ ≈ 0.123 nm、ブラッグ角は約 17.9°。光の粒子性は <a href="photoelectric.html">第15問：光電効果</a>、光の波性は <a href="young.html">第8問：ヤングの干渉</a> でも確かめられる。</p>
+  <p>次は準備中です。<a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.bohrDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>

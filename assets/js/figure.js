@@ -1,4 +1,4 @@
-// 高校物理攻略 — 図描画シミュレータ（試作 v1.0：単一モデル 熱サイクル・レール＋棒・ドップラー 追加）
+// 高校物理攻略 — 図描画シミュレータ（試作 v1.1：単一モデル 直流回路・屈折・レンズ・ボーア模型 追加）
 // 方針：図は手書きの座標を直書きしない。入力は JSON の「物理データ」だけ。
 // 描画側が角度・つり合いから矢印の向きと長さを計算する。
 // だから mg sinθ が mg と同じ長さになる、θ が消える、ラベルが切れる、
@@ -880,7 +880,185 @@ function dopplerForces(data) {
   ];
 }
 
+// ---- 直流回路（E3）：起電力・内部抵抗・直列・並列・電力 ----
+// 具体値（検算済み）：電池 E=12 V、内部抵抗 r=1.0 Ω、R1=4.0 Ω と並列（R2=6.0 Ω、R3=12 Ω）の直列。
+//   並列の合成抵抗 Rp=1/(1/6+1/12)=4.0 Ω、全抵抗 R=1+4+4=9.0 Ω、全電流 I=E/R≈1.33 A
+//   端子電圧 V=E−Ir≈10.7 V、R1 の電圧 5.33 V、並列部の電圧 5.33 V
+//   分流 I2=5.33/6≈0.89 A、I3=5.33/12≈0.44 A、I2+I3=I
+//   電力：電池 EI=16 W = 内部抵抗 1.78 W + R1 7.11 W + R2 4.74 W + R3 2.37 W
+//   外部を短絡すると I=E/r=12 A。R1 を外すと I=2.4 A、端子電圧 9.6 V。
+// 罠：並列にすると合成抵抗は「増える」のではなく減る（逆数の和）。端子電圧は起電力そのものではなく、
+//   内部抵抗での電圧降下 Ir だけ下がる。電流が大きいほど端子電圧は下がる。
+// 図の縮尺：電流の矢印は 30 px/A（I≈1.33 A → 40 px、I2≈0.89 A → 27 px、I3≈0.44 A → 13 px）。
+//   回路図の配線の位置は回路の形から決めるが、電流矢印の長さは電流から計算する。
+function dcCircuitDerived(data) {
+  const rPar = 1 / (1 / data.r2Ohm + 1 / data.r3Ohm);
+  const rTotal = data.internalOhm + data.r1Ohm + rPar;
+  const currentA = data.emfV / rTotal;
+  const terminalV = data.emfV - currentA * data.internalOhm;
+  const vR1 = currentA * data.r1Ohm;
+  const vPar = currentA * rPar;
+  const i2A = vPar / data.r2Ohm;
+  const i3A = vPar / data.r3Ohm;
+  const pBattW = data.emfV * currentA;
+  const pRW = currentA * currentA * data.internalOhm;
+  const p1W = currentA * currentA * data.r1Ohm;
+  const p2W = (vPar * vPar) / data.r2Ohm;
+  const p3W = (vPar * vPar) / data.r3Ohm;
+  const noR1I = data.emfV / (data.internalOhm + rPar);
+  return {
+    rPar, rTotal, currentA, terminalV, vR1, vPar, i2A, i3A,
+    pBattW, pRW, p1W, p2W, p3W,
+    shortCurrentA: data.emfV / data.internalOhm,
+    noR1CurrentA: noR1I,
+    noR1TerminalV: data.emfV - noR1I * data.internalOhm,
+  };
+}
+
+function dcCircuitForces(data) {
+  const d = dcCircuitDerived(data);
+  const s = 30; // px/A
+  return [
+    { id: 'mainCurrent', short: 'I', color: '#d35400', vector: [d.currentA * s, 0], dashed: false, labelDx: 6, labelDy: -8, from: { x: 72, y: 120 } },
+    { id: 'branchCurrent2', short: 'I2', color: 'blue', vector: [0, d.i2A * s], dashed: false, labelDx: 8, labelDy: 0, from: { x: 210, y: 130 } },
+    { id: 'branchCurrent3', short: 'I3', color: 'green', vector: [0, d.i3A * s], dashed: false, labelDx: 8, labelDy: 0, from: { x: 280, y: 130 } },
+  ];
+}
+
+// ---- 屈折・全反射・レンズ（W5）：スネルの法則・臨界角・レンズの公式 ----
+// 具体値（検算済み）：ガラス n=1.50、入射角 60°（空気→ガラス）
+//   屈折角 θ2：sinθ2=sin60°/1.5≈0.577 → θ2≈35.3°
+//   臨界角（ガラス→空気）：sinθc=1/1.5 → θc≈41.8°。入射角 50° なら全反射する。
+//   凸レンズ f=10 cm：物体距離 a=15 cm → 1/b=1/10−1/15=1/30 → b=30 cm、倍率 m=−2.0（倒立実像・2倍）
+//   物体距離 a=5 cm（<f）→ 1/b=1/10−1/5=−1/10 → b=−10 cm、倍率 m=+2.0（正立虚像・2倍）
+// 罠：レンズの公式で b が負になるのは「レンズの左側に像ができる＝虚像」という意味で、
+//   計算ミスではない。実像は倒立、虚像は正立。符号を落とすと実像と虚像を取り違える。
+// 図の縮尺：レンズは 6 px/cm（f=10 cm → 60 px、a=15 cm → 90 px、b=30 cm → 180 px）。
+//   屈折の光線は長さ 110 px で、角度は sin/cos から計算する。
+function refractionLensDerived(data) {
+  const th2 = Math.asin(Math.sin(deg2rad(data.incidentDeg)) / data.n);
+  const critical = Math.asin(1 / data.n);
+  const bReal = 1 / (1 / data.focalCm - 1 / data.objRealCm);
+  const mReal = -bReal / data.objRealCm;
+  const bVirtual = 1 / (1 / data.focalCm - 1 / data.objVirtualCm);
+  const mVirtual = -bVirtual / data.objVirtualCm;
+  const pxPerCm = 6;
+  const rayLen = 110;
+  return {
+    theta2Deg: (th2 * 180) / Math.PI, criticalDeg: (critical * 180) / Math.PI,
+    bRealCm: bReal, mReal, bVirtualCm: bVirtual, mVirtual, pxPerCm, rayLen,
+    objRealX: 200 - data.objRealCm * pxPerCm, imgRealX: 200 + bReal * pxPerCm,
+    objVirtualX: 200 - data.objVirtualCm * pxPerCm, imgVirtualX: 200 + bVirtual * pxPerCm,
+    focalX1: 200 - data.focalCm * pxPerCm, focalX2: 200 + data.focalCm * pxPerCm,
+  };
+}
+
+function refractionLensForces(data) {
+  const d = refractionLensDerived(data);
+  const L = d.rayLen, ix = 200, iy = 180;
+  const th1 = deg2rad(data.incidentDeg), th2 = deg2rad(d.theta2Deg);
+  if (data.phase === 'refract') {
+    return [
+      // 入射光は空気側（左上）から境界面へ進む：始点は界面の左上、向きは右下。
+      { id: 'incidentRay', short: '入射光', color: '#d35400', vector: [L * Math.sin(th1), L * Math.cos(th1)], dashed: false, labelDx: -64, labelDy: -8, from: { x: ix - L * Math.sin(th1), y: iy - L * Math.cos(th1) } },
+      { id: 'refractedRay', short: '屈折光', color: 'blue', vector: [L * Math.sin(th2), L * Math.cos(th2)], dashed: false, labelDx: -70, labelDy: 4, from: { x: ix, y: iy } },
+    ];
+  }
+  if (data.phase === 'total') {
+    const th = deg2rad(data.totalIncidentDeg);
+    return [
+      // ガラス側（左下）から境界面へ進む入射光：始点は界面の左下、向きは右上。
+      { id: 'incidentRay', short: '入射光', color: '#d35400', vector: [L * Math.sin(th), -L * Math.cos(th)], dashed: false, labelDx: -64, labelDy: 4, from: { x: ix - L * Math.sin(th), y: iy + L * Math.cos(th) } },
+      { id: 'reflectedRay', short: '反射光', color: 'blue', vector: [L * Math.sin(th), L * Math.cos(th)], dashed: false, labelDx: 6, labelDy: -6, from: { x: ix, y: iy } },
+    ];
+  }
+  return []; // レンズの場面：主光線は drawBase で計算して描く
+}
+
+// ---- ボーア模型・ド・ブロイ波長（A2）：水素の準位・スペクトル・物質波 ----
+// 具体値（検算済み）：E_n=−13.6/n² eV（n=1: −13.6、n=2: −3.40、n=3: −1.51 eV）
+//   3→2：ΔE=1.89 eV、λ=hc/ΔE=1240/1.89≈656 nm（バルマー Hα、赤）
+//   2→1：ΔE=10.2 eV、λ≈122 nm（ライマン、紫外）
+//   n=1 の電子の速さ v≈2.19×10⁶ m/s、ド・ブロイ波長 λ=h/mv≈0.33 nm、
+//     円周 2πa0≈0.33 nm と一致する（波が 1 個ちょうど入る＝定常波の条件 2πr=nλ）
+//   100 V で加速した電子：v≈5.93×10⁶ m/s、λ≈0.123 nm、
+//     面間隔 d=0.20 nm の結晶でのブラッグ反射角 θ：sinθ=λ/2d → θ≈17.9°
+// 罠：電子は原子核のまわりを「小さな惑星のように回っている」のではない。n=1 の軌道は、
+//   ド・ブロイ波が円周にちょうど 1 個入る定常波として存在している。軌道の絵は、
+//   波の腹がどこにあるかを示す目安であって、電子の通り道の地図ではない。
+// 図の縮尺：準位図は 15 px/eV（E1=−13.6 eV → y=36、E=0 → y=240）。遷移の矢印の長さは ΔE×15 px。
+function bohrDerived(data) {
+  const R = data.rhydbergEv;
+  const e = (n) => -R / (n * n);
+  const e1 = e(1), e2 = e(2), e3 = e(3);
+  const dE32 = e3 - e2; // 3→2 で放出するエネルギー（正）
+  const dE21 = e2 - e1; // 2→1 で放出するエネルギー（正）
+  const lam32Nm = data.hcEvNm / dE32;
+  const lam21Nm = data.hcEvNm / dE21;
+  const lambdaDbM = data.hJs / (data.meKg * data.v1Ms);
+  const circumferenceM = 2 * Math.PI * data.a0M;
+  const v100 = Math.sqrt((2 * 1.602e-19 * data.accelVoltageV) / data.meKg);
+  const lambda100M = data.hJs / (data.meKg * v100);
+  const braggDeg = (Math.asin(lambda100M / (2 * data.braggDM)) * 180) / Math.PI;
+  return {
+    e1, e2, e3, dE32, dE21, lam32Nm, lam21Nm,
+    lambdaDbM, lambdaDbNm: lambdaDbM * 1e9, circumferenceM,
+    orbitRatio: circumferenceM / lambdaDbM,
+    v100Ms: v100, lambda100Nm: lambda100M * 1e9, braggDeg,
+    yE: (ev) => 240 + ev * 15,
+  };
+}
+
+function bohrForces(data) {
+  const d = bohrDerived(data);
+  const scale = 15; // px/eV
+  if (data.phase === 'levels') {
+    return [
+      { id: 'trans32', short: '1.89 eV', color: '#b00', vector: [0, -(d.dE32 * scale)], dashed: false, labelDx: 8, labelDy: 4, from: { x: 140, y: d.yE(d.e3) } },
+    ];
+  }
+  if (data.phase === 'lyman') {
+    return [
+      { id: 'trans21', short: '10.2 eV', color: '#b00', vector: [0, -(d.dE21 * scale)], dashed: false, labelDx: 8, labelDy: 4, from: { x: 140, y: d.yE(d.e2) } },
+    ];
+  }
+  return []; // ド・ブロイの場面：波は drawBase で円周に沿って描く
+}
+
 function sceneFor(type, thetaDeg, mgPx, fPx, data) {
+  if (type === 'dcCircuit') {
+    const d = dcCircuitDerived(data);
+    return {
+      type, phase: data.phase || 'base',
+      emfV: data.emfV, internalOhm: data.internalOhm,
+      r1Ohm: data.r1Ohm, r2Ohm: data.r2Ohm, r3Ohm: data.r3Ohm,
+      derived: d,
+      center: { x: 200, y: 160 }, centerDot: false,
+      forces: dcCircuitForces(data),
+    };
+  }
+  if (type === 'refractionLens') {
+    const d = refractionLensDerived(data);
+    return {
+      type, phase: data.phase || 'refract',
+      n: data.n, incidentDeg: data.incidentDeg, totalIncidentDeg: data.totalIncidentDeg,
+      focalCm: data.focalCm, objRealCm: data.objRealCm, objVirtualCm: data.objVirtualCm,
+      derived: d,
+      center: { x: 200, y: 180 }, centerDot: false,
+      forces: refractionLensForces(data),
+    };
+  }
+  if (type === 'bohr') {
+    const d = bohrDerived(data);
+    return {
+      type, phase: data.phase || 'levels',
+      rhydbergEv: data.rhydbergEv, a0M: data.a0M, hJs: data.hJs, meKg: data.meKg,
+      v1Ms: data.v1Ms, hcEvNm: data.hcEvNm, accelVoltageV: data.accelVoltageV, braggDM: data.braggDM,
+      derived: d,
+      center: { x: 200, y: 180 }, centerDot: false,
+      forces: bohrForces(data),
+    };
+  }
   if (type === 'heatCycle') {
     const d = heatCycleDerived(data);
     return {
@@ -1523,6 +1701,75 @@ function validateScene(scene) {
     if ((scene.phase === 'approach' || scene.phase === 'reflect') && byId.sourceVelocity && Math.abs(byId.sourceVelocity.vector[0] - vs * 1.5) > 0.5) return ['音源の速度の矢印が vs の縮尺と一致しません'];
     if (scene.phase === 'observer' && byId.observerVelocity && Math.abs(-byId.observerVelocity.vector[0] - vo * 1.5) > 0.5) return ['観測者の速度の矢印が vo の縮尺と一致しません'];
   }
+  if (scene.type === 'dcCircuit') {
+    const d = scene.derived;
+    // 並列の合成抵抗は逆数の和。並列にすると合成抵抗は減る（増えない）。
+    if (Math.abs(d.rPar - 1 / (1 / scene.r2Ohm + 1 / scene.r3Ohm)) > 1e-9) return ['並列の合成抵抗が逆数の和と一致しません'];
+    if (d.rPar >= Math.min(scene.r2Ohm, scene.r3Ohm)) return ['並列の合成抵抗が小さい方の抵抗より小さくなっていません'];
+    // 全抵抗と全電流、端子電圧。
+    if (Math.abs(d.rTotal - (scene.internalOhm + scene.r1Ohm + d.rPar)) > 1e-9) return ['全抵抗が内部抵抗＋直列＋並列の和と一致しません'];
+    if (Math.abs(d.currentA - scene.emfV / d.rTotal) > 1e-9) return ['全電流が E/R と一致しません'];
+    if (Math.abs(d.terminalV - (scene.emfV - d.currentA * scene.internalOhm)) > 1e-9) return ['端子電圧が E−Ir と一致しません'];
+    // 電圧の分配：R1 と並列部の電圧の和が端子電圧になる。
+    if (Math.abs(d.vR1 + d.vPar - d.terminalV) > 1e-9) return ['R1 と並列部の電圧の和が端子電圧と一致しません'];
+    // 分流：並列部の電圧は共通で、2つの電流の和が全電流になる。
+    if (Math.abs(d.i2A - d.vPar / scene.r2Ohm) > 1e-9) return ['I2 が並列部の電圧/R2 と一致しません'];
+    if (Math.abs(d.i3A - d.vPar / scene.r3Ohm) > 1e-9) return ['I3 が並列部の電圧/R3 と一致しません'];
+    if (Math.abs(d.i2A + d.i3A - d.currentA) > 1e-9) return ['分流の和が全電流と一致しません'];
+    // 電力の保存：電池が出す電力＝4つのジュール熱の和。
+    if (Math.abs(d.pBattW - (d.pRW + d.p1W + d.p2W + d.p3W)) > 1e-9) return ['電力の和が電池の出力と一致しません'];
+    // 電流矢印の長さが 30 px/A の縮尺どおりか。
+    if (byId.mainCurrent && Math.abs(byId.mainCurrent.vector[0] - d.currentA * 30) > 0.5) return ['全電流の矢印が 30 px/A の縮尺と一致しません'];
+    if (byId.branchCurrent2 && Math.abs(byId.branchCurrent2.vector[1] - d.i2A * 30) > 0.5) return ['I2 の矢印が 30 px/A の縮尺と一致しません'];
+    if (byId.branchCurrent3 && Math.abs(byId.branchCurrent3.vector[1] - d.i3A * 30) > 0.5) return ['I3 の矢印が 30 px/A の縮尺と一致しません'];
+  }
+  if (scene.type === 'refractionLens') {
+    const d = scene.derived;
+    // スネルの法則：sinθ1 = n・sinθ2。臨界角：sinθc = 1/n。
+    if (Math.abs(Math.sin(deg2rad(scene.incidentDeg)) - scene.n * Math.sin(deg2rad(d.theta2Deg))) > 1e-9) return ['屈折角がスネルの法則と一致しません'];
+    if (Math.abs(Math.sin(deg2rad(d.criticalDeg)) - 1 / scene.n) > 1e-9) return ['臨界角が sinθc=1/n と一致しません'];
+    if (!(scene.totalIncidentDeg > d.criticalDeg)) return ['全反射の入射角が臨界角より大きくなっていません'];
+    // レンズの公式：1/f = 1/a + 1/b。倍率 m = −b/a。
+    if (Math.abs(1 / scene.focalCm - (1 / scene.objRealCm + 1 / d.bRealCm)) > 1e-9) return ['実像の像距離がレンズの公式と一致しません'];
+    if (Math.abs(1 / scene.focalCm - (1 / scene.objVirtualCm + 1 / d.bVirtualCm)) > 1e-9) return ['虚像の像距離がレンズの公式と一致しません'];
+    if (Math.abs(d.mReal - (-d.bRealCm / scene.objRealCm)) > 1e-9) return ['実像の倍率が −b/a と一致しません'];
+    if (Math.abs(d.mVirtual - (-d.bVirtualCm / scene.objVirtualCm)) > 1e-9) return ['虚像の倍率が −b/a と一致しません'];
+    if (!(d.bRealCm > 0 && d.mReal < 0)) return ['実像が b>0・m<0（倒立）になっていません'];
+    if (!(d.bVirtualCm < 0 && d.mVirtual > 0)) return ['虚像が b<0・m>0（正立）になっていません'];
+    // 図の位置が 6 px/cm の縮尺どおりか。
+    if (Math.abs(d.objRealX - (200 - scene.objRealCm * 6)) > 0.5) return ['実像の物体の位置が縮尺と一致しません'];
+    if (Math.abs(d.imgRealX - (200 + d.bRealCm * 6)) > 0.5) return ['実像の位置が縮尺と一致しません'];
+    if (Math.abs(d.imgVirtualX - (200 + d.bVirtualCm * 6)) > 0.5) return ['虚像の位置が縮尺と一致しません'];
+    // 光線の矢印の長さが 110 px で、角度が入射角・屈折角どおりか。
+    if (scene.phase === 'refract' && byId.incidentRay) {
+      if (Math.abs(Math.hypot(byId.incidentRay.vector[0], byId.incidentRay.vector[1]) - 110) > 0.5) return ['入射光の矢印の長さが 110 px と一致しません'];
+      if (Math.abs(Math.atan2(byId.incidentRay.vector[0], byId.incidentRay.vector[1]) - deg2rad(scene.incidentDeg)) > 1e-9) return ['入射光の角度が入射角と一致しません'];
+    }
+    if (scene.phase === 'refract' && byId.refractedRay) {
+      if (Math.abs(Math.hypot(byId.refractedRay.vector[0], byId.refractedRay.vector[1]) - 110) > 0.5) return ['屈折光の矢印の長さが 110 px と一致しません'];
+      if (Math.abs(Math.atan2(byId.refractedRay.vector[0], byId.refractedRay.vector[1]) - deg2rad(d.theta2Deg)) > 1e-9) return ['屈折光の角度が屈折角と一致しません'];
+    }
+  }
+  if (scene.type === 'bohr') {
+    const d = scene.derived;
+    // 準位：E_n = −13.6/n² eV。
+    if (Math.abs(d.e1 - (-scene.rhydbergEv)) > 1e-9) return ['E1 が −13.6 eV と一致しません'];
+    if (Math.abs(d.e2 - (-scene.rhydbergEv / 4)) > 1e-9) return ['E2 が −13.6/4 eV と一致しません'];
+    if (Math.abs(d.e3 - (-scene.rhydbergEv / 9)) > 1e-9) return ['E3 が −13.6/9 eV と一致しません'];
+    // スペクトル：λ = hc/ΔE。
+    if (Math.abs(d.lam32Nm - scene.hcEvNm / d.dE32) > 1e-9) return ['バルマー線の波長が hc/ΔE と一致しません'];
+    if (Math.abs(d.lam21Nm - scene.hcEvNm / d.dE21) > 1e-9) return ['ライマン線の波長が hc/ΔE と一致しません'];
+    if (Math.abs(d.dE32 - (d.e3 - d.e2)) > 1e-9) return ['3→2 の遷移エネルギーが E3−E2 と一致しません'];
+    // ド・ブロイ波長：λ = h/mv。n=1 の円周に波が 1 個ちょうど入る。
+    if (Math.abs(d.lambdaDbM - scene.hJs / (scene.meKg * scene.v1Ms)) > 1e-12) return ['ド・ブロイ波長が h/mv と一致しません'];
+    if (Math.abs(d.orbitRatio - 1) > 0.01) return ['n=1 の円周とド・ブロイ波長の比が 1 になっていません'];
+    // 100 V の電子：v = √(2eV/m)、ブラッグ条件 sinθ = λ/2d。
+    if (Math.abs(d.v100Ms - Math.sqrt((2 * 1.602e-19 * scene.accelVoltageV) / scene.meKg)) > 1e-9) return ['100 V の電子の速さが √(2eV/m) と一致しません'];
+    if (Math.abs(Math.sin(deg2rad(d.braggDeg)) - (d.lambda100Nm * 1e-9) / (2 * scene.braggDM)) > 1e-9) return ['ブラッグの角度が sinθ=λ/2d と一致しません'];
+    // 遷移の矢印の長さが ΔE×15 px どおりか。
+    if (byId.trans32 && Math.abs(-byId.trans32.vector[1] - d.dE32 * 15) > 0.5) return ['3→2 の矢印が ΔE×15 px と一致しません'];
+    if (byId.trans21 && Math.abs(-byId.trans21.vector[1] - d.dE21 * 15) > 0.5) return ['2→1 の矢印が ΔE×15 px と一致しません'];
+  }
   return [];
 }
 
@@ -2025,6 +2272,159 @@ function drawBase(svg, scene) {
       svg.appendChild(el('line', { x1: 340, y1: 100, x2: 340, y2: 260, stroke: '#333', 'stroke-width': 3 }));
       const tW = el('text', { x: 318, y: 92 }); tW.textContent = '壁'; svg.appendChild(tW);
     }
+  } else if (scene.type === 'dcCircuit') {
+    // 回路図：電池は左、R1 は上の配線、R2・R3 は並列の縦の枝。電流矢印の長さは電流から計算する。
+    const ph = el('text', { x: 40, y: 36, fill: '#555' });
+    ph.textContent = scene.phase === 'current' ? '電流の分かれ方：I = I2 + I3'
+      : scene.phase === 'power' ? '電力：電池 16 W = ジュール熱の和'
+      : '回路全体：電池 12 V、内部抵抗 1.0 Ω';
+    svg.appendChild(ph);
+    const zigzagH = (x1, x2, y) => {
+      let d = `M ${x1} ${y}`;
+      const n = 6, w = (x2 - x1) / n;
+      for (let i = 1; i < n; i++) d += ` L ${(x1 + w * i).toFixed(1)} ${(i % 2 === 1 ? y - 8 : y + 8)}`;
+      return d + ` L ${x2} ${y}`;
+    };
+    const zigzagV = (y1, y2, x) => {
+      let d = `M ${x} ${y1}`;
+      const n = 6, h = (y2 - y1) / n;
+      for (let i = 1; i < n; i++) d += ` L ${(i % 2 === 1 ? x - 8 : x + 8)} ${(y1 + h * i).toFixed(1)}`;
+      return d + ` L ${x} ${y2}`;
+    };
+    // 配線：上の線 y=120、下の線 y=200、電池は x=60 の縦の部分。
+    svg.appendChild(el('line', { x1: 60, y1: 120, x2: 280, y2: 120, stroke: '#333', 'stroke-width': 2 }));
+    svg.appendChild(el('line', { x1: 60, y1: 200, x2: 280, y2: 200, stroke: '#333', 'stroke-width': 2 }));
+    svg.appendChild(el('line', { x1: 60, y1: 120, x2: 60, y2: 140, stroke: '#333', 'stroke-width': 2 }));
+    svg.appendChild(el('line', { x1: 60, y1: 160, x2: 60, y2: 200, stroke: '#333', 'stroke-width': 2 }));
+    // 電池：長い板が +、短い板が −。
+    svg.appendChild(el('line', { x1: 48, y1: 140, x2: 72, y2: 140, stroke: '#333', 'stroke-width': 3 }));
+    svg.appendChild(el('line', { x1: 54, y1: 160, x2: 66, y2: 160, stroke: '#333', 'stroke-width': 3 }));
+    const tPlus = el('text', { x: 76, y: 144 }); tPlus.textContent = '＋'; svg.appendChild(tPlus);
+    const tMinus = el('text', { x: 76, y: 164 }); tMinus.textContent = '－'; svg.appendChild(tMinus);
+    const tB = el('text', { x: 80, y: 186 }); tB.textContent = '電池 12 V'; svg.appendChild(tB);
+    // 内部抵抗 r（下の配線）と R1（上の配線）はジグザグで描く。
+    svg.appendChild(el('path', { d: zigzagH(90, 120, 200), fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+    const tR = el('text', { x: 84, y: 224 }); tR.textContent = 'r = 1.0 Ω'; svg.appendChild(tR);
+    svg.appendChild(el('path', { d: zigzagH(130, 170, 120), fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+    const t1 = el('text', { x: 126, y: 142 }); t1.textContent = 'R1 = 4.0 Ω'; svg.appendChild(t1);
+    // 並列の枝：R2（x=210）、R3（x=280）。分岐点に黒点。
+    for (const bx of [210, 280]) {
+      svg.appendChild(el('line', { x1: bx, y1: 120, x2: bx, y2: 140, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: bx, y1: 180, x2: bx, y2: 200, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('path', { d: zigzagV(140, 180, bx), fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx: bx, cy: 120, r: 3, fill: '#333' }));
+      svg.appendChild(el('circle', { cx: bx, cy: 200, r: 3, fill: '#333' }));
+    }
+    const t2 = el('text', { x: 216, y: 192 }); t2.textContent = 'R2'; svg.appendChild(t2);
+    const t3 = el('text', { x: 286, y: 192 }); t3.textContent = 'R3'; svg.appendChild(t3);
+  } else if (scene.type === 'refractionLens') {
+    const d = scene.derived;
+    const ph = el('text', { x: 40, y: 36, fill: '#555' });
+    ph.textContent = scene.phase === 'refract' ? '空気 → ガラス：入射角 60°'
+      : scene.phase === 'total' ? 'ガラス → 空気：入射角 50° > 臨界角 41.8°'
+      : scene.phase === 'real' ? '凸レンズ：a = 15 cm（実像）'
+      : '凸レンズ：a = 5 cm（虚像）';
+    svg.appendChild(ph);
+    // 角度の弧は、中心と半径と角度から点列で描く（角度は計算値）。
+    const arc = (cx, cy, r, degFrom, degTo) => {
+      let p = '';
+      for (let deg = degFrom; deg <= degTo; deg += 2) {
+        const rad = deg2rad(deg);
+        const x = (cx + r * Math.cos(rad)).toFixed(1), y = (cy + r * Math.sin(rad)).toFixed(1);
+        p += (p ? ' L ' : 'M ') + x + ' ' + y;
+      }
+      svg.appendChild(el('path', { d: p, fill: 'none', stroke: '#333', 'stroke-width': 1.5 }));
+    };
+    if (scene.phase === 'refract' || scene.phase === 'total') {
+      // 境界面 y=180、法線は破線の縦線。角度は法線から測る。
+      svg.appendChild(el('line', { x1: 40, y1: 180, x2: 360, y2: 180, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 200, y1: 60, x2: 200, y2: 270, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+      const tA = el('text', { x: 300, y: 60 }); tA.textContent = '空気'; svg.appendChild(tA);
+      const tG = el('text', { x: 300, y: 288 }); tG.textContent = 'ガラス'; svg.appendChild(tG);
+      if (scene.phase === 'refract') {
+        arc(200, 180, 40, 210, 270); // 入射角 60° の弧（法線の左上）
+        const th1 = el('text', { x: 168, y: 134 }); th1.textContent = 'θ1'; svg.appendChild(th1);
+        arc(200, 180, 30, 54.7, 90); // 屈折角 35.3° の弧（法線の右下）
+        const th2 = el('text', { x: 210, y: 226 }); th2.textContent = 'θ2'; svg.appendChild(th2);
+      } else {
+        arc(200, 180, 40, 90, 140); // 入射角 50° の弧（法線の左下）
+        const th1 = el('text', { x: 172, y: 232 }); th1.textContent = 'θ'; svg.appendChild(th1);
+        arc(200, 180, 40, 40, 90); // 反射角 50° の弧（法線の右下）
+        const th2 = el('text', { x: 220, y: 232 }); th2.textContent = 'θ'; svg.appendChild(th2);
+        const tN = el('text', { x: 40, y: 60, fill: '#555' }); tN.textContent = '屈折光は出ない（全反射）'; svg.appendChild(tN);
+      }
+    } else {
+      // レンズ：光軸 y=180、レンズは x=200 の縦線（両端に矢印）。
+      const objH = 30, imgH = Math.abs(d.mReal) * objH; // 像の高さは倍率×物体の高さ
+      const real = scene.phase === 'real';
+      const objX = real ? d.objRealX : d.objVirtualX;
+      const imgX = real ? d.imgRealX : d.imgVirtualX;
+      svg.appendChild(el('line', { x1: 40, y1: 180, x2: 380, y2: 180, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: 200, y1: 100, x2: 200, y2: 260, stroke: '#333', 'stroke-width': 3 }));
+      svg.appendChild(el('path', { d: 'M 192 112 L 200 100 L 208 112', fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('path', { d: 'M 192 248 L 200 260 L 208 248', fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      const tL = el('text', { x: 208, y: 96 }); tL.textContent = 'レンズ'; svg.appendChild(tL);
+      for (const fx of [d.focalX1, d.focalX2]) {
+        svg.appendChild(el('line', { x1: fx, y1: 172, x2: fx, y2: 188, stroke: '#333', 'stroke-width': 2 }));
+        const tF = el('text', { x: fx - 4, y: 200 }); tF.textContent = 'F'; svg.appendChild(tF);
+      }
+      // 物体の矢印（上向き）と像の矢印（実像は下向き・実線、虚像は上向き・破線）。
+      svg.appendChild(el('line', { x1: objX, y1: 180, x2: objX, y2: 180 - objH, stroke: '#b00', 'stroke-width': 3 }));
+      const tO = el('text', { x: objX - 30, y: 140 }); tO.textContent = '物体'; svg.appendChild(tO);
+      if (real) {
+        svg.appendChild(el('line', { x1: imgX, y1: 180, x2: imgX, y2: 180 + imgH, stroke: '#b00', 'stroke-width': 3 }));
+        const tI = el('text', { x: imgX - 40, y: 258 }); tI.textContent = '実像'; svg.appendChild(tI);
+        // 3本の主光線：平行光線・中心を通る光線・焦点を通る光線（位置は計算値）。
+        svg.appendChild(el('polyline', { points: `${objX},${180 - objH} 200,${180 - objH} ${imgX},${180 + imgH}`, fill: 'none', stroke: '#333', 'stroke-width': 1.5 }));
+        svg.appendChild(el('line', { x1: objX, y1: 180 - objH, x2: imgX, y2: 180 + imgH, stroke: '#333', 'stroke-width': 1.5 }));
+        svg.appendChild(el('polyline', { points: `${objX},${180 - objH} 200,${180 + imgH} ${imgX},${180 + imgH}`, fill: 'none', stroke: '#333', 'stroke-width': 1.5 }));
+      } else {
+        svg.appendChild(el('line', { x1: imgX, y1: 180, x2: imgX, y2: 180 - imgH, stroke: '#b00', 'stroke-width': 3, 'stroke-dasharray': '5 4' }));
+        const tI = el('text', { x: imgX + 6, y: 116 }); tI.textContent = '虚像'; svg.appendChild(tI);
+        // 2本の主光線（実線）と、虚像へ戻る延長線（破線）。延長線は像の頂点で交わる。
+        svg.appendChild(el('polyline', { points: `${objX},${180 - objH} 200,${180 - objH} ${imgX + 240},${180 + imgH}`, fill: 'none', stroke: '#333', 'stroke-width': 1.5 }));
+        svg.appendChild(el('line', { x1: objX, y1: 180 - objH, x2: 320, y2: 300, stroke: '#333', 'stroke-width': 1.5 }));
+        svg.appendChild(el('line', { x1: 200, y1: 180 - objH, x2: imgX, y2: 180 - imgH, stroke: '#b00', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+        svg.appendChild(el('line', { x1: 200, y1: 180, x2: imgX, y2: 180 - imgH, stroke: '#b00', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      }
+    }
+  } else if (scene.type === 'bohr') {
+    const d = scene.derived;
+    if (scene.phase === 'debroglie') {
+      const cx = 200, cy = 170, r = 80;
+      const ph = el('text', { x: 40, y: 36, fill: '#555' });
+      ph.textContent = 'n=1：円周 2πr = λ（波が 1 個）';
+      svg.appendChild(ph);
+      // 軌道の円と、円周に沿う 1 波長の波（半径を sinθ でうねらせる）。
+      svg.appendChild(el('circle', { cx, cy, r, fill: 'none', stroke: '#333', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      let p = '';
+      for (let deg = 0; deg <= 360; deg += 3) {
+        const rad = deg2rad(deg);
+        const rr = r + 12 * Math.sin(rad);
+        const x = (cx + rr * Math.cos(rad)).toFixed(1), y = (cy + rr * Math.sin(rad)).toFixed(1);
+        p += (p ? ' L ' : 'M ') + x + ' ' + y;
+      }
+      svg.appendChild(el('path', { d: p, fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx, cy, r: 6, fill: '#333' }));
+      const tN = el('text', { x: cx + 10, y: cy - 4 }); tN.textContent = '原子核'; svg.appendChild(tN);
+      svg.appendChild(el('circle', { cx, cy: cy - r, r: 6, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      const tE = el('text', { x: cx + 10, y: cy - r - 4 }); tE.textContent = '電子'; svg.appendChild(tE);
+      const tW = el('text', { x: 40, y: 284, fill: '#555' });
+      tW.textContent = '波の振幅は見やすく誇張してある';
+      svg.appendChild(tW);
+    } else {
+      const ph = el('text', { x: 40, y: 36, fill: '#555' });
+      ph.textContent = scene.phase === 'lyman' ? 'ライマン系列：n=2 → n=1' : 'エネルギー準位：E_n = −13.6/n² eV';
+      svg.appendChild(ph);
+      // 準位の横線：高さはエネルギー×15 px（E=0 が y=240）。
+      for (const [ev, label] of [[d.e1, 'n=1'], [d.e2, 'n=2'], [d.e3, 'n=3']]) {
+        const y = d.yE(ev);
+        svg.appendChild(el('line', { x1: 80, y1: y, x2: 200, y2: y, stroke: '#333', 'stroke-width': 3 }));
+        const t = el('text', { x: 210, y: y + 4 }); t.textContent = label + '（' + ev.toFixed(2) + ' eV）'; svg.appendChild(t);
+      }
+      svg.appendChild(el('line', { x1: 80, y1: 240, x2: 200, y2: 240, stroke: '#888', 'stroke-width': 2, 'stroke-dasharray': '5 4' }));
+      const t0 = el('text', { x: 210, y: 244 }); t0.textContent = 'E = 0（イオン化）'; svg.appendChild(t0);
+    }
   } else if (scene.type === 'ladder') {
     svg.appendChild(el('line', { x1: 80, y1: 20, x2: 80, y2: 260, stroke: '#333', 'stroke-width': 3 }));
     svg.appendChild(el('line', { x1: 80, y1: 260, x2: 380, y2: 260, stroke: '#333', 'stroke-width': 3 }));
@@ -2079,4 +2479,4 @@ function renderAllFigures() {
   });
 }
 
-if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, sceneFor, validateScene, renderFigure };
+if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, sceneFor, validateScene, renderFigure };
