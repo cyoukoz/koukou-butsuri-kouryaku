@@ -1335,8 +1335,11 @@ function solenoidDerived(data) {
 function solenoidForces(data) {
   const d = solenoidDerived(data);
   const bScale = 30000; // px/T（2.5 mT → 約 75 px）
+  // 電流 4.0 A の場面では矢印が長く、矢印の先のラベルが「I=4.0 A」と重なるので、
+  // ラベルを矢印の根元側へずらす。
+  const labelDx = data.phase === 'current' ? -80 : 6;
   return [
-    { id: 'field', short: 'B≈' + (d.bT * 1000).toFixed(1) + ' mT', color: '#b00', vector: [d.bT * bScale, 0], dashed: false, labelDx: 6, labelDy: -50, from: { x: 120, y: 150 } },
+    { id: 'field', short: 'B≈' + (d.bT * 1000).toFixed(1) + ' mT', color: '#b00', vector: [d.bT * bScale, 0], dashed: false, labelDx, labelDy: -50, from: { x: 120, y: 150 } },
   ];
 }
 
@@ -3390,7 +3393,8 @@ function drawBase(svg, scene) {
       const tN = el('text', { x: 40, y: 100, fill: '#555' }); tN.textContent = 'n=1000 /m'; svg.appendChild(tN);
       const tI = el('text', { x: 320, y: 100 }); tI.textContent = 'I=' + scene.currentA.toFixed(1) + ' A'; svg.appendChild(tI);
       const tL = el('text', { x: 40, y: 230, fill: '#555' }); tL.textContent = '長さ 0.20 m・全 200 回'; svg.appendChild(tL);
-      const tB = el('text', { x: 180, y: 220, fill: '#b00' }); tB.textContent = '中の磁場 B'; svg.appendChild(tB);
+      // 「中の磁場 B」は「全 200 回」と重ならないよう、右へ出す。
+      const tB = el('text', { x: 245, y: 218, fill: '#b00' }); tB.textContent = '中の磁場 B'; svg.appendChild(tB);
     }
   } else if (scene.type === 'transient') {
     const d = scene.derived;
