@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第30問：RL・RC回路の過渡現象 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>第30問：RL・RC回路の過渡現象</h1>
+<p><strong>問題：</strong>起電力 10 V の電池、抵抗 1000 Ω、コンデンサ 100 μF の直列回路がある。スイッチを入れてコンデンサを充電する。(1) 時定数 τ を求めよ。(2) スイッチを入れた瞬間のコンデンサの電圧と、回路の電流を求めよ。(3) スイッチを入れてから 0.10 s 後、0.20 s 後、0.30 s 後のコンデンサの電圧を求めよ。(4) 充電したコンデンサを、電池を外して抵抗だけで放電させる。0.10 s 後、0.20 s 後のコンデンサの電圧を求めよ。(5) 起電力 10 V、抵抗 10 Ω、コイル 1.0 H の直列回路で、スイッチを入れた瞬間の電流と、0.10 s 後、0.20 s 後、0.30 s 後の電流を求めよ。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js）が下の JSON データから計算して描いている。充電・放電・コイルの電流の曲線は、指数関数の式から 100 点を計算して描いている。τ・2τ・3τ の点の位置と値も、式から計算している。</p>
+<script type="application/json" id="scene-tr-circuit">{"type":"transient","phase":"circuit","emfV":10,"rOhm":1000,"cF":0.0001,"lH":1.0,"rlROhm":10}</script>
+<script type="application/json" id="scene-tr-charge">{"type":"transient","phase":"charge","emfV":10,"rOhm":1000,"cF":0.0001,"lH":1.0,"rlROhm":10}</script>
+<script type="application/json" id="scene-tr-discharge">{"type":"transient","phase":"discharge","emfV":10,"rOhm":1000,"cF":0.0001,"lH":1.0,"rlROhm":10}</script>
+<script type="application/json" id="scene-tr-rl">{"type":"transient","phase":"rl","emfV":10,"rOhm":1000,"cF":0.0001,"lH":1.0,"rlROhm":10}</script>
+<script type="application/json" id="scene-tr-summary">{"type":"transient","phase":"summary","emfV":10,"rOhm":1000,"cF":0.0001,"lH":1.0,"rlROhm":10}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：時定数 τ = RC、指数関数的な変化</h2>
+  <p>コンデンサに電荷がたまるには、時間がかかる。スイッチを入れた瞬間に、コンデンサの電圧が 10 V になるわけではない。コンデンサの電圧は、ゆっくりと 10 V に近づいていく。</p>
+  <p>この「ゆっくりさ」を決めるのが、時定数 τ だ。RC 回路では τ = RC、RL 回路では τ = L/R だ。τ は時間の単位（秒）で、変化の速さの目安になる。</p>
+  <p>充電の式は、Vc = E(1 − e<sup>−t/τ</sup>)。放電の式は、Vc = E・e<sup>−t/τ</sup> だ。e はネイピア数（約 2.72）で、e<sup>−1</sup> ≈ 0.37 だ。</p>
+  <svg class="fig" data-scene="scene-tr-circuit" data-show="" width="100%" role="img" aria-label="RC回路の回路図"></svg>
+  <p>図は、この問題の RC 回路だ。電池、抵抗、コンデンサ、スイッチが直列につながっている。ここから、時定数を確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①時定数</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 時定数：τ = 0.10 s。充電のはじめの電流は 10 mA</h2>
+  <svg class="fig" data-scene="scene-tr-circuit" data-show="" width="100%" role="img" aria-label="RC回路の回路図"></svg>
+  <p>τ = RC = 1000 × 100×10<sup>−6</sup> = 1000 × 0.0001 = <strong>0.10 s</strong> だ。100 μF は 100×10<sup>−6</sup> F（ファラド）だ。単位の換算を間違えると、τ が 1000 倍ずれる。</p>
+  <p>スイッチを入れた瞬間、コンデンサには電荷がまだないので、コンデンサの電圧は 0 V だ。コンデンサの電圧は、急に変わることができない。電池の 10 V は、全部抵抗にかかる。</p>
+  <p>だから、はじめの電流は、オームの法則から I₀ = E/R = 10 / 1000 = 0.010 A、<strong>10 mA</strong> だ。充電が進むと、コンデンサの電圧が上がり、抵抗にかかる電圧が下がって、電流は小さくなっていく。</p>
+  <label><input type="checkbox" class="check"> τ = 0.10 s で、はじめの電流は 10 mA と分かった</label>
+  <br><a class="next" href="#step2">次へ ↓ ②充電の曲線</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 充電の曲線：τ で 6.3 V、2τ で 8.6 V、3τ で 9.5 V</h2>
+  <svg class="fig" data-scene="scene-tr-charge" data-show="" width="100%" role="img" aria-label="コンデンサの充電曲線"></svg>
+  <p>充電の式 Vc = 10(1 − e<sup>−t/0.10</sup>) に t を入れる。t = τ = 0.10 s のとき、e<sup>−1</sup> ≈ 0.37 だから、Vc = 10 × (1 − 0.37) = 10 × 0.63 ≈ <strong>6.3 V</strong> だ。</p>
+  <p>t = 2τ = 0.20 s のとき、e<sup>−2</sup> ≈ 0.14 だから、Vc = 10 × (1 − 0.14) ≈ <strong>8.6 V</strong>。t = 3τ = 0.30 s のとき、e<sup>−3</sup> ≈ 0.050 だから、Vc = 10 × (1 − 0.050) ≈ <strong>9.5 V</strong> だ。</p>
+  <p>「τ で 63%」は、1 − e<sup>−1</sup> ≈ 0.63 という意味だ。2τ で 86%、3τ で 95%。3τ たてば、ほぼ充電は終わったと考えてよい。でも、理論上は 10 V ちょうどにはならない。10 V に近づくだけだ。</p>
+  <label><input type="checkbox" class="check"> τ で 6.3 V、2τ で 8.6 V、3τ で 9.5 V と分かった</label>
+  <br><a class="next" href="#step3">次へ ↓ ③放電</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 放電：τ で 3.7 V、2τ で 1.4 V。充電の裏返し</h2>
+  <svg class="fig" data-scene="scene-tr-discharge" data-show="" width="100%" role="img" aria-label="コンデンサの放電曲線"></svg>
+  <p>充電したコンデンサを、電池を外して抵抗だけで放電させる。放電の式は Vc = 10・e<sup>−t/0.10</sup> だ。充電の「1 − e<sup>−t/τ</sup>」と、放電の「e<sup>−t/τ</sup>」は、裏返しの関係だ。</p>
+  <p>t = τ = 0.10 s のとき、Vc = 10 × e<sup>−1</sup> ≈ 10 × 0.37 ≈ <strong>3.7 V</strong>。t = 2τ = 0.20 s のとき、Vc = 10 × e<sup>−2</sup> ≈ 10 × 0.14 ≈ <strong>1.4 V</strong> だ。</p>
+  <p>充電で「τ で 63% たまる」のと、放電で「τ で 37% 残る」のは、同じ e<sup>−1</sup> ≈ 0.37 から出てくる。63% + 37% = 100%。この 63% と 37% のペアを覚えておくと、過渡現象の問題は見通しがよくなる。</p>
+  <label><input type="checkbox" class="check"> 放電は τ で 3.7 V、2τ で 1.4 V で、充電の裏返しと分かった</label>
+  <br><a class="next" href="#step4">次へ ↓ ④コイル</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ コイル：τ = 0.10 s。スイッチを入れた瞬間 I = 0</h2>
+  <svg class="fig" data-scene="scene-tr-rl" data-show="" width="100%" role="img" aria-label="コイルの電流の立ち上がり曲線"></svg>
+  <p>コイルの回路では、τ = L/R = 1.0 / 10 = <strong>0.10 s</strong> だ。RC 回路の τ と同じ 0.10 s になった。τ が同じなら、変化の曲線の形も同じになる。</p>
+  <p>コイルの電流は、急に変わることができない。スイッチを入れた瞬間、電流は <strong>0 A</strong> のままだ。コンデンサの電圧が急に変わらないのと、対になっている。コンデンサは電圧、コイルは電流が「急に変わらない」量だ。</p>
+  <p>最終的な電流は、コイルの抵抗を無視すれば I∞ = E/R = 10 / 10 = 1.0 A だ。電流の式は I = 1.0(1 − e<sup>−t/0.10</sup>)。t = τ で <strong>0.63 A</strong>、2τ で <strong>0.86 A</strong>、3τ で <strong>0.95 A</strong> になる。充電の電圧と同じ数値の並びだ。</p>
+  <label><input type="checkbox" class="check"> コイルの τ は 0.10 s で、はじめの電流は 0 A、τ で 0.63 A と分かった</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ：コンデンサは電圧が、コイルは電流が急に変わらない</h2>
+  <svg class="fig" data-scene="scene-tr-summary" data-show="" width="100%" role="img" aria-label="過渡現象のまとめの図"></svg>
+  <p>RC 回路の τ = RC、RL 回路の τ = L/R。τ で 63%、2τ で 86%、3τ で 95% まで変化する。3τ たてば、ほぼ変化は終わったと考えてよい。</p>
+  <p>スイッチを入れた瞬間、コンデンサの電圧は 0 V のまま、コイルの電流は 0 A のままだ。急に変わらない量を間違えると、はじめの電流や電圧を間違う。</p>
+  <p>今回の RC と RL は、τ がどちらも 0.10 s だったので、曲線の形が同じになった。τ が同じなら、回路が違っても、変化の速さは同じだ。</p>
+  <label><input type="checkbox" class="check"> τ で 63%、3τ で 95% と、急に変わらない量が分かった</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) τ = 0.10 s。(2) Vc = 0 V、I₀ = 10 mA。(3) 6.3 V、8.6 V、9.5 V。(4) 3.7 V、1.4 V。(5) はじめ 0 A、0.63 A、0.86 A、0.95 A。コンデンサの基本は <a href="capacitor.html">第9問：コンデンサ</a>、直流回路の基本は <a href="dc-circuit.html">第19問：直流回路</a> でも確かめられる。</p>
+  <p>次は準備中です。<a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.transientDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>

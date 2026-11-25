@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第28問：剛体のモーメント — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>第28問：剛体のモーメント</h1>
+<p><strong>問題：</strong>長さ 4.0 m、質量 10 kg の板がある。板の左端から 1.5 m のところに支点があり、板は水平になっている。質量 20 kg の子どもが板の左端にのった。(1) 子どもが板に及ぼす力と、その力の支点まわりのモーメントを求めよ。(2) 板の重さによる支点まわりのモーメントを求めよ。(3) 板を水平につり合わせるために、右端を下向きに押す力 F を求めよ。(4) 支点が板を支える力（垂直抗力）を求めよ。(5) 子どもが左端から 0.50 m のところまで近づいたら、F はどう変わるか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js）が下の JSON データから計算して描いている。モーメントは「力 × 支点からの距離」で計算し、矢印の長さも力の大きさに比例させている。板の上の位置は、支点からの距離（m）をそのまま横の位置に換算して決めている。</p>
+<script type="application/json" id="scene-mom-base">{"type":"moment","phase":"base","childMassKg":20,"boardMassKg":10,"g":10,"pivotFromLeftM":1.5,"boardLengthM":4.0}</script>
+<script type="application/json" id="scene-mom-child">{"type":"moment","phase":"child","childMassKg":20,"boardMassKg":10,"g":10,"pivotFromLeftM":1.5,"boardLengthM":4.0}</script>
+<script type="application/json" id="scene-mom-weight">{"type":"moment","phase":"weight","childMassKg":20,"boardMassKg":10,"g":10,"pivotFromLeftM":1.5,"boardLengthM":4.0}</script>
+<script type="application/json" id="scene-mom-balance">{"type":"moment","phase":"balance","childMassKg":20,"boardMassKg":10,"g":10,"pivotFromLeftM":1.5,"boardLengthM":4.0}</script>
+<script type="application/json" id="scene-mom-summary">{"type":"moment","phase":"summary","childMassKg":20,"boardMassKg":10,"g":10,"pivotFromLeftM":1.5,"boardLengthM":4.0}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：モーメント = 力 × 支点からの距離</h2>
+  <p>力を加えると、ものは回転しようとする。回転のしやすさは、力の大きさだけでは決まらない。支点からの距離も大事だ。支点からの距離に力をかけたものを、力のモーメントという。モーメント = 力 × 支点からの距離。単位は N·m だ。</p>
+  <p>支点の左側に下向きの力を加えると、板は反時計回りに回ろうとする。右側に下向きの力を加えると、時計回りに回ろうとする。つり合うのは、反時計回りのモーメントと時計回りのモーメントが等しいときだ。板の重さは、板の中心（重心）にはたらくと考えてよい。</p>
+  <svg class="fig" data-scene="scene-mom-base" data-show="" width="100%" role="img" aria-label="支点の上の板"></svg>
+  <p>図は、長さ 4.0 m の板と、左端から 1.5 m のところにある支点だ。ここから、子どもの力のモーメントを確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①子どものモーメント</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 子どもの力とモーメント：200 N × 1.5 m = 300 N·m</h2>
+  <svg class="fig" data-scene="scene-mom-child" data-show="child" width="100%" role="img" aria-label="子どもの重さの矢印とモーメント"></svg>
+  <p>子ども（20 kg）が板に及ぼす力は、重さそのものだ。20 × 10 = <strong>200 N</strong>、下向きにはたらく。</p>
+  <p>支点は左端から 1.5 m。子どもは左端にいるので、支点からの距離（うで）は 1.5 m だ。モーメントは 200 × 1.5 = <strong>300 N·m</strong>。向きは反時計回りだ。</p>
+  <p>ここが罠だ。200 N という力の大きさだけを見てはいけない。同じ 200 N でも、支点からの距離が変わればモーメントは変わる。</p>
+  <label><input type="checkbox" class="check"> 子どものモーメントは 200 N × 1.5 m = 300 N·m（反時計回り）と分かった</label>
+  <br><a class="next" href="#step2">次へ ↓ ②板の重さのモーメント</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 板の重さのモーメント：100 N × 0.5 m = 50 N·m</h2>
+  <svg class="fig" data-scene="scene-mom-weight" data-show="board" width="100%" role="img" aria-label="板の重さの矢印とモーメント"></svg>
+  <p>板（10 kg）の重さは 10 × 10 = <strong>100 N</strong>。板の重心は板の中心、左端から 2.0 m のところだ。支点は左端から 1.5 m なので、重心は支点から右へ 2.0 − 1.5 = <strong>0.5 m</strong> のところにある。</p>
+  <p>板の重さのモーメントは 100 × 0.5 = <strong>50 N·m</strong>。向きは時計回りだ。子どもとは逆向きで、子どものモーメントを少しだけ打ち消す。</p>
+  <p>板の重さを「支点にはたらく」と考えると、モーメントは 0 になってしまう。重さは重心にはたらく。重心と支点の位置関係を確かめるのが、モーメントの問題の第一歩だ。</p>
+  <label><input type="checkbox" class="check"> 板の重さのモーメントは 100 N × 0.5 m = 50 N·m（時計回り）と分かった</label>
+  <br><a class="next" href="#step3">次へ ↓ ③つり合い</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ つり合い：F × 2.5 m = 250 N·m → F = 100 N</h2>
+  <svg class="fig" data-scene="scene-mom-balance" data-show="push,normal" width="100%" role="img" aria-label="右端を押す力と支点の力"></svg>
+  <p>右端を下向きに押す力 F のモーメントは、F ×（支点から右端までの距離）だ。右端は左端から 4.0 m、支点は左端から 1.5 m なので、距離は 4.0 − 1.5 = <strong>2.5 m</strong> だ。</p>
+  <p>つり合いの条件は「反時計回りのモーメント = 時計回りのモーメント」だ。反時計回りは子どもの 300 N·m。時計回りは板の重さの 50 N·m と、F のモーメント F × 2.5 の合計だ。</p>
+  <p>300 = 50 + 2.5F。2.5F = 250 だから、<strong>F = 100 N</strong>（下向き）だ。子どもの重さ 200 N の半分で済んだのは、F のうでが 2.5 m と長いからだ。力の大きさだけでなく、うでが大事だということが、ここでも分かる。</p>
+  <label><input type="checkbox" class="check"> F × 2.5 = 300 − 50 = 250 から、F = 100 N と分かった</label>
+  <br><a class="next" href="#step4">次へ ↓ ④支点の力</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 支点の力：N = 200 + 100 + 100 = 400 N</h2>
+  <svg class="fig" data-scene="scene-mom-balance" data-show="push,normal" width="100%" role="img" aria-label="右端を押す力と支点の力"></svg>
+  <p>モーメントのつり合いだけでは、支点の力は分からない。力のつり合いも使う。板にはたらく力は、子どもの重さ 200 N（下向き）、板の重さ 100 N（下向き）、F = 100 N（下向き）、支点の垂直抗力 N（上向き）の 4 つだ。</p>
+  <p>上向きの力 = 下向きの力の合計。N = 200 + 100 + 100 = <strong>400 N</strong>（上向き）だ。支点は、板の上のすべての重さを支えている。</p>
+  <p>はしごの問題（第2問）では、壁と床の 2 か所で支えていた。こちらは支点 1 か所で、モーメントの式が主役だ。モーメントのつり合いと力のつり合いの両方を使う、という点は同じだ。</p>
+  <label><input type="checkbox" class="check"> 支点の垂直抗力は N = 400 N（上向き）と分かった</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ：モーメント = 力 × うで。うでが変われば、必要な力も変わる</h2>
+  <svg class="fig" data-scene="scene-mom-summary" data-show="child,board,push,normal" width="100%" role="img" aria-label="モーメントのまとめの図"></svg>
+  <p>子どもが左端から 0.50 m のところまで近づいたとする。支点からの距離は 1.5 − 0.50 = 1.0 m になる。モーメントは 200 × 1.0 = 200 N·m に小さくなる。</p>
+  <p>つり合いは 200 = 50 + 2.5F。2.5F = 150 だから、<strong>F = 60 N</strong> になる。子どもが 0.50 m 近づいただけで、F は 100 N から 60 N に減る。子どもの重さは 200 N のままだ。変わったのは、支点からの距離だけだ。</p>
+  <p>モーメント = 力 × 支点からの距離。力の大きさだけでなく、どこに力がはたらくかが決め手だ。てこの問題では、まず支点からの距離を書き出すこと。</p>
+  <label><input type="checkbox" class="check"> うでが変わるとモーメントが変わり、F も変わると分かった</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 200 N、300 N·m（反時計回り）。(2) 50 N·m（時計回り）。(3) F = 100 N（下向き）。(4) N = 400 N（上向き）。(5) F = 60 N。モーメントのつり合いと力のつり合いを両方使う問題は、<a href="ladder.html">第2問：はしごのつり合い</a> でも確かめられる。力のつり合いの基本は <a href="slope.html">第1問：斜面上の物体</a> でも確かめられる。</p>
+  <p>次は準備中です。<a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.momentDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>

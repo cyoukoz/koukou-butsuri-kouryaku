@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第29問：ソレノイド・コイルの磁場 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>第29問：ソレノイド・コイルの磁場</h1>
+<p><strong>問題：</strong>長さ 0.20 m、巻き数 200 回のソレノイドに 2.0 A の電流を流す。(1) 単位長さあたりの巻き数 n と、内部の磁場の大きさ B を求めよ。(2) 電流を 4.0 A にすると、B はどうなるか。(3) 半径 0.050 m の 1 巻きのコイルに 2.0 A の電流を流したとき、中心の磁場の大きさを求めよ。ソレノイドの磁場と比べよ。(4) 巻き数を 200 回のまま、ソレノイドの長さを 0.40 m にしたら、B はどうなるか。(5) 電磁石をもっと強くするには、どうすればよいか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js）が下の JSON データから計算して描いている。ソレノイド内部の磁場は B = μ₀nI の式から計算し、矢印の長さも磁場の大きさに比例させている。1 巻きのコイルの中心の磁場は B = μ₀I/2r の式から計算している。</p>
+<script type="application/json" id="scene-sol-base">{"type":"solenoid","phase":"base","turnsPerM":1000,"currentA":2.0,"totalTurns":200,"lengthM":0.20,"coilRadiusM":0.050}</script>
+<script type="application/json" id="scene-sol-field">{"type":"solenoid","phase":"field","turnsPerM":1000,"currentA":2.0,"totalTurns":200,"lengthM":0.20,"coilRadiusM":0.050}</script>
+<script type="application/json" id="scene-sol-current">{"type":"solenoid","phase":"current","turnsPerM":1000,"currentA":4.0,"totalTurns":200,"lengthM":0.20,"coilRadiusM":0.050}</script>
+<script type="application/json" id="scene-sol-coil">{"type":"solenoid","phase":"coil","turnsPerM":1000,"currentA":2.0,"totalTurns":200,"lengthM":0.20,"coilRadiusM":0.050}</script>
+<script type="application/json" id="scene-sol-summary">{"type":"solenoid","phase":"summary","turnsPerM":1000,"currentA":2.0,"totalTurns":200,"lengthM":0.20,"coilRadiusM":0.050}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：ソレノイドの中の磁場は B = μ₀nI</h2>
+  <p>電流が流れると、そのまわりに磁場ができる。導線をぐるぐる巻いたものをコイルといい、コイルを筒状に長く巻いたものをソレノイドという。ソレノイドの内部では、磁場はほぼ一様で、向きは軸に沿っている。</p>
+  <p>内部の磁場の大きさは、B = μ₀nI で表される。μ₀ は真空の透磁率で、μ₀ = 4π×10⁻⁷（単位は N/A²）だ。n は単位長さあたりの巻き数（巻き数密度）、I は電流だ。</p>
+  <p>大事なのは、B が巻き数の合計ではなく、単位長さあたりの巻き数 n で決まることだ。ここがこの問題の罠だ。</p>
+  <svg class="fig" data-scene="scene-sol-base" data-show="" width="100%" role="img" aria-label="ソレノイドの断面図"></svg>
+  <p>図は、ソレノイドを横から見たものだ。8 個の楕円が、コイルの巻きを表している。ここから、内部の磁場を求めていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①巻き数密度と B</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 巻き数密度と B：n = 1000 /m、B ≈ 2.5 mT</h2>
+  <svg class="fig" data-scene="scene-sol-field" data-show="field" width="100%" role="img" aria-label="ソレノイド内部の磁場の矢印"></svg>
+  <p>巻き数 200 回、長さ 0.20 m だから、n = 200 / 0.20 = <strong>1000 /m</strong> だ。1 m あたり 1000 回巻いてある、ということだ。</p>
+  <p>B = μ₀nI = 4π×10⁻⁷ × 1000 × 2.0。4π×10⁻⁷ × 1000 = 4π×10⁻⁴ ≈ 1.26×10⁻³。これに 2.0 をかけると、約 <strong>2.5×10⁻³ T</strong> になる。ミリテスラで表すと、約 <strong>2.5 mT</strong> だ。</p>
+  <p>地磁気は約 50 μT（0.050 mT）だから、このソレノイドの磁場は地磁気の約 50 倍の強さだ。図の矢印は、この B の大きさに比例させて描いている。</p>
+  <label><input type="checkbox" class="check"> n = 1000 /m で、B ≈ 2.5 mT と分かった</label>
+  <br><a class="next" href="#step2">次へ ↓ ②電流 2 倍</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 電流 2 倍：B も 2 倍で約 5.0 mT</h2>
+  <svg class="fig" data-scene="scene-sol-current" data-show="field" width="100%" role="img" aria-label="電流を2倍にしたソレノイドの磁場"></svg>
+  <p>B = μ₀nI は、I に比例する。n を変えずに電流だけを 4.0 A にすると、B は 2 倍になる。B = 4π×10⁻⁷ × 1000 × 4.0 ≈ 5.0×10⁻³ T、約 <strong>5.0 mT</strong> だ。</p>
+  <p>電流を 2 倍にすれば、磁場も 2 倍。比例関係は、計算し直さなくても分かる。式の形から、比例する量を読み取るのが、物理の基本の読み方だ。図の矢印も、①の 2 倍の長さになっている。</p>
+  <label><input type="checkbox" class="check"> 電流 2 倍で B も 2 倍、約 5.0 mT と分かった</label>
+  <br><a class="next" href="#step3">次へ ↓ ③1巻きのコイル</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 1 巻きのコイル：B ≈ 25 μT、ソレノイドは約 100 倍</h2>
+  <svg class="fig" data-scene="scene-sol-coil" data-show="" width="100%" role="img" aria-label="1巻きのコイルの中心の磁場"></svg>
+  <p>1 巻きの円形コイルの中心の磁場は、B = μ₀I / 2r で表される。半径 r = 0.050 m、電流 I = 2.0 A を入れると、B = 4π×10⁻⁷ × 2.0 / (2 × 0.050) = 4π×10⁻⁷ × 20 ≈ 2.5×10⁻⁵ T。約 <strong>25 μT</strong> だ。</p>
+  <p>ソレノイドの 2.5 mT と比べると、2.5×10⁻³ / 2.5×10⁻⁵ = <strong>100 倍</strong> だ。同じ電流でも、コイルを 200 回巻いて重ねると、磁場は 100 倍になる。1 回巻きの磁場をたくさん重ねたものが、ソレノイドだ。</p>
+  <p>コイルの中心の磁場の向きは、紙面の裏向きだ。右ねじの法則で確かめられる。電流が円の上を右向きに流れるとき、中心の磁場は紙面の奥に向かう。</p>
+  <label><input type="checkbox" class="check"> 1 巻きのコイルは約 25 μT で、ソレノイドは約 100 倍と分かった</label>
+  <br><a class="next" href="#step4">次へ ↓ ④罠：巻き数そのものではない</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 罠：巻き数そのものではない。長さを 2 倍にすると B は半分</h2>
+  <svg class="fig" data-scene="scene-sol-base" data-show="" width="100%" role="img" aria-label="ソレノイドの断面図"></svg>
+  <p>巻き数 200 回のまま、長さを 0.40 m にすると、n = 200 / 0.40 = <strong>500 /m</strong> になる。巻き数は変わっていないのに、巻き数密度は半分だ。</p>
+  <p>B = μ₀nI だから、B も半分になり、約 <strong>1.3 mT</strong> になる。「巻き数を増やしたから磁場が強くなる」とは限らない。長さも一緒に増えれば、n は変わらず、B も変わらない。</p>
+  <p>巻き数を 400 回にして長さも 0.40 m にすれば、n = 1000 /m で B は 2.5 mT のままだ。磁場を決めるのは、巻き数の合計ではなく、1 m あたり何回巻いてあるかだ。</p>
+  <label><input type="checkbox" class="check"> 長さを 2 倍にすると n が半分になり、B も半分になると分かった</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ：B は n と I に比例する。電磁石を強くするには</h2>
+  <svg class="fig" data-scene="scene-sol-summary" data-show="field" width="100%" role="img" aria-label="ソレノイドの磁場のまとめの図"></svg>
+  <p>ソレノイドの磁場 B = μ₀nI。電流 I を大きくする、巻き数密度 n を上げる（同じ長さにより多く巻く）、のどちらかで強くなる。鉄心を入れると、磁場はさらに何百倍にも強くなる（高校では「強くなる」ことだけを知っておけばよい）。</p>
+  <p>1 巻きのコイルの中心は B = μ₀I/2r。半径が小さいほど、中心の磁場は強い。ソレノイドは、1 巻きの磁場を重ねたものだ。</p>
+  <p>単位の確認：μ₀ の単位は N/A²、n の単位は 1/m、I の単位は A。かけると N/(A·m) = T になる。単位が合うことも、式の確かめになる。</p>
+  <label><input type="checkbox" class="check"> B は n と I に比例し、電磁石を強くする方法が分かった</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) n = 1000 /m、B ≈ 2.5 mT。(2) 約 5.0 mT。(3) 約 25 μT。ソレノイドは約 100 倍。(4) 約 1.3 mT。(5) 電流を大きくする、巻き数密度を上げる、鉄心を入れる。磁場中の電流が受ける力は <a href="rail-rod.html">第17問：レール上の棒</a>、電場と磁場の対比は <a href="coulomb-field.html">第24問：クーロンの法則・電場</a> でも確かめられる。</p>
+  <p>次は準備中です。<a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.solenoidDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
