@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題Z：サイクロトロン — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題Z：サイクロトロン</h1>
+<p><strong>問題：</strong>陽子（質量 m = 1.67×10⁻²⁷ kg、電荷 q = 1.602×10⁻¹⁹ C）を、磁場 B = 1.0 T の中のサイクロトロンで加速する。D電極の半径は R = 0.50 m、D電極の間の電圧は 10 kV とする。(1) 陽子が D電極の中で 1 周する時間と、その振動数を求めよ。(2) D電極から出るときの陽子の最大の速さと運動エネルギーを求めよ。(3) 陽子が最大のエネルギーになるまで、何周するか。かかる時間はどれくらいか。(4) 周回数が増えるにつれて、軌道の半径はどう大きくなるか。(5) 周期は速さによらないこと、磁場は仕事をしないことを説明せよ。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v2.6、cyclotron 型）が下の JSON データから計算して描く。D電極は半径 80 px の半円 2 つ、渦巻きは半径 8 px から 60 px まで、円運動の図は半径 80 px、速さの矢印は 1.0×10⁻⁶ px/(m/s) で描く。12 MeV は陽子の静止エネルギー 938 MeV に比べて小さいので、非相対論の式でよい（誤差は約 1%）。</p>
+<script type="application/json" id="scene-cyclotron-base">{"type":"cyclotron","qC":1.602e-19,"mKg":1.67e-27,"bT":1,"deeRM":0.5,"deeVKv":10,"phase":"base"}</script>
+<script type="application/json" id="scene-cyclotron-period">{"type":"cyclotron","qC":1.602e-19,"mKg":1.67e-27,"bT":1,"deeRM":0.5,"deeVKv":10,"phase":"period"}</script>
+<script type="application/json" id="scene-cyclotron-max">{"type":"cyclotron","qC":1.602e-19,"mKg":1.67e-27,"bT":1,"deeRM":0.5,"deeVKv":10,"phase":"max"}</script>
+<script type="application/json" id="scene-cyclotron-turns">{"type":"cyclotron","qC":1.602e-19,"mKg":1.67e-27,"bT":1,"deeRM":0.5,"deeVKv":10,"phase":"turns"}</script>
+<script type="application/json" id="scene-cyclotron-radius">{"type":"cyclotron","qC":1.602e-19,"mKg":1.67e-27,"bT":1,"deeRM":0.5,"deeVKv":10,"phase":"radius"}</script>
+<script type="application/json" id="scene-cyclotron-trap">{"type":"cyclotron","qC":1.602e-19,"mKg":1.67e-27,"bT":1,"deeRM":0.5,"deeVKv":10,"phase":"trap"}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。D電極の中で回る場面、すき間で加速される場面、D電極から出る場面では、使う法則がちがう。3つをつなぐのは、周期と半径とエネルギーだ。</p>
+  <table>
+    <tr><th>時間</th><th>場所（何を見るか）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>はじめ（D電極の中）</td><td>磁場＋陽子</td><td>—</td><td>円運動のしくみ（はじめに）</td></tr>
+    <tr><td>1 周する</td><td>D電極の中</td><td><strong>周期 65.5 ns</strong></td><td>周期と振動数（ステップ①）</td></tr>
+    <tr><td>D電極から出る</td><td>D電極の端</td><td><strong>半径 0.50 m</strong></td><td>最大の速さとエネルギー（ステップ②）</td></tr>
+    <tr><td>何周も回る</td><td>すき間＋D電極</td><td><strong>1 周で 20 keV</strong></td><td>周回数と時間（ステップ③・④）</td></tr>
+    <tr><td>まとめ</td><td>全体</td><td><strong>磁場は仕事をしない</strong></td><td>罠の確認（ステップ⑤）</td></tr>
+  </table>
+  <p>サイクロトロンは、2 つの半円形の電極（D電極）のすき間に電場をかけ、磁場の中で陽子を何周も回らせて加速する装置だ。陽子は、D電極の中では磁場からローレンツ力を受けて半円を描き、すき間を通るときに電場から加速される。すき間を通るたびに、陽子は少しずつ速くなる。速くなると、円の半径は大きくなる。だが、1 周する時間は変わらない。ここが、サイクロトロンのいちばんのポイントだ。</p>
+  <svg class="fig" data-scene="scene-cyclotron-base" data-show="" width="100%" role="img" aria-label="サイクロトロンの全体図。D電極が2つ、陽子の渦巻きの軌道、磁場の×印"></svg>
+  <p>ここで気をつけることが 1 つある。磁場は、陽子の進む向きを変えるだけで、速さは変えない。磁場がする仕事は 0 だ。陽子にエネルギーを与えるのは、すき間の電場だけだ。D電極の中の半円と、すき間の加速を、きちんと分けて考える。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①周期：速さによらない 65.5 ns</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 周期：速さによらない 65.5 ns</h2>
+  <svg class="fig" data-scene="scene-cyclotron-period" data-show="velocity,lorentz" width="100%" role="img" aria-label="円運動。陽子の速さは右向き、ローレンツ力は中心向き。周期 65.5 ns、振動数 15.3 MHz"></svg>
+  <p>D電極の中で、陽子はローレンツ力 qvB を向心力として円運動する。qvB = mv²/r から、半径は r = mv/qB、角速度は ω = v/r = qB/m になる。角速度は、速さ v を含まない。周期は、T = 2π/ω = 2πm/qB = 2π × 1.67×10⁻²⁷ / (1.602×10⁻¹⁹ × 1.0) ≈ <strong>65.5 ns</strong> になる。振動数は、f = 1/T ≈ <strong>15.3 MHz</strong> だ。半周する時間は、T/2 ≈ <strong>32.7 ns</strong> になる。</p>
+  <p>周期が速さによらないのは、速くなると半径も大きくなるからだ。速さが 2 倍になると、半径も 2 倍になる。円周が 2 倍、速さが 2 倍で、1 周する時間は変わらない。陽子が速くなっても、半周する時間はいつも 32.7 ns のままだ。だから、すき間の電場の向きを 1 秒間に 1530 万回切り替えれば、陽子はいつも、加速される向きの電場に当たる。</p>
+  <p>電場の向きを切り替えるタイミングが、周期で決まる。周期が速さで変わってしまうと、陽子が速くなるにつれて、電場の切り替えが合わなくなる。サイクロトロンが何百周も加速できるのは、周期が速さによらないからだ。</p>
+  <label><input type="checkbox" class="check"> 周期 T = 65.5 ns、振動数 15.3 MHz、半周 32.7 ns、周期は速さによらないことを確かめた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②最大の速さとエネルギー</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 最大の速さとエネルギー</h2>
+  <svg class="fig" data-scene="scene-cyclotron-max" data-show="velocity" width="100%" role="img" aria-label="最大の速さ。D電極の端で速さ 4.8×10⁷ m/s、運動エネルギー 12 MeV"></svg>
+  <p>陽子は、D電極の半径 R = 0.50 m まで大きくなると、D電極から出ていく。半径の式 r = mv/qB から、最大の速さは v_max = qBR/m = 1.602×10⁻¹⁹ × 1.0 × 0.50 / 1.67×10⁻²⁷ ≈ <strong>4.80×10⁷ m/s</strong> になる。光速 3.0×10⁸ m/s の約 1/6 の速さだ。最大の運動エネルギーは、KE = ½mv_max² = 0.5 × 1.67×10⁻²⁷ × (4.80×10⁷)² ≈ 1.92×10⁻¹² J になる。eV に直すと、1.92×10⁻¹² / 1.602×10⁻¹⁹ ≈ <strong>12.0 MeV</strong> だ。</p>
+  <p>最大のエネルギーは、D電極の半径と磁場だけで決まる。電圧を上げても、最大のエネルギーは変わらない。電圧が変わるのは、最大のエネルギーになるまでの周回数だけだ。D電極を大きくするか、磁場を強くするかしなければ、陽子はもっと速くならない。12 MeV は、陽子の静止エネルギー 938 MeV に比べて小さいので、非相対論の式で計算してよい（誤差は約 1%）。</p>
+  <p>速さ 4.80×10⁷ m/s は、1 秒間に地球を 1 周するほどの速さだ。だが、陽子の質量は 1.67×10⁻²⁷ kg と小さいので、運動エネルギーは 1.92×10⁻¹² J と、とても小さい。1 MeV は、電子 1 個を 100 万 V で加速したときのエネルギーだ。12 MeV は、原子核の反応を起こすのに十分なエネルギーだ。</p>
+  <label><input type="checkbox" class="check"> 最大の速さ 4.80×10⁷ m/s、運動エネルギー 12.0 MeV を確かめた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③何周で 12 MeV か</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 何周で 12 MeV か</h2>
+  <svg class="fig" data-scene="scene-cyclotron-turns" data-show="" width="100%" role="img" aria-label="エネルギーと周回数のグラフ。1周で 20 keV、600周で 12 MeV"></svg>
+  <p>陽子は、すき間を通るたびに電場から加速される。すき間は 1 周に 2 回あるので、1 周で得るエネルギーは、2qV = 2 × 1.602×10⁻¹⁹ × 10000 = 3.20×10⁻¹⁵ J になる。eV に直すと、<strong>20 keV</strong> だ。最大のエネルギー 12 MeV になるまでの周回数は、12 MeV / 20 keV = 12000 keV / 20 keV = <strong>600 周</strong> になる。</p>
+  <p>かかる時間は、1 周の時間に周回数をかけたものだ。600 周 × 65.5 ns = 39300 ns ≈ <strong>39 μs</strong> になる。わずか 39 マイクロ秒で、陽子は 12 MeV まで加速される。1 周目は、陽子の速さは v = √(2 × 20 keV / m) = √(2 × 3.20×10⁻¹⁵ / 1.67×10⁻²⁷) ≈ <strong>1.96×10⁶ m/s</strong> になる。1 周目の半径は、r = mv/qB ≈ 0.020 m だ。中心の近くから出発して、600 周で 0.50 m まで広がる。</p>
+  <p>エネルギーは、周回数に比例して増える。1 周で 20 keV、10 周で 200 keV、100 周で 2.0 MeV、600 周で 12 MeV だ。電圧を 2 倍の 20 kV にすれば、1 周で 40 keV になり、300 周で 12 MeV になる。だが、最大のエネルギーそのものは 12 MeV のままだ。電圧は、加速の「速さ」であって、到達点は決めない。</p>
+  <label><input type="checkbox" class="check"> 1 周で 20 keV、600 周で 12 MeV、かかる時間 ≈ 39 μs を確かめた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④半径は √n で大きくなる</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 半径は √n で大きくなる</h2>
+  <svg class="fig" data-scene="scene-cyclotron-radius" data-show="" width="100%" role="img" aria-label="半径と周回数のグラフ。半径は √n で大きくなり、1周 0.020 m、600周 0.50 m"></svg>
+  <p>n 周後の運動エネルギーは、n × 20 keV だ。半径は r = √(2m·KE)/(qB) なので、r は √n に比例する。1 周で 0.020 m、10 周で 0.065 m、100 周で 0.20 m、300 周で 0.35 m、600 周で 0.50 m になる。周回数が 100 倍になっても、半径は 10 倍にしかならない。はじめのうちは半径が急に大きくなり、あとになるほど、大きくなるのがゆるやかになる。</p>
+  <p>半径が √n で大きくなるのは、エネルギーが n に比例し、速さが √n に比例するからだ。速さが √n 倍になると、半径も √n 倍になる。図の曲線は、右上がりにゆるやかになる √ の形だ。線形に大きくなる（破線）と、600 周で 12 m になってしまう。D電極の半径は 0.50 m しかないので、線形ならとうに D電極をはみ出している。</p>
+  <p>渦巻きの軌道は、中心ではすき間がせまく、外側ではすき間が広い。中心の近くでは、1 周で半径が大きく増え、外側では、1 周で増える量が小さい。陽子は、中心から出発して、600 周かけて、ゆっくりと外側へ広がっていく。</p>
+  <label><input type="checkbox" class="check"> 半径は √n で大きくなること（1 周 0.020 m、100 周 0.20 m、600 周 0.50 m）を確かめた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤罠：磁場は仕事をしない</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ 罠：磁場は仕事をしない</h2>
+  <svg class="fig" data-scene="scene-cyclotron-trap" data-show="" width="100%" role="img" aria-label="周期の棒グラフ。速さがちがっても周期は同じ 65.5 ns。磁場は仕事をしない"></svg>
+  <p>罠は、磁場が陽子を加速すると思うことだ。磁場のローレンツ力は、つねに陽子の進む向きと直角にはたらく。力と進む向きが直角のとき、力がする仕事は 0 だ。磁場は、陽子の進む向きを変えるだけで、速さは変えない。陽子にエネルギーを与えるのは、すき間の電場だけだ。D電極の中で陽子が回っているあいだ、エネルギーは変わらない。すき間を通るときだけ、エネルギーが 20 keV ずつ増える。</p>
+  <p>もう 1 つの罠は、速くなれば周期が短くなると思うことだ。速くなると、円周が長くなる。速さが 2 倍になれば、円周も 2 倍になる。1 周する時間は、65.5 ns のままだ。周期が速さによらないからこそ、電場の切り替えは 15.3 MHz のままでよい。もし周期が速さで変わるなら、陽子が速くなるたびに、電場の切り替えも速くしなければならず、サイクロトロンはうまく動かない。</p>
+  <p>磁場の役割は、陽子を同じ場所に何周も回らせることだ。電場の役割は、陽子にエネルギーを与えることだ。役割を分けて考える。磁場は「向きを変える」、電場は「速くする」。この 2 つが合わさって、サイクロトロンは陽子を 12 MeV まで加速する。</p>
+  <label><input type="checkbox" class="check"> 速さがちがっても周期は同じ 65.5 ns であること、磁場は仕事をしないことを確かめた</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と場所を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 周期 T = 65.5 ns、振動数 15.3 MHz、半周 32.7 ns。(2) 最大の速さ 4.80×10⁷ m/s、運動エネルギー 12.0 MeV。(3) 1 周で 20 keV、600 周で 12 MeV、かかる時間 ≈ 39 μs。(4) 半径は √n で大きくなる（1 周 0.020 m、10 周 0.065 m、100 周 0.20 m、300 周 0.35 m、600 周 0.50 m）。(5) 周期は速さによらない。磁場は仕事をせず、エネルギーを与えるのは電場だけ。もとになった単体モデル：クーロンの法則・電場は <a href="coulomb-field.html">第24問：クーロンの法則・電場</a>、荷電粒子の円運動は <a href="charged-circle.html">組み合わせ問題C：荷電粒子＋円運動</a>、円運動は <a href="circle.html">第10問：円運動</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboCyclotronDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
