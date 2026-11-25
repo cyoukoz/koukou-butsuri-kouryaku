@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題J：コンデンサ＋ばね — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題J：コンデンサ＋ばね</h1>
+<p><strong>問題：</strong>水平に置いた平行平板コンデンサがある。左の極板は固定、右の極板（質量 m = 0.50 kg、面積 S = 0.020 m²）はばね（ばね定数 k = 50 N/m）につながっている。電池で Q = 0.20 μC まで充電してから、電池を切り離す。はじめの極板間隔は d = 5.0 mm とする。真空の誘電率は ε₀ = 8.85×10⁻¹² F/m とする。(1) 極板間にはたらく静電引力と、つり合いのばねの伸びを求めよ。(2) 極板を少しずらして離すと、どんな振動をするか。周期を求めよ。(3) d を半分の 2.5 mm にすると、静電容量・電圧・静電エネルギーはどう変わるか。静電気力のはたらきと比べよ。(4) 電池につないだまま（V 一定）で d を半分にするとどうなるか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v1.8、capSpring 型）が下の JSON データから計算して描く。横方向は 16 px/mm、力の矢印は 200 px/N で描く。</p>
+<script type="application/json" id="scene-cs-base">{"type":"capSpring","phase":"base","mKg":0.5,"kNm":50,"areaM2":0.02,"qC":2e-7,"dMm":5,"ampMm":1,"eps0":8.85e-12}</script>
+<script type="application/json" id="scene-cs-charged">{"type":"capSpring","phase":"charged","mKg":0.5,"kNm":50,"areaM2":0.02,"qC":2e-7,"dMm":5,"ampMm":1,"eps0":8.85e-12}</script>
+<script type="application/json" id="scene-cs-shm">{"type":"capSpring","phase":"shm","mKg":0.5,"kNm":50,"areaM2":0.02,"qC":2e-7,"dMm":5,"ampMm":1,"eps0":8.85e-12}</script>
+<script type="application/json" id="scene-cs-energy">{"type":"capSpring","phase":"energy","mKg":0.5,"kNm":50,"areaM2":0.02,"qC":2e-7,"dMm":5,"ampMm":1,"eps0":8.85e-12}</script>
+<script type="application/json" id="scene-cs-contrast">{"type":"capSpring","phase":"contrast","mKg":0.5,"kNm":50,"areaM2":0.02,"qC":2e-7,"dMm":5,"ampMm":1,"eps0":8.85e-12}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。ここでは、電池を切り離す前と後、そして「何が一定か」で切る。場面をつなぐのは、静電引力 F だ。</p>
+  <table>
+    <tr><th>時間</th><th>系（どの極板か）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>充電して切り離す</td><td>コンデンサ（Q 一定）</td><td><strong>静電引力 F ≈ 0.11 N</strong></td><td>つり合いの伸び 2.3 mm（ステップ①）</td></tr>
+    <tr><td>つり合い位置のまわり</td><td>極板＋ばね</td><td>合力 = −k×（つり合いからのずれ）</td><td>単振動、周期 約 0.63 s（ステップ②）</td></tr>
+    <tr><td>d を半分にする</td><td>コンデンサ（Q 一定）</td><td>電荷 Q</td><td>C は 2 倍、V は半分、U は半分（ステップ③）</td></tr>
+    <tr><td>V 一定の対比</td><td>コンデンサ（V 一定）</td><td>電圧 V</td><td>引力は 4 倍になり、ばねでは支えきれない（ステップ④）</td></tr>
+  </table>
+  <p>コンデンサの問題では、まず「何が一定か」を確かめる。電池につないだままなら電圧 V が一定、切り離したら電荷 Q が一定だ。静電引力は F = Q²/(2ε₀S) とも、F = ε₀SV²/(2d²) とも書ける。どちらで見るかで、d を変えたときのふるまいが変わる。</p>
+  <svg class="fig" data-scene="scene-cs-base" data-show="" width="100%" role="img" aria-label="コンデンサとばね：充電する前"></svg>
+  <p>力を描く前の図はこれだけ。左の極板は固定、右の極板はばねで壁につながっている。ここから下へ、1本ずつ足していく。</p>
+  <a class="next" href="#step1">次へ ↓ ①静電引力とつり合い</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 静電引力とつり合いの伸び</h2>
+  <svg class="fig" data-scene="scene-cs-charged" data-show="elec,spring" width="100%" role="img" aria-label="充電後のつり合い：静電引力とばねの力"></svg>
+  <p>極板間にはたらく静電引力は、F = Q²/(2ε₀S) だ。Q = 0.20 μC、S = 0.020 m² を入れると、F = (0.20×10⁻⁶)²/(2 × 8.85×10⁻¹² × 0.020) ≈ <strong>0.11 N</strong>。この力は、Q が一定なら、極板間隔 d によらない。</p>
+  <p>つり合いでは、ばねの力がこの引力と等しくなる。ばねの伸びを x₀ とすると、kx₀ = F だから、x₀ = 0.11/50 ≈ 0.0023 m = <strong>2.3 mm</strong>。極板は、ばねの自然長の位置から 2.3 mm だけ左へ引かれたところでつり合う。</p>
+  <label><input type="checkbox" class="check"> 静電引力 F ≈ 0.11 N、つり合いの伸び 2.3 mm を求めた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②つり合い位置のまわりの振動</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② つり合い位置のまわりの振動</h2>
+  <svg class="fig" data-scene="scene-cs-shm" data-show="elec,spring" width="100%" role="img" aria-label="つり合い位置から右へずれた極板：ばねの力が引力を上回る"></svg>
+  <p>極板をつり合い位置から少しずらすとどうなるか。Q が一定なら、静電引力 F は d が変わっても 0.11 N のままだ。変わるのはばねの力だけだ。つり合い位置からのずれを u とすると、合力は −ku になる。つまり、つり合い位置のまわりの運動は、ふつうのばねの単振動だ。</p>
+  <p>角振動数は ω = √(k/m) = √(50/0.50) = <strong>10 rad/s</strong>、周期は T = 2π/ω ≈ <strong>0.63 s</strong>。振幅 A = 1.0 mm のとき、最大の速さは v_max = ωA = 0.010 m/s、最大の加速度は a_max = ω²A = 0.10 m/s² だ。静電引力は、つり合い位置をずらすだけで、振動の速さにはきかない。</p>
+  <label><input type="checkbox" class="check"> Q 一定なら引力は変わらず、つり合い位置のまわりで ω = 10 rad/s、周期 約 0.63 s の単振動になることを確かめた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③d を半分にすると</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ d を半分にすると</h2>
+  <svg class="fig" data-scene="scene-cs-energy" data-show="elec" width="100%" role="img" aria-label="極板間隔を半分にしたコンデンサ"></svg>
+  <p>はじめの電気量を確かめよう。静電容量は C₀ = ε₀S/d = 8.85×10⁻¹² × 0.020 / 0.0050 = <strong>35.4 pF</strong>。電圧は V₀ = Q/C₀ = 0.20×10⁻⁶ / (35.4×10⁻¹²) ≈ <strong>5650 V</strong>。静電エネルギーは U₀ = Q²/(2C₀) ≈ <strong>0.56 mJ</strong> だ。</p>
+  <p>d を半分の 2.5 mm にすると、C = ε₀S/d だから静電容量は 2 倍の <strong>70.8 pF</strong>。Q が一定なので、V = Q/C は半分の <strong>約 2820 V</strong>、U = Q²/(2C) も半分の <strong>約 0.28 mJ</strong> になる。減ったエネルギー 0.28 mJ は、静電気力のはたらき F×Δd = 0.11 × 0.0025 ≈ 0.28 mJ と一致する。エネルギーのつじつまが合う。</p>
+  <label><input type="checkbox" class="check"> d を半分にすると C は 2 倍、V は半分、U は半分になり、減ったエネルギーが静電気力のはたらきと一致することを確かめた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④電池につないだままなら</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 電池につないだままなら</h2>
+  <svg class="fig" data-scene="scene-cs-contrast" data-show="elec,spring" width="100%" role="img" aria-label="V 一定で d を半分にしたコンデンサ：引力がばねの力を上回る"></svg>
+  <p>こんどは、電池につないだまま（V 一定）で d を半分にしてみよう。V = 5650 V のままだと、静電引力は F = ε₀SV²/(2d²) で、d が半分になると 4 倍の <strong>約 0.45 N</strong> になる。</p>
+  <p>そのときのばねの力はどうか。ばねの伸びは 2.3 mm + 2.5 mm = 4.8 mm だから、ばねの力は 50 × 0.0048 ≈ <strong>0.24 N</strong> しかない。引く力 0.45 N がばねの力 0.24 N を上回るので、極板はさらに引き寄せられ、つり合いはない。V 一定では、引力が d で変わるので、ステップ②の単振動の議論はそのまま使えない。</p>
+  <label><input type="checkbox" class="check"> V 一定では d を半分にすると引力が 4 倍の約 0.45 N になり、ばねの力 0.24 N では支えきれないことを確かめた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ・罠の確認</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ・罠の確認</h2>
+  <svg class="fig" data-scene="scene-cs-charged" data-show="elec,spring" width="100%" role="img" aria-label="充電後のつり合い：静電引力とばねの力"></svg>
+  <p>この問題の罠は2つある。1つめは、「V 一定」と「Q 一定」を混同することだ。V 一定では引力は 1/d² で変わるが、Q 一定では引力は一定だ。何が一定かで、d を変えたときのふるまいがまったく変わる。2つめは、静電引力とばねの力の向きを取り違えることだ。引力は極板を近づける向き、ばねの力は極板を遠ざける向きだ。つり合いは、その2つのバランスだ。</p>
+  <p>切り分けはこうだ。電池を切り離したら Q が一定になり、引力は定数になる。だから、つり合い位置をずらしたぶんだけ、ばねの単振動になる。橋渡し量は、静電引力 F ≈ 0.11 N だった。d を変えるときは、まず何が一定かを確認しよう。</p>
+  <label><input type="checkbox" class="check"> V 一定では F ∝ 1/d²、Q 一定では F は一定であること、引力とばねの力の向きが逆であることを確かめた</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と系を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 静電引力 F ≈ 0.11 N、つり合いの伸び 2.3 mm。(2) つり合い位置のまわりで単振動、ω = 10 rad/s、周期 約 0.63 s。(3) d を半分にすると C = 70.8 pF、V ≈ 2820 V、U ≈ 0.28 mJ。静電気力のはたらき 約 0.28 mJ と一致する。(4) V 一定では引力は約 0.45 N になり、ばねの力 0.24 N では支えきれない。もとになった単体モデル：コンデンサは <a href="capacitor.html">第9問：コンデンサ</a>、単振動は <a href="shm.html">第11問：単振動・振り子</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboCapSpringDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
