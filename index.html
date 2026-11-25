@@ -362,6 +362,20 @@
 </div>
 
 <div class="card">
+  <h2>組み合わせ問題AQ：斜方投射＋壁＋床の摩擦</h2>
+  <p>質量 0.50 kg の玉を速さ 10 m/s、仰角 45° で打ち出す。5.0 m 先の壁ではね返り（反発係数 0.80）、着地は x=1.0 m、着地の速さは約 9.1 m/s。着地のあと、玉は動摩擦係数 0.20 の床を 8.0 m すべって 2.8 s で止まる。摩擦熱は 8.0 J。着地の運動エネルギー 20.5 J が全部熱になる罠があり、縦の 12.5 J は着地で失われる。反発係数を 1.0 にすると 12.5 m すべり、動摩擦係数を 0.40 にすると 4.0 m で止まる。橋渡し量は「速さ」。</p>
+  <p><a href="content/mechanics/proj-wall-fric.html">斜方投射＋壁＋床の摩擦のドリルを開く →</a></p>
+  <p id="progress-combo-proj-wall-fric">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>組み合わせ問題AR：RLC回路の過渡応答</h2>
+  <p>起電力 12 V の電池に抵抗 20 Ω、コイル 0.10 H、コンデンサ 100 μF を直列につなぐ。固有角振動数は 316 rad/s、減衰率は 100 /s で不足減衰になり、振動の角振動数は 300 rad/s、周期は約 21 ms。電流は 0 から始まり 4.2 ms で最大 0.25 A になる。電気量は 1.2 mC をこえて 1.62 mC まで行き過ぎ、コンデンサの電圧は 16 V まで上がる。たまるエネルギーは 7.2 mJ、電池の仕事は 14.4 mJ、熱は 7.2 mJ で、抵抗だけの回路と同じだ。R を 0 にすると振動が続き、R を 100 Ω にすると振動しなくなる。橋渡し量は「電気量と電流」。</p>
+  <p><a href="content/mechanics/rlc-charge.html">RLC回路の過渡応答のドリルを開く →</a></p>
+  <p id="progress-combo-rlc-charge">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
   <h2>第7問：気体＋ピストン</h2>
   <p>シリンダーにピストンがのっている。ピストンの力のつり合いから気体の圧力を、状態方程式から体積と高さを求める。加熱するとピストンが上がる等圧変化で、仕事・内部エネルギー・熱を区別しよう。</p>
   <p><a href="content/mechanics/gas-piston.html">気体＋ピストンのドリルを開く →</a></p>
@@ -664,6 +678,10 @@
       p.comboConicalPendulumDone ? '進捗：組み合わせ問題AO・円錐振り子＋糸が切れる＋斜方投射を完了済み ✓' : '進捗：まだ組み合わせ問題AO・円錐振り子＋糸が切れる＋斜方投射は未完了';
     document.getElementById('progress-combo-rc-charge').textContent =
       p.comboRcChargeDone ? '進捗：組み合わせ問題AP・RC回路の充電とエネルギーを完了済み ✓' : '進捗：まだ組み合わせ問題AP・RC回路の充電とエネルギーは未完了';
+    document.getElementById('progress-combo-proj-wall-fric').textContent =
+      p.comboProjWallFricDone ? '進捗：組み合わせ問題AQ・斜方投射＋壁＋床の摩擦を完了済み ✓' : '進捗：まだ組み合わせ問題AQ・斜方投射＋壁＋床の摩擦は未完了';
+    document.getElementById('progress-combo-rlc-charge').textContent =
+      p.comboRlcChargeDone ? '進捗：組み合わせ問題AR・RLC回路の過渡応答を完了済み ✓' : '進捗：まだ組み合わせ問題AR・RLC回路の過渡応答は未完了';
     document.getElementById('progress-gas-piston').textContent =
       p.gasPistonDone ? '進捗：第7問・気体＋ピストンを完了済み ✓' : '進捗：まだ第7問・気体＋ピストンは未完了';
     document.getElementById('progress-young').textContent =
@@ -765,6 +783,8 @@
     document.getElementById('progress-combo-cathode-ray').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-conical-pendulum').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-rc-charge').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-proj-wall-fric').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-rlc-charge').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-gas-piston').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-young').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-capacitor').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
