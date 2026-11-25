@@ -1419,7 +1419,8 @@ function twoBodyForces(data) {
     return [
       { id: 'v1cmBefore', short: '1.2 m/s', color: '#b00', vector: [d.v1cm * vScale, 0], dashed: false, labelDx: 6, labelDy: -20, from: { x: 100, y: 110 } },
       { id: 'v2cmBefore', short: '0.8 m/s', color: '#b00', vector: [d.v2cm * vScale, 0], dashed: false, labelDx: -60, labelDy: 16, from: { x: 280, y: 110 } },
-      { id: 'v1cmAfter', short: '1.2 m/s', color: '#b00', vector: [-d.v1cm * vScale, 0], dashed: false, labelDx: 6, labelDy: -20, from: { x: 100, y: 210 } },
+      // 衝突後の A のラベルは、箱の左上の「A」と重ならないよう、箱の右上に出す。
+      { id: 'v1cmAfter', short: '1.2 m/s', color: '#b00', vector: [-d.v1cm * vScale, 0], dashed: false, labelDx: 56, labelDy: -20, from: { x: 100, y: 210 } },
       { id: 'v2cmAfter', short: '0.8 m/s', color: '#b00', vector: [-d.v2cm * vScale, 0], dashed: false, labelDx: 6, labelDy: -6, from: { x: 280, y: 210 } },
     ];
   }
