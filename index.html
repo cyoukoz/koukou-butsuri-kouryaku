@@ -250,6 +250,20 @@
 </div>
 
 <div class="card">
+  <h2>組み合わせ問題AA：斜面上のばね振り子＋摩擦</h2>
+  <p>傾き 37° の斜面上のばね振り子に摩擦があると、つり合い位置は 0.040〜0.080 m の幅になり、中心は 0.060 m だ。中心から 0.20 m 伸ばして放すと、振幅は半周期ごとに 0.040 m ずつ等差数列で減り、5半周期（1.57 s）で止まる。はじめのエネルギー 2.0 J は、動いた距離 1.00 m × 摩擦力 2.0 N = 2.0 J の熱になる。粘性抵抗なら指数で減っていつまでも止まらない罠がある。橋渡し量は「振幅」と「エネルギー」。</p>
+  <p><a href="content/mechanics/slope-spring-fric.html">斜面上のばね振り子＋摩擦のドリルを開く →</a></p>
+  <p id="progress-combo-slope-spring-fric">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>組み合わせ問題AB：斜方投射＋壁との衝突</h2>
+  <p>速さ 10 m/s、45° で投げた小球が、5.0 m 先の壁に当たる。壁に当たるまで 0.707 s で、壁のところがちょうど最高点（高さ 2.5 m、vy = 0）だ。壁はなめらかなので、衝突で変わるのは水平成分だけで、vx = 7.07 → −5.66 m/s になり、4.5 J が失われる。跳ね返ったあとは 0.707 s で落ち、x = 1.0 m に着地し、着地の速さは 9.1 m/s。弾性なら出発点に戻る罠がある。橋渡し量は「壁に当たる直前の速度」と「高さ」。</p>
+  <p><a href="content/mechanics/proj-wall.html">斜方投射＋壁との衝突のドリルを開く →</a></p>
+  <p id="progress-combo-proj-wall">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
   <h2>第7問：気体＋ピストン</h2>
   <p>シリンダーにピストンがのっている。ピストンの力のつり合いから気体の圧力を、状態方程式から体積と高さを求める。加熱するとピストンが上がる等圧変化で、仕事・内部エネルギー・熱を区別しよう。</p>
   <p><a href="content/mechanics/gas-piston.html">気体＋ピストンのドリルを開く →</a></p>
@@ -520,6 +534,10 @@
       p.comboOrbitTransferDone ? '進捗：組み合わせ問題Y・人工衛星の軌道遷移を完了済み ✓' : '進捗：まだ組み合わせ問題Y・人工衛星の軌道遷移は未完了';
     document.getElementById('progress-combo-cyclotron').textContent =
       p.comboCyclotronDone ? '進捗：組み合わせ問題Z・サイクロトロンを完了済み ✓' : '進捗：まだ組み合わせ問題Z・サイクロトロンは未完了';
+    document.getElementById('progress-combo-slope-spring-fric').textContent =
+      p.comboSlopeSpringFricDone ? '進捗：組み合わせ問題AA・斜面上のばね振り子＋摩擦を完了済み ✓' : '進捗：まだ組み合わせ問題AA・斜面上のばね振り子＋摩擦は未完了';
+    document.getElementById('progress-combo-proj-wall').textContent =
+      p.comboProjWallDone ? '進捗：組み合わせ問題AB・斜方投射＋壁との衝突を完了済み ✓' : '進捗：まだ組み合わせ問題AB・斜方投射＋壁との衝突は未完了';
     document.getElementById('progress-gas-piston').textContent =
       p.gasPistonDone ? '進捗：第7問・気体＋ピストンを完了済み ✓' : '進捗：まだ第7問・気体＋ピストンは未完了';
     document.getElementById('progress-young').textContent =
@@ -605,6 +623,8 @@
     document.getElementById('progress-combo-photo-cap').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-orbit-transfer').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-cyclotron').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-slope-spring-fric').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-proj-wall').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-gas-piston').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-young').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-capacitor').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
