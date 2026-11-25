@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>組み合わせ問題AV：振り子＋弾性衝突＋ばね＋摩擦</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body { max-width: 760px; margin: 0 auto; padding: 16px; font-family: sans-serif; line-height: 1.8; }
+h1 { font-size: 22px; }
+.step { border-top: 2px solid #eee; padding: 18px 0; }
+.fig { margin: 12px 0; }
+.fig svg { width: 100%; height: auto; display: block; }
+.check { font-size: 18px; margin-right: 8px; }
+.next { display: inline-block; margin-top: 8px; }
+.toplink { position: fixed; right: 12px; bottom: 12px; background: #fff; border: 1px solid #ccc; padding: 6px 10px; border-radius: 6px; text-decoration: none; }
+.donebox { border: 2px solid #4a4; padding: 14px; margin: 20px 0; }
+table { border-collapse: collapse; margin: 10px 0; }
+th, td { border: 1px solid #999; padding: 6px 8px; text-align: left; }
+</style>
+</head>
+<body id="top">
+<h1>組み合わせ問題AV：振り子＋弾性衝突＋ばね＋摩擦</h1>
+<p>長さ 1.0 m の糸につるした質量 1.0 kg の玉を、高さ 0.20 m のところから静かに放す。玉は最下点で、床に置かれた質量 1.0 kg のブロックに弾性衝突する。ブロックの右にはばね定数 100 N/m のばねがあり、左端は自然長の位置にある。床はあらく、動摩擦係数は 0.20 である。重力加速度は g = 10 m/s² とする。(1) 最下点の玉の速さと、衝突直後のブロックの速さを求めよ。(2) ブロックがばねを最も縮めたときの縮みと、そのときのばねの力を求めよ。(3) ブロックが戻ってきたときの速さと、再び玉に当たったあと玉が上がる高さを求めよ。</p>
+
+<div class="step">
+<p><b>はじめに：どう切り分けるか</b></p>
+<p>振り子 → 弾性衝突 → ばね＋摩擦（圧縮） → 戻り＋再衝突 → 罠・変えたら、の順に区切る。橋渡し量は「速さ・エネルギー」だ。</p>
+<table>
+<tr><th>いつ</th><th>何が起きるか</th><th>橋渡し量</th><th>どこで解くか</th></tr>
+<tr><td>はじめ</td><td>振り子</td><td>v = 2.0 m/s、KE = 2.0 J</td><td>ステップ①</td></tr>
+<tr><td>衝突</td><td>弾性衝突</td><td>ブロックが 2.0 m/s をもらう</td><td>ステップ②</td></tr>
+<tr><td>圧縮</td><td>ばね＋摩擦</td><td>最大の縮み 0.18 m、力 18 N</td><td>ステップ③</td></tr>
+<tr><td>戻り</td><td>ばね＋摩擦＋再衝突</td><td>戻り 1.6 m/s、玉は 0.13 m まで</td><td>ステップ④</td></tr>
+<tr><td>罠・変えたら</td><td>最大の縮み</td><td>摩擦なしなら 0.20 m</td><td>ステップ⑤</td></tr>
+</table>
+<p>図：振り子とブロックとばね。玉は高さ 0.20 m から放され、最下点でブロックに当たる。組み合わせ問題W と AD をつなげて、床に摩擦を入れた問題だ。振り子と衝突は<a href="pendulum-collide.html">組み合わせ問題W：振り子＋弾性衝突＋摩擦</a>、ばねは<a href="pendulum-spring.html">組み合わせ問題AD：振り子＋弾性衝突＋ばね</a>に戻って確認しよう。</p>
+<script type="application/json" id="scene-pendulumSpringFric-base">{"type":"pendulumSpringFric","mKg":1.0,"blockMKg":1.0,"lengthM":1.0,"heightM":0.2,"kNperM":100,"mu":0.2,"g":10,"phase":"base"}</script>
+<svg class="fig" data-scene="scene-pendulumSpringFric-base" data-show="" width="100%" role="img" aria-label="振り子とブロックとばねの図。玉は高さ 0.20 m から放され、ブロックはばねの前に置いてある"></svg>
+</div>
+
+<div class="step">
+<p><b>ステップ① 振り子を下ろす：最下点の速さ 2.0 m/s</b></p>
+<script type="application/json" id="scene-pendulumSpringFric-swing">{"type":"pendulumSpringFric","mKg":1.0,"blockMKg":1.0,"lengthM":1.0,"heightM":0.2,"kNperM":100,"mu":0.2,"g":10,"phase":"swing"}</script>
+<svg class="fig" data-scene="scene-pendulumSpringFric-swing" data-show="velocity" width="100%" role="img" aria-label="最下点の玉。速さ 2.0 m/s、運動エネルギー 2.0 J"></svg>
+<p>cosθ = 1 − h/L = 1 − 0.20/1.0 = 0.80 より、θ ≈ 37°。</p>
+<p>力学的エネルギー保存：mgh = ½mv² より、v = √(2gh) = √(2 × 10 × 0.20) = 2.0 m/s。運動エネルギーは KE = 2.0 J。</p>
+<p>振り子の周期は T = 2π√(L/g) ≈ 2.0 s。最下点に着くのは T/4 ≈ 0.50 s 後である。</p>
+<p><label><input type="checkbox" class="check">① 振り子を下ろすのが分かった</label></p>
+<p><a class="next" href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<p><b>ステップ② 弾性衝突：玉は止まり、ブロックが 2.0 m/s</b></p>
+<script type="application/json" id="scene-pendulumSpringFric-collision">{"type":"pendulumSpringFric","mKg":1.0,"blockMKg":1.0,"lengthM":1.0,"heightM":0.2,"kNperM":100,"mu":0.2,"g":10,"phase":"collision"}</script>
+<svg class="fig" data-scene="scene-pendulumSpringFric-collision" data-show="velocity" width="100%" role="img" aria-label="弾性衝突の直後。玉は止まり、ブロックが 2.0 m/s でもらう"></svg>
+<p>等質量の弾性衝突では、速さがそっくり入れ替わる。玉は止まり、ブロックが 2.0 m/s でもらう。</p>
+<p>運動量は 2.0 kg·m/s、運動エネルギーは 2.0 J のまま保存する。</p>
+<p>くっついてしまったら（非弾性衝突）、速さは 1.0 m/s、KE は 1.0 J しか残らない（AD の罠）。ここでは弾性衝突なので 2.0 J のままである。</p>
+<p><label><input type="checkbox" class="check">② 弾性衝突が分かった</label></p>
+<p><a class="next" href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<p><b>ステップ③ ばね＋摩擦：最大の縮み 0.18 m、ばねの力 18 N</b></p>
+<script type="application/json" id="scene-pendulumSpringFric-spring">{"type":"pendulumSpringFric","mKg":1.0,"blockMKg":1.0,"lengthM":1.0,"heightM":0.2,"kNperM":100,"mu":0.2,"g":10,"phase":"spring"}</script>
+<svg class="fig" data-scene="scene-pendulumSpringFric-spring" data-show="spring" width="100%" role="img" aria-label="ばねが最も縮んだところ。縮み 0.18 m、ばねの力 18 N"></svg>
+<p>ブロックが右へ動くと、ばねの力 kx（左向き）と摩擦力 f = μMg = 0.20 × 1.0 × 10 = 2.0 N（左向き、動きと反対）がはたらく。</p>
+<p>摩擦があると、ばねの振動のつり合いの位置がずれる。圧縮のあいだは、つり合いの位置が x* = −f/k = −0.020 m にずれる（ばねの力が摩擦とつり合う位置）。</p>
+<p>最大の縮みは、エネルギーから求める：KE = PE + 摩擦の仕事。2.0 = 50x² + 2x を解いて x ≈ 0.18 m。ばねの力は kx ≈ 18 N。</p>
+<p>摩擦がなければ x = 0.20 m（AD の答え）。摩擦の分だけ小さくなる。最大の縮みまでの時間は約 0.15 s である。</p>
+<p><label><input type="checkbox" class="check">③ ばね＋摩擦の圧縮が分かった</label></p>
+<p><a class="next" href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<p><b>ステップ④ 戻りと再衝突：玉は 0.13 m まで振り上がる</b></p>
+<script type="application/json" id="scene-pendulumSpringFric-return">{"type":"pendulumSpringFric","mKg":1.0,"blockMKg":1.0,"lengthM":1.0,"heightM":0.2,"kNperM":100,"mu":0.2,"g":10,"phase":"return"}</script>
+<svg class="fig" data-scene="scene-pendulumSpringFric-return" data-show="" width="100%" role="img" aria-label="再衝突のあと玉が振り上がる。玉は 0.13 m まで上がり、ブロックは止まっている"></svg>
+<p>最大の縮みでブロックは一瞬止まり、ばねに押し戻される。戻りのあいだ、摩擦は右向きにはたらく（動きと反対だから）。つり合いの位置は今度は +0.020 m にずれる。</p>
+<p>戻ってきたときの速さは 1.6 m/s。往復で摩擦熱は 2fx = 2 × 2.0 × 0.18 ≈ 0.72 J になり、運動エネルギーは 2.0 − 0.72 ≈ 1.3 J に減る（½ × 1.0 × 1.6² ≈ 1.3 J）。戻るまでにかかる時間は 0.32 s である。</p>
+<p>戻ってきたブロックは、止まっている玉に弾性衝突する。等質量なので、ブロックは止まり、玉が 1.6 m/s をもらって左へ振り上がる。</p>
+<p>玉の上がる高さは h = v²/(2g) = 1.6²/20 ≈ 0.13 m。はじめの 0.20 m より低い（摩擦でエネルギーを失ったから）。そのあと玉はまた下りてきてブロックに当たる。衝突をくり返すたびに、摩擦で少しずつエネルギーが減っていく。</p>
+<p><label><input type="checkbox" class="check">④ 戻りと再衝突が分かった</label></p>
+<p><a class="next" href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<p><b>ステップ⑤ 罠と変えたら：摩擦を無視すると 0.20 m</b></p>
+<script type="application/json" id="scene-pendulumSpringFric-trap">{"type":"pendulumSpringFric","mKg":1.0,"blockMKg":1.0,"lengthM":1.0,"heightM":0.2,"kNperM":100,"mu":0.2,"g":10,"phase":"trap"}</script>
+<svg class="fig" data-scene="scene-pendulumSpringFric-trap" data-show="" width="100%" role="img" aria-label="最大の縮みの比べ。摩擦あり 0.18 m、摩擦なし 0.20 m、μ=0.40 0.16 m、k=200 0.13 m"></svg>
+<p>罠：「摩擦は小さいから無視して、最大の縮みは 0.20 m」——まちがい。摩擦は 2.0 N で、ばねの力 18 N の 1 割以上ある。無視すると 0.20 m になってしまう。</p>
+<p>罠：「ブロックは最大の縮みで止まる」——まちがい。ばねが押し戻すので、ブロックは戻ってきて玉に再衝突する。</p>
+<p>罠：「玉は再び 0.20 m まで上がる」——まちがい。摩擦で 0.72 J 失うので、0.13 m までしか上がらない。</p>
+<p>変えたら：μ = 0.40（摩擦 4.0 N）なら最大の縮みは 0.16 m、戻りの速さは 1.2 m/s、玉は 0.069 m まで。k = 200 N/m なら最大の縮みは 0.13 m、戻りの速さは 1.7 m/s、玉は 0.15 m まで。</p>
+<p><label><input type="checkbox" class="check">⑤ 罠と変えたらが分かった</label></p>
+</div>
+
+<div class="donebox">
+<p id="done-message">5つのチェックをすべて入れると完了になります。</p>
+<button id="done-btn">完了にする</button>
+<p>答え：最下点 2.0 m/s、ブロック 2.0 m/s、最大の縮み 0.18 m、ばねの力 18 N、戻り 1.6 m/s（0.32 s）、玉は 0.13 m まで。振り子と衝突は<a href="pendulum-collide.html">組み合わせ問題W：振り子＋弾性衝突＋摩擦</a>、ばねは<a href="pendulum-spring.html">組み合わせ問題AD：振り子＋弾性衝突＋ばね</a>、単振動は<a href="shm.html">第11問：単振動・振り子</a>、衝突は<a href="collision.html">第12問：運動量・衝突</a>に戻って確認しよう。</p>
+<p><a href="proj-drag.html">← 組み合わせ問題AU：斜方投射＋空気抵抗＋エネルギー</a></p>
+</div>
+
+<a class="toplink" href="#top">↑ TOP</a>
+<script src="../../assets/js/figure.js"></script>
+<script src="../../assets/js/idb.js"></script>
+<script>
+renderAllFigures();
+const boxes = Array.from(document.querySelectorAll('.check'));
+const doneBtn = document.getElementById('done-btn');
+const doneMsg = document.getElementById('done-message');
+const doneKey = 'comboPendulumSpringFricDone';
+const allChecked = () => boxes.every(b => b.checked);
+boxes.forEach(b => b.addEventListener('change', () => { doneBtn.disabled = !allChecked(); }));
+doneBtn.disabled = true;
+(async () => {
+  try {
+    const saved = await loadProgress();
+    if (saved && saved[doneKey]) { doneMsg.textContent = '完了済み ✓'; doneBtn.disabled = true; }
+  } catch (e) { /* IndexedDB が使えない環境では無視 */ }
+})();
+doneBtn.addEventListener('click', async () => {
+  if (!allChecked()) return;
+  try {
+    const saved = await loadProgress();
+    saved[doneKey] = true;
+    await saveProgress(saved);
+    doneMsg.textContent = '完了済み ✓';
+    doneBtn.disabled = true;
+  } catch (e) { doneMsg.textContent = '保存できませんでした（IndexedDB が使えません）。'; }
+});
+</script>
+</body>
+</html>
