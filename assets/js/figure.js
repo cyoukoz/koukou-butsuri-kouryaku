@@ -1784,6 +1784,77 @@ function projWallForces(data) {
   return [];
 }
 
+// ---- 斜方投射＋壁＋床の摩擦（組み合わせAQ）：AB のつづき、着地のあとすべる ----
+// 具体値（検算済み）：m=0.50 kg、v0=10 m/s、45°、壁 5.0 m 先、e=0.80、μ=0.20、g=10。
+//   壁まで t=0.71 s、高さ 2.5 m（ちょうど最高点、vy=0）、vx=7.07 m/s。
+//   はね返り vx′=−5.66 m/s、KE 12.5 J→8.0 J、壁で 4.5 J 失う。
+//   落下 t=0.71 s、着地 x=1.0 m、vy=−7.07 m/s、速さ 9.1 m/s、KE 20.5 J（横 8.0 J＋縦 12.5 J）。
+//   床：摩擦力 1.0 N、加速度 2.0 m/s²、止まるまで 8.0 m、2.8 s、熱 8.0 J。止まるのは x=−7.0 m。
+//   罠：着地の KE 20.5 J が全部熱になる、はまちがい。縦の 12.5 J は着地で失われる。
+//   変えたら：e=1.0 → 着地 x=0、12.5 m すべる、熱 12.5 J。μ=0.40 → 4.0 m、1.4 s、熱は 8.0 J のまま。
+// 図の配置：AB と同じ座標（20 px/m、原点 x=40、地面 y=240）。すべりの場面だけ v-t グラフ。
+function projWallFricDerived(data) {
+  const g = data.g || 10;
+  const v0 = data.v0Ms, ang = (data.angleDeg * Math.PI) / 180;
+  const v0x = v0 * Math.cos(ang), v0y = v0 * Math.sin(ang);
+  const wallXM = data.wallXM, e = data.eRest, m = data.mKg, mu = data.muKin;
+  const tWallS = wallXM / v0x;
+  const yWallM = v0y * tWallS - 0.5 * g * tWallS * tWallS;
+  const vyWallMs = v0y - g * tWallS;
+  const vxAfterMs = -e * v0x;
+  const tFallS = Math.sqrt((2 * yWallM) / g);
+  const xLandM = wallXM + vxAfterMs * tFallS;
+  const vyLandMs = -g * tFallS;
+  const vLandMs = Math.sqrt(vxAfterMs * vxAfterMs + vyLandMs * vyLandMs);
+  const ke0J = 0.5 * m * v0 * v0;
+  const keWallBeforeJ = 0.5 * m * v0x * v0x;
+  const keWallAfterJ = 0.5 * m * vxAfterMs * vxAfterMs;
+  const lossWallJ = keWallBeforeJ - keWallAfterJ;
+  const keLandJ = 0.5 * m * vLandMs * vLandMs;
+  const keLandHJ = 0.5 * m * vxAfterMs * vxAfterMs;
+  const keLandVJ = 0.5 * m * vyLandMs * vyLandMs;
+  // 床をすべる：摩擦力 μmg、加速度 μg、止まるまで v²/(2μg)、時間 |vx|/(μg)。
+  const fricN = mu * m * g;
+  const aSlideMs2 = mu * g;
+  const sStopM = (vxAfterMs * vxAfterMs) / (2 * aSlideMs2);
+  const tStopS = Math.abs(vxAfterMs) / aSlideMs2;
+  const heatJ = keLandHJ;
+  const xStopM = xLandM - sStopM;
+  // 変えたら：e=1.0（弾性）、μ=0.40。
+  const vxE1Ms = -v0x;
+  const xLandE1M = wallXM + vxE1Ms * tFallS;
+  const vLandE1Ms = Math.sqrt(vxE1Ms * vxE1Ms + vyLandMs * vyLandMs);
+  const sStopE1M = (vxE1Ms * vxE1Ms) / (2 * aSlideMs2);
+  const tStopE1S = Math.abs(vxE1Ms) / aSlideMs2;
+  const heatE1J = 0.5 * m * vxE1Ms * vxE1Ms;
+  const xStopE1M = xLandE1M - sStopE1M;
+  const aMu2Ms2 = 0.4 * g;
+  const sStopMu2M = (vxAfterMs * vxAfterMs) / (2 * aMu2Ms2);
+  const tStopMu2S = Math.abs(vxAfterMs) / aMu2Ms2;
+  const xStopMu2M = xLandM - sStopMu2M;
+  // 軌道の点列：壁まで（t 0→tWall を 9 点）、壁から着地まで（t 0→tFall を 9 点）。
+  const trajWall = [0, 1 / 8, 2 / 8, 3 / 8, 4 / 8, 5 / 8, 6 / 8, 7 / 8, 1].map((fr) => {
+    const t = fr * tWallS;
+    return [v0x * t, v0y * t - 0.5 * g * t * t];
+  });
+  const trajLand = [0, 1 / 8, 2 / 8, 3 / 8, 4 / 8, 5 / 8, 6 / 8, 7 / 8, 1].map((fr) => {
+    const t = fr * tFallS;
+    return [wallXM + vxAfterMs * t, yWallM - 0.5 * g * t * t];
+  });
+  return {
+    g, v0x, v0y, tWallS, yWallM, vyWallMs, vxAfterMs, tFallS, xLandM, vyLandMs, vLandMs,
+    ke0J, keWallBeforeJ, keWallAfterJ, lossWallJ, keLandJ, keLandHJ, keLandVJ,
+    fricN, aSlideMs2, sStopM, tStopS, heatJ, xStopM,
+    vxE1Ms, xLandE1M, vLandE1Ms, sStopE1M, tStopE1S, heatE1J, xStopE1M,
+    aMu2Ms2, sStopMu2M, tStopMu2S, xStopMu2M, trajWall, trajLand,
+  };
+}
+
+function projWallFricForces(data) {
+  // 矢印は drawBase が描く（軌道の場面で矢印を分けて描くため）。
+  return [];
+}
+
 // ---- レール＋ばね＋電磁誘導（組み合わせAC）：減衰振動 ----
 // 具体値（検算済み）：m=0.50 kg、B=1.0 T、レール幅 L=1.0 m、R=2.0 Ω、k=50 N/m、x0=0.20 m、g=10。
 //   制動の係数 c = B²L²/R = 0.50 kg/s、γ = c/(2m) = 0.50 /s、ω0 = √(k/m) = 10 rad/s、
@@ -2599,6 +2670,75 @@ function rcChargeDerived(data) {
   };
 }
 function rcChargeForces(data) { return []; }
+
+// ---- RLC直列回路の過渡応答（組み合わせAR）：不足減衰の振動 ----
+// 具体値（検算済み）：E=12 V、R=20 Ω、L=0.10 H、C=100 μF。
+//   ω0 = 1/√(LC) = 316 rad/s、α = R/(2L) = 100 /s、α<ω0 なので不足減衰。
+//   ω' = √(ω0²−α²) = 300 rad/s、T' = 2π/ω' ≈ 21 ms。
+//   i(t) = (E/(Lω')) e^(−αt) sin ω't = 0.40 e^(−100t) sin(300t) A。i(0)=0、最大 0.25 A（t=4.2 ms）。
+//   q(t) = Q∞[1 − e^(−αt)(cos ω't + (α/ω') sin ω't)]。最大 1.62 mC（t=10.5 ms）、Vc=16 V。
+//   Q∞=1.2 mC、U∞=7.2 mJ、電池の仕事 14.4 mJ、ジュール熱 7.2 mJ（AP と同じ。R では変わらない）。
+//   q最大のとき U=13 mJ、W=19 mJ、熱=6.3 mJ。2回目の極値 q=1.05 mC（t=21 ms）。
+//   罠：Vc は電池の 12 V をこえない、はまちがい（16 V まで行く）。電流は最初が最大、もまちがい（0 から始まる）。
+//   変えたら：R=0 → 振動が続く（T=20 ms、q 0↔2.4 mC、Vc 0↔24 V、i最大 0.38 A）。
+//   R=100 Ω → 過減衰で振動なし（遅い時定数 8.9 ms、95% まで 28 ms）。臨界減衰 R=2√(L/C)≈63 Ω。
+// 図の配置：回路図は AP と同じ配置にコイルを底辺へ。グラフは x: t 0→25 ms、y は各図の範囲。
+function rlcChargeDerived(data) {
+  const E = data.emfV, R = data.rOhm, L = data.indH, C = data.capF;
+  const omega0 = 1 / Math.sqrt(L * C);
+  const alpha = R / (2 * L);
+  const omegaP = Math.sqrt(omega0 * omega0 - alpha * alpha);
+  const periodPS = (2 * Math.PI) / omegaP;
+  const qInfC = C * E;
+  const uInfJ = 0.5 * C * E * E;
+  const wBatJ = qInfC * E;
+  const heatJ = wBatJ - uInfJ;
+  const iAmpA = E / (L * omegaP);
+  const tIPeakS = Math.atan(omegaP / alpha) / omegaP;
+  const iPeakA = iAmpA * Math.exp(-alpha * tIPeakS) * Math.sin(omegaP * tIPeakS);
+  const tQPeakS = Math.PI / omegaP;
+  const qPeakC = qInfC * (1 + Math.exp(-alpha * tQPeakS));
+  const vPeakV = qPeakC / C;
+  const uPeakJ = 0.5 * qPeakC * qPeakC / C;
+  const wPeakJ = E * qPeakC;
+  const heatPeakJ = wPeakJ - uPeakJ;
+  const tQ2S = (2 * Math.PI) / omegaP;
+  const q2C = qInfC * (1 - Math.exp(-alpha * tQ2S));
+  const v2V = q2C / C;
+  // 変えたら：R=0、R=100 Ω（過減衰）、臨界減衰。
+  const period0S = (2 * Math.PI) / omega0;
+  const qMax0C = 2 * qInfC;
+  const vMax0V = qMax0C / C;
+  const iMax0A = qInfC * omega0;
+  const rCritOhm = 2 * Math.sqrt(L / C);
+  const alpha2 = 100 / (2 * L);
+  const disc2 = Math.sqrt(alpha2 * alpha2 - omega0 * omega0);
+  const s1 = -alpha2 + disc2, s2 = -alpha2 - disc2;
+  const tauSlowS = 1 / Math.abs(s1);
+  const qOver = (t) => qInfC * (1 - (s2 * Math.exp(s1 * t) - s1 * Math.exp(s2 * t)) / (s2 - s1));
+  let lo = 0, hi = 0.2;
+  for (let i = 0; i < 60; i++) {
+    const mid = (lo + hi) / 2;
+    if (qOver(mid) < 0.95 * qInfC) lo = mid; else hi = mid;
+  }
+  const t95R2S = (lo + hi) / 2;
+  // 曲線の点列（t 0→25 ms を 21 点）。
+  const iCurve = [];
+  const qCurve = [];
+  for (let i = 0; i <= 20; i++) {
+    const t = (i / 20) * 0.025;
+    iCurve.push([t, iAmpA * Math.exp(-alpha * t) * Math.sin(omegaP * t)]);
+    qCurve.push([t, qInfC * (1 - Math.exp(-alpha * t) * (Math.cos(omegaP * t) + (alpha / omegaP) * Math.sin(omegaP * t)))]);
+  }
+  return {
+    E, R, L, C, omega0, alpha, omegaP, periodPS, qInfC, uInfJ, wBatJ, heatJ,
+    iAmpA, tIPeakS, iPeakA, tQPeakS, qPeakC, vPeakV, uPeakJ, wPeakJ, heatPeakJ,
+    tQ2S, q2C, v2V, period0S, qMax0C, vMax0V, iMax0A, rCritOhm,
+    s1, s2, tauSlowS, t95R2S, iCurve, qCurve,
+  };
+}
+
+function rlcChargeForces(data) { return []; }
 
 // p-V 図の座標：V 0→1.0 L を x 60→340 px、log10(p) 1e5→1e7 Pa を y 220→50 px。
 function ottoX(vM3) { return 60 + 280 * (vM3 / 0.001); }
@@ -4462,6 +4602,16 @@ function sceneFor(type, thetaDeg, mgPx, fPx, data) {
       forces: projWallForces(data),
     };
   }
+  if (type === 'projWallFric') {
+    const d = projWallFricDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      mKg: data.mKg, v0Ms: data.v0Ms, angleDeg: data.angleDeg, wallXM: data.wallXM, eRest: data.eRest, muKin: data.muKin, g: data.g || 10,
+      derived: d,
+      center: { x: 200, y: 150 }, centerDot: false,
+      forces: projWallFricForces(data),
+    };
+  }
   if (type === 'railSpringDamp') {
     const d = railSpringDampDerived(data);
     return {
@@ -4605,6 +4755,16 @@ function sceneFor(type, thetaDeg, mgPx, fPx, data) {
       derived: d,
       center: { x: 200, y: 150 }, centerDot: false,
       forces: rcChargeForces(data),
+    };
+  }
+  if (type === 'rlcCharge') {
+    const d = rlcChargeDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      emfV: data.emfV, rOhm: data.rOhm, indH: data.indH, capF: data.capF,
+      derived: d,
+      center: { x: 200, y: 150 }, centerDot: false,
+      forces: rlcChargeForces(data),
     };
   }
   if (type === 'slopePulley') {
@@ -5622,6 +5782,45 @@ function validateScene(scene) {
     if (Math.abs(d.keLandJ - (d.keWallAfterJ + d.peWallJ)) > 1e-9) return ['着地の運動エネルギーが 壁のあとの KE + PE と一致しません'];
     if (Math.abs((d.keWallBeforeJ + d.peWallJ) - d.ke0J) > 1e-9) return ['壁の前で KE + PE がはじめのエネルギーと一致しません'];
   }
+  if (scene.type === 'projWallFric') {
+    const d = scene.derived;
+    // 壁に当たるまで：t = 壁までの距離/v0x。壁のところが最高点（vy=0、高さ 2.5 m）。
+    if (Math.abs(d.tWallS - scene.wallXM / d.v0x) > 1e-9) return ['壁に当たるまでの時間が 距離/v0x と一致しません'];
+    if (Math.abs(d.yWallM - (d.v0y * d.tWallS - 0.5 * d.g * d.tWallS * d.tWallS)) > 1e-9) return ['壁の高さが投射の式と一致しません'];
+    if (Math.abs(d.vyWallMs) > 1e-9) return ['壁のところで鉛直速度が 0 になっていません'];
+    // 衝突：vx′ = −e·vx。落ちる時間：t = √(2h/g)。着地点：x = 壁 + vx′·t。着地の速さ。
+    if (Math.abs(d.vxAfterMs + scene.eRest * d.v0x) > 1e-9) return ['衝突後の水平速度が −e·vx と一致しません'];
+    if (Math.abs(d.tFallS - Math.sqrt((2 * d.yWallM) / d.g)) > 1e-9) return ['落ちる時間が √(2h/g) と一致しません'];
+    if (Math.abs(d.xLandM - (scene.wallXM + d.vxAfterMs * d.tFallS)) > 1e-9) return ['着地点が 壁 + vx′·t と一致しません'];
+    if (Math.abs(d.vLandMs - Math.sqrt(d.vxAfterMs * d.vxAfterMs + d.vyLandMs * d.vyLandMs)) > 1e-9) return ['着地の速さが成分から計算した値と一致しません'];
+    // エネルギー：壁で失われるのは (1−e²)×½mv0x²。着地の KE = 横 + 縦。
+    if (Math.abs(d.lossWallJ - ((1 - scene.eRest * scene.eRest) * d.keWallBeforeJ)) > 1e-9) return ['失われるエネルギーが (1−e²)×水平の運動エネルギー と一致しません'];
+    if (Math.abs(d.keLandJ - (d.keLandHJ + d.keLandVJ)) > 1e-9) return ['着地の運動エネルギーが 横 + 縦 と一致しません'];
+    if (Math.abs(d.keLandJ - (d.keWallAfterJ + scene.mKg * d.g * d.yWallM)) > 1e-9) return ['着地の運動エネルギーが 壁のあとの KE + PE と一致しません'];
+    // 床をすべる：摩擦力 μmg、加速度 μg、止まるまで v²/(2μg)、時間 |vx|/(μg)、熱 = 横の KE。
+    if (Math.abs(d.fricN - scene.muKin * scene.mKg * d.g) > 1e-9) return ['摩擦力が μmg と一致しません'];
+    if (Math.abs(d.aSlideMs2 - scene.muKin * d.g) > 1e-9) return ['すべりの加速度が μg と一致しません'];
+    if (Math.abs(d.sStopM - (d.vxAfterMs * d.vxAfterMs) / (2 * d.aSlideMs2)) > 1e-9) return ['止まるまでの距離が v²/(2μg) と一致しません'];
+    if (Math.abs(d.tStopS - Math.abs(d.vxAfterMs) / d.aSlideMs2) > 1e-9) return ['止まるまでの時間が |vx|/(μg) と一致しません'];
+    if (Math.abs(d.heatJ - d.keLandHJ) > 1e-9) return ['摩擦熱が横の運動エネルギーと一致しません'];
+    if (Math.abs(d.xStopM - (d.xLandM - d.sStopM)) > 1e-9) return ['止まる位置が 着地 − すべる距離 と一致しません'];
+    // 変えたら：e=1.0、μ=0.40。
+    if (Math.abs(d.vxE1Ms + d.v0x) > 1e-9) return ['e=1.0 の衝突後の水平速度が一致しません'];
+    if (Math.abs(d.xLandE1M - (scene.wallXM + d.vxE1Ms * d.tFallS)) > 1e-9) return ['e=1.0 の着地点が一致しません'];
+    if (Math.abs(d.sStopE1M - (d.vxE1Ms * d.vxE1Ms) / (2 * d.aSlideMs2)) > 1e-9) return ['e=1.0 の止まるまでの距離が一致しません'];
+    if (Math.abs(d.heatE1J - 0.5 * scene.mKg * d.vxE1Ms * d.vxE1Ms) > 1e-9) return ['e=1.0 の摩擦熱が一致しません'];
+    if (Math.abs(d.aMu2Ms2 - 0.4 * d.g) > 1e-9) return ['μ=0.40 の加速度が一致しません'];
+    if (Math.abs(d.sStopMu2M - (d.vxAfterMs * d.vxAfterMs) / (2 * d.aMu2Ms2)) > 1e-9) return ['μ=0.40 の止まるまでの距離が一致しません'];
+    // 軌道の点列：y = v0y·t − gt²/2（壁まで）、y = h − gt²/2（壁から）。
+    for (const [x, y] of d.trajWall) {
+      const t = x / d.v0x;
+      if (Math.abs(y - (d.v0y * t - 0.5 * d.g * t * t)) > 1e-9) return ['壁までの軌道の点が放物線と一致しません'];
+    }
+    for (const [x, y] of d.trajLand) {
+      const t = (scene.wallXM - x) / Math.abs(d.vxAfterMs);
+      if (Math.abs(y - (d.yWallM - 0.5 * d.g * t * t)) > 1e-9) return ['壁からの軌道の点が放物線と一致しません'];
+    }
+  }
   if (scene.type === 'railSpringDamp') {
     const d = scene.derived;
     // 制動の係数：c = B²L²/R。減衰率 γ = c/(2m)。角振動数 ω' = √(ω0²−γ²)。
@@ -6066,6 +6265,46 @@ function validateScene(scene) {
     // 充電曲線の点列：q = Q∞(1−e^(−t/τ))。
     for (const [t, q] of d.curve) {
       if (Math.abs(q - d.qInfC * (1 - Math.exp(-t / d.tauS))) > 1e-12) return ['充電曲線の点が一致しません'];
+    }
+  }
+  if (scene.type === 'rlcCharge') {
+    const d = scene.derived;
+    // 固有角振動数と減衰：ω0 = 1/√(LC)、α = R/(2L)、ω' = √(ω0²−α²)、T' = 2π/ω'。
+    if (Math.abs(d.omega0 - 1 / Math.sqrt(scene.indH * scene.capF)) > 1e-9) return ['固有角振動数が 1/√(LC) と一致しません'];
+    if (Math.abs(d.alpha - scene.rOhm / (2 * scene.indH)) > 1e-9) return ['減衰率が R/(2L) と一致しません'];
+    if (Math.abs(d.omegaP - Math.sqrt(d.omega0 * d.omega0 - d.alpha * d.alpha)) > 1e-9) return ['減衰振動の角振動数が √(ω0²−α²) と一致しません'];
+    if (Math.abs(d.periodPS - (2 * Math.PI) / d.omegaP) > 1e-9) return ['周期が 2π/ω′ と一致しません'];
+    // 最終値とエネルギー：Q∞ = CE、U∞ = ½CE²、W = Q∞E、熱 = W − U∞。
+    if (Math.abs(d.qInfC - scene.capF * scene.emfV) > 1e-12) return ['最終の電気量が CE と一致しません'];
+    if (Math.abs(d.uInfJ - 0.5 * scene.capF * scene.emfV * scene.emfV) > 1e-12) return ['たまるエネルギーが ½CE² と一致しません'];
+    if (Math.abs(d.wBatJ - d.qInfC * scene.emfV) > 1e-12) return ['電池の仕事が Q∞E と一致しません'];
+    if (Math.abs(d.heatJ - (d.wBatJ - d.uInfJ)) > 1e-12) return ['ジュール熱が W − U∞ と一致しません'];
+    // 電流：i(t) = (E/(Lω')) e^(−αt) sin ω't。最大は tan(ω't) = ω'/α のとき。
+    if (Math.abs(d.iAmpA - scene.emfV / (scene.indH * d.omegaP)) > 1e-12) return ['電流の振幅が E/(Lω′) と一致しません'];
+    if (Math.abs(Math.tan(d.omegaP * d.tIPeakS) - d.omegaP / d.alpha) > 1e-9) return ['電流が最大になる時刻が tan(ω′t) = ω′/α と一致しません'];
+    if (Math.abs(d.iPeakA - d.iAmpA * Math.exp(-d.alpha * d.tIPeakS) * Math.sin(d.omegaP * d.tIPeakS)) > 1e-12) return ['最大電流が i(t) と一致しません'];
+    // 電気量：q は ω't = π で最大。q最大 = Q∞(1 + e^(−απ/ω'))、Vc = q/C、U = q²/2C、W = Eq。
+    if (Math.abs(d.tQPeakS - Math.PI / d.omegaP) > 1e-12) return ['電気量が最大になる時刻が π/ω′ と一致しません'];
+    if (Math.abs(d.qPeakC - d.qInfC * (1 + Math.exp(-d.alpha * d.tQPeakS))) > 1e-12) return ['最大の電気量が一致しません'];
+    if (Math.abs(d.vPeakV - d.qPeakC / scene.capF) > 1e-9) return ['最大の電圧が q/C と一致しません'];
+    if (Math.abs(d.uPeakJ - (0.5 * d.qPeakC * d.qPeakC) / scene.capF) > 1e-12) return ['最大のときのエネルギーが q²/2C と一致しません'];
+    if (Math.abs(d.wPeakJ - scene.emfV * d.qPeakC) > 1e-12) return ['最大のときの電池の仕事が Eq と一致しません'];
+    if (Math.abs(d.heatPeakJ - (d.wPeakJ - d.uPeakJ)) > 1e-12) return ['最大のときのジュール熱が W − U と一致しません'];
+    if (Math.abs(d.q2C - d.qInfC * (1 - Math.exp(-d.alpha * d.tQ2S))) > 1e-12) return ['2回目の極値の電気量が一致しません'];
+    // 変えたら：R=0、R=100 Ω（過減衰）、臨界減衰。
+    if (Math.abs(d.period0S - (2 * Math.PI) / d.omega0) > 1e-9) return ['R=0 の周期が 2π/ω0 と一致しません'];
+    if (Math.abs(d.qMax0C - 2 * d.qInfC) > 1e-12) return ['R=0 の最大の電気量が 2Q∞ と一致しません'];
+    if (Math.abs(d.iMax0A - d.qInfC * d.omega0) > 1e-12) return ['R=0 の最大電流が Q∞ω0 と一致しません'];
+    if (Math.abs(d.rCritOhm - 2 * Math.sqrt(scene.indH / scene.capF)) > 1e-9) return ['臨界減衰の抵抗が 2√(L/C) と一致しません'];
+    if (Math.abs(d.s1 + d.alpha - Math.sqrt(d.alpha * d.alpha - d.omega0 * d.omega0)) > 1e-9) return ['過減衰の遅い根が一致しません'];
+    if (Math.abs(d.tauSlowS - 1 / Math.abs(d.s1)) > 1e-12) return ['過減衰の遅い時定数が一致しません'];
+    // 曲線の点列：i(t)、q(t)。
+    for (const [t, i] of d.iCurve) {
+      if (Math.abs(i - d.iAmpA * Math.exp(-d.alpha * t) * Math.sin(d.omegaP * t)) > 1e-12) return ['電流曲線の点が一致しません'];
+    }
+    for (const [t, q] of d.qCurve) {
+      const expect = d.qInfC * (1 - Math.exp(-d.alpha * t) * (Math.cos(d.omegaP * t) + (d.alpha / d.omegaP) * Math.sin(d.omegaP * t)));
+      if (Math.abs(q - expect) > 1e-12) return ['電気量曲線の点が一致しません'];
     }
   }
   if (scene.type === 'charged-circle') {
@@ -8646,6 +8885,110 @@ function drawBase(svg, scene) {
         const tN3 = el('text', { x: 40, y: 292, fill: '#555' }); tN3.textContent = '反発係数 e=0.80'; svg.appendChild(tN3);
       }
     }
+  } else if (scene.type === 'projWallFric') {
+    const d = scene.derived;
+    const phase = scene.phase;
+    const tH = el('text', { x: 40, y: 36, fill: '#333' });
+    tH.textContent = phase === 'wall' ? '壁に当たるまで：最高点に着く'
+      : phase === 'land' ? 'はね返ったあと：x=1.0 m に着地'
+      : phase === 'slide' ? '床をすべる：摩擦で止まる'
+      : phase === 'trap' ? '罠：着地の KE が全部熱になる、はまちがい'
+      : phase === 'vary' ? '変えたら：e=1.0・μ=0.40'
+      : '斜方投射＋壁＋床の摩擦：AB のつづき';
+    svg.appendChild(tH);
+    const note = (y, text) => { const t = el('text', { x: 60, y, fill: '#333' }); t.textContent = text; svg.appendChild(t); };
+    const barRows = (rows) => {
+      rows.forEach((r, i) => {
+        const y = 75 + i * 45;
+        const tN = el('text', { x: 60, y: y - 8 }); tN.textContent = r.name; svg.appendChild(tN);
+        svg.appendChild(el('rect', { x: 140, y, width: r.w, height: 18, fill: r.color, stroke: '#333', 'stroke-width': 1 }));
+        const tV = el('text', { x: 140 + r.w + 8, y: y + 15 }); tV.textContent = r.val; svg.appendChild(tV);
+      });
+    };
+    // AB と同じ座標（20 px/m、原点 x=40、地面 y=240）。
+    const pxPerM = 20, groundY = 240, originX = 40;
+    const xOf = (xm) => originX + xm * pxPerM;
+    const yOf = (ym) => groundY - ym * pxPerM;
+    const trajPath = (pts) => pts.map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${xOf(x).toFixed(1)} ${yOf(y).toFixed(1)}`).join(' ');
+    if (phase === 'base') {
+      // 2つの軌道と、出発点・着地点の玉。初速度の矢印（破線）。
+      svg.appendChild(el('line', { x1: 40, y1: 240, x2: 360, y2: 240, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('rect', { x: 140, y: 170, width: 10, height: 70, fill: '#888', stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('path', { d: trajPath(d.trajWall), fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
+      svg.appendChild(el('path', { d: trajPath(d.trajLand), fill: 'none', stroke: '#0066cc', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 40, y1: 230, x2: 68, y2: 202, stroke: '#d35400', 'stroke-width': 2, 'stroke-dasharray': '5 4', 'marker-end': 'url(#fig-arrow)' }));
+      svg.appendChild(el('circle', { cx: 40, cy: 230, r: 10, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx: xOf(d.xLandM), cy: 230, r: 10, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      const tV = el('text', { x: 60, y: 170, fill: '#d35400' }); tV.textContent = 'v0=10 m/s'; svg.appendChild(tV);
+      const tW = el('text', { x: 152, y: 160 }); tW.textContent = '壁'; svg.appendChild(tW);
+      const tL = el('text', { x: 100, y: 222 }); tL.textContent = '着地'; svg.appendChild(tL);
+      note(258, 'v0=10 m/s、45°、壁は 5.0 m 先');
+      note(276, '着地は x=1.0 m、速さ 9.1 m/s');
+      note(294, '着地のあと 8.0 m すべって止まる');
+    } else if (phase === 'wall') {
+      // 壁のところが最高点：玉は壁に着き、鉛直速度は 0。水平の速さだけが残る。
+      svg.appendChild(el('line', { x1: 40, y1: 240, x2: 360, y2: 240, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('rect', { x: 140, y: 170, width: 10, height: 70, fill: '#888', stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('path', { d: trajPath(d.trajWall), fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx: 140, cy: 190, r: 10, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 60, y1: 190, x2: 140, y2: 190, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      const tV = el('text', { x: 56, y: 164 }); tV.textContent = 'vy=0（最高点）'; svg.appendChild(tV);
+      const tH2 = el('text', { x: 160, y: 140 }); tH2.textContent = '高さ 2.5 m'; svg.appendChild(tH2);
+      note(258, '壁に当たるまで 0.71 s');
+      note(276, '壁のところがちょうど最高点（vy=0）');
+      note(294, '高さは 2.5 m、水平の速さは 7.1 m/s');
+    } else if (phase === 'land') {
+      // 跳ね返ったあと：2つの軌道と、着地点の玉。
+      svg.appendChild(el('line', { x1: 40, y1: 240, x2: 360, y2: 240, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('rect', { x: 140, y: 170, width: 10, height: 70, fill: '#888', stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('path', { d: trajPath(d.trajWall), fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
+      svg.appendChild(el('path', { d: trajPath(d.trajLand), fill: 'none', stroke: '#0066cc', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx: xOf(d.xLandM), cy: 230, r: 10, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      const tL = el('text', { x: 100, y: 222 }); tL.textContent = '着地'; svg.appendChild(tL);
+      note(258, '0.71 s で落ちる（高さ 2.5 m）');
+      note(276, '着地 x=1.0 m、速さ 9.1 m/s');
+      note(294, '縦の速さ 7.1 m/s は着地で 0 になる');
+    } else if (phase === 'slide') {
+      // v-t グラフ：v は 5.66 m/s から直線で減り、2.8 s で 0 になる。面積が 8.0 m。
+      const xOfT = (t) => 60 + (t / 3.0) * 280;
+      const yOfV = (v) => 220 - (v / 6.0) * 150;
+      svg.appendChild(el('line', { x1: 60, y1: 220, x2: 340, y2: 220, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 60, y1: 60, x2: 60, y2: 220, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: xOfT(d.tStopS), y1: 214, x2: xOfT(d.tStopS), y2: 224, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 60, y1: yOfV(Math.abs(d.vxAfterMs)), x2: xOfT(d.tStopS), y2: 220, stroke: '#0066cc', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx: 60, cy: yOfV(Math.abs(d.vxAfterMs)), r: 4, fill: '#333' }));
+      svg.appendChild(el('circle', { cx: xOfT(d.tStopS), cy: 220, r: 4, fill: '#333' }));
+      const tV = el('text', { x: 72, y: 70 }); tV.textContent = 'v=5.66 m/s'; svg.appendChild(tV);
+      const tY = el('text', { x: 48, y: 66 }); tY.textContent = 'v'; svg.appendChild(tY);
+      const tX = el('text', { x: 354, y: 238 }); tX.textContent = 't'; svg.appendChild(tX);
+      const tT = el('text', { x: xOfT(d.tStopS), y: 238, 'text-anchor': 'middle' }); tT.textContent = '2.8 s'; svg.appendChild(tT);
+      const t0 = el('text', { x: 52, y: 236 }); t0.textContent = '0'; svg.appendChild(t0);
+      const tA = el('text', { x: 170, y: 190, 'text-anchor': 'middle' }); tA.textContent = '面積 8.0 m'; svg.appendChild(tA);
+      note(258, '摩擦力 1.0 N が 2.0 m/s² で減らす');
+      note(276, '止まるまで 8.0 m、2.8 s');
+      note(294, '摩擦熱は 8.0 J');
+    } else if (phase === 'trap') {
+      // 着地の KE の内訳と摩擦熱の比べ（8 px/J）。
+      barRows([
+        { name: '着地の KE 20.5 J', w: d.keLandJ * 8, val: '20.5 J', color: '#ffd24d' },
+        { name: '横の KE 8.0 J', w: d.keLandHJ * 8, val: '8.0 J', color: '#cfe3ff' },
+        { name: '縦の KE 12.5 J', w: d.keLandVJ * 8, val: '12.5 J', color: '#ffb3b3' },
+        { name: '摩擦熱 8.0 J', w: d.heatJ * 8, val: '8.0 J', color: '#b3e6b3' },
+      ]);
+      note(258, '縦の 12.5 J は着地で失われる');
+      note(276, '摩擦熱になるのは横の 8.0 J だけ');
+      note(294, '20.5 J が全部熱になる、はまちがい');
+    } else if (phase === 'vary') {
+      // 止まるまでの距離の比べ（12 px/m）。
+      barRows([
+        { name: 'e=1.0：12.5 m', w: d.sStopE1M * 12, val: '12.5 m', color: '#ffd24d' },
+        { name: 'もと e=0.80：8.0 m', w: d.sStopM * 12, val: '8.0 m', color: '#cfe3ff' },
+        { name: 'μ=0.40：4.0 m', w: d.sStopMu2M * 12, val: '4.0 m', color: '#b3e6b3' },
+      ]);
+      note(258, 'e=1.0 なら着地は出発点、12.5 m すべる');
+      note(276, 'μ=0.40 なら 4.0 m で止まる');
+      note(294, 'μ=0 なら止まらない');
+    }
   } else if (scene.type === 'railSpringDamp') {
     const d = scene.derived;
     const tH = el('text', { x: 40, y: 36, fill: '#555' });
@@ -10197,6 +10540,129 @@ function drawBase(svg, scene) {
       note(276, 'C 2倍で U は 2 倍、E 2倍で 4 倍');
       note(294, 'τ は RC で決まる');
     }
+  } else if (scene.type === 'rlcCharge') {
+    const d = scene.derived;
+    const phase = scene.phase;
+    const tH = el('text', { x: 40, y: 36, fill: '#333' });
+    tH.textContent = phase === 'condition' ? '不足減衰の条件：α < ω0'
+      : phase === 'current' ? '電流：0 から始まって最大 0.25 A'
+      : phase === 'charge' ? '電気量：1.2 mC をこえて 1.62 mC'
+      : phase === 'trap' ? '罠：電圧は電池をこえない、はまちがい'
+      : phase === 'vary' ? '変えたら：R=0・R=100 Ω'
+      : 'RLC回路：電池・抵抗・コイル・コンデンサ';
+    svg.appendChild(tH);
+    const note = (y, text) => { const t = el('text', { x: 60, y, fill: '#333' }); t.textContent = text; svg.appendChild(t); };
+    const barRows = (rows) => {
+      rows.forEach((r, i) => {
+        const y = 75 + i * 45;
+        const tN = el('text', { x: 60, y: y - 8 }); tN.textContent = r.name; svg.appendChild(tN);
+        svg.appendChild(el('rect', { x: 140, y, width: r.w, height: 18, fill: r.color, stroke: '#333', 'stroke-width': 1 }));
+        const tV = el('text', { x: 140 + r.w + 8, y: y + 15 }); tV.textContent = r.val; svg.appendChild(tV);
+      });
+    };
+    if (phase === 'base') {
+      // 回路図。AP と同じ配置に、底辺へコイルを入れる。左に電池、上が抵抗、右にコンデンサ。
+      svg.appendChild(el('line', { x1: 100, y1: 110, x2: 140, y2: 110, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('path', { d: 'M 140 110 L 150 100 L 160 120 L 170 100 L 180 120 L 190 100 L 200 120 L 210 100 L 220 120 L 230 100 L 240 120 L 250 100 L 260 110', fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 260, y1: 110, x2: 300, y2: 110, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 300, y1: 110, x2: 300, y2: 148, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 288, y1: 150, x2: 312, y2: 150, stroke: '#333', 'stroke-width': 3 }));
+      svg.appendChild(el('line', { x1: 288, y1: 165, x2: 312, y2: 165, stroke: '#333', 'stroke-width': 3 }));
+      svg.appendChild(el('line', { x1: 300, y1: 167, x2: 300, y2: 210, stroke: '#333', 'stroke-width': 2 }));
+      // コイル（底辺、右側）：4つの小さな弧。
+      svg.appendChild(el('path', { d: 'M 300 210 Q 295 226 290 210 Q 285 226 280 210 Q 275 226 270 210 Q 265 226 260 210', fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 260, y1: 210, x2: 220, y2: 210, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 220, y1: 210, x2: 186, y2: 192, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx: 220, cy: 210, r: 3, fill: '#333' }));
+      svg.appendChild(el('circle', { cx: 180, cy: 210, r: 3, fill: '#333' }));
+      svg.appendChild(el('line', { x1: 180, y1: 210, x2: 100, y2: 210, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 100, y1: 110, x2: 100, y2: 148, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 88, y1: 150, x2: 112, y2: 150, stroke: '#333', 'stroke-width': 3 }));
+      svg.appendChild(el('line', { x1: 92, y1: 165, x2: 108, y2: 165, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 100, y1: 167, x2: 100, y2: 210, stroke: '#333', 'stroke-width': 2 }));
+      // 充電の向きの矢印（上の配線、赤）。
+      svg.appendChild(el('line', { x1: 104, y1: 110, x2: 136, y2: 110, stroke: '#b00', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+      const tB = el('text', { x: 84, y: 158, 'text-anchor': 'end' }); tB.textContent = '電池 12 V'; svg.appendChild(tB);
+      const tP = el('text', { x: 118, y: 156 }); tP.textContent = '＋'; svg.appendChild(tP);
+      const tR = el('text', { x: 200, y: 88, 'text-anchor': 'middle' }); tR.textContent = 'R=20 Ω'; svg.appendChild(tR);
+      const tC = el('text', { x: 318, y: 160 }); tC.textContent = 'C=100 μF'; svg.appendChild(tC);
+      const tS = el('text', { x: 200, y: 238, 'text-anchor': 'middle' }); tS.textContent = 'スイッチ'; svg.appendChild(tS);
+      const tL = el('text', { x: 250, y: 190, 'text-anchor': 'middle' }); tL.textContent = 'L=0.10 H'; svg.appendChild(tL);
+      note(258, 'スイッチを入れると電流が流れる');
+      note(276, 'コイルがあるので電流は 0 から始まる');
+      note(294, '電気量は振動しながら 1.2 mC に落ち着く');
+    } else if (phase === 'condition') {
+      // α と ω0・ω' の比べ（0.5 px/(rad/s)）。α < ω0 なので不足減衰。
+      barRows([
+        { name: 'ω0 = 1/√(LC)', w: d.omega0 * 0.5, val: '316 rad/s', color: '#cfe3ff' },
+        { name: "ω' = √(ω0²−α²)", w: d.omegaP * 0.5, val: '300 rad/s', color: '#b3e6b3' },
+        { name: 'α = R/(2L)', w: d.alpha * 0.5, val: '100 /s', color: '#ffb3b3' },
+      ]);
+      note(258, 'α = 100 /s、ω0 = 316 rad/s');
+      note(276, 'α < ω0 なので不足減衰になる');
+      note(294, "周期 T' = 2π/ω' ≈ 21 ms");
+    } else if (phase === 'current') {
+      // i-t グラフ。x: t 0→25 ms を 60→340 px、y: i −0.10→0.30 A を 220→70 px。
+      const xOfT = (t) => 60 + (t / 0.025) * 280;
+      const yOfI = (i) => 220 - ((i + 0.10) / 0.40) * 150;
+      svg.appendChild(el('line', { x1: 60, y1: 220, x2: 340, y2: 220, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 60, y1: 60, x2: 60, y2: 220, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 60, y1: yOfI(0), x2: 340, y2: yOfI(0), stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+      const pts = d.iCurve.map(([t, i]) => [xOfT(t), yOfI(i)]);
+      svg.appendChild(el('path', { d: pts.map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`).join(' '), fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: xOfT(d.tIPeakS), y1: yOfI(d.iPeakA), x2: xOfT(d.tIPeakS), y2: 220, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+      svg.appendChild(el('circle', { cx: xOfT(d.tIPeakS), cy: yOfI(d.iPeakA), r: 4, fill: '#333' }));
+      const tP = el('text', { x: 120, y: 80 }); tP.textContent = '最大 0.25 A'; svg.appendChild(tP);
+      const tY = el('text', { x: 48, y: 66 }); tY.textContent = 'i'; svg.appendChild(tY);
+      const tX = el('text', { x: 344, y: 238 }); tX.textContent = 't'; svg.appendChild(tX);
+      const tT = el('text', { x: xOfT(d.tIPeakS), y: 238, 'text-anchor': 'middle' }); tT.textContent = '4.2 ms'; svg.appendChild(tT);
+      const t0 = el('text', { x: 52, y: 236 }); t0.textContent = '0'; svg.appendChild(t0);
+      const tZ = el('text', { x: 344, y: 186 }); tZ.textContent = 'i=0'; svg.appendChild(tZ);
+      note(258, '電流は 0 から始まる');
+      note(276, '4.2 ms で最大 0.25 A');
+      note(294, 'そのあと振動しながら 0 に近づく');
+    } else if (phase === 'charge') {
+      // q-t グラフ。x: t 0→25 ms を 60→340 px、y: q 0→2.0 mC を 220→70 px。
+      const xOfT = (t) => 60 + (t / 0.025) * 280;
+      const yOfQ = (q) => 220 - (q / 0.002) * 150;
+      svg.appendChild(el('line', { x1: 60, y1: 220, x2: 340, y2: 220, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 60, y1: 60, x2: 60, y2: 220, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 60, y1: yOfQ(d.qInfC), x2: 340, y2: yOfQ(d.qInfC), stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+      const pts = d.qCurve.map(([t, q]) => [xOfT(t), yOfQ(q)]);
+      svg.appendChild(el('path', { d: pts.map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`).join(' '), fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: xOfT(d.tQPeakS), y1: yOfQ(d.qPeakC), x2: xOfT(d.tQPeakS), y2: 220, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+      svg.appendChild(el('circle', { cx: xOfT(d.tQPeakS), cy: yOfQ(d.qPeakC), r: 4, fill: '#333' }));
+      svg.appendChild(el('circle', { cx: xOfT(d.tQ2S), cy: yOfQ(d.q2C), r: 4, fill: '#333' }));
+      const tQ = el('text', { x: 250, y: 118 }); tQ.textContent = 'Q∞=1.2 mC'; svg.appendChild(tQ);
+      const tY = el('text', { x: 48, y: 66 }); tY.textContent = 'q'; svg.appendChild(tY);
+      const tX = el('text', { x: 344, y: 238 }); tX.textContent = 't'; svg.appendChild(tX);
+      const t0 = el('text', { x: 52, y: 236 }); t0.textContent = '0'; svg.appendChild(t0);
+      const tP = el('text', { x: 190, y: 88 }); tP.textContent = '最大 1.62 mC（Vc=16 V）'; svg.appendChild(tP);
+      const t2 = el('text', { x: 250, y: 160 }); t2.textContent = '21 ms で 1.05 mC'; svg.appendChild(t2);
+      note(258, '電気量は 1.62 mC まで行き過ぎる');
+      note(276, 'そのときコンデンサの電圧は 16 V');
+      note(294, '21 ms で 1.05 mC にもどる');
+    } else if (phase === 'trap') {
+      // 電圧の比べ（8 px/V）。
+      barRows([
+        { name: '電池の電圧 12 V', w: 12 * 8, val: '12 V', color: '#cfe3ff' },
+        { name: 'コンデンサの最大電圧 16 V', w: d.vPeakV * 8, val: '16 V', color: '#ffb3b3' },
+        { name: 'R=0 なら最大 24 V', w: d.vMax0V * 8, val: '24 V', color: '#ffd24d' },
+      ]);
+      note(258, 'コイルがあると電圧は電池をこえる');
+      note(276, '電流は 0 から始まり、4.2 ms で最大になる');
+      note(294, 'RC だけなら電流は最初が最大 0.12 A');
+    } else if (phase === 'vary') {
+      // q最大の比べ（80 px/mC）。
+      barRows([
+        { name: 'R=0：q最大 2.4 mC', w: d.qMax0C * 1000 * 80, val: '2.4 mC', color: '#ffd24d' },
+        { name: 'もと R=20 Ω：1.62 mC', w: d.qPeakC * 1000 * 80, val: '1.62 mC', color: '#cfe3ff' },
+        { name: 'R=100 Ω：1.2 mC', w: d.qInfC * 1000 * 80, val: '1.2 mC', color: '#b3e6b3' },
+      ]);
+      note(258, 'R=0 なら振動は続く（周期 20 ms）');
+      note(276, 'R=100 Ω なら振動せず、95% まで 28 ms');
+      note(294, '臨界減衰は R≈63 Ω');
+    }
   } else if (scene.type === 'capacitor') {
     const topY = 110, dPx = scene.dPx;
     // 2枚の極板（水平）。上板が +、下板が −。
@@ -11338,4 +11804,4 @@ function renderAllFigures() {
   });
 }
 
-if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, capSpringGravDerived, capSpringGravForces, gasSpringCycleDerived, gasSpringCycleForces, slopeSpringDerived, slopeSpringForces, fallLoopDerived, fallLoopForces, beltSpringDerived, beltSpringForces, massSpecDerived, massSpecForces, coilHallDerived, coilHallForces, platformChargeDerived, platformChargeForces, pendulumCollideDerived, pendulumCollideForces, photoCapDerived, photoCapForces, orbitTransferDerived, orbitTransferForces, cyclotronDerived, cyclotronForces, slopeSpringFricDerived, slopeSpringFricForces, projWallDerived, projWallForces, railSpringDampDerived, railSpringDampForces, pendulumSpringDerived, pendulumSpringForces, gasPistonOscDerived, gasPistonOscForces, photoCircleDerived, photoCircleForces, earthTunnelDerived, earthTunnelForces, heaterGasDerived, heaterGasForces, specPhotoCircleDerived, specPhotoCircleForces, ottoCycleDerived, ottoCycleForces, generatorACDerived, generatorACForces, explodeProjectileDerived, explodeProjectileForces, slopePulleySpringDerived, slopePulleySpringForces, cathodeRayDerived, cathodeRayForces, conicalPendulumDerived, conicalPendulumForces, rcChargeDerived, rcChargeForces, sceneFor, validateScene, renderFigure };
+if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, capSpringGravDerived, capSpringGravForces, gasSpringCycleDerived, gasSpringCycleForces, slopeSpringDerived, slopeSpringForces, fallLoopDerived, fallLoopForces, beltSpringDerived, beltSpringForces, massSpecDerived, massSpecForces, coilHallDerived, coilHallForces, platformChargeDerived, platformChargeForces, pendulumCollideDerived, pendulumCollideForces, photoCapDerived, photoCapForces, orbitTransferDerived, orbitTransferForces, cyclotronDerived, cyclotronForces, slopeSpringFricDerived, slopeSpringFricForces, projWallDerived, projWallForces, railSpringDampDerived, railSpringDampForces, pendulumSpringDerived, pendulumSpringForces, gasPistonOscDerived, gasPistonOscForces, photoCircleDerived, photoCircleForces, earthTunnelDerived, earthTunnelForces, heaterGasDerived, heaterGasForces, specPhotoCircleDerived, specPhotoCircleForces, ottoCycleDerived, ottoCycleForces, generatorACDerived, generatorACForces, explodeProjectileDerived, explodeProjectileForces, slopePulleySpringDerived, slopePulleySpringForces, cathodeRayDerived, cathodeRayForces, conicalPendulumDerived, conicalPendulumForces, rcChargeDerived, rcChargeForces, projWallFricDerived, projWallFricForces, rlcChargeDerived, rlcChargeForces, sceneFor, validateScene, renderFigure };

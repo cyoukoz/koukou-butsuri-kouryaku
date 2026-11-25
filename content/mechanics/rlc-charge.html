@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>組み合わせ問題AR：RLC回路の過渡応答</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body { max-width: 760px; margin: 0 auto; padding: 16px; font-family: sans-serif; line-height: 1.8; }
+h1 { font-size: 22px; }
+.step { border-top: 2px solid #eee; padding: 18px 0; }
+.fig { margin: 12px 0; }
+.fig svg { width: 100%; height: auto; display: block; }
+.check { font-size: 18px; margin-right: 8px; }
+.next { display: inline-block; margin-top: 8px; }
+.toplink { position: fixed; right: 12px; bottom: 12px; background: #fff; border: 1px solid #ccc; padding: 6px 10px; border-radius: 6px; text-decoration: none; }
+.donebox { border: 2px solid #4a4; padding: 14px; margin: 20px 0; }
+table { border-collapse: collapse; margin: 10px 0; }
+th, td { border: 1px solid #999; padding: 6px 8px; text-align: left; }
+</style>
+</head>
+<body id="top">
+<h1>組み合わせ問題AR：RLC回路の過渡応答</h1>
+<p>起電力 12 V の電池に、抵抗 20 Ω、コイル 0.10 H、コンデンサ 100 μF を直列につなぎ、スイッチを入れる。(1) 振動の角振動数と周期、減衰のようすを求めよ。(2) 電流 i(t) を求め、最大になる時刻と値を求めよ。(3) 電気量 q(t) を求め、最大になる時刻と値、コンデンサの最大電圧を求めよ。(4) コンデンサの電圧は電池の 12 V をこえない、電流は最初が最大だとするとどうなるか。(5) R を 0 にする、R を 100 Ω にするとどうなるか。</p>
+
+<div class="step">
+<p><b>はじめに：どう切り分けるか</b></p>
+<p>条件 → 電流 → 電気量 → 罠 → 変えたら、の順に区切る。橋渡し量は「電気量と電流」だ。</p>
+<table>
+<tr><th>いつ</th><th>何が起きるか</th><th>橋渡し量</th><th>どこで解くか</th></tr>
+<tr><td>はじめ</td><td>不足減衰の条件</td><td>ω0=316 rad/s、α=100 /s</td><td>ステップ①</td></tr>
+<tr><td>流れる</td><td>電流</td><td>最大 0.25 A（4.2 ms）</td><td>ステップ②</td></tr>
+<tr><td>たまる</td><td>電気量</td><td>最大 1.62 mC（10.5 ms）</td><td>ステップ③</td></tr>
+<tr><td>罠・変えたら</td><td>電圧の行き過ぎ</td><td>Vc は 16 V まで行く</td><td>ステップ④⑤</td></tr>
+</table>
+<p>図：電池・抵抗・コイル・コンデンサの直列回路。コイルがあると、電気量は振動しながらたまっていく。</p>
+<script type="application/json" id="scene-rlc-charge-base">{"type":"rlcCharge","emfV":12,"rOhm":20,"indH":0.1,"capF":0.0001,"phase":"base"}</script>
+<svg class="fig" data-scene="scene-rlc-charge-base" data-show="" width="100%" role="img" aria-label="RLC回路：電池・抵抗・コイル・コンデンサ"></svg>
+</div>
+
+<div class="step">
+<p><b>ステップ① 不足減衰の条件</b></p>
+<script type="application/json" id="scene-rlc-charge-condition">{"type":"rlcCharge","emfV":12,"rOhm":20,"indH":0.1,"capF":0.0001,"phase":"condition"}</script>
+<svg class="fig" data-scene="scene-rlc-charge-condition" data-show="" width="100%" role="img" aria-label="不足減衰の条件：α < ω0"></svg>
+<p>固有角振動数は ω0 = 1/√(LC) = 1/√(0.10×100×10⁻⁶) ≈ 316 rad/s。減衰率は α = R/(2L) = 20/(2×0.10) = 100 /s。</p>
+<p>α = 100 /s が ω0 = 316 rad/s より小さいので、不足減衰になる。振動の角振動数は ω' = √(ω0² − α²) = √(316² − 100²) = 300 rad/s で、周期は T' = 2π/ω' ≈ 21 ms。</p>
+<p>振幅は e^(−αt) で減っていく。1周期後には e^(−100×0.021) ≈ 0.12 倍、5周期後にはほぼ 0 になる。</p>
+<p><label><input type="checkbox" class="check">① 不足減衰の条件が分かった</label></p>
+<p><a class="next" href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<p><b>ステップ② 電流 i(t)</b></p>
+<script type="application/json" id="scene-rlc-charge-current">{"type":"rlcCharge","emfV":12,"rOhm":20,"indH":0.1,"capF":0.0001,"phase":"current"}</script>
+<svg class="fig" data-scene="scene-rlc-charge-current" data-show="" width="100%" role="img" aria-label="電流：0 から始まって最大 0.25 A"></svg>
+<p>電流は i(t) = (E/(Lω')) e^(−αt) sin(ω't) = 0.40 e^(−100t) sin(300t) A で表せる。t=0 では sin 0 = 0 なので、i(0) = 0。コイルが電流の急な変化をさまたげるからだ。</p>
+<p>電流が最大になるのは、tan(ω't) = ω'/α = 3 のときで、ω't ≈ 1.25 rad、t ≈ 4.2 ms。そのとき i ≈ 0.25 A になる。</p>
+<p>そのあと電流は振動しながら 0 に近づく。14.6 ms では −0.088 A まで逆向きに流れる。</p>
+<p><label><input type="checkbox" class="check">② 電流が分かった</label></p>
+<p><a class="next" href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<p><b>ステップ③ 電気量 q(t) とエネルギー</b></p>
+<script type="application/json" id="scene-rlc-charge-charge">{"type":"rlcCharge","emfV":12,"rOhm":20,"indH":0.1,"capF":0.0001,"phase":"charge"}</script>
+<svg class="fig" data-scene="scene-rlc-charge-charge" data-show="" width="100%" role="img" aria-label="電気量：1.2 mC をこえて 1.62 mC"></svg>
+<p>電気量は q(t) = Q∞[1 − e^(−αt)(cos ω't + (α/ω') sin ω't)] で増える。最終の電気量は Q∞ = CE = 1.2 mC。</p>
+<p>電気量が最大になるのは、電流が 0 になるとき、つまり ω't = π、t ≈ 10.5 ms。そのとき q ≈ 1.62 mC で、最終値の 1.2 mC をこえて行き過ぎる。コンデンサの電圧は Vc = q/C ≈ 16 V になり、電池の 12 V をこえる。</p>
+<p>そのとき、コンデンサにたまるエネルギーは U = ½q²/C ≈ 13 mJ、電池の仕事は W = Eq ≈ 19 mJ、ジュール熱は 19 − 13 = 6.3 mJ。やがて q は 1.2 mC に落ち着き、U∞ = 7.2 mJ、電池の仕事は 14.4 mJ、熱は 7.2 mJ になる。熱の合計は、抵抗だけの回路（AP）とちょうど同じだ。</p>
+<p><label><input type="checkbox" class="check">③ 電気量とエネルギーが分かった</label></p>
+<p><a class="next" href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<p><b>ステップ④ 罠：電圧は電池をこえない、電流は最初が最大</b></p>
+<script type="application/json" id="scene-rlc-charge-trap">{"type":"rlcCharge","emfV":12,"rOhm":20,"indH":0.1,"capF":0.0001,"phase":"trap"}</script>
+<svg class="fig" data-scene="scene-rlc-charge-trap" data-show="" width="100%" role="img" aria-label="罠：電圧は電池をこえない、はまちがい"></svg>
+<p>「コンデンサの電圧は電池の 12 V をこえない」はまちがい。コイルの慣性で電気が行き過ぎ、Vc は 16 V まで行く。R=0 なら 24 V まで行く。</p>
+<p>「電流は最初が最大」もまちがい。RC だけの回路（AP）なら、初めの電流は I0 = E/R = 120 mA で最大だが、コイルがあると i(0) = 0 から始まり、4.2 ms で 0.25 A になる。</p>
+<p>「抵抗を大きくするとジュール熱の合計が増える」もまちがい。熱の合計は W − U∞ = 7.2 mJ で、R の値では決まらない。R が大きいと、熱が出るのが速くなるだけだ。</p>
+<p><label><input type="checkbox" class="check">④ 罠が分かった</label></p>
+<p><a class="next" href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<p><b>ステップ⑤ 変えたら</b></p>
+<script type="application/json" id="scene-rlc-charge-vary">{"type":"rlcCharge","emfV":12,"rOhm":20,"indH":0.1,"capF":0.0001,"phase":"vary"}</script>
+<svg class="fig" data-scene="scene-rlc-charge-vary" data-show="" width="100%" role="img" aria-label="変えたら：R=0・R=100 Ω"></svg>
+<p>R を 0 にすると、α = 0 になって減衰がなくなり、振動がずっと続く。周期は T = 2π/ω0 ≈ 20 ms、電気量は 0 から 2.4 mC まで振動し、電圧は 0 から 24 V まで振動する。最大電流は 0.38 A になる。</p>
+<p>R を 100 Ω にすると、α = 500 /s が ω0 = 316 rad/s をこえて過減衰になり、振動しなくなる。電気量はゆっくり 1.2 mC に近づき、95% まで約 28 ms かかる。</p>
+<p>ちょうど振動するかしないかの境目は、臨界減衰 R = 2√(L/C) ≈ 63 Ω だ。</p>
+<p><label><input type="checkbox" class="check">⑤ 変えたらが分かった</label></p>
+</div>
+
+<div class="donebox">
+<p id="done-message">5つのチェックをすべて入れると完了になります。</p>
+<button id="done-btn">完了にする</button>
+<p>答え：ω0≈316 rad/s、α=100 /s、ω'=300 rad/s、T'≈21 ms、最大電流 0.25 A（4.2 ms）、電気量の最大 1.62 mC（10.5 ms）、コンデンサの最大電圧 16 V、U∞=7.2 mJ、電池の仕事 14.4 mJ、ジュール熱 7.2 mJ。コンデンサは<a href="capacitor.html">第9問：コンデンサ</a>、過渡現象は<a href="transient.html">第30問：RL・RC回路の過渡現象</a>、LC振動は<a href="lc.html">組み合わせ問題D：LC回路＋単振動</a>、抵抗だけの充電は<a href="rc-charge.html">組み合わせ問題AP：RC回路の充電とエネルギー</a>に戻って確認しよう。</p>
+<p><a href="proj-wall-fric.html">← 組み合わせ問題AQ：斜方投射＋壁＋床の摩擦</a></p>
+</div>
+
+<a class="toplink" href="#top">↑ TOP</a>
+<script src="../../assets/js/figure.js"></script>
+<script src="../../assets/js/idb.js"></script>
+<script>
+renderAllFigures();
+const boxes = Array.from(document.querySelectorAll('.check'));
+const doneBtn = document.getElementById('done-btn');
+const doneMsg = document.getElementById('done-message');
+const doneKey = 'comboRlcChargeDone';
+const allChecked = () => boxes.every(b => b.checked);
+boxes.forEach(b => b.addEventListener('change', () => { doneBtn.disabled = !allChecked(); }));
+doneBtn.disabled = true;
+(async () => {
+  try {
+    const saved = await loadProgress();
+    if (saved && saved[doneKey]) { doneMsg.textContent = '完了済み ✓'; doneBtn.disabled = true; }
+  } catch (e) { /* IndexedDB が使えない環境では無視 */ }
+})();
+doneBtn.addEventListener('click', async () => {
+  if (!allChecked()) return;
+  try {
+    const saved = await loadProgress();
+    saved[doneKey] = true;
+    await saveProgress(saved);
+    doneMsg.textContent = '完了済み ✓';
+    doneBtn.disabled = true;
+  } catch (e) { doneMsg.textContent = '保存できませんでした（IndexedDB が使えません）。'; }
+});
+</script>
+</body>
+</html>
