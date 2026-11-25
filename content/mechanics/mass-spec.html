@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題T：速度選別＋質量分析計 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題T：速度選別＋質量分析計</h1>
+<p><strong>問題：</strong>陽子（電荷 q = +1.60×10⁻¹⁹ C、質量 m = 1.67×10⁻²⁷ kg）と重水素の原子核（電荷は陽子と同じ、質量は 2 倍の 3.34×10⁻²⁷ kg）を、静止した状態から電圧 V = 1000 V で加速する。加速された粒子は、電場 E と磁場 B = 0.10 T が直交する速度選別器を通り、そのあと磁場 B = 0.10 T だけの場所に入って半円を描き、検出器に当たる。(1) 加速されたあとの陽子と重水素の速さを求めよ。(2) 速度選別器で陽子がまっすぐ進むための電場 E を求めよ。(3) 磁場だけの場所での陽子と重水素の半径を求め、検出器での間隔を求めよ。(4) 加速電圧を 2000 V にすると、陽子の半径はどうなるか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v2.3、massSpec 型）が下の JSON データから計算して描く。円の半径は物理の半径に 1300 px/m をかけたもの（陽子 0.046 m は 60 px、重水素 0.065 m は 85 px）で、半径の比が正しい。棒グラフは半径に 2000 px/m をかけて描く。</p>
+<script type="application/json" id="scene-mass-spec-base">{"type":"massSpec","qC":1.6e-19,"mPC":1.67e-27,"mDC":3.34e-27,"voltV":1000,"bT":0.1,"phase":"base"}</script>
+<script type="application/json" id="scene-mass-spec-selector">{"type":"massSpec","qC":1.6e-19,"mPC":1.67e-27,"mDC":3.34e-27,"voltV":1000,"bT":0.1,"phase":"selector"}</script>
+<script type="application/json" id="scene-mass-spec-circle">{"type":"massSpec","qC":1.6e-19,"mPC":1.67e-27,"mDC":3.34e-27,"voltV":1000,"bT":0.1,"phase":"circle"}</script>
+<script type="application/json" id="scene-mass-spec-graph">{"type":"massSpec","qC":1.6e-19,"mPC":1.67e-27,"mDC":3.34e-27,"voltV":1000,"bT":0.1,"phase":"graph"}</script>
+<script type="application/json" id="scene-mass-spec-trap">{"type":"massSpec","qC":1.6e-19,"mPC":1.67e-27,"mDC":3.34e-27,"voltV":1000,"bT":0.1,"phase":"trap"}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、場所で切る</strong>。加速する場所、速度を選別する場所、磁場だけの場所では、はたらく力がちがう。3つをつなぐのは、粒子の速さだ。</p>
+  <table>
+    <tr><th>時間</th><th>場所（何を見るか）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>はじめ（加速）</td><td>陽子・重水素</td><td>—</td><td>電圧で加速される（はじめに）</td></tr>
+    <tr><td>加速のあと</td><td>陽子・重水素</td><td><strong>速さ v ≈ 4.4×10⁵ m/s</strong></td><td>エネルギー qV から v を求める（はじめに）</td></tr>
+    <tr><td>速度選別</td><td>粒子＋電場＋磁場</td><td><strong>速さ v = E/B</strong></td><td>qE = qvB のときだけ通る（ステップ①）</td></tr>
+    <tr><td>磁場だけの場所</td><td>粒子＋磁場</td><td><strong>半径 r = mv/qB</strong></td><td>半円を描いて検出器へ（ステップ②）</td></tr>
+    <tr><td>検出器</td><td>陽子・重水素</td><td><strong>間隔 0.038 m</strong></td><td>質量のちがいで分かれる（ステップ③）</td></tr>
+  </table>
+  <p>加速の場所では、陽子と重水素は静止した状態から、電圧 1000 V で加速される。電気のエネルギーは qV = 1.60×10⁻¹⁹ × 1000 = <strong>1.6×10⁻¹⁶ J</strong> だ。これは 1000 eV とも書ける。静止から加速されるので、このエネルギーは全部、運動エネルギーになる。陽子の速さは v = √(2qV/m) = √(2 × 1.6×10⁻¹⁶ / 1.67×10⁻²⁷) = √(1.92×10¹¹) ≈ <strong>4.4×10⁵ m/s</strong> だ。重水素の質量は陽子の 2 倍で、速さは 1/√2 倍になるので、v ≈ <strong>3.1×10⁵ m/s</strong> になる。</p>
+  <svg class="fig" data-scene="scene-mass-spec-base" data-show="velocity" width="100%" role="img" aria-label="加速の場所。2 枚の極板のあいだで、陽子が 1000 V で加速される"></svg>
+  <p>陽子と重水素は、同じ電圧で加速されても、速さがちがう。電荷は同じでも、質量がちがうからだ。だから速度選別器では、陽子と重水素はちがう扱いを受ける。この速さのちがいが、質量分析計の出発点だ。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①速度選別：まっすぐ進む速さだけが通る</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 速度選別：まっすぐ進む速さだけが通る</h2>
+  <svg class="fig" data-scene="scene-mass-spec-selector" data-show="elecForce,magForce,velocity" width="100%" role="img" aria-label="速度選別器。電場の力と磁場の力が逆向きにつり合い、陽子はまっすぐ進む"></svg>
+  <p>速度選別器では、電場 E と磁場 B が直交している。陽子が右に進むとき、電気の力は下向きに、磁気の力は上向きにはたらく。2 つの力の大きさが等しいとき、陽子は曲がらずにまっすぐ進む。電気の力は qE、磁気の力は qvB なので、qE = qvB から、E = vB になる。陽子の速さは 4.4×10⁵ m/s、磁場は 0.10 T なので、E = 4.4×10⁵ × 0.10 ≈ <strong>4.4×10⁴ V/m</strong> だ。</p>
+  <p>選別器の仕組みを確かめよう。速さが 4.4×10⁵ m/s より速い粒子は、磁気の力 qvB が電気の力 qE より大きくなるので、上に曲がる。速さが遅い粒子は、電気の力のほうが大きくなるので、下に曲がる。まっすぐ進むのは、速さが E/B = 4.4×10⁵ m/s の粒子だけだ。質量は関係ない。速さだけが決め手になる。</p>
+  <p>では、重水素はどうなるか。重水素の速さは 3.1×10⁵ m/s で、陽子より遅い。だから重水素は、電気の力のほうが大きくなって下に曲がり、選別器を通れない。選別器を陽子の速さに合わせると、重水素は通れない。重水素を通したいときは、電場を E = vB = 3.1×10⁵ × 0.10 ≈ <strong>3.1×10⁴ V/m</strong> にする。電場を変えると、通る速さが変わる。これが「速度選別」の意味だ。</p>
+  <label><input type="checkbox" class="check"> E = vB = 4.4×10⁴ V/m、まっすぐ進むのは速さが E/B の粒子だけであることを確かめた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②磁場だけの場所：半円を描いて検出器へ</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 磁場だけの場所：半円を描いて検出器へ</h2>
+  <svg class="fig" data-scene="scene-mass-spec-circle" data-show="lorentz" width="100%" role="img" aria-label="磁場だけの場所。陽子は半径 0.046 m、重水素は半径 0.065 m の半円を描いて検出器に当たる"></svg>
+  <p>速度選別器を通った陽子は、磁場 B = 0.10 T だけの場所に入る。ここでは電気の力はない。陽子にはたらく力は、磁気の力だけだ。磁気の力は、速さの向きと磁場の向きに垂直なので、陽子は速さを変えずに、向きだけを変えながら円運動をする。半径は r = mv/qB で決まる。</p>
+  <p>陽子の半径は、r = 1.67×10⁻²⁷ × 4.4×10⁵ / (1.60×10⁻¹⁹ × 0.10) = 7.3×10⁻²² / 1.6×10⁻²⁰ ≈ <strong>0.046 m</strong> だ。重水素の半径は、r = 3.34×10⁻²⁷ × 3.1×10⁵ / (1.60×10⁻¹⁹ × 0.10) = 1.03×10⁻²¹ / 1.6×10⁻²⁰ ≈ <strong>0.065 m</strong> になる。重水素は、質量が 2 倍で速さが 1/√2 倍なので、半径は √2 倍になる。</p>
+  <p>半円を描いたあと、陽子と重水素は検出器に当たる。入口から検出器までの距離は、半径の 2 倍だ。陽子は 2 × 0.046 = 0.092 m のところに、重水素は 2 × 0.065 = 0.130 m のところに当たる。だから検出器での間隔は 0.130 − 0.092 = <strong>0.038 m</strong> になる。半円を描く時間も求められる。陽子の周期は T = 2πm/qB = 2π × 1.67×10⁻²⁷ / (1.60×10⁻¹⁹ × 0.10) ≈ 0.66 μs で、半周の時間は <strong>0.33 μs</strong> だ。</p>
+  <label><input type="checkbox" class="check"> 陽子の半径 0.046 m、重水素の半径 0.065 m、検出器での間隔 0.038 m、半周の時間 0.33 μs を確かめた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③半径の比較：重水素は陽子の √2 倍</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 半径の比較：重水素は陽子の √2 倍</h2>
+  <svg class="fig" data-scene="scene-mass-spec-graph" data-show="" width="100%" role="img" aria-label="棒グラフ。陽子の半径 0.046 m と重水素の半径 0.065 m の比較"></svg>
+  <p>半径の比を確かめよう。r = mv/qB に、v = √(2qV/m) を入れると、r = √(2mV/q)/B になる。同じ電圧 V で加速した粒子は、電荷 q が同じなら、半径は √m に比例する。重水素の質量は陽子の 2 倍なので、半径は √2 倍になる。陽子の半径が 0.046 m なら、重水素の半径は 0.046 × √2 ≈ 0.065 m だ。</p>
+  <p>質量分析計は、この仕組みで質量を測る。検出器での間隔から、半径の比が分かる。半径の比から、質量の比が分かる。電荷が同じ粒子なら、質量の比は半径の比の 2 乗になる。重水素と陽子の半径の比は √2 で、2 乗すると 2 になる。質量の比が 2 であることが、検出器での間隔から分かる。</p>
+  <p>もし質量が 3 倍の粒子があったら、半径は √3 ≈ 1.73 倍になる。陽子の半径が 0.046 m なら、その粒子の半径は 0.046 × 1.73 ≈ 0.080 m だ。検出器での間隔は、陽子とその粒子のあいだで 2 × (0.080 − 0.046) = 0.068 m になる。</p>
+  <label><input type="checkbox" class="check"> r ∝ √m、重水素の半径は陽子の √2 倍、質量の比は半径の比の 2 乗であることを確かめた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④罠：電圧 2 倍で半径は 2 倍ではない</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 罠：電圧 2 倍で半径は 2 倍ではない</h2>
+  <svg class="fig" data-scene="scene-mass-spec-trap" data-show="" width="100%" role="img" aria-label="棒グラフ。電圧 2 倍のとき、2 倍だと思った半径 0.091 m と本当の √2 倍の半径 0.065 m の比較"></svg>
+  <p>罠は、加速電圧を 2 倍にすると、半径も 2 倍になると思うことだ。電圧を 2000 V にすると、陽子の半径は 0.046 × 2 = <strong>0.091 m</strong> になるだろうか。答えは、ならない。r = √(2mV/q)/B から、半径は √V に比例する。電圧が 2 倍なら、半径は √2 ≈ 1.41 倍になる。陽子の半径は 0.046 × 1.41 ≈ <strong>0.065 m</strong> だ。</p>
+  <p>まちがいの原因は、速さが電圧に比例すると思い込むことだ。速さは v = √(2qV/m) で、√V に比例する。電圧が 2 倍なら、速さは √2 倍になる。半径は r = mv/qB で、速さに比例するので、半径も √2 倍になる。電圧を 2 倍にしても、半径は 2 倍にならない。</p>
+  <p>もう 1 つの罠は、重水素の半径が陽子と同じだと思うことだ。重水素の電荷は陽子と同じだが、質量は 2 倍で、速さは 1/√2 倍だ。r = mv/qB に入れると、質量が 2 倍で速さが 1/√2 倍なので、半径は √2 倍になる。重水素は陽子と同じ場所に当たらない。検出器での間隔は 0.038 m で、2 つの粒子は分かれる。</p>
+  <label><input type="checkbox" class="check"> 電圧 2 倍で半径は √2 倍の 0.065 m になること、重水素の半径は陽子の √2 倍であることを確かめた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤まとめ・罠の確認</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ まとめ・罠の確認</h2>
+  <svg class="fig" data-scene="scene-mass-spec-graph" data-show="" width="100%" role="img" aria-label="棒グラフ。陽子の半径 0.046 m と重水素の半径 0.065 m の比較"></svg>
+  <p>この問題の橋渡し量は、粒子の速さ v だ。加速ではエネルギー qV から v = √(2qV/m) を求め、速度選別器では v = E/B の粒子だけがまっすぐ進み、磁場だけの場所では r = mv/qB の半円を描く。陽子の速さは 4.4×10⁵ m/s、重水素の速さは 3.1×10⁵ m/s で、速度選別器の電場は陽子に合わせて 4.4×10⁴ V/m になる。陽子の半径は 0.046 m、重水素の半径は 0.065 m で、検出器での間隔は 0.038 m だ。</p>
+  <p>半径の比は、質量の比の平方根になる。同じ電圧で加速した粒子は、電荷が同じなら、半径は √m に比例する。重水素の質量は陽子の 2 倍なので、半径は √2 倍になる。電圧を 2 倍にすると、半径は √2 倍になる。速さも半径も、電圧には比例しない。√V に比例する。これが、この問題の罠だ。</p>
+  <label><input type="checkbox" class="check"> 橋渡し量は粒子の速さであること、半径は √m と √V に比例すること、罠を確認した</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と場所を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 陽子は 4.4×10⁵ m/s、重水素は 3.1×10⁵ m/s。(2) E = 4.4×10⁴ V/m。(3) 陽子の半径 0.046 m、重水素の半径 0.065 m、検出器での間隔 0.038 m。(4) 電圧 2000 V では陽子の半径は √2 倍の 0.065 m になる。もとになった単体モデル：円運動は <a href="circle.html">第10問：円運動</a>、直流回路は <a href="dc-circuit.html">第19問：直流回路</a>、電磁誘導は <a href="induction.html">第32問：電磁誘導</a>、荷電粒子と円運動の組み合わせは <a href="charged-circle.html">組み合わせ問題C：荷電粒子＋円運動</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboMassSpecDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
