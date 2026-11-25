@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題AB：斜方投射＋壁との衝突 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題AB：斜方投射＋壁との衝突</h1>
+<p><strong>問題：</strong>質量 m = 0.50 kg の小球を、速さ v0 = 10 m/s、水平から 45° の向きに投げた。出発点から水平に 5.0 m 先に、鉛直な壁がある。壁はなめらかで、壁と小球の反発係数は e = 0.80 だ。重力加速度は g = 10 m/s² とする。(1) 小球が壁に当たるまでの時間と、そのときの高さを求めよ。(2) 壁との衝突で、速度はどう変わるか。(3) 跳ね返ったあと、小球はどこに着地し、着地の速さはいくらか。(4) 衝突で失われるエネルギーを求めよ。(5) 壁が弾性（e = 1）なら、どこに着地するか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v2.7、projWall 型）が下の JSON データから計算して描く。軌道は、水平方向と鉛直方向の運動を分けて計算したものだ。縮尺は 20 px/m（5.0 m は 100 px）だ。</p>
+<script type="application/json" id="scene-proj-wall-base">{"type":"projWall","v0Ms":10,"angleDeg":45,"wallXM":5,"restitution":0.8,"mKg":0.5,"g":10,"phase":"base"}</script>
+<script type="application/json" id="scene-proj-wall-top">{"type":"projWall","v0Ms":10,"angleDeg":45,"wallXM":5,"restitution":0.8,"mKg":0.5,"g":10,"phase":"top"}</script>
+<script type="application/json" id="scene-proj-wall-wall">{"type":"projWall","v0Ms":10,"angleDeg":45,"wallXM":5,"restitution":0.8,"mKg":0.5,"g":10,"phase":"wall"}</script>
+<script type="application/json" id="scene-proj-wall-after">{"type":"projWall","v0Ms":10,"angleDeg":45,"wallXM":5,"restitution":0.8,"mKg":0.5,"g":10,"phase":"after"}</script>
+<script type="application/json" id="scene-proj-wall-energy">{"type":"projWall","v0Ms":10,"angleDeg":45,"wallXM":5,"restitution":0.8,"mKg":0.5,"g":10,"phase":"energy"}</script>
+<script type="application/json" id="scene-proj-wall-trap">{"type":"projWall","v0Ms":10,"angleDeg":45,"wallXM":5,"restitution":0.8,"mKg":0.5,"g":10,"phase":"trap"}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。壁に当たる前と、壁に当たった瞬間と、跳ね返ったあとでは、使える式がちがう。3つをつなぐのは、壁に当たる直前の速度と、そのときの高さだ。</p>
+  <table>
+    <tr><th>時間</th><th>系（何を見るか）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>はじめ（投げた直後）</td><td>小球</td><td>—</td><td>初速度を水平・鉛直に分ける（はじめに）</td></tr>
+    <tr><td>壁に当たるまで</td><td>小球</td><td><strong>壁のところが最高点（vy = 0、高さ 2.5 m）</strong></td><td>水平方向は等速、鉛直方向は投げ上げ（ステップ①）</td></tr>
+    <tr><td>壁との衝突</td><td>小球＋壁</td><td><strong>vx = 7.07 → −5.66 m/s、vy は変わらない</strong></td><td>反発係数は水平成分だけにかかる（ステップ②）</td></tr>
+    <tr><td>跳ね返ったあと</td><td>小球</td><td><strong>着地 x = 1.0 m、速さ 9.1 m/s</strong></td><td>2.5 m 落ちるのに 0.707 s（ステップ③）</td></tr>
+    <tr><td>エネルギー</td><td>小球</td><td><strong>失われるエネルギー 4.5 J</strong></td><td>壁で失われるのは水平の運動エネルギーだけ（ステップ④⑤）</td></tr>
+  </table>
+  <p>初速度 v0 = 10 m/s を水平・鉛直に分けると、vx = 10 × cos45° ≈ <strong>7.07 m/s</strong>、vy = 10 × sin45° ≈ <strong>7.07 m/s</strong> になる。水平方向には力がはたらかないので、vx は壁に当たるまで 7.07 m/s のままだ。鉛直方向は、重力だけではたらく投げ上げの運動になる。</p>
+  <svg class="fig" data-scene="scene-proj-wall-base" data-show="" width="100%" role="img" aria-label="斜方投射の全体の軌道。出発点から壁までの赤い軌道と、壁から着地点までの青い軌道。壁は 5.0 m 先"></svg>
+  <p>壁がなければ、小球は R = v0²sin90°/g = 100/10 = <strong>10 m</strong> 飛ぶ。壁は 5.0 m 先にあるので、ちょうど射程の半分のところだ。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①壁に当たるまで</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 壁に当たるまで</h2>
+  <svg class="fig" data-scene="scene-proj-wall-top" data-show="" width="100%" role="img" aria-label="壁に当たるまで。壁のところがちょうど最高点で、鉛直の速さは 0、高さは 2.5 m"></svg>
+  <p>壁に当たるまでの時間は、水平方向の運動だけで決まる。水平方向は等速直線運動で、5.0 m を 7.07 m/s で進むので、t1 = 5.0 / 7.07 ≈ <strong>0.707 s</strong> になる。</p>
+  <p>この 0.707 s のあいだに、鉛直方向はどうなるか。投げ上げの最高点に達する時間は、vy/g = 7.07/10 ≈ <strong>0.707 s</strong> だ。ちょうど壁に当たる時間と等しい。つまり<strong>壁のところがちょうど最高点</strong>になっている。鉛直の速さは vy = 7.07 − 10 × 0.707 = <strong>0 m/s</strong> だ。</p>
+  <p>そのときの高さは、y = vy×t1 − (1/2)gt1² = 7.07 × 0.707 − 5 × 0.707² = 5.0 − 2.5 = <strong>2.5 m</strong> になる。最高点の高さ vy²/(2g) = 50/20 = 2.5 m とも一致する。壁に当たる直前の速さは、水平の 7.07 m/s だけだ。</p>
+  <label><input type="checkbox" class="check"> 壁に当たるまで 0.707 s、壁のところが最高点で高さ 2.5 m、vy = 0 であることを求めた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②壁との衝突</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 壁との衝突</h2>
+  <svg class="fig" data-scene="scene-proj-wall-wall" data-show="" width="100%" role="img" aria-label="壁との衝突。衝突前の水平速度 7.07 m/s が、衝突後に −5.66 m/s になる。鉛直の速さは 0 のまま"></svg>
+  <p>壁は鉛直で、なめらかだ。壁が小球に及ぼす力は、水平方向だけだ。だから鉛直方向の速度は、衝突で変わらない。衝突の直前は vy = 0 だったので、直後も vy = 0 のままだ。</p>
+  <p>水平方向は、反発係数の式を使う。壁の速さは 0 なので、e = −(衝突後の vx)/(衝突前の vx) だ。e = 0.80、衝突前の vx = 7.07 m/s から、衝突後の vx′ = −e × 7.07 = −0.80 × 7.07 ≈ <strong>−5.66 m/s</strong> になる。マイナスは、向きが逆になったことを表す。</p>
+  <p>衝突の前後で、水平の運動エネルギーは (1/2)m×7.07² = 0.5 × 0.50 × 50 = <strong>12.5 J</strong> から、(1/2)m×5.66² = 0.5 × 0.50 × 32 = <strong>8.0 J</strong> に減る。失われるのは 12.5 − 8.0 = <strong>4.5 J</strong> だ。失われる割合は 1 − e² = 1 − 0.64 = 0.36 で、12.5 × 0.36 = 4.5 J とも一致する。</p>
+  <label><input type="checkbox" class="check"> 衝突で vx だけが 7.07 → −5.66 m/s になり、vy は変わらないこと、失われるエネルギー 4.5 J を求めた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③跳ね返ったあと</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 跳ね返ったあと</h2>
+  <svg class="fig" data-scene="scene-proj-wall-after" data-show="" width="100%" role="img" aria-label="跳ね返ったあとの軌道。壁から出発点のほうへ 4.0 m 戻り、x = 1.0 m に着地する"></svg>
+  <p>衝突の直後、小球は高さ 2.5 m のところで、水平に −5.66 m/s の速さで出発する。鉛直の速さは 0 だ。ここからは、水平投射と同じ運動になる。2.5 m 落ちるのにかかる時間は、(1/2)gt² = 2.5 から、t² = 0.50、t ≈ <strong>0.707 s</strong> になる。壁に当たるまでの時間と、ちょうど同じだ。</p>
+  <p>この 0.707 s のあいだに、水平方向には −5.66 × 0.707 = <strong>−4.0 m</strong> 進む。壁は x = 5.0 m のところにあるので、着地点は x = 5.0 − 4.0 = <strong>1.0 m</strong> になる。出発点（x = 0）のすぐ先だ。</p>
+  <p>着地の速さを求めよう。着地の直前の鉛直の速さは、vy = gt = 10 × 0.707 ≈ <strong>7.07 m/s</strong> だ。水平の速さは −5.66 m/s のまま。着地の速さは、v = √(5.66² + 7.07²) = √(32 + 50) = √82 ≈ <strong>9.1 m/s</strong> になる。はじめの速さ 10 m/s より遅い。壁でエネルギーを失ったからだ。</p>
+  <label><input type="checkbox" class="check"> 着地まで 0.707 s、着地 x = 1.0 m、着地の速さ 9.1 m/s を求めた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④エネルギー</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ エネルギー</h2>
+  <svg class="fig" data-scene="scene-proj-wall-energy" data-show="" width="100%" role="img" aria-label="エネルギーの棒グラフ。はじめ 25.0 J、壁のところで 20.5 J、衝突の直後 20.5 J のまま、着地で 20.5 J。失われた 4.5 J は壁で消えた"></svg>
+  <p>はじめのエネルギーは、運動エネルギーだけだ。(1/2)mv0² = 0.5 × 0.50 × 100 = <strong>25.0 J</strong> になる。壁に当たる直前は、高さ 2.5 m のところで速さ 7.07 m/s だ。位置エネルギーは mgh = 0.50 × 10 × 2.5 = <strong>12.5 J</strong>、運動エネルギーは (1/2)m×7.07² = <strong>12.5 J</strong> で、合計は 25.0 J のままだ。壁に当たるまでは、エネルギーは保存されている。</p>
+  <p>衝突の直後は、位置エネルギーは 12.5 J のままだが、運動エネルギーは (1/2)m×5.66² = <strong>8.0 J</strong> に減る。合計は 20.5 J で、4.5 J だけ減った。失われた 4.5 J は、壁との衝突で熱や音や壁の変形になった。</p>
+  <p>着地の直前は、高さ 0 なので位置エネルギーは 0 だ。運動エネルギーは (1/2)m×9.06² ≈ <strong>20.5 J</strong> で、衝突の直後の合計 20.5 J と一致する。跳ね返ったあとは、エネルギーはまた保存されている。エネルギーが減るのは、壁との衝突の瞬間だけだ。</p>
+  <label><input type="checkbox" class="check"> はじめ 25.0 J、壁のところで 20.5 J になり、失われた 4.5 J は衝突の瞬間だけだと確かめた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤罠：弾性なら出発点に戻る</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ 罠：弾性なら出発点に戻る</h2>
+  <svg class="fig" data-scene="scene-proj-wall-trap" data-show="" width="100%" role="img" aria-label="着地点の比べ。反発係数 0.80 なら x = 1.0 m、弾性 e = 1 なら x = 0 m、壁がなければ 10 m 飛ぶ"></svg>
+  <p>罠は、壁との衝突でも鉛直の速度が変わると思うことだ。壁は鉛直でなめらかなので、壁が及ぼす力は水平方向だけだ。鉛直の速度は、衝突の前後で変わらない。壁に当たる直前に vy = 0 だったから、直後も vy = 0 だ。もし壁が斜めだったり、摩擦があったりすれば、vy も変わる。</p>
+  <p>壁が弾性（e = 1）なら、どうなるか。衝突後の vx′ = −7.07 m/s で、0.707 s のあいだに −7.07 × 0.707 = <strong>−5.0 m</strong> 進む。壁は x = 5.0 m なので、着地点は x = 5.0 − 5.0 = <strong>0 m</strong>、つまり出発点そのものだ。弾性衝突では、エネルギーが失われないので、着地の速さも 10 m/s に戻る。対称性で確かめられる。</p>
+  <p>壁がなければ、小球は 10 m 飛ぶ。壁があると、着地点は出発点の近くに引き戻される。反発係数が小さいほど、着地点は壁に近づく。e = 0（壁にくっつく）なら、小球は壁に沿って真下に落ち、着地点は x = 5.0 m になる。</p>
+  <label><input type="checkbox" class="check"> 壁で変わるのは水平成分だけであること、弾性なら出発点 x = 0 m に戻ること、壁がなければ 10 m 飛ぶことを確かめた</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と系を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 壁に当たるまで 0.707 s、壁のところが最高点で高さ 2.5 m、vy = 0。(2) vx = 7.07 → −5.66 m/s、vy は変わらない。(3) 0.707 s で落ち、着地 x = 1.0 m、着地の速さ ≈ 9.1 m/s。(4) 失われるエネルギー 4.5 J（水平の運動エネルギー 12.5 J → 8.0 J）。(5) 弾性（e = 1）なら出発点 x = 0 m に着地する。もとになった単体モデル：斜方投射は <a href="projectile.html">斜方投射の運動シミュレータ</a>、衝突は <a href="collision.html">第12問：衝突</a>、エネルギーは <a href="slope-energy.html">組み合わせ問題K：斜面＋摩擦＋エネルギー</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboProjWallDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
