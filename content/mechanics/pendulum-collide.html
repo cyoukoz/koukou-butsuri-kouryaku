@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題W：振り子＋弾性衝突＋摩擦 — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題W：振り子＋弾性衝突＋摩擦</h1>
+<p><strong>問題：</strong>質量 m = 1.0 kg の玉を、長さ L = 1.0 m の糸でつるした振り子にする。玉を、最下点から高さ h = 0.20 m の位置まで持ち上げ、静かに放す。最下点には、質量 M = 1.0 kg のブロックが置かれている。玉は最下点でブロックと弾性衝突する。ブロックと床のあいだの動摩擦係数は μ = 0.20 とする。重力加速度は g = 10 m/s² とする。(1) 玉が最下点に達するときの速さを求めよ。(2) 衝突の直後の玉とブロックの速さを求めよ。(3) ブロックが止まるまでの時間と距離、発生する熱を求めよ。(4) 玉がブロックにくっついたとしたら、衝突のあとの速さと運動エネルギーはどうなるか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v2.5、pendulumCollide 型）が下の JSON データから計算して描く。支点は (200,124)、糸は 100 px（1.0 m → 100 px/m）、玉の半径は 12 px、床は y=240。力の矢印は重力・張力が 2.5 px/N、摩擦力が 10 px/N、速さの矢印は 30 px/(m/s) で描く。v–t グラフの横軸は 200 px/s、縦軸は 80 px/(m/s) で、ブロックの速さの三角形の面積が止まるまでの距離になる。</p>
+<script type="application/json" id="scene-pendulum-collide-base">{"type":"pendulumCollide","mKg":1,"blockMKg":1,"lengthM":1,"heightM":0.2,"mu":0.2,"g":10,"phase":"base"}</script>
+<script type="application/json" id="scene-pendulum-collide-swing">{"type":"pendulumCollide","mKg":1,"blockMKg":1,"lengthM":1,"heightM":0.2,"mu":0.2,"g":10,"phase":"swing"}</script>
+<script type="application/json" id="scene-pendulum-collide-collision">{"type":"pendulumCollide","mKg":1,"blockMKg":1,"lengthM":1,"heightM":0.2,"mu":0.2,"g":10,"phase":"collision"}</script>
+<script type="application/json" id="scene-pendulum-collide-slide">{"type":"pendulumCollide","mKg":1,"blockMKg":1,"lengthM":1,"heightM":0.2,"mu":0.2,"g":10,"phase":"slide"}</script>
+<script type="application/json" id="scene-pendulum-collide-graph">{"type":"pendulumCollide","mKg":1,"blockMKg":1,"lengthM":1,"heightM":0.2,"mu":0.2,"g":10,"phase":"graph"}</script>
+<script type="application/json" id="scene-pendulum-collide-trap">{"type":"pendulumCollide","mKg":1,"blockMKg":1,"lengthM":1,"heightM":0.2,"mu":0.2,"g":10,"phase":"trap"}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。振り子が下りる時間、ぶつかる瞬間、ブロックが滑る時間では、使う保存則がちがう。3つをつなぐのは、最下点の速さ v = 2.0 m/s だ。</p>
+  <table>
+    <tr><th>時間</th><th>場所（何を見るか）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>はじめ（振り下ろす）</td><td>玉＋重力</td><td>—</td><td>振り子が下りる（はじめに）</td></tr>
+    <tr><td>最下点</td><td>玉</td><td><strong>速さ v = 2.0 m/s</strong></td><td>最下点の速さ（ステップ①）</td></tr>
+    <tr><td>衝突の瞬間</td><td>玉＋ブロック</td><td><strong>速さ v = 2.0 m/s</strong></td><td>弾性衝突で分かれる（ステップ②）</td></tr>
+    <tr><td>衝突のあと</td><td>ブロック＋摩擦</td><td><strong>ブロック 2.0 m/s</strong></td><td>摩擦で止まる（ステップ③・④）</td></tr>
+    <tr><td>まとめ</td><td>全体</td><td><strong>エネルギーは摩擦で熱になる</strong></td><td>罠の確認（ステップ⑤）</td></tr>
+  </table>
+  <p>玉を持ち上げた高さは h = 0.20 m、糸の長さは L = 1.0 m だ。玉と支点の距離は L = 1.0 m のままだから、持ち上げたときの糸と鉛直方向のなす角 θ は、cosθ = (L − h) / L = 0.80 / 1.0 = 0.80 で、θ ≈ <strong>36.9°</strong> になる。玉にはたらく力は、重力 mg = 10 N と糸の張力だ。最下点での張力は、T = mg cosθ = 10 × 0.80 = <strong>8.0 N</strong> になる（持ち上げた位置では、張力は重力の糸方向の成分とつり合っている）。</p>
+  <svg class="fig" data-scene="scene-pendulum-collide-base" data-show="gravity,tension" width="100%" role="img" aria-label="振り子とブロック。玉は高さ 0.20 m、角度 36.9°、重力 10 N、張力 8.0 N、ブロックは質量 1.0 kg"></svg>
+  <p>ここで気をつけることが 1 つある。振り子が下りるあいだ、玉の力学的エネルギーは保存する。糸の張力は、玉の動く向きとつねに直角だから、仕事をしない。重力だけが仕事をする。だから、最下点の速さは、エネルギー保存だけで求まる。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①振り子を下ろす：最下点の速さ</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 振り子を下ろす：最下点の速さ</h2>
+  <svg class="fig" data-scene="scene-pendulum-collide-swing" data-show="velocity" width="100%" role="img" aria-label="振り子が最下点に達する。速さ 2.0 m/s、周期は約 2.0 s、最下点まで 0.50 s"></svg>
+  <p>玉は高さ h = 0.20 m の位置から、静かに放される。最下点での速さを v とすると、エネルギー保存から、mgh = ½mv² になる。質量 m は両辺から消えて、v = √(2gh) = √(2 × 10 × 0.20) = √4.0 = <strong>2.0 m/s</strong> になる。玉の運動エネルギーは、最下点で ½mv² = 0.5 × 1.0 × 4.0 = <strong>2.0 J</strong> になる。はじめに玉がもっていた位置エネルギーは、mgh = 1.0 × 10 × 0.20 = <strong>2.0 J</strong> だ。位置エネルギーが、そっくりそのまま運動エネルギーになっている。</p>
+  <p>振り子の周期も確かめておこう。糸の長さ L = 1.0 m の振り子の周期は、T = 2π√(L/g) = 2π√(1.0/10) = 2π × 0.316 ≈ <strong>2.0 s</strong> になる。玉が最下点に達するのは、放してから 4 分の 1 周期のあとで、T/4 ≈ <strong>0.50 s</strong> だ。角度が 36.9° と大きいので、単振動の近似は正確ではないが、周期の目安にはなる。</p>
+  <p>速さ 2.0 m/s は、歩く速さの 2 倍ほどだ。高さ 0.20 m から落ちるだけなのに、それだけの速さになる。重力加速度 10 m/s² は、0.20 m の高さでも、速さを 2.0 m/s まで上げる。</p>
+  <label><input type="checkbox" class="check"> θ ≈ 36.9°、v = 2.0 m/s、運動エネルギー 2.0 J、周期 T ≈ 2.0 s を確かめた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②弾性衝突：玉は止まり、ブロックが動く</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 弾性衝突：玉は止まり、ブロックが動く</h2>
+  <svg class="fig" data-scene="scene-pendulum-collide-collision" data-show="" width="100%" role="img" aria-label="弾性衝突。玉は止まり、ブロックが速さ 2.0 m/s で動き出す"></svg>
+  <p>玉は速さ v = 2.0 m/s で、静止しているブロックにぶつかる。衝突は弾性衝突なので、運動量と運動エネルギーの両方が保存する。玉の質量は m = 1.0 kg、ブロックの質量は M = 1.0 kg で、質量が同じだ。衝突のあとの玉の速さを v₁′、ブロックの速さを v₂′ とすると、弾性衝突の公式から、v₁′ = (m − M) / (m + M) × v = 0 / 2.0 × 2.0 = <strong>0 m/s</strong>、v₂′ = 2m / (m + M) × v = 2.0 / 2.0 × 2.0 = <strong>2.0 m/s</strong> になる。質量が同じ弾性衝突では、玉とブロックは速さをそっくり入れ替える。玉は止まり、ブロックが玉の速さをそのまま受け取る。</p>
+  <p>保存することを確かめよう。衝突の前の運動量は、mv = 1.0 × 2.0 = <strong>2.0 kg·m/s</strong> だ。衝突のあとの運動量は、mv₁′ + Mv₂′ = 0 + 1.0 × 2.0 = <strong>2.0 kg·m/s</strong> になる。衝突の前の運動エネルギーは、½mv² = <strong>2.0 J</strong> だ。衝突のあとの運動エネルギーは、½Mv₂′² = 0.5 × 1.0 × 4.0 = <strong>2.0 J</strong> になる。どちらも保存している。</p>
+  <p>質量が同じでなければ、こうはならない。玉がブロックより軽ければ、玉ははね返る。玉がブロックより重ければ、玉はそのまま進む。質量が同じときだけ、玉はぴたりと止まる。ビリヤードの玉が、同じ質量の玉に当たって止まるのと同じことだ。</p>
+  <label><input type="checkbox" class="check"> 玉 0 m/s、ブロック 2.0 m/s、運動量 2.0 kg·m/s と運動エネルギー 2.0 J が保存することを確かめた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③摩擦で止まる：ブロックは 1.0 m 滑る</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 摩擦で止まる：ブロックは 1.0 m 滑る</h2>
+  <svg class="fig" data-scene="scene-pendulum-collide-slide" data-show="" width="100%" role="img" aria-label="摩擦で減速するブロック。摩擦力 2.0 N、0.75 m 進んだとき速さ 1.0 m/s"></svg>
+  <p>衝突のあと、ブロックは速さ 2.0 m/s で滑り出す。ブロックには、動く向きと逆向きに摩擦力がはたらく。摩擦力の大きさは、f = μMg = 0.20 × 1.0 × 10 = <strong>2.0 N</strong> だ。ブロックの加速度は、a = f / M = μg = 0.20 × 10 = <strong>2.0 m/s²</strong> で、向きは速さと逆向きだ。ブロックは等加速度で減速し、やがて止まる。</p>
+  <p>止まるまでの時間は、t = v / a = 2.0 / 2.0 = <strong>1.0 s</strong> だ。止まるまでの距離は、s = v² / (2a) = 4.0 / 4.0 = <strong>1.0 m</strong> になる。ブロックがもっていた運動エネルギー 2.0 J は、摩擦力がする仕事で、そっくり熱になる。熱は、f × s = 2.0 × 1.0 = <strong>2.0 J</strong> だ。運動エネルギー 2.0 J が、熱 2.0 J に変わった。</p>
+  <p>途中の速さも確かめよう。ブロックが 0.75 m 進んだとき、速さは v² = 2.0² − 2 × 2.0 × 0.75 = 4.0 − 3.0 = 1.0 から、v = <strong>1.0 m/s</strong> になる。速さは、距離の平方根で減るのではない。速さの 2 乗が、距離に比例して減る。だから、半分の距離を進んでも、速さは半分にはならない。0.75 m 進んで、速さはちょうど 1.0 m/s だ。</p>
+  <label><input type="checkbox" class="check"> 摩擦力 2.0 N、止まるまで 1.0 s と 1.0 m、熱 2.0 J、0.75 m で 1.0 m/s を確かめた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④v–t グラフ：面積が止まるまでの距離</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ v–t グラフ：面積が止まるまでの距離</h2>
+  <svg class="fig" data-scene="scene-pendulum-collide-graph" data-show="" width="100%" role="img" aria-label="v–t グラフ。ブロックの速さは 2.0 m/s から 1.0 s で 0 になり、三角形の面積は 1.0 m"></svg>
+  <p>ブロックの速さを、時間のグラフに描くと、右下がりの直線になる。はじめの速さは 2.0 m/s、傾きは加速度 −2.0 m/s² で、1.0 s 後に速さは 0 になる。v–t グラフの直線の下の面積は、ブロックが進んだ距離だ。三角形の面積は、½ × 2.0 × 1.0 = <strong>1.0 m</strong> になる。ステップ③で求めた止まるまでの距離 1.0 m と一致する。</p>
+  <p>グラフの傾きが加速度で、面積が距離になることは、等加速度運動の基本だ。傾き −2.0 m/s² は摩擦による減速で、面積 1.0 m はブロックが滑った距離だ。グラフを見れば、時間と距離の両方が、1つの図で確かめられる。</p>
+  <p>玉のほうはどうなったか。玉は衝突のあと止まったままだ。玉には、糸の張力と重力しかはたらかず、水平方向の力はない。玉は最下点で静止したまま、ブロックだけが 1.0 m 滑って止まる。</p>
+  <label><input type="checkbox" class="check"> v–t グラフの傾きが −2.0 m/s²、三角形の面積が 1.0 m であることを確かめた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤罠：くっついたらエネルギーは減る</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ 罠：くっついたらエネルギーは減る</h2>
+  <svg class="fig" data-scene="scene-pendulum-collide-trap" data-show="" width="100%" role="img" aria-label="棒グラフ。運動エネルギーは最下点 2.0 J、弾性衝突のあと 2.0 J、くっついたら 1.0 J"></svg>
+  <p>罠は、玉がブロックにぶつかったら、玉とブロックがくっついて一緒に動くと思うことだ。くっついたら、運動量保存から、v′ = mv / (m + M) = 1.0 × 2.0 / 2.0 = <strong>1.0 m/s</strong> になる。だが、運動エネルギーは、½(m + M)v′² = 0.5 × 2.0 × 1.0² = <strong>1.0 J</strong> になって、衝突前の 2.0 J より小さくなる。失われた 1.0 J は、くっつくときの変形や熱になっている。くっついたら、ブロックは 1.0 m ではなく、s′ = 1.0² / (2 × 2.0) = <strong>0.25 m</strong> しか滑らない。弾性衝突とくっつく衝突では、運動エネルギーも滑る距離も変わる。</p>
+  <p>もう 1 つの罠は、振り子が下りるあいだに、糸の張力が仕事をすると思うことだ。張力は、玉の動く向きとつねに直角だ。直角な力は仕事をしない。だから、張力の向きや大きさは、速さには関係しない。速さを決めるのは、重力の仕事だけだ。張力は、玉を円の軌道にとどめるだけで、速さを変えない。</p>
+  <p>保存則を使うときは、いつも「何が保存するか」と「いつ保存するか」を確かめること。振り子が下りるあいだは力学的エネルギーが保存し、衝突の瞬間は運動量と運動エネルギーが保存し、ブロックが滑るあいだは摩擦がエネルギーを熱に変える。</p>
+  <label><input type="checkbox" class="check"> くっついたら 1.0 m/s、運動エネルギーは 1.0 J に減り、0.25 m しか滑らないことを確かめた</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と場所を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) v = √(2gh) = 2.0 m/s、θ ≈ 36.9°、T ≈ 2.0 s。(2) 玉 0 m/s、ブロック 2.0 m/s。(3) 止まるまで 1.0 s、1.0 m、熱 2.0 J。(4) くっついたら v′ = 1.0 m/s、運動エネルギーは 1.0 J に減り、0.25 m しか滑らない。もとになった単体モデル：単振動・振り子は <a href="shm.html">第11問：単振動・振り子</a>、運動量・衝突は <a href="collision.html">第12問：運動量・衝突</a>、摩擦と力の図示は <a href="slope.html">第1問：斜面上の物体の力の図示</a>、逆向きの鎖（衝突してから振り上がる）は <a href="ballistic.html">組み合わせ問題E：弾道振り子</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboPendulumCollideDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>

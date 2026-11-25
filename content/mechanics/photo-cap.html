@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題X：光電効果＋コンデンサ — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; font-size: .95em; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>組み合わせ問題X：光電効果＋コンデンサ</h1>
+<p><strong>問題：</strong>仕事関数 φ = 2.0 eV の金属の陰極に、波長 λ = 400 nm の光を当てる。飛び出した電子は陽極に集められ、電気容量 C = 10 nF のコンデンサを充電する。コンデンサははじめ充電されていないものとする。プランク定数と光速の積は hc = 1240 eV·nm、電気素量は e = 1.60×10⁻¹⁹ C、電子の質量は m = 9.11×10⁻³¹ kg とする。(1) 光子のエネルギーと、飛び出す電子の最大の運動エネルギー、最も速い電子の速さを求めよ。(2) コンデンサの電圧がどこまで上がるか求めよ。(3) たまる電荷の最大値、電子の数、静電エネルギーを求めよ。(4) 光を明るくしたらどうなるか。波長 650 nm の光を当てたらどうなるか。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js v2.5、photoCap 型）が下の JSON データから計算して描く。光子のエネルギーは hc/λ、棒グラフは 60 px/eV、V–t グラフの横軸は 40 px/s、縦軸は 120 px/V で描く。V–t 曲線は V = V0(1 − e^(−t/τ)) の模式図だ。</p>
+<script type="application/json" id="scene-photo-cap-base">{"type":"photoCap","wavelengthNm":400,"workFunctionEv":2,"capacitanceF":1e-8,"hcEvNm":1240,"eC":1.602e-19,"meKg":9.11e-31,"phase":"base"}</script>
+<script type="application/json" id="scene-photo-cap-energy">{"type":"photoCap","wavelengthNm":400,"workFunctionEv":2,"capacitanceF":1e-8,"hcEvNm":1240,"eC":1.602e-19,"meKg":9.11e-31,"phase":"energy"}</script>
+<script type="application/json" id="scene-photo-cap-stop">{"type":"photoCap","wavelengthNm":400,"workFunctionEv":2,"capacitanceF":1e-8,"hcEvNm":1240,"eC":1.602e-19,"meKg":9.11e-31,"phase":"stop"}</script>
+<script type="application/json" id="scene-photo-cap-charge">{"type":"photoCap","wavelengthNm":400,"workFunctionEv":2,"capacitanceF":1e-8,"hcEvNm":1240,"eC":1.602e-19,"meKg":9.11e-31,"phase":"charge"}</script>
+<script type="application/json" id="scene-photo-cap-vt">{"type":"photoCap","wavelengthNm":400,"workFunctionEv":2,"capacitanceF":1e-8,"hcEvNm":1240,"eC":1.602e-19,"meKg":9.11e-31,"phase":"vt"}</script>
+<script type="application/json" id="scene-photo-cap-trap">{"type":"photoCap","wavelengthNm":400,"workFunctionEv":2,"capacitanceF":1e-8,"hcEvNm":1240,"eC":1.602e-19,"meKg":9.11e-31,"phase":"trap"}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：切り分けマップ</h2>
+  <p>組み合わせ問題は、いきなり全部を解かない。まず<strong>時間で切り、系で切る</strong>。光が当たる場面、電子が飛ぶ場面、電荷がたまる場面では、使う法則がちがう。3つをつなぐのは、電子の最大の運動エネルギー Kmax = 1.10 eV だ。</p>
+  <table>
+    <tr><th>時間</th><th>場所（何を見るか）</th><th>橋渡し量</th><th>この場面で解くこと</th></tr>
+    <tr><td>はじめ（光が当たる）</td><td>陰極＋光</td><td>—</td><td>光電効果が起きる（はじめに）</td></tr>
+    <tr><td>電子が飛ぶ</td><td>陰極→陽極</td><td><strong>Kmax = 1.10 eV</strong></td><td>光子のエネルギーと Kmax（ステップ①）</td></tr>
+    <tr><td>電圧が上がる</td><td>コンデンサ</td><td><strong>阻止電圧 1.10 V</strong></td><td>頭打ちの電圧（ステップ②）</td></tr>
+    <tr><td>電荷がたまる</td><td>コンデンサ</td><td><strong>電荷 11 nC</strong></td><td>電荷・電子の数・エネルギー（ステップ③・④）</td></tr>
+    <tr><td>まとめ</td><td>全体</td><td><strong>明るさは頭打ちを変えない</strong></td><td>罠の確認（ステップ⑤）</td></tr>
+  </table>
+  <p>光電管の中では、陰極の金属に光が当たり、電子が飛び出す。飛び出した電子は陽極に集められ、導線を通ってコンデンサにたまる。電子は負の電荷をもつので、コンデンサの陰極側の板には負の電荷が、陽極側の板には正の電荷がたまる。コンデンサに電荷がたまると、コンデンサの電圧が上がる。電圧が上がると、電子は陽極に届きにくくなる。やがて、電子はまったく届かなくなる。そのときの電圧が、頭打ちの電圧だ。</p>
+  <svg class="fig" data-scene="scene-photo-cap-base" data-show="" width="100%" role="img" aria-label="光電管とコンデンサ。波長 400 nm の光が陰極に当たり、電子が陽極へ飛んでコンデンサ C=10 nF を充電する"></svg>
+  <p>ここで気をつけることが 1 つある。光電効果で決まるのは、電子 1 個のエネルギーだ。コンデンサにたまるのは、電子の数で決まる電荷だ。1 個のエネルギーが大きいほど、コンデンサの電圧の頭打ちは高くなる。光の明るさは、1 秒あたりに飛び出す電子の数を変えるだけで、1 個のエネルギーは変えない。ここから下へ、1つずつ確かめていく。</p>
+  <a class="next" href="#step1">次へ ↓ ①光子のエネルギーと Kmax</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 光子のエネルギーと Kmax</h2>
+  <svg class="fig" data-scene="scene-photo-cap-energy" data-show="" width="100%" role="img" aria-label="棒グラフ。光子 3.10 eV、仕事関数 2.0 eV、Kmax 1.10 eV"></svg>
+  <p>波長 λ = 400 nm の光の光子 1 個のエネルギーは、E = hc / λ = 1240 / 400 = <strong>3.10 eV</strong> になる。電子が金属から飛び出すには、仕事関数 φ = 2.0 eV のエネルギーが必要だ。残りが、飛び出す電子の運動エネルギーになる。最も速い電子の運動エネルギーは、Kmax = E − φ = 3.10 − 2.0 = <strong>1.10 eV</strong> だ。</p>
+  <p>最も速い電子の速さを求めよう。Kmax = 1.10 eV は、ジュールに直すと 1.10 × 1.602×10⁻¹⁹ = 1.76×10⁻¹⁹ J になる。速さは、½mv² = Kmax から、v = √(2K/m) = √(2 × 1.76×10⁻¹⁹ / 9.11×10⁻³¹) = √(3.86×10¹¹) ≈ <strong>6.2×10⁵ m/s</strong> になる。光速 3.0×10⁸ m/s の約 1/500 の速さだ。</p>
+  <p>電子の運動エネルギーは、光子 1 個のエネルギーから仕事関数を引いただけだ。光を明るくしても、光子 1 個のエネルギーは変わらない。だから、Kmax も速さも、明るさでは変わらない。変わるのは、1 秒あたりに飛び出す電子の数だけだ。</p>
+  <label><input type="checkbox" class="check"> 光子 3.10 eV、Kmax = 1.10 eV、最も速い電子の速さ ≈ 6.2×10⁵ m/s を確かめた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②阻止電圧：1.10 V で頭打ち</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 阻止電圧：1.10 V で頭打ち</h2>
+  <svg class="fig" data-scene="scene-photo-cap-stop" data-show="" width="100%" role="img" aria-label="阻止電圧。コンデンサの電圧が 1.10 V になると、電子は陽極に届かない"></svg>
+  <p>電子がコンデンサにたまると、コンデンサの電圧 V が上がる。電子は負の電荷をもつので、陽極に向かう電子は、コンデンサの電圧から逆向きの力を受ける。電子が陽極に届くには、運動エネルギーが eV より大きくなければならない。最も速い電子でも、運動エネルギーは Kmax = 1.10 eV しかない。だから、電圧が V0 = Kmax / e = <strong>1.10 V</strong> になると、最も速い電子でも陽極に届かなくなる。この電圧を阻止電圧という。コンデンサの電圧は、1.10 V をこえて上がることはない。</p>
+  <p>電子の運動エネルギーが小さいものは、もっと低い電圧で届かなくなる。たとえば、運動エネルギーが 0.50 eV の電子は、電圧が 0.50 V になった時点で届かなくなる。電圧が上がるにつれて、届く電子はしだいに少なくなる。電圧が 1.10 V になると、届く電子は 0 になる。充電は、そこで止まる。</p>
+  <p>阻止電圧は、光子のエネルギーと仕事関数だけで決まる。V0 = (hc/λ − φ) / e だ。コンデンサの電気容量 C がいくらでも、阻止電圧は変わらない。C が変わるのは、たまる電荷の量だけだ。</p>
+  <label><input type="checkbox" class="check"> 阻止電圧 V0 = 1.10 V、電圧は 1.10 V をこえないことを確かめた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③たまった電荷と静電エネルギー</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ たまった電荷と静電エネルギー</h2>
+  <svg class="fig" data-scene="scene-photo-cap-charge" data-show="" width="100%" role="img" aria-label="コンデンサの拡大図。電荷 11 nC、静電エネルギー 6.1 nJ、電子 6.9×10¹⁰ 個"></svg>
+  <p>コンデンサの電圧が頭打ちの 1.10 V になったとき、たまっている電荷は、Q = CV0 = 10×10⁻⁹ × 1.10 = 11×10⁻⁹ = <strong>11 nC</strong> になる。電子 1 個の電荷は e = 1.60×10⁻¹⁹ C だから、たまった電子の数は、N = Q / e = 11×10⁻⁹ / 1.60×10⁻¹⁹ ≈ <strong>6.9×10¹⁰ 個</strong> になる。690 億個の電子が、コンデンサにたまっている。</p>
+  <p>コンデンサに蓄えられた静電エネルギーは、U = ½CV0² = 0.5 × 10×10⁻⁹ × 1.10² = 0.5 × 10×10⁻⁹ × 1.21 ≈ <strong>6.1 nJ</strong> になる。とても小さいエネルギーだ。光子 1 個のエネルギーは 3.10 eV = 4.97×10⁻¹⁹ J だから、静電エネルギー 6.1 nJ は、光子約 1.2×10¹⁰ 個分のエネルギーにあたる。電子 6.9×10¹⁰ 個のうち、エネルギーをもって届いた分だけが、静電エネルギーになっている。</p>
+  <p>電気容量 C が 2 倍なら、たまる電荷も 2 倍の 22 nC になり、静電エネルギーは 2 倍の 12 nJ になる。だが、阻止電圧は 1.10 V のままだ。C は、電荷の「入れ物の大きさ」であって、電圧の頭打ちは決めない。</p>
+  <label><input type="checkbox" class="check"> Q = 11 nC、電子の数 ≈ 6.9×10¹⁰ 個、U ≈ 6.1 nJ を確かめた</label>
+  <br><a class="next" href="#step4">次へ ↓ ④充電のようす：電圧は 1.10 V に近づく</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 充電のようす：電圧は 1.10 V に近づく</h2>
+  <svg class="fig" data-scene="scene-photo-cap-vt" data-show="" width="100%" role="img" aria-label="V–t グラフ。コンデンサの電圧は 1.10 V に近づいて頭打ちになる"></svg>
+  <p>コンデンサの電圧は、はじめは速く上がり、1.10 V に近づくにつれて上がり方がゆるやかになる。電圧が上がると、届く電子が少なくなるからだ。電圧は、1.10 V をこえることはなく、1.10 V に近づいて頭打ちになる。図の曲線は、V = V0(1 − e^(−t/τ)) の模式図で、τ = 2.0 s としている。光が強いほど、1 秒あたりに飛び出す電子が多いので、τ は小さくなり、電圧は速く上がる。だが、近づく先は、光の強さによらず 1.10 V のままだ。</p>
+  <p>充電の速さは、光の強さで決まる。光が 2 倍明るければ、1 秒あたりに飛び出す電子は 2 倍になり、電圧は約 2 倍の速さで上がる。だが、頭打ちの電圧は変わらない。速く上がっても、止まる場所は同じ 1.10 V だ。</p>
+  <p>この曲線が RC 回路の充電曲線と同じ形をしているのは、どちらも「たまるほど、たまる速さが遅くなる」からだ。RC 回路では抵抗が電流を制限し、ここでは電圧が電子を制限する。理由はちがうが、曲線の形は同じになる。</p>
+  <label><input type="checkbox" class="check"> 電圧は 1.10 V に近づいて頭打ちになり、光が強いほど速く上がることを確かめた</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤罠：明るい光でも頭打ちは変わらない</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ 罠：明るい光でも頭打ちは変わらない</h2>
+  <svg class="fig" data-scene="scene-photo-cap-trap" data-show="" width="100%" role="img" aria-label="V–t グラフ。明るい光でも暗い光でも、頭打ちは 1.10 V のまま"></svg>
+  <p>罠は、光を明るくすれば、コンデンサの電圧の頭打ちも高くなると思うことだ。光を明るくしても、光子 1 個のエネルギーは 3.10 eV のままで、Kmax は 1.10 eV のままだ。だから、阻止電圧は 1.10 V のままで、頭打ちは変わらない。変わるのは、充電の速さだけだ。明るい光では、1.10 V に速く近づく。暗い光では、ゆっくり近づく。だが、近づく先は同じ 1.10 V だ。</p>
+  <p>もう 1 つの罠は、波長 650 nm の光を当てれば、電子が少しは出ると思うことだ。波長 650 nm の光子のエネルギーは、E = 1240 / 650 ≈ <strong>1.91 eV</strong> で、仕事関数 φ = 2.0 eV より小さい。電子は、まったく出ない。光をいくら明るくしても、光子 1 個のエネルギーが仕事関数をこえなければ、電子は 1 個も出ない。光電効果が起きるか起きないかは、光の波長だけで決まる。限界波長は、λ0 = hc / φ = 1240 / 2.0 = <strong>620 nm</strong> だ。620 nm より長い波長の光では、電子は出ない。</p>
+  <p>光電効果の決め手は、光子 1 個のエネルギーだ。明るさは、光子の数を変えるだけで、1 個のエネルギーは変えない。コンデンサの電圧の頭打ちは、1 個のエネルギーで決まる。だから、明るさでは変わらない。</p>
+  <label><input type="checkbox" class="check"> 明るい光でも頭打ちは 1.10 V のままであること、650 nm の光では電子は出ないことを確かめた</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>切り分けマップで時間と場所を切ったことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：(1) 光子 3.10 eV、Kmax = 1.10 eV、最も速い電子の速さ ≈ 6.2×10⁵ m/s。(2) 阻止電圧 V0 = 1.10 V。(3) Q = 11 nC、電子の数 ≈ 6.9×10¹⁰ 個、U ≈ 6.1 nJ。(4) 明るくしても頭打ちは 1.10 V のまま（速く充電されるだけ）。650 nm の光では電子は出ない（E ≈ 1.91 eV &lt; φ）。もとになった単体モデル：光電効果は <a href="photoelectric.html">第15問：光電効果</a>、コンデンサは <a href="capacitor.html">第9問：コンデンサ</a>、コンデンサと力学の組み合わせは <a href="cap-spring.html">組み合わせ問題J：コンデンサ＋ばね</a> で確かめられる。</p>
+  <p><a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.comboPhotoCapDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>
