@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第4問：2本の糸でつるす三力のつり合い — 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 720px; margin: 2em auto; padding: 0 1em 4em; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 1em; margin: 1.5em 0; scroll-margin-top: 1em; }
+  .step h2 { margin-top: 0; }
+  .note { color: #555; font-size: .95em; }
+  .next { display: inline-block; margin-top: .5em; }
+  .top-fixed { position: fixed; right: 12px; bottom: 12px; background: #333; color: #fff; padding: .6em .9em; border-radius: 999px; text-decoration: none; }
+  .done-box { border: 2px solid #333; border-radius: 8px; padding: 1em; margin: 1.5em 0; }
+  button { margin: .2em .5em .2em 0; }
+</style>
+</head>
+<body>
+<a class="top-fixed" href="../../index.html">↑ TOP</a>
+<p><a href="../../index.html">← トップに戻る</a></p>
+<h1>第4問：2本の糸でつるす三力のつり合い</h1>
+<p><strong>問題：</strong>天井の2点から糸で物体をつるす。左の糸は水平から 60°、右の糸は水平から 30°。物体は静止している。物体に働く力をすべて図示し、2本の張力を求めよ。</p>
+<p>このページは上から下へだけ進む。図は各ステップの中にあり、図を見て、チェックして、次へ進むだけ。上の図まで戻る必要はない。</p>
+<p class="note">図は手書きの座標ではなく、図描画シミュレータ（assets/js/figure.js）が下の JSON データから計算して描いている。重力 mg を 60 とすると、左の張力は約 52.0、右の張力は 30.0 になる。水平は 26.0＝26.0、鉛直は 45.0＋15.0＝60.0 でつり合う。ラベルは短い名前だけにして、枠からはみ出さないよう描画側で調整している。</p>
+<script type="application/json" id="scene-hang">{"type":"hang","thetaLeftDeg":60,"thetaRightDeg":30,"mgPx":60}</script>
+
+<section class="step" id="step0">
+  <h2>はじめに：対象を決める</h2>
+  <p>対象は<strong>「物体そのもの」</strong>。天井でも糸でもない。ここを間違えると、力の向きが全部ずれる。</p>
+  <svg class="fig" data-scene="scene-hang" data-show="" width="100%" role="img" aria-label="天井から2本の糸でつるされた物体（力はまだ描いていない）"></svg>
+  <p>力を描く前の図はこれだけ。ここから下へ、1本ずつ足していく。</p>
+  <a class="next" href="#step1">次へ ↓ ①重力</a>
+</section>
+
+<section class="step" id="step1">
+  <h2>① 重力 mg</h2>
+  <svg class="fig" data-scene="scene-hang" data-show="gravity" width="100%" role="img" aria-label="重力を描いた図"></svg>
+  <p>忘れやすい1本目。重力はつねに<strong>鉛直下向き</strong>。長さは 60（基準）だ。</p>
+  <label><input type="checkbox" class="check"> 重力を、中心から鉛直下向きに描いた</label>
+  <br><a class="next" href="#step2">次へ ↓ ②左の張力</a>
+</section>
+
+<section class="step" id="step2">
+  <h2>② 左の張力 T1</h2>
+  <svg class="fig" data-scene="scene-hang" data-show="gravity,tension1" width="100%" role="img" aria-label="重力と左の張力を描いた図"></svg>
+  <p>張力は<strong>糸に沿う</strong>。左の糸は水平から 60° だから、張力もその向き。鉛直・水平と間違えないこと。長さは約 52.0 だ。</p>
+  <label><input type="checkbox" class="check"> 左の張力は糸に沿う向き（水平から 60°）で描いた</label>
+  <br><a class="next" href="#step3">次へ ↓ ③右の張力</a>
+</section>
+
+<section class="step" id="step3">
+  <h2>③ 右の張力 T2</h2>
+  <svg class="fig" data-scene="scene-hang" data-show="gravity,tension1,tension2" width="100%" role="img" aria-label="重力と2本の張力を描いた図"></svg>
+  <p>右の張力も<strong>糸に沿う</strong>。右の糸は水平から 30° だから、張力もその向き。長さは 30.0 で、左より短い。「重いほう＝張力が大きい」ではなく、角度で決まる。</p>
+  <label><input type="checkbox" class="check"> 右の張力は糸に沿う向き（水平から 30°）で、左より短いと分かった</label>
+  <br><a class="next" href="#step4">次へ ↓ ④水平のつり合い</a>
+</section>
+
+<section class="step" id="step4">
+  <h2>④ 水平のつり合い（分解・破線）</h2>
+  <svg class="fig" data-scene="scene-hang" data-show="gravity,tension1,tension2,decompT1x,decompT2x" width="100%" role="img" aria-label="張力の水平成分を破線で描いた図"></svg>
+  <p class="note">分解の矢印は破線です。左の水平成分 T1 cos60° ≈ 26.0、右の水平成分 T2 cos30° ≈ 26.0。左右が等しいから、水平方向はつり合う。鉛直だけで解こうとすると、ここを忘れる。</p>
+  <label><input type="checkbox" class="check"> 水平のつり合い（26.0＝26.0）を確認した</label>
+  <br><a class="next" href="#step5">次へ ↓ ⑤鉛直のつり合い</a>
+</section>
+
+<section class="step" id="step5">
+  <h2>⑤ 鉛直のつり合い（分解・破線）</h2>
+  <svg class="fig" data-scene="scene-hang" data-show="gravity,tension1,tension2,decompT1x,decompT2x,decompT1y,decompT2y" width="100%" role="img" aria-label="張力の鉛直成分を破線で描いた図"></svg>
+  <p class="note">分解の矢印は破線です。左の鉛直成分 T1 sin60° = 45.0、右の鉛直成分 T2 sin30° = 15.0。合計 60.0 が重力とつり合う。分解は計算の道具で、新しい力ではない。張力と成分を両方数えると二重計算になる。</p>
+  <label><input type="checkbox" class="check"> 鉛直のつり合い（45.0＋15.0＝60.0）を確認した。分解を二重に数えていない</label>
+  <br><a class="next" href="#done-box">次へ ↓ 完了にする</a>
+</section>
+
+<section class="done-box" id="done-box">
+  <h2>完了にする</h2>
+  <p>対象を「物体」にしたことも、ここまでの5つのチェックに入っている。5つ全部にチェックしたら、完了にできる。</p>
+  <p><button id="done">このドリルを完了にする</button> <span id="done-msg"></span></p>
+  <p>答え：左の張力 T1 ≈ 52.0、右の張力 T2 = 30.0。分解の考え方は <a href="slope.html">第1問：斜面のドリル</a> と <a href="pull.html">第3問：斜めに引く力のドリル</a> でも確かめられる。</p>
+  <p>次は準備中です。<a href="../../index.html">← トップに戻る</a></p>
+</section>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  document.getElementById('done').onclick = async () => {
+    const all = [...document.querySelectorAll('.check')].every((c) => c.checked);
+    if (!all) { document.getElementById('done-msg').textContent = 'まだチェックが残っているよ。5つ全部にチェックしてから完了にしよう。'; return; }
+    const p = await loadProgress();
+    p.hangDone = true;
+    await saveProgress(p);
+    document.getElementById('done-msg').textContent = '完了を保存したよ。トップページの進捗にも反映されるよ。';
+  };
+</script>
+</body>
+</html>

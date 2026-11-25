@@ -40,6 +40,20 @@
 </div>
 
 <div class="card">
+  <h2>第3問：斜めに引く力の図示</h2>
+  <p>粗い水平な床の上の物体を、斜め上向きに引く。垂直抗力は mg より小さい（N = mg − F sinθ）——その罠を、1本ずつ確かめる。斜面の分解と同じ道具を使う。</p>
+  <p><a href="content/mechanics/pull.html">斜めに引く力のドリルを開く →</a></p>
+  <p id="progress-pull">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>第4問：2本の糸でつるす三力のつり合い</h2>
+  <p>天井の2点から糸で物体をつるす。左の糸は水平から 60°、右は 30°。Q1・Q3の「分解」を、今度は未知の力を2つ求める方向に使う。張力は糸に沿う、角度で決まる、水平のつり合いを忘れない、分解を二重に数えない——その4つのつまずきを1つずつ確かめよう。</p>
+  <p><a href="content/mechanics/hang.html">三力のつり合いのドリルを開く →</a></p>
+  <p id="progress-hang">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
   <h2>動きを見る：自由落下・鉛直投げ上げ</h2>
   <p>落とすだけ、投げ上げるだけ。でも速度は1秒ごとに 9.8 m/s ずつ変わる。その動きそのものをループ再生で確かめる。落とす高さ・初速度・再生速度を変えられる。</p>
   <p><a href="content/mechanics/freefall.html">自由落下・鉛直投げ上げの動きを見る →</a></p>
@@ -67,9 +81,15 @@
       p.slopeDone ? '進捗：第1問・斜面のドリルを完了済み ✓' : '進捗：まだ第1問・斜面のドリルは未完了';
     document.getElementById('progress-ladder').textContent =
       p.ladderDone ? '進捗：第2問・梯子のドリルを完了済み ✓' : '進捗：まだ第2問・梯子のドリルは未完了';
+    document.getElementById('progress-pull').textContent =
+      p.pullDone ? '進捗：第3問・斜めに引く力のドリルを完了済み ✓' : '進捗：まだ第3問・斜めに引く力のドリルは未完了';
+    document.getElementById('progress-hang').textContent =
+      p.hangDone ? '進捗：第4問・三力のつり合いのドリルを完了済み ✓' : '進捗：まだ第4問・三力のつり合いのドリルは未完了';
   }).catch(() => {
     document.getElementById('progress-slope').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-ladder').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-pull').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-hang').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
   });
   document.getElementById('export').onclick = () => exportAll()
     .then(() => { document.getElementById('data-msg').textContent = '出力しました。'; })
