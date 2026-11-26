@@ -472,6 +472,20 @@
   <p id="progress-combo-fall-drag-spring">進捗：読み込み中…</p>
 </div>
 
+<div class="card">
+  <h2>組み合わせ問題BG：斜方投射＋空気抵抗＋壁＋摩擦＋ばね</h2>
+  <p>BC のつづき。質量 0.50 kg の玉を速さ 20 m/s、仰角 45° で打ち出す。空気抵抗で壁に当たるのは 0.38 s、高さ 4.3 m、速さ 15 m/s。はね返って着地は x=−12 m、速さ 13 m/s。4.0 m すべってばねに当たり、最大の縮み 0.49 m、ばねの力 25 N、押し返し 4.7 m/s、x=−10 m で止まる。はじめの 100 J は、壁の損失 13.8 J、抵抗の仕事 43.7 J、着地で失う 32.0 J、摩擦熱 10.5 J に分かれる。抵抗なしなら着地は x=−23 m で、ばねの壁を 6.8 m の高さで飛び越える。橋渡し量は「エネルギー」。</p>
+  <p><a href="content/mechanics/proj-drag-wall-spring.html">斜方投射＋空気抵抗＋壁＋摩擦＋ばねのドリルを開く →</a></p>
+  <p id="progress-combo-proj-drag-wall-spring">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>組み合わせ問題BH：振り子＋弾性衝突＋ドップラー効果</h2>
+  <p>長さ 1.0 m の振り子の玉に 440 Hz の音源をつける。0.20 m から放すと、最下点で 2.0 m/s、観測者に向かって進むので 442.6 Hz に聞こえる。折り返し点では 440 Hz、反対向きの最下点では 437.4 Hz、うなりは最大 2.6 Hz。等しい質量のブロックとの弾性衝突では玉は止まって音は 440 Hz に戻り、ブロックが 2.0 m/s で 1.0 m すべる。橋渡し量は「速さ・振動数」。</p>
+  <p><a href="content/mechanics/pendulum-doppler.html">振り子＋弾性衝突＋ドップラー効果のドリルを開く →</a></p>
+  <p id="progress-combo-pendulum-doppler">進捗：読み込み中…</p>
+</div>
+
 
 <div class="card">
   <h2>第7問：気体＋ピストン</h2>
@@ -808,6 +822,10 @@
       p.comboDopplerResonanceDone ? '進捗：組み合わせ問題BE・音波＋ドップラー効果＋開管の共鳴を完了済み ✓' : '進捗：まだ組み合わせ問題BE・音波＋ドップラー効果＋開管の共鳴は未完了';
     document.getElementById('progress-combo-fall-drag-spring').textContent =
       p.comboFallDragSpringDone ? '進捗：組み合わせ問題BF・空気抵抗で落下＋ばね＋摩擦を完了済み ✓' : '進捗：まだ組み合わせ問題BF・空気抵抗で落下＋ばね＋摩擦は未完了';
+    document.getElementById('progress-combo-proj-drag-wall-spring').textContent =
+      p.comboProjDragWallSpringDone ? '進捗：組み合わせ問題BG・斜方投射＋空気抵抗＋壁＋摩擦＋ばねを完了済み ✓' : '進捗：まだ組み合わせ問題BG・斜方投射＋空気抵抗＋壁＋摩擦＋ばねは未完了';
+    document.getElementById('progress-combo-pendulum-doppler').textContent =
+      p.comboPendulumDopplerDone ? '進捗：組み合わせ問題BH・振り子＋弾性衝突＋ドップラー効果を完了済み ✓' : '進捗：まだ組み合わせ問題BH・振り子＋弾性衝突＋ドップラー効果は未完了';
     document.getElementById('progress-gas-piston').textContent =
       p.gasPistonDone ? '進捗：第7問・気体＋ピストンを完了済み ✓' : '進捗：まだ第7問・気体＋ピストンは未完了';
     document.getElementById('progress-young').textContent =
@@ -925,6 +943,8 @@
     document.getElementById('progress-combo-photo-doppler-circle').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-doppler-resonance').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-fall-drag-spring').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-proj-drag-wall-spring').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-pendulum-doppler').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-gas-piston').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-young').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-capacitor').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
