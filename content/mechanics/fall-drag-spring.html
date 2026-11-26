@@ -77,8 +77,8 @@
 <p>罠：「抵抗を無視しても、着地は 7.2 m/s くらい」——まちがい。抵抗なしなら 7.7 m/s、運動エネルギーは 6.0 J、最大の縮みは 0.51 m になる。抵抗で 0.82 J が失われている。</p>
 <p>罠：「摩擦を無視しても、押し返しは 6.5 m/s くらい」——まちがい。摩擦なしなら最大の縮みは 0.50 m、押し返しは着地と同じ 7.2 m/s、はね返りは 2.3 m になる。摩擦で 0.95 J が熱になっている。</p>
 <p>罠：「つり合い位置は縮むときも戻るときも同じ」——まちがい。摩擦の向きが変わるので、つり合い位置は 0.020 m から 0.060 m にずれる。1 段の計算（つり合いを 0.020 m のままにする）だと、押し返しは 7.2 m/s、往復の時間は 0.20 s になってしまう（正しくは 6.5 m/s、0.21 s）。</p>
-<p>罠：「縮むときの重力は無視できる」——まちがい。重力を無視すると、縮みは x = 7.2×√(0.20/50) = 0.46 m になる（正しくは 0.48 m）。重力が縮むあいだも仕事をするからだ。</p>
-<svg class="fig" data-scene="scene-fallDragSpring-trap" data-show="" role="img" aria-label="最大の縮みの比べ。もと 0.48 m、抵抗なし 0.51 m、摩擦なし 0.50 m、重力無視 0.46 m"></svg>
+<p>罠：「縮むときの重力は無視できる」——まちがい。重力を無視すると、縮みは x = −0.020 + √(0.020² + 0.456²) ≈ 0.44 m になる（正しくは 0.48 m）。重力が縮むあいだも仕事をするからだ。</p>
+<svg class="fig" data-scene="scene-fallDragSpring-trap" data-show="" role="img" aria-label="最大の縮みの比べ。もと 0.48 m、抵抗なし 0.51 m、摩擦なし 0.50 m、重力無視 0.44 m"></svg>
 <script type="application/json" id="scene-fallDragSpring-trap">{"fricN":1.0,"g":10,"hM":3.0,"kDragKgPerM":0.01,"kSpring":50,"mKg":0.2,"phase":"trap","type":"fallDragSpring"}</script>
 <label class="check"><input type="checkbox" id="comboFallDragSpring-check-4"> 抵抗なし・摩擦なし・1段の計算のまちがいを区別できた</label>
 <p><a href="#step5">次へ ↓</a></p>

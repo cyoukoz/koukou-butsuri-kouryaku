@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題BR：気体＋ピストン＋ばね＋音速＋共鳴管 — 高校物理攻略</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", sans-serif; margin: 0; background: #fff; color: #222; line-height: 1.8; }
+  main { max-width: 720px; margin: 0 auto; padding: 24px 18px 80px; }
+  h1 { font-size: 24px; line-height: 1.4; }
+  h2 { font-size: 20px; margin-top: 40px; }
+  .step { border-top: 1px solid #ddd; padding-top: 16px; margin-top: 32px; }
+  .step h2 { font-size: 18px; margin: 0 0 8px; }
+  .fig { width: 100%; max-width: 400px; height: auto; display: block; margin: 12px auto; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; font-size: 14px; }
+  th { background: #f2f2f2; }
+  .donebox { border: 2px solid #4a8; background: #f6fffa; padding: 14px; margin-top: 40px; }
+  .nav { margin-top: 32px; font-size: 14px; }
+  .toplink { position: fixed; right: 16px; bottom: 16px; background: #222; color: #fff; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 14px; }
+  label.check { display: block; margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+<p><a href="../../index.html">← トップへ</a> ｜ <a href="fall-loop-cap-spring.html">← 組み合わせ問題BQ：落下するコイル＋コンデンサー＋ばね＋摩擦</a></p>
+<h1>組み合わせ問題BR：気体＋ピストン＋ばね＋音速＋共鳴管</h1>
+<p>シリンダーの中にヘリウム（単原子分子気体、γ = 5/3、モル質量 4.0×10⁻³ kg/mol）が入っている。シリンダーの断面積は 0.010 m²、ピストンの質量は 10 kg、ばね定数は 1000 N/m、ばねの自然長のときの気体の高さは 0.20 m、大気圧は 1.0×10⁵ Pa、重力加速度は g = 10 m/s² とする。気体の状態は A（h = 0.20 m、T = 300 K）から始まる。A→B：加熱してピストンを h = 0.30 m まで上げる。B→C：ピストンを固定して 300 K まで冷やす。C→A：等温圧縮して A に戻す。シリンダーのそばに、長さ 0.85 m の開管と 1200 Hz の音さがある。音速は v = √(γRT/M) で求める。</p>
+<p>(1) p–V 図とサイクルの仕事・効率を求めよ。(2) 各状態での音速と管の振動数を求めよ。(3) 1200 Hz の音さが共鳴する状態を求めよ。(4) 罠と変えたら。</p>
+
+<div class="step" id="step0">
+<p><b>はじめに：どう切り分けるか</b></p>
+<table>
+<tr><th>場面</th><th>考えること</th><th>使うモデル</th></tr>
+<tr><td>サイクル</td><td>仕事と効率</td><td>気体＋ピストン＋ばね</td></tr>
+<tr><td>音速</td><td>温度で音速が決まる</td><td>気体の音速</td></tr>
+<tr><td>共鳴管</td><td>音さと管の振動数の一致</td><td>開管の共鳴</td></tr>
+<tr><td>効率</td><td>カルノー効率との比べ</td><td>熱効率</td></tr>
+</table>
+<p>この問題の橋渡しの量は<b>温度</b>だ。状態 A・B・C の温度が管の中の音速を決め、音速が管の振動数を決める。温度が変われば、共鳴するかどうかも変わる。</p>
+<svg class="fig" data-scene="scene-gasCycleResPipe-base" data-show="" role="img" aria-label="流れ。気体とピストンとばねでサイクルを回し、音速と共鳴を調べる"></svg>
+<script type="application/json" id="scene-gasCycleResPipe-base">{"areaM2":0.01,"fForkHz":1200,"g":10,"gamma":1.667,"hBM":0.3,"hNatM":0.2,"kNm":1000,"molarKg":0.004,"p0Pa":100000,"phase":"base","pipeLM":0.85,"pistonKg":10,"rGas":8.31,"tAK":300,"type":"gasCycleResPipe"}</script>
+<p><a href="#step1">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step1">
+<h2>① p–V 図：A→B は W = 115 J、ΔU = 210 J、Q = 325 J</h2>
+<p>状態 A では、力のつり合いから p_A = p0 + mg/S = 1.0×10⁵ + 100/0.010 = 1.10×10⁵ Pa、体積は V_A = 0.010 × 0.20 = 2.0 L、温度は T_A = 300 K になる。状態 B では、ばねが 0.10 m 縮むので p_B = 1.10×10⁵ + 1000 × 0.10/0.010 = 1.20×10⁵ Pa、V_B = 3.0 L、温度は T_B = p_B·V_B/nR ≈ 491 K になる。</p>
+<p>A→B では、仕事は W = 115 J（大気の仕事 100 J ＋ 重力の仕事 10 J ＋ ばねの仕事 5.0 J）、内部エネルギーの変化は ΔU = 210 J、吸った熱は Q = ΔU + W = 325 J になる。B→C では体積が変わらないので W = 0、ΔU = −210 J、Q = −210 J になり、圧力は p_C ≈ 0.733×10⁵ Pa になる。C→A では等温圧縮で W ≈ −89 J、ΔU = 0 になる。正味の仕事は 25.8 J、効率は 7.9%、カルノー効率は 39% になる（組み合わせ問題BN と同じサイクルだ）。</p>
+<svg class="fig" data-scene="scene-gasCycleResPipe-pv" data-show="" role="img" aria-label="p–V 図。A(2.0 L, 1.10×10⁵ Pa)、B(3.0 L, 1.20×10⁵ Pa)、C(3.0 L, 0.733×10⁵ Pa)、囲まれた面積が正味の仕事 25.8 J"></svg>
+<script type="application/json" id="scene-gasCycleResPipe-pv">{"areaM2":0.01,"fForkHz":1200,"g":10,"gamma":1.667,"hBM":0.3,"hNatM":0.2,"kNm":1000,"molarKg":0.004,"p0Pa":100000,"phase":"pv","pipeLM":0.85,"pistonKg":10,"rGas":8.31,"tAK":300,"type":"gasCycleResPipe"}</script>
+<label class="check"><input type="checkbox" id="comboGasCycleResPipe-check-1"> サイクルの仕事 25.8 J と効率 7.9% を求めた</label>
+<p><a href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<h2>② 音速と管の振動数：300 K で 1020 m/s・600 Hz、491 K で 1300 m/s・767 Hz</h2>
+<p>気体の中の音速は v = √(γRT/M) で決まる。300 K では v = √(5/3 × 8.31 × 300/0.004) ≈ 1020 m/s になる。491 K では、音速は √T に比例するので、v = 1020 × √(491/300) ≈ 1300 m/s になる。</p>
+<p>開管の振動数は f_n = n·v/(2L) だ。300 K では f1 = 1020/(2 × 0.85) = 600 Hz、f2 = 1200 Hz、f3 = 1800 Hz になる。491 K では f1 = 767 Hz、f2 = 1500 Hz、f3 = 2300 Hz になる。温度が上がると、音速が上がって管の振動数も上がる。</p>
+<svg class="fig" data-scene="scene-gasCycleResPipe-sound" data-show="" role="img" aria-label="管の f1 と音さの振動数の比べ。A・C の f1 は 600 Hz、B の f1 は 767 Hz、音さは 1200 Hz"></svg>
+<script type="application/json" id="scene-gasCycleResPipe-sound">{"areaM2":0.01,"fForkHz":1200,"g":10,"gamma":1.667,"hBM":0.3,"hNatM":0.2,"kNm":1000,"molarKg":0.004,"p0Pa":100000,"phase":"sound","pipeLM":0.85,"pistonKg":10,"rGas":8.31,"tAK":300,"type":"gasCycleResPipe"}</script>
+<label class="check"><input type="checkbox" id="comboGasCycleResPipe-check-2"> 各状態の音速と管の振動数を求めた</label>
+<p><a href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<h2>③ 共鳴：1200 Hz の音さは A・C の f2 と一致するが、B では合わない</h2>
+<p>1200 Hz の音さは、状態 A・C では管の f2 = 1200 Hz と一致するので、共鳴する。開管の f2 は、管の長さがちょうど 1 波長になる振動で、両端と中央が腹になる。</p>
+<p>状態 B では、管の振動数は f1 = 767 Hz、f2 = 1500 Hz、f3 = 2300 Hz になり、1200 Hz と一致する振動数はない。だから、B では 1200 Hz の音さは共鳴しない。B で共鳴する音さは、f1 = 767 Hz の音さだ。767 Hz はちょうどの値で、770 Hz に丸めてはいけない（770 Hz の音さは、767 Hz の管とは 3 Hz ちがうので共鳴しない）。</p>
+<svg class="fig" data-scene="scene-gasCycleResPipe-resonate" data-show="" role="img" aria-label="開管の f2=1200 Hz の定常波。両端と中央が腹"></svg>
+<script type="application/json" id="scene-gasCycleResPipe-resonate">{"areaM2":0.01,"fForkHz":1200,"g":10,"gamma":1.667,"hBM":0.3,"hNatM":0.2,"kNm":1000,"molarKg":0.004,"p0Pa":100000,"phase":"resonate","pipeLM":0.85,"pistonKg":10,"rGas":8.31,"tAK":300,"type":"gasCycleResPipe"}</script>
+<label class="check"><input type="checkbox" id="comboGasCycleResPipe-check-3"> 1200 Hz の音さが A・C で共鳴し、B ではしないことを求めた</label>
+<p><a href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<h2>④ 罠：B の音速を 300 K のまま使うとまちがう／v ∝ T はまちがい</h2>
+<p>罠：「サイクルを通して共鳴は変わらない」——まちがい。B では温度が上がって音速が上がり、管の振動数が変わる。A・C で共鳴しても、B では共鳴しない。共鳴するかどうかは、そのときの温度で決まる。</p>
+<p>罠：「B の音速を 300 K のまま計算する」——まちがい。300 K の音速 1020 m/s を使うと、f2 = 1200 Hz のままに見えて「B でも共鳴する」と思ってしまう。B の音速は 491 K で計算して 1300 m/s、f2 = 1500 Hz だ。音速は、その状態の温度で計算しなければならない。</p>
+<p>罠：「音速は温度に比例する」——まちがい。v ∝ T だと思うと、491 K の音速は 1020 × 491/300 = 1670 m/s、f1 = 980 Hz になる。正しくは v ∝ √T で、音速は 1300 m/s、f1 = 767 Hz だ。</p>
+<p>罠：「閉管でも 1200 Hz が共鳴する」——まちがい。閉管の振動数は奇数倍だけで、300 K では 300・900・1500 Hz、491 K では 383・1150・1920 Hz になり、1200 Hz と一致する振動数はない。</p>
+<svg class="fig" data-scene="scene-gasCycleResPipe-trap" data-show="" role="img" aria-label="B の f1 の比べ。正しい 767 Hz、300 K のまま 600 Hz、v∝T の 980 Hz、閉管の f1 は 300 Hz"></svg>
+<script type="application/json" id="scene-gasCycleResPipe-trap">{"areaM2":0.01,"fForkHz":1200,"g":10,"gamma":1.667,"hBM":0.3,"hNatM":0.2,"kNm":1000,"molarKg":0.004,"p0Pa":100000,"phase":"trap","pipeLM":0.85,"pistonKg":10,"rGas":8.31,"tAK":300,"type":"gasCycleResPipe"}</script>
+<label class="check"><input type="checkbox" id="comboGasCycleResPipe-check-4"> 罠を 4 つ確かめた</label>
+<p><a href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<h2>⑤ 変えたら：k・L・閉管で共鳴が変わる</h2>
+<p>k = 2000 N/m なら、T_B = 532 K、音速は 1360 m/s、f1 = 800 Hz になる。1200 Hz の音さは共鳴しない。800 Hz の音さなら、f1 と一致して共鳴する。</p>
+<p>h_B = 0.40 m なら、T_B = 709 K、音速は 1570 m/s、f1 = 920 Hz になる。1200 Hz の音さは共鳴しない。</p>
+<p>L = 1.70 m なら、300 K では f1 = 300 Hz、f4 = 1200 Hz になるので、1200 Hz の音さは f4 と一致して共鳴する。491 K では f1 = 383 Hz、f3 = 1150 Hz、f4 = 1500 Hz になり、1200 Hz は合わない。</p>
+<p>閉管（L = 0.85 m）では、300 K で 300・900・1500 Hz、491 K で 383・1150・1920 Hz になり、1200 Hz はどちらでも合わない。491 K の 1150 Hz は近いが、50 Hz ちがうので共鳴しない。</p>
+<svg class="fig" data-scene="scene-gasCycleResPipe-vary" data-show="" role="img" aria-label="変えたら。もと B の f1 は 767 Hz、k=2000 は 800 Hz、L=1.70 m の f4 は 1200 Hz、閉管の f3 は 1150 Hz"></svg>
+<script type="application/json" id="scene-gasCycleResPipe-vary">{"areaM2":0.01,"fForkHz":1200,"g":10,"gamma":1.667,"hBM":0.3,"hNatM":0.2,"kNm":1000,"molarKg":0.004,"p0Pa":100000,"phase":"vary","pipeLM":0.85,"pistonKg":10,"rGas":8.31,"tAK":300,"type":"gasCycleResPipe"}</script>
+<label class="check"><input type="checkbox" id="comboGasCycleResPipe-check-5"> k・L・閉管を変えたときの共鳴を求めた</label>
+</div>
+
+<div class="donebox" id="donebox">
+<p><b>まとめ（答え）</b></p>
+<p>(1) 正味の仕事 25.8 J、効率 7.9%、カルノー効率 39%。(2) 300 K：音速 1020 m/s、f1 = 600、f2 = 1200、f3 = 1800 Hz。491 K：音速 1300 m/s、f1 = 767、f2 = 1500、f3 = 2300 Hz。(3) 1200 Hz の音さは A・C の f2 と一致して共鳴するが、B では合わない。B で共鳴する音さは 767 Hz。(4) B の音速は 491 K で計算する。v ∝ √T。</p>
+<p>もとになった単体モデル：気体＋ピストン＋ばねのサイクルは<a href="gas-carnot-cycle.html">組み合わせ問題BN：気体＋ピストン＋ばね＋カルノー効率</a>、気体の音速と開管の共鳴は<a href="gas-sound-pipe.html">組み合わせ問題BI：気体＋音速＋開管の共鳴</a>、気体＋ピストン＋ばねは<a href="gas-spring-cycle.html">組み合わせ問題P：気体＋ピストン＋ばね＋サイクル</a>、定常波は<a href="standing-wave.html">第14問：定常波</a>で確かめられる。</p>
+<p id="done-msg"></p>
+</div>
+
+<p class="nav"><a href="../../index.html">← トップへ</a></p>
+</main>
+<a class="toplink" href="#">↑ TOP</a>
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+const doneKey = 'comboGasCycleResPipeDone';
+const checkIds = ['comboGasCycleResPipe-check-1','comboGasCycleResPipe-check-2','comboGasCycleResPipe-check-3','comboGasCycleResPipe-check-4','comboGasCycleResPipe-check-5'];
+const doneMsg = document.getElementById('done-msg');
+function allChecked() { return checkIds.every(id => document.getElementById(id).checked); }
+function refresh() {
+  if (allChecked()) {
+    doneMsg.textContent = '完了！';
+    loadProgress().then(p => { p[doneKey] = true; return saveProgress(p); }).catch(() => {});
+  } else {
+    doneMsg.textContent = '';
+  }
+}
+checkIds.forEach(id => document.getElementById(id).addEventListener('change', refresh));
+renderAllFigures();
+loadProgress().then(p => { if (p[doneKey]) { doneMsg.textContent = '完了済み ✓'; } }).catch(() => {});
+</script>
+</body>
+</html>
