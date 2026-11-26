@@ -404,6 +404,20 @@
 </div>
 
 <div class="card">
+  <h2>組み合わせ問題AW：斜面＋滑車＋摩擦＋ばねの2物体単振動</h2>
+  <p>斜面（θ=30°）の上に質量 2.0 kg の物体を置き、滑車で質量 1.0 kg のおもりとつなぎ、おもりの下にばね（k = 120 N/m）がある。斜面はあらく、摩擦係数は 0.10 で摩擦は 1.7 N。つり合いは 1 点ではなく |x| ≤ 0.014 m の範囲になる。おもりを 0.10 m 引いて放すと、角振動数 6.3 rad/s、周期 0.99 s で振動するが、振幅は半周期ごとに 0.029 m ずつ減り、0.10 → 0.071 → 0.042 → 0.013 m と減って 1.5 s で止まる。エネルギーは 0.60 J = 摩擦熱 0.59 J + ばね 0.011 J になる。μ = 0.20 なら 2 半周期で止まり、k = 200 N/m なら 6 半周期かかる。橋渡し量は「力・エネルギー」。</p>
+  <p><a href="content/mechanics/slope-pulley-fric.html">斜面＋滑車＋摩擦＋ばねの2物体単振動のドリルを開く →</a></p>
+  <p id="progress-combo-slope-pulley-fric">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>組み合わせ問題AX：加速＋速度選別＋磁場円運動</h2>
+  <p>陽子と重水素を電圧 1000 V で加速すると、陽子は 4.4×10⁵ m/s、重水素は 3.1×10⁵ m/s になる。速度選別器では E = 4.4×10⁴ V/m で電気の力と磁気の力がつり合い、陽子はまっすぐ進む。速さがちがう粒子は、速い陽子は +12 mm、遅い陽子は −11 mm ずれ、重水素は −32 mm ずれて板に当たって通れない。そのあと磁場だけの場所で陽子は半径 0.046 m、重水素は 0.065 m の半円を描き、検出器での間隔は 0.038 m、陽子の周期は 0.66 μs になる。電圧を 2 倍にしても半径は √2 倍の 0.065 m にしかならない。橋渡し量は「粒子の速さ」。</p>
+  <p><a href="content/mechanics/selector-circle.html">加速＋速度選別＋磁場円運動のドリルを開く →</a></p>
+  <p id="progress-combo-selector-circle">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
   <h2>第7問：気体＋ピストン</h2>
   <p>シリンダーにピストンがのっている。ピストンの力のつり合いから気体の圧力を、状態方程式から体積と高さを求める。加熱するとピストンが上がる等圧変化で、仕事・内部エネルギー・熱を区別しよう。</p>
   <p><a href="content/mechanics/gas-piston.html">気体＋ピストンのドリルを開く →</a></p>
@@ -718,6 +732,10 @@
       p.comboProjDragDone ? '進捗：組み合わせ問題AU・斜方投射＋空気抵抗＋エネルギーを完了済み ✓' : '進捗：まだ組み合わせ問題AU・斜方投射＋空気抵抗＋エネルギーは未完了';
     document.getElementById('progress-combo-pendulum-spring-fric').textContent =
       p.comboPendulumSpringFricDone ? '進捗：組み合わせ問題AV・振り子＋弾性衝突＋ばね＋摩擦を完了済み ✓' : '進捗：まだ組み合わせ問題AV・振り子＋弾性衝突＋ばね＋摩擦は未完了';
+    document.getElementById('progress-combo-slope-pulley-fric').textContent =
+      p.comboSlopePulleyFricDone ? '進捗：組み合わせ問題AW・斜面＋滑車＋摩擦＋ばねの2物体単振動を完了済み ✓' : '進捗：まだ組み合わせ問題AW・斜面＋滑車＋摩擦＋ばねの2物体単振動は未完了';
+    document.getElementById('progress-combo-selector-circle').textContent =
+      p.comboSelectorCircleDone ? '進捗：組み合わせ問題AX・加速＋速度選別＋磁場円運動を完了済み ✓' : '進捗：まだ組み合わせ問題AX・加速＋速度選別＋磁場円運動は未完了';
     document.getElementById('progress-gas-piston').textContent =
       p.gasPistonDone ? '進捗：第7問・気体＋ピストンを完了済み ✓' : '進捗：まだ第7問・気体＋ピストンは未完了';
     document.getElementById('progress-young').textContent =
@@ -825,6 +843,8 @@
     document.getElementById('progress-combo-ac-rlc').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-proj-drag').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-pendulum-spring-fric').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-slope-pulley-fric').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-selector-circle').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-gas-piston').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-young').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-capacitor').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
