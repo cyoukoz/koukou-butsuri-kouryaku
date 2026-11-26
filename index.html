@@ -784,6 +784,18 @@
   <p><a href="content/mechanics/horiz-spring-fric-recede-doppler-res-pipe.html">水平ばね振り子＋摩擦＋ドップラー＋開管の共鳴のドリルを開く →</a></p>
   <p id="progress-combo-horiz-spring-fric-recede-doppler-res-pipe">進捗：読み込み中…</p>
 </div>
+<div class="card">
+  <h2>組み合わせ問題DC：斜面上のばね振り子＋摩擦＋ドップラー＋開管の共鳴（最初の1回だけ共鳴）</h2>
+  <p>CY の鉛直ばね振り子＋摩擦を斜面（θ = 30°）にした問題（つりあいは自然長から 0.050 m 下、振幅 0.20 m、振幅は半周期ごとに 0.040 m 減る、5 半周期で止まる）。斜面では重力の斜面成分が mg sinθ = 5.0 N しかないので、つりあいのずれは鉛直の 0.10 m ではなく 0.050 m になる。観測者は斜面の下にいるので、下向きが近づく。中心の速さは 1.8 → 1.4 → 0.98 → 0.57 m/s と小さくなる。共鳴するのは 1 回目の下向きの音 400 Hz だけで、管の f1 と有効数字3けたで一致する（ちょうどではない）。2 回目の下向きは 399 Hz で、1 Hz しかちがわないのに共鳴しない。「共鳴は1周期ごとにくり返される」はまちがい。斜面を鉛直とみなしてつりあいを 0.10 m ずらすと 401 Hz になって共鳴しない。下端からはなすと共鳴はすっかりなくなる。振幅を 0.30 m にすると共鳴は 3 回目にずれる。橋渡し量は「速度（斜面方向）」。</p>
+  <p><a href="content/mechanics/slope-spring-fric-down-doppler-res-pipe.html">斜面上のばね振り子＋摩擦＋ドップラー＋開管の共鳴のドリルを開く →</a></p>
+  <p id="progress-combo-slope-spring-fric-down-doppler-res-pipe">進捗：読み込み中…</p>
+</div>
+<div class="card">
+  <h2>組み合わせ問題DD：斜面上のばね振り子＋摩擦＋ドップラー＋開管の共鳴（上向きの最初の1回だけ共鳴）</h2>
+  <p>DC の斜面上のばね振り子＋摩擦を、共鳴する向きを上向きにした問題（つりあいは自然長から 0.050 m 下、振幅 0.20 m、振幅は半周期ごとに 0.040 m 減る、5 半周期で止まる）。下端（自然長から 0.25 m 下）からはなすと、はじめに上向きに通る。中心の速さは 1.8 → 1.4 → 0.98 → 0.57 m/s と小さくなる。共鳴するのは 1 回目の上向きの音 400 Hz だけで、管の f1 と有効数字3けたで一致する（ちょうどではない）。2 回目の上向きは 401 Hz で、1 Hz しかちがわないのに共鳴しない。「共鳴は1周期ごとにくり返される」はまちがい。斜面を鉛直とみなしてつりあいを 0.10 m ずらすと 399 Hz になって共鳴しない。上端からはなすと共鳴はすっかりなくなる。振幅を 0.30 m にすると共鳴は 3 回目にずれる。橋渡し量は「速度（斜面方向）」。</p>
+  <p><a href="content/mechanics/slope-spring-fric-recede-doppler-res-pipe.html">斜面上のばね振り子＋摩擦＋ドップラー＋開管の共鳴のドリルを開く →</a></p>
+  <p id="progress-combo-slope-spring-fric-recede-doppler-res-pipe">進捗：読み込み中…</p>
+</div>
 
 
 
@@ -1218,6 +1230,10 @@
       p.comboHorizSpringFricDopplerResPipeDone ? '進捗：組み合わせ問題DA・水平ばね振り子＋摩擦＋ドップラー＋開管の共鳴を完了済み ✓' : '進捗：まだ組み合わせ問題DA・水平ばね振り子＋摩擦＋ドップラー＋開管の共鳴は未完了';
     document.getElementById('progress-combo-horiz-spring-fric-recede-doppler-res-pipe').textContent =
       p.comboHorizSpringFricRecedeDopplerResPipeDone ? '進捗：組み合わせ問題DB・水平ばね振り子＋摩擦＋ドップラー＋開管の共鳴を完了済み ✓' : '進捗：まだ組み合わせ問題DB・水平ばね振り子＋摩擦＋ドップラー＋開管の共鳴は未完了';
+    document.getElementById('progress-combo-slope-spring-fric-down-doppler-res-pipe').textContent =
+      p.comboSlopeSpringFricDownDopplerResPipeDone ? '進捗：組み合わせ問題DC・斜面上のばね振り子＋摩擦＋ドップラー＋開管の共鳴を完了済み ✓' : '進捗：まだ組み合わせ問題DC・斜面上のばね振り子＋摩擦＋ドップラー＋開管の共鳴は未完了';
+    document.getElementById('progress-combo-slope-spring-fric-recede-doppler-res-pipe').textContent =
+      p.comboSlopeSpringFricRecedeDopplerResPipeDone ? '進捗：組み合わせ問題DD・斜面上のばね振り子＋摩擦＋ドップラー＋開管の共鳴を完了済み ✓' : '進捗：まだ組み合わせ問題DD・斜面上のばね振り子＋摩擦＋ドップラー＋開管の共鳴は未完了';
     document.getElementById('progress-gas-piston').textContent =
       p.gasPistonDone ? '進捗：第7問・気体＋ピストンを完了済み ✓' : '進捗：まだ第7問・気体＋ピストンは未完了';
     document.getElementById('progress-young').textContent =
@@ -1383,6 +1399,8 @@
     document.getElementById('progress-combo-vert-spring-fric-recede-doppler-res-pipe').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-horiz-spring-fric-doppler-res-pipe').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-horiz-spring-fric-recede-doppler-res-pipe').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-slope-spring-fric-down-doppler-res-pipe').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-slope-spring-fric-recede-doppler-res-pipe').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-gas-piston').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-young').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-capacitor').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
