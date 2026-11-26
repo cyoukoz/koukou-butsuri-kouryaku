@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題AZ：発電機＋変圧器＋送電＋電力損失 — 高校物理攻略</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", sans-serif; margin: 0; background: #fff; color: #222; line-height: 1.8; }
+  main { max-width: 720px; margin: 0 auto; padding: 24px 18px 80px; }
+  h1 { font-size: 24px; line-height: 1.4; }
+  h2 { font-size: 20px; margin-top: 40px; }
+  .step { border-top: 1px solid #ddd; padding-top: 16px; margin-top: 32px; }
+  .step h2 { font-size: 18px; margin: 0 0 8px; }
+  .fig { width: 100%; max-width: 400px; height: auto; display: block; margin: 12px auto; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; font-size: 14px; }
+  th { background: #f2f2f2; }
+  .donebox { border: 2px solid #4a8; background: #f6fffa; padding: 14px; margin-top: 40px; }
+  .nav { margin-top: 32px; font-size: 14px; }
+  .toplink { position: fixed; right: 16px; bottom: 16px; background: #222; color: #fff; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 14px; }
+  label.check { display: block; margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+<p><a href="../../index.html">← トップへ</a> ｜ <a href="fall-loop-cap.html">← 組み合わせ問題AY：落下するコイル＋コンデンサー＋エネルギー</a></p>
+<h1>組み合わせ問題AZ：発電機＋変圧器＋送電＋電力損失</h1>
+<p>AK の回転コイル発電機と同じ仕組みの発電機が、実効値 100 V、50 Hz の交流を出す（コイルの巻き数を AK より少し少なくしてある）。この電力で、100 V で 100 W を使う町に電気を送る。送電線の抵抗は 20 Ω である。変圧器は理想的なものとする。</p>
+<p>(1) 昇圧変圧器（巻き数の比 1:10）で送電電圧を 1000 V にすると、送電電流はいくらか。(2) 送電線での損失を求め、変圧器を使わない場合と比べよ。(3) 降圧変圧器（巻き数の比 10:1）で町の電圧に戻すと、町の電圧と電流はいくらか。(4) 罠と変えたら。</p>
+
+<div class="step" id="step0">
+<p><b>はじめに：どう切り分けるか</b></p>
+<table>
+<tr><th>場面</th><th>考えること</th><th>使うモデル</th></tr>
+<tr><td>昇圧</td><td>電圧と電流の比</td><td>変圧器（巻き数の比）</td></tr>
+<tr><td>送電</td><td>損失は I²R</td><td>ジュール熱</td></tr>
+<tr><td>降圧</td><td>電圧と電流を戻す</td><td>変圧器（巻き数の比）</td></tr>
+</table>
+<p>この問題の橋渡しの量は<b>電力</b>と<b>電圧</b>だ。変圧器は電圧と電流を変えるが、電力は変えない。損失は電流の 2 乗で決まる。</p>
+<svg class="fig" data-scene="scene-genTransformer-base" data-show="" role="img" aria-label="送電の流れ。発電機 100 V、昇圧 ×10、送電線 1000 V、降圧 ÷10、負荷 100 W"></svg>
+<script type="application/json" id="scene-genTransformer-base">{"genEffV":100,"lineR":20,"loadP":100,"loadV":100,"phase":"base","ratioUp":10,"type":"genTransformer"}</script>
+<p><a href="#step1">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step1">
+<h2>① 昇圧：100 V → 1000 V、電流は 1/10</h2>
+<p>発電機の実効値 100 V を、昇圧変圧器で 1000 V にする。変圧器の電圧の比は巻き数の比に等しい。V2/V1 = N2/N1 = 10 なので、V2 = 100 × 10 = 1000 V だ。変圧器は理想的だとすると、電力は保存される。P = VI から、電圧が 10 倍になれば電流は 1/10 倍になる。負荷は 100 W を使うので、送電電流は I = P/V = 100/1000 = 0.10 A だ。発電機の側の電流は、負荷の電流 1.0 A（I = 100/100 = 1.0 A）そのものだ。</p>
+<svg class="fig" data-scene="scene-genTransformer-stepup" data-show="" role="img" aria-label="昇圧変圧器。V1=100 V、I1=1.0 A、V2=1000 V、I2=0.10 A"></svg>
+<script type="application/json" id="scene-genTransformer-stepup">{"genEffV":100,"lineR":20,"loadP":100,"loadV":100,"phase":"stepup","ratioUp":10,"type":"genTransformer"}</script>
+<label class="check"><input type="checkbox" id="comboGenTransformer-check-1"> V2 = 1000 V、送電電流 0.10 A を求めた</label>
+<p><a href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<h2>② 送電損失：変圧器なし 20 W、昇圧 0.20 W</h2>
+<p>送電線の抵抗は 20 Ω。送電線での損失は、ジュール熱 I²R だ。昇圧した場合は I = 0.10 A なので、損失は 0.10² × 20 = 0.20 W だ。発電機は 100 + 0.20 = 100.2 W 出せばよい。効率は 100/100.2 ≈ 99.8% だ。変圧器を使わない場合は、送電電流は負荷の電流 1.0 A そのものなので、損失は 1.0² × 20 = 20 W になる。発電機は 100 + 20 = 120 W 出さなければならず、効率は 100/120 ≈ 83% だ。送電線の電圧降下も、変圧器なしなら 1.0 × 20 = 20 V、昇圧すれば 0.10 × 20 = 2.0 V になる。</p>
+<svg class="fig" data-scene="scene-genTransformer-loss" data-show="" role="img" aria-label="送電損失の棒グラフ。変圧器なし 20 W、昇圧 ×5 0.80 W、昇圧 ×10 0.20 W"></svg>
+<script type="application/json" id="scene-genTransformer-loss">{"genEffV":100,"lineR":20,"loadP":100,"loadV":100,"phase":"loss","ratioUp":10,"type":"genTransformer"}</script>
+<label class="check"><input type="checkbox" id="comboGenTransformer-check-2"> 損失 0.20 W（なしなら 20 W）を求めた</label>
+<p><a href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<h2>③ 降圧：998 V → 約 100 V、電流は 10 倍</h2>
+<p>送電線を通ったあと、電圧は 1000 − 2.0 = 998 V になっている。降圧変圧器（巻き数の比 10:1）で 1/10 倍にすると、町の電圧は 998/10 ≈ 100 V になる。電流は 10 倍になって、0.10 × 10 = 1.0 A だ。負荷の電力は 100 V × 1.0 A = 100 W で、はじめの 100 W のまま変わらない。変圧器は電圧と電流を変えるだけで、電力は変えない。</p>
+<svg class="fig" data-scene="scene-genTransformer-stepdown" data-show="" role="img" aria-label="降圧変圧器。998 V、0.10 A が入り、100 V、1.0 A が出る"></svg>
+<script type="application/json" id="scene-genTransformer-stepdown">{"genEffV":100,"lineR":20,"loadP":100,"loadV":100,"phase":"stepdown","ratioUp":10,"type":"genTransformer"}</script>
+<label class="check"><input type="checkbox" id="comboGenTransformer-check-3"> 町の電圧 約 100 V、電流 1.0 A を求めた</label>
+<p><a href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<h2>④ 罠：昇圧しても電力は増えない</h2>
+<p>罠：「昇圧すれば、送る電力が増える」——まちがい。変圧器は電圧と電流を変えるだけで、電力は保存される。送る電力は 100 W のまま、損失が減るだけだ。</p>
+<p>罠：「送電電圧を 2 倍にすれば、損失は半分になる」——まちがい。損失は I²R で、電流は電圧に反比例するので、損失は電圧の 2 乗に反比例する。電圧が 2 倍なら損失は 1/4（20 W → 5.0 W）、10 倍なら 1/100（20 W → 0.20 W）になる。</p>
+<p>罠：「変圧器を使っても、発電機の負担は変わらない」——まちがい。変圧器なしなら発電機は 120 W、昇圧すれば 100.2 W ですむ。発電機の負担も減る。</p>
+<svg class="fig" data-scene="scene-genTransformer-trap" data-show="" role="img" aria-label="送電電圧と損失の棒グラフ。100 V 20 W、200 V 5.0 W、500 V 0.80 W、1000 V 0.20 W"></svg>
+<script type="application/json" id="scene-genTransformer-trap">{"genEffV":100,"lineR":20,"loadP":100,"loadV":100,"phase":"trap","ratioUp":10,"type":"genTransformer"}</script>
+<label class="check"><input type="checkbox" id="comboGenTransformer-check-4"> 3つの罠を区別できた</label>
+<p><a href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<h2>⑤ 変えたら：昇圧比と送電線の抵抗</h2>
+<p>昇圧 ×5 なら、送電電圧 500 V、電流 0.20 A、損失 0.80 W、発電機は 100.8 W。昇圧 ×20 なら、送電電圧 2000 V、電流 0.050 A、損失 0.050 W、発電機は 100.05 W になる。</p>
+<p>送電線の抵抗が 100 Ω なら、変圧器なしでは負荷（抵抗 100²/100 = 100 Ω）と直列になる。回路全体は 100 + 100 = 200 Ω、電流は 100/200 = 0.50 A だ。負荷の電圧は 50 V、負荷に届く電力は 50 × 0.50 = 25 W、送電線の損失は 0.50² × 100 = 25 W で、電力の半分が線で失われる。昇圧 ×10 なら、損失は 0.10² × 100 = 1.0 W ですむ。</p>
+<p>負荷が 200 W なら、負荷の抵抗は 100²/200 = 50 Ω になる。変圧器なしでは回路全体は 20 + 50 = 70 Ω、電流は 100/70 ≈ 1.4 A、負荷の電圧は約 71 V、負荷に届く電力は約 102 W、送電線の損失は (100/70)² × 20 ≈ 41 W になる。昇圧 ×10 なら、電流 0.20 A、損失 0.80 W ですむ。負荷が大きいほど、昇圧の効果は大きい。</p>
+<svg class="fig" data-scene="scene-genTransformer-vary" data-show="" role="img" aria-label="送電電流の棒グラフ。変圧器なし 1.0 A、昇圧 ×5 0.20 A、昇圧 ×10 0.10 A、昇圧 ×20 0.050 A"></svg>
+<script type="application/json" id="scene-genTransformer-vary">{"genEffV":100,"lineR":20,"loadP":100,"loadV":100,"phase":"vary","ratioUp":10,"type":"genTransformer"}</script>
+<label class="check"><input type="checkbox" id="comboGenTransformer-check-5"> 昇圧比と送電線の抵抗を変えたときの損失を求めた</label>
+</div>
+
+<div class="donebox" id="donebox">
+<p><b>まとめ（答え）</b></p>
+<p>(1) 送電電流 0.10 A。(2) 損失 0.20 W（なしなら 20 W）、発電機は 100.2 W。(3) 町の電圧 約 100 V、電流 1.0 A、電力 100 W。(4) 電圧 2 倍で損失は 1/4。</p>
+<p>もとになった単体モデル：発電機は<a href="generator.html">組み合わせ問題AK：回転コイル発電機</a>、交流回路は<a href="ac-rlc.html">組み合わせ問題AT：交流RLC回路＋共振＋電力</a>、直流回路は<a href="dc-circuit.html">第19問：直流回路</a>で確かめられる。</p>
+<p id="done-msg"></p>
+</div>
+
+<p class="nav"><a href="../../index.html">← トップへ</a></p>
+</main>
+<a class="toplink" href="#">↑ TOP</a>
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+const doneKey = 'comboGenTransformerDone';
+const checkIds = ['comboGenTransformer-check-1','comboGenTransformer-check-2','comboGenTransformer-check-3','comboGenTransformer-check-4','comboGenTransformer-check-5'];
+const doneMsg = document.getElementById('done-msg');
+function allChecked() { return checkIds.every(id => document.getElementById(id).checked); }
+function refresh() {
+  if (allChecked()) {
+    doneMsg.textContent = '完了！';
+    loadProgress().then(p => { p[doneKey] = true; return saveProgress(p); }).catch(() => {});
+  } else {
+    doneMsg.textContent = '';
+  }
+}
+checkIds.forEach(id => document.getElementById(id).addEventListener('change', refresh));
+renderAllFigures();
+loadProgress().then(p => { if (p[doneKey]) { doneMsg.textContent = '完了済み ✓'; } }).catch(() => {});
+</script>
+</body>
+</html>
