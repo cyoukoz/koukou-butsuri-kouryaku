@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題BB：発電機＋変圧器＋整流＋コンデンサーの平滑化 — 高校物理攻略</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", sans-serif; margin: 0; background: #fff; color: #222; line-height: 1.8; }
+  main { max-width: 720px; margin: 0 auto; padding: 24px 18px 80px; }
+  h1 { font-size: 24px; line-height: 1.4; }
+  h2 { font-size: 20px; margin-top: 40px; }
+  .step { border-top: 1px solid #ddd; padding-top: 16px; margin-top: 32px; }
+  .step h2 { font-size: 18px; margin: 0 0 8px; }
+  .fig { width: 100%; max-width: 400px; height: auto; display: block; margin: 12px auto; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; font-size: 14px; }
+  th { background: #f2f2f2; }
+  .donebox { border: 2px solid #4a8; background: #f6fffa; padding: 14px; margin-top: 40px; }
+  .nav { margin-top: 32px; font-size: 14px; }
+  .toplink { position: fixed; right: 16px; bottom: 16px; background: #222; color: #fff; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 14px; }
+  label.check { display: block; margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+<p><a href="../../index.html">← トップへ</a> ｜ <a href="proj-wall-spring.html">← 組み合わせ問題BA：斜方投射＋壁＋摩擦＋ばね</a></p>
+<h1>組み合わせ問題BB：発電機＋変圧器＋整流＋コンデンサーの平滑化</h1>
+<p>AZ と同じ発電機（実効値 100 V、50 Hz の交流）で電気を作る。昇圧変圧器（巻き数の比 1:2）で 200 V にし、全波整流器で整流し、電気容量 C = 500 μF のコンデンサーで平滑化して、直流の負荷に送る。負荷には 0.50 A の電流が流れる。ダイオードの電圧降下は無視し、変圧器は理想的なものとする。負荷の電流は、リップルが小さいのでほぼ一定とみなす。</p>
+<p>(1) 発電機の交流の最大値と周期、昇圧後の電圧を求めよ。(2) コンデンサーがないときの整流後の平均電圧を求めよ。(3) コンデンサーで平滑化したときの直流電圧とリップルを求めよ。(4) 罠と変えたら。</p>
+
+<div class="step" id="step0">
+<p><b>はじめに：どう切り分けるか</b></p>
+<table>
+<tr><th>場面</th><th>考えること</th><th>使うモデル</th></tr>
+<tr><td>発電機</td><td>交流の発生</td><td>回転コイル発電機</td></tr>
+<tr><td>昇圧</td><td>電圧と電流の比</td><td>変圧器</td></tr>
+<tr><td>整流</td><td>脈動直流</td><td>全波整流</td></tr>
+<tr><td>平滑化</td><td>リップル</td><td>コンデンサーの充放電</td></tr>
+</table>
+<p>この問題の橋渡しの量は<b>電圧</b>と<b>電力</b>だ。交流の最大値が、直流の平均電圧になる。</p>
+<svg class="fig" data-scene="scene-genRectSmooth-base" data-show="" role="img" aria-label="電源の流れ。発電機 100 V、昇圧 ×2、整流、平滑、負荷 140 W"></svg>
+<script type="application/json" id="scene-genRectSmooth-base">{"capF":0.0005,"freqHz":50,"genEffV":100,"loadIA":0.5,"phase":"base","ratioUp":2,"type":"genRectSmooth"}</script>
+<p><a href="#step1">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step1">
+<h2>① 発電機の交流と昇圧：最大値 141 V → 283 V</h2>
+<p>発電機は実効値 100 V、50 Hz の交流を出す。最大値は ε_max = 100 × √2 = 141 V、周期は T = 1/50 = 0.020 s だ。昇圧変圧器（巻き数の比 1:2）で電圧は 2 倍になり、実効値 200 V、最大値 283 V になる。変圧器は理想的だとすると、電力は保存される。負荷の電力は 140 W のままで、発電機も 140 W 出せばよい。</p>
+<svg class="fig" data-scene="scene-genRectSmooth-stepup" data-show="" role="img" aria-label="昇圧変圧器。V1=100 V、V2=200 V、巻き数の比 1:2"></svg>
+<script type="application/json" id="scene-genRectSmooth-stepup">{"capF":0.0005,"freqHz":50,"genEffV":100,"loadIA":0.5,"phase":"stepup","ratioUp":2,"type":"genRectSmooth"}</script>
+<label class="check"><input type="checkbox" id="comboGenRectSmooth-check-1"> 最大値 141 V → 283 V を求めた</label>
+<p><a href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<h2>② 全波整流：コンデンサーなしなら平均 180 V</h2>
+<p>全波整流器は、交流の負の部分を正に折り返す。整流後の電圧は、0 から最大値 283 V まで脈を打つ（脈動直流）。平均値は (2/π) × 283 = 180 V だ。コンデンサーがなければ、直流といっても平均 180 V で、0 から 283 V まで大きく変動する。</p>
+<svg class="fig" data-scene="scene-genRectSmooth-rectify" data-show="" role="img" aria-label="全波整流の波形。最大 283 V、平均 180 V"></svg>
+<script type="application/json" id="scene-genRectSmooth-rectify">{"capF":0.0005,"freqHz":50,"genEffV":100,"loadIA":0.5,"phase":"rectify","ratioUp":2,"type":"genRectSmooth"}</script>
+<label class="check"><input type="checkbox" id="comboGenRectSmooth-check-2"> 整流のみの平均 180 V を求めた</label>
+<p><a href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<h2>③ コンデンサーで平滑化：直流 278 V、リップル 10 V</h2>
+<p>コンデンサーをつなぐと、コンデンサーは電圧の最大値 283 V まで充電される。負荷が電流を流すあいだ、コンデンサーは少しずつ放電する。次のピークまでの時間は 1/(2 × 50) = 10 ms で、このあいだに負荷に流れる電荷は ΔQ = 0.50 × 0.010 = 0.0050 C だ。電圧の下がり（リップル）は ΔV = ΔQ/C = 0.0050/0.00050 = 10 V になる。直流電圧は平均で 283 − 10/2 = 278 V だ。負荷の電力は 278 × 0.50 = 140 W（負荷の抵抗は 278/0.50 = 560 Ω）になる。</p>
+<svg class="fig" data-scene="scene-genRectSmooth-smooth" data-show="" role="img" aria-label="平滑化した電圧。最大 283 V、リップル 10 V、平均 278 V"></svg>
+<script type="application/json" id="scene-genRectSmooth-smooth">{"capF":0.0005,"freqHz":50,"genEffV":100,"loadIA":0.5,"phase":"smooth","ratioUp":2,"type":"genRectSmooth"}</script>
+<label class="check"><input type="checkbox" id="comboGenRectSmooth-check-3"> リップル 10 V、直流 278 V を求めた</label>
+<p><a href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<h2>④ 罠：直流は最大値ではない</h2>
+<p>罠：「整流すれば直流 283 V が出る」——まちがい。コンデンサーがなければ平均は 180 V で、0 から 283 V まで脈打つ。コンデンサーがあっても、負荷が電流を流せばリップルが出て、平均は 278 V になる。</p>
+<p>罠：「コンデンサーを大きくすれば、直流電圧はどんどん上がる」——まちがい。直流電圧の上限は最大値 283 V だ。C を大きくしても 283 V をこえることはなく、278 V から 281 V くらいにしか上がらない（リップルが小さくなるだけ）。</p>
+<p>罠：「リップルはコンデンサーの容量だけで決まる」——まちがい。リップルは ΔV = I/(2fC) で、負荷の電流 I と周波数 f も関係する。電流が 2 倍ならリップルも 2 倍になる。</p>
+<svg class="fig" data-scene="scene-genRectSmooth-trap" data-show="" role="img" aria-label="電圧の比べ。最大値 283 V、コンデンサーなし 180 V、平滑後 278 V"></svg>
+<script type="application/json" id="scene-genRectSmooth-trap">{"capF":0.0005,"freqHz":50,"genEffV":100,"loadIA":0.5,"phase":"trap","ratioUp":2,"type":"genRectSmooth"}</script>
+<label class="check"><input type="checkbox" id="comboGenRectSmooth-check-4"> 3つの罠を区別できた</label>
+<p><a href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<h2>⑤ 変えたら：C・I・半波・f でリップルが変わる</h2>
+<p>C = 2000 μF なら、リップルは 2.5 V、直流電圧は約 281 V になる。リップルは 1/4 になるが、直流電圧は 278 V から 281 V にしか上がらない。</p>
+<p>負荷の電流が 2.0 A なら、リップルは 40 V、直流電圧は約 263 V になる。電流が大きいほど、コンデンサーは速く放電する。</p>
+<p>半波整流なら、ピークの間隔は 1/50 = 20 ms になるので、リップルは 20 V、直流電圧は約 273 V になる。全波の 2 倍のリップルだ。</p>
+<p>f = 60 Hz なら、ピークの間隔は 1/120 s になるので、リップルは 8.3 V、直流電圧は約 279 V になる。周波数が高いほど、リップルは小さい。</p>
+<svg class="fig" data-scene="scene-genRectSmooth-vary" data-show="" role="img" aria-label="リップルの比べ。もと 10 V、C=2000 μF で 2.5 V、I=2.0 A で 40 V、半波で 20 V"></svg>
+<script type="application/json" id="scene-genRectSmooth-vary">{"capF":0.0005,"freqHz":50,"genEffV":100,"loadIA":0.5,"phase":"vary","ratioUp":2,"type":"genRectSmooth"}</script>
+<label class="check"><input type="checkbox" id="comboGenRectSmooth-check-5"> C・I・半波・f を変えたときのリップルを求めた</label>
+</div>
+
+<div class="donebox" id="donebox">
+<p><b>まとめ（答え）</b></p>
+<p>(1) 発電機：最大値 141 V、周期 0.020 s。昇圧 ×2：実効値 200 V、最大値 283 V。(2) 整流のみ：平均 180 V。(3) 平滑化：リップル 10 V、直流 278 V、電力 140 W。(4) リップル ΔV = I/(2fC)。</p>
+<p>もとになった単体モデル：発電機は<a href="generator.html">組み合わせ問題AK：回転コイル発電機</a>、変圧器は<a href="generator-transformer.html">組み合わせ問題AZ：発電機＋変圧器＋送電＋電力損失</a>、交流回路は<a href="ac-rlc.html">組み合わせ問題AT：交流RLC回路＋共振＋電力</a>、コンデンサーは<a href="capacitor.html">第9問：コンデンサ</a>で確かめられる。</p>
+<p id="done-msg"></p>
+</div>
+
+<p class="nav"><a href="../../index.html">← トップへ</a></p>
+</main>
+<a class="toplink" href="#">↑ TOP</a>
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+const doneKey = 'comboGenRectSmoothDone';
+const checkIds = ['comboGenRectSmooth-check-1','comboGenRectSmooth-check-2','comboGenRectSmooth-check-3','comboGenRectSmooth-check-4','comboGenRectSmooth-check-5'];
+const doneMsg = document.getElementById('done-msg');
+function allChecked() { return checkIds.every(id => document.getElementById(id).checked); }
+function refresh() {
+  if (allChecked()) {
+    doneMsg.textContent = '完了！';
+    loadProgress().then(p => { p[doneKey] = true; return saveProgress(p); }).catch(() => {});
+  } else {
+    doneMsg.textContent = '';
+  }
+}
+checkIds.forEach(id => document.getElementById(id).addEventListener('change', refresh));
+renderAllFigures();
+loadProgress().then(p => { if (p[doneKey]) { doneMsg.textContent = '完了済み ✓'; } }).catch(() => {});
+</script>
+</body>
+</html>
