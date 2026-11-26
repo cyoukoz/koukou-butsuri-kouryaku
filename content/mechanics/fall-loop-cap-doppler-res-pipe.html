@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせBW：落下するコイル＋コンデンサー＋ばね＋摩擦＋ドップラー＋開管の共鳴｜高校物理攻略</title>
+<style>
+  body { font-family: system-ui, sans-serif; line-height: 1.8; max-width: 760px; margin: 0 auto; padding: 16px; color: #222; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 18px; margin-top: 40px; }
+  .step h2 { font-size: 18px; }
+  .step { border-top: 2px solid #888; padding-top: 8px; margin-top: 48px; }
+  .fig { width: 100%; max-width: 400px; height: auto; display: block; margin: 16px auto; border: 1px solid #ccc; }
+  .nav { margin: 16px 0; font-size: 14px; }
+  .nav a { color: #06c; }
+  .done-box { border: 2px solid #2a7; background: #efe; padding: 16px; margin-top: 48px; }
+  .done-box.done { background: #cfc; }
+  .top-link { position: fixed; right: 16px; bottom: 16px; background: #fff; border: 1px solid #888; padding: 8px 12px; border-radius: 4px; }
+  .top-link a { color: #06c; text-decoration: none; }
+  label.step-check { display: block; margin-top: 16px; font-weight: bold; }
+  .next-link { margin-top: 24px; }
+  .slice-map { background: #f5f5f5; padding: 12px 16px; border-radius: 6px; }
+  .slice-map li { margin: 4px 0; }
+</style>
+</head>
+<body>
+<div class="nav"><a href="../../index.html">← トップへ</a> ｜ <a href="gas-cycle-doppler-res-pipe.html">← 前の問題：BV 気体＋ピストン＋ばね＋音速＋ドップラー＋開管の共鳴</a></div>
+<h1>組み合わせBW：落下するコイル＋コンデンサー＋ばね＋摩擦＋ドップラー＋開管の共鳴</h1>
+<p>問題：質量 0.10 kg のコイル（1辺 0.50 m の正方形、高さ 0.50 m）を、紙の裏向きの一様な磁場（B = 2.0 T）の上から静かに落とす。コイルにはコンデンサー（C = 0.10 F）がつながっている。コイルが磁場に入りきったあと、磁場の中を 1.5 m 落ちて、下のばね（k = 50 N/m）に当たる。ばねに当たっているあいだ、コイルには動摩擦力 0.50 N がはたらく。磁場は十分に広く、コイルがばねに当たるときも、はね返りの頂点でも、コイル全体が磁場の中にある。したがって、ばねに当たってからは、コイルを貫く磁束は変わらず、起電力は生じない。重力加速度は g = 10 m/s² とする。</p>
+<p>コイルには振動数 f0 = 491 Hz の音源がのっている。観測者は地面にいて、落ちてくるコイルの音を聞く。地面のそばには、長さ L = 0.34 m の開管（両端が開いた管）が置かれている。音速は V = 340 m/s とする。</p>
+<p>この問題は、単体モデルの組み合わせです。BQ「落下するコイル＋コンデンサー＋ばね＋摩擦」と BE「ドップラー＋開管の共鳴」を組み合わせた問題です。橋渡しになる量は「速さ」です。</p>
+<p>単体モデルのページ：<a href="fall-loop-cap-spring.html">BQ 落下するコイル＋コンデンサー＋ばね＋摩擦</a> ｜ <a href="doppler-resonance.html">BE ドップラー＋開管の共鳴</a> ｜ <a href="fall-loop-cap.html">AY 落下するコイル＋コンデンサー＋エネルギー</a> ｜ <a href="doppler.html">Q18 ドップラー効果</a> ｜ <a href="standing-wave.html">Q14 定常波</a></p>
+<ol class="slice-map">
+<li>① 磁場に入るとき：加速度は 5.0 m/s² のまま、入りきり 2.2 m/s</li>
+<li>② 磁場の中とばね：5.9 m/s で当たり、縮み 0.27 m</li>
+<li>③ ドップラーと共鳴：着地の音 500 Hz が管の f1 と一致する</li>
+<li>④ 罠：音源の 491 Hz は共鳴しない</li>
+<li>⑤ 変えたら：C・B・f0・L・閉管で共鳴は変わるか</li>
+</ol>
+
+<svg class="fig" data-scene="scene-fallLoopCapDopplerResPipe-base" data-show="" role="img" aria-label="流れ：コイル、磁場、ばね、ドップラー、共鳴"></svg>
+<script type="application/json" id="scene-fallLoopCapDopplerResPipe-base">{"type":"fallLoopCapDopplerResPipe","phase":"base","mKg":0.1,"bT":2.0,"loopLM":0.5,"loopHM":0.5,"capF":0.1,"dInsideM":1.5,"resOhm":5.0,"kSpring":50,"fricN":0.5,"g":10,"f0Hz":491,"vSoundMs":340,"pipeLM":0.34}</script>
+
+<div class="step" id="step1">
+<h2>① 磁場に入るとき：加速度は 5.0 m/s² のまま</h2>
+<p>コイルが磁場に入ると、起電力 ε = BLv が生じてコンデンサーに電気がたまる。電気がたまる速さは速さに比例するので、磁気の力は加速度に比例する。つまり、コンデンサーは「重さ」としてふるまう。余分な重さは m_extra = B²L²C = 2.0² × 0.50² × 0.10 = 0.10 kg になる。実効質量は m_eff = 0.10 + 0.10 = 0.20 kg になり、加速度は a = mg/m_eff = 1.0/0.20 = 5.0 m/s² で一定になる。重力 1.0 N のうち、磁気の力 0.50 N が上向きにはたらく。</p>
+<p>入りきったときの速さは v1 = √(2ah) = √(2 × 5.0 × 0.50) ≈ 2.2 m/s、入るまでの時間は t1 = v1/a ≈ 0.45 s になる。起電力は ε = BLv = 2.0 × 0.50 × 2.2 ≈ 2.2 V、電気量は Q = CV ≈ 0.22 C、コンデンサーのエネルギーは U = ½CV² ≈ 0.25 J、運動エネルギーは KE = ½mv² ≈ 0.25 J になる。電流は I = CBL·a = 0.50 A になる。</p>
+<p>コイルの右上の赤い点が音源（491 Hz）です。観測者は地面にいて、コイルが近づいてくる音を聞きます。近づくとき、聞こえる音は f′ = f0 × V/(V − v) で高くなります。入りきったときの速さは 2.2 m/s なので、音は f′ = 491 × 340/(340 − 2.2) ≈ 494 Hz になります。</p>
+<svg class="fig" data-scene="scene-fallLoopCapDopplerResPipe-enter" data-show="gravity,magForce" role="img" aria-label="磁場に入るときの力の図。重力 1.0 N 下向き、磁気の力 0.50 N 上向き、音源 491 Hz"></svg>
+<script type="application/json" id="scene-fallLoopCapDopplerResPipe-enter">{"type":"fallLoopCapDopplerResPipe","phase":"enter","mKg":0.1,"bT":2.0,"loopLM":0.5,"loopHM":0.5,"capF":0.1,"dInsideM":1.5,"resOhm":5.0,"kSpring":50,"fricN":0.5,"g":10,"f0Hz":491,"vSoundMs":340,"pipeLM":0.34}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ①が分かった：加速度 5.0 m/s² と入りきったときの速さ 2.2 m/s、起電力 2.2 V、音は 494 Hz</label>
+<p class="next-link"><a href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<h2>② 磁場の中とばね：5.9 m/s で当たる、縮み 0.27 m、押し返し 5.4 m/s</h2>
+<p>入りきるまでに重力がした仕事は mgh = 1.0 × 0.50 = 0.50 J だ。このうち、半分の 0.25 J が運動エネルギーになり、残りの半分 0.25 J がコンデンサーにたまる。抵抗がある場合とちがって、熱にはならない。エネルギーはぴったり合う。</p>
+<p>コイルが磁場に入りきると、コイルを貫く磁束は変わらなくなるので、起電力は 0 になり、磁気の力も 0 になる。だから、磁場の中では自由落下する。ばねに当たるときの速さは v2 = √(v1² + 2g × 1.5) = √(5.0 + 30) ≈ 5.9 m/s、磁場の中を落ちる時間は t2 = (5.9 − 2.2)/10 ≈ 0.37 s になる。運動エネルギーは ½mv2² = 1.75 J になる。落としはじめてからばねに当たるまで 0.82 s かかる。</p>
+<p>ばねの角振動数は ω = √(k/m) = √(50/0.10) ≈ 22 rad/s になる。縮むとき、摩擦は上向きにはたらくので、つり合いのずれは x_eq1 = (mg − f)/k = (1.0 − 0.50)/50 = 0.010 m になる。最大の縮みは x_max = x_eq1 + √[x_eq1² + (v/ω)²] ≈ 0.27 m になる。ばねの力は k·x_max = 50 × 0.27 ≈ 14 N になる。圧縮にかかる時間は 0.072 s だ。</p>
+<p>戻るとき、摩擦は下向きにはたらくので、つり合いのずれは x_eq2 = (mg + f)/k = 0.030 m に変わる。押し返しの速さは v_return = ω√[(x_max − x_eq2)² − x_eq2²] = 22 × √(0.245² − 0.030²) ≈ 5.4 m/s になる。戻りに 0.076 s かかる。摩擦熱は 0.27 J、押し返しの運動エネルギーは 1.5 J になる。はね返りの高さは 1.5 m になる。落としはじめてからはね返りの頂点まで 1.5 s かかる。</p>
+<svg class="fig" data-scene="scene-fallLoopCapDopplerResPipe-inside" data-show="" role="img" aria-label="速さと時間のグラフ。0.45 s までは傾き 5.0、そのあとは傾き 10 で速くなる"></svg>
+<script type="application/json" id="scene-fallLoopCapDopplerResPipe-inside">{"type":"fallLoopCapDopplerResPipe","phase":"inside","mKg":0.1,"bT":2.0,"loopLM":0.5,"loopHM":0.5,"capF":0.1,"dInsideM":1.5,"resOhm":5.0,"kSpring":50,"fricN":0.5,"g":10,"f0Hz":491,"vSoundMs":340,"pipeLM":0.34}</script>
+<svg class="fig" data-scene="scene-fallLoopCapDopplerResPipe-spring" data-show="springForce" role="img" aria-label="ばねを縮める。自然長から 0.27 m 縮み、ばねの力 14 N、押し返すと 5.4 m/s"></svg>
+<script type="application/json" id="scene-fallLoopCapDopplerResPipe-spring">{"type":"fallLoopCapDopplerResPipe","phase":"spring","mKg":0.1,"bT":2.0,"loopLM":0.5,"loopHM":0.5,"capF":0.1,"dInsideM":1.5,"resOhm":5.0,"kSpring":50,"fricN":0.5,"g":10,"f0Hz":491,"vSoundMs":340,"pipeLM":0.34}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ②が分かった：ばねに当たるとき 5.9 m/s、最大の縮み 0.27 m、押し返し 5.4 m/s、はね返り 1.5 m</label>
+<p class="next-link"><a href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<h2>③ ドップラーと共鳴：着地の音 500 Hz が管の f1 と一致する</h2>
+<p>コイルは地面の観測者に近づきながら落ちるので、聞こえる音は f′ = f0 × V/(V − v) で高くなります。はじめは 491 Hz で、入りきったときは 494 Hz、ばねに当たるときは 499.7 Hz になります。ばねに当たって速さが 0 になると、音は 491 Hz に戻ります。押し返されて上がるときは、コイルは観測者から遠ざかるので、音は f′ = f0 × V/(V + v) で低くなり、はね返りの速さ 5.4 m/s のときは 483 Hz になります。はね返りの頂点では、また 491 Hz に戻ります。</p>
+<p>地面のそばには、長さ L = 0.34 m の開管があります。開管の振動数は f_n = n·V/(2L) で、f1 = 340/(2 × 0.34) = 500 Hz、f2 = 1000 Hz、f3 = 1500 Hz です。ばねに当たるときの音は、厳密には 499.7 Hz で、有効数字 3 けたでは 500 Hz となり、管の f1 と一致します。だから、ばねに当たる瞬間だけ、管が共鳴します。入りきりの 494 Hz、はね返りの 483 Hz、折り返し点の 491 Hz は、管の振動数と一致しないので共鳴しません。</p>
+<p>うなりも確かめられます。動かない 491 Hz の音源と比べると、着地の音とのうなりは 499.7 − 491 = 8.7 Hz で最大になります。</p>
+<svg class="fig" data-scene="scene-fallLoopCapDopplerResPipe-doppler" data-show="" role="img" aria-label="f'(t) グラフ：はじめ 491 Hz、着地で最大 500 Hz、はね返りで最小 483 Hz、頂点で 491 Hz"></svg>
+<script type="application/json" id="scene-fallLoopCapDopplerResPipe-doppler">{"type":"fallLoopCapDopplerResPipe","phase":"doppler","mKg":0.1,"bT":2.0,"loopLM":0.5,"loopHM":0.5,"capF":0.1,"dInsideM":1.5,"resOhm":5.0,"kSpring":50,"fricN":0.5,"g":10,"f0Hz":491,"vSoundMs":340,"pipeLM":0.34}</script>
+<svg class="fig" data-scene="scene-fallLoopCapDopplerResPipe-resonate" data-show="" role="img" aria-label="開管の共鳴：両端が腹、中央が節、f1=500 Hz"></svg>
+<script type="application/json" id="scene-fallLoopCapDopplerResPipe-resonate">{"type":"fallLoopCapDopplerResPipe","phase":"resonate","mKg":0.1,"bT":2.0,"loopLM":0.5,"loopHM":0.5,"capF":0.1,"dInsideM":1.5,"resOhm":5.0,"kSpring":50,"fricN":0.5,"g":10,"f0Hz":491,"vSoundMs":340,"pipeLM":0.34}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ③が分かった：着地の音は 500 Hz で管の f1 と一致して共鳴する、はね返りは 483 Hz</label>
+<p class="next-link"><a href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<h2>④ 罠：音源の 491 Hz は共鳴しない</h2>
+<p>罠が 3 つあります。1 つ目は、音源そのものの振動数 491 Hz は、管のどの振動数とも一致しないことです。管の振動数は 500 Hz、1000 Hz、1500 Hz で、491 Hz はどれとも合いません。コイルが止まっているときに聞こえる音は共鳴しません。</p>
+<p>2 つ目は、共鳴するのはばねに当たる一瞬だけだということです。入りきりの音は 494 Hz、はね返りの音は 483 Hz で、どちらも管の f1 = 500 Hz とは一致しません。速さが変われば、音の高さも変わるのです。</p>
+<p>3 つ目は、はね返りの音を「着地と同じ 500 Hz」と思うことです。はね返りではコイルは観測者から遠ざかるので、音は低くなって 483 Hz になります。速さは 5.4 m/s で着地の 5.9 m/s より遅いことも、音が低くなる理由の 1 つです。</p>
+<p>コンデンサーの罠も確かめておきましょう。抵抗がつながっていたら、コイルは終端速度 5.0 m/s で落ちます。そのときの音は f′ = 491 × 340/(340 − 5.0) ≈ 498 Hz になり、管の f1 = 500 Hz とは一致しません。自由落下なら、入りきりの速さは 3.2 m/s で、音は 496 Hz になり、やはり共鳴しません。</p>
+<svg class="fig" data-scene="scene-fallLoopCapDopplerResPipe-trap" data-show="" role="img" aria-label="音の高さの比べ。着地 500 Hz、入りきり 494 Hz、はね返り 483 Hz、音源 491 Hz"></svg>
+<script type="application/json" id="scene-fallLoopCapDopplerResPipe-trap">{"type":"fallLoopCapDopplerResPipe","phase":"trap","mKg":0.1,"bT":2.0,"loopLM":0.5,"loopHM":0.5,"capF":0.1,"dInsideM":1.5,"resOhm":5.0,"kSpring":50,"fricN":0.5,"g":10,"f0Hz":491,"vSoundMs":340,"pipeLM":0.34}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ④が分かった：491 Hz は共鳴しない、共鳴するのは着地の一瞬だけ、はね返りは 483 Hz</label>
+<p class="next-link"><a href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<h2>⑤ 変えたら：C・B・f0・L・閉管で共鳴は変わるか</h2>
+<p>C = 0.40 F なら、余分な重さは 0.40 kg、実効質量 0.50 kg、加速度 2.0 m/s² になる。入りきり 1.4 m/s、ばねに当たるとき 5.7 m/s になる。着地の音は f′ = 491 × 340/(340 − 5.7) ≈ 499 Hz になり、有効数字 3 けたでは 499 Hz で、管の f1 = 500 Hz とは一致しないので共鳴しません。最大の縮みは 0.26 m、押し返しは 5.2 m/s になります。</p>
+<p>B = 1.0 T なら、余分な重さは 0.025 kg、実効質量 0.125 kg、加速度 8.0 m/s² になる。入りきり 2.8 m/s、ばねに当たるとき 6.2 m/s になる。着地の音は f′ = 491 × 340/(340 − 6.2) ≈ 500 Hz になり、管の f1 と一致して共鳴します。最大の縮みは 0.29 m、押し返しは 5.7 m/s になります。</p>
+<p>管の長さを L = 0.68 m にすると、f1 = 250 Hz、f2 = 500 Hz になります。着地の音 500 Hz は f2 と一致するので、やはり共鳴します。管の長さを L = 0.17 m にすると、f1 = 1000 Hz になり、着地の音とは一致しないので共鳴しません。</p>
+<p>音源の振動数を f0 = 440 Hz にすると、着地の音は 448 Hz になり、管の振動数とは一致しないので共鳴しません。閉管（片端が閉じた管）にすると、振動数は 250 Hz、750 Hz、1250 Hz になり、着地の音 500 Hz とは一致しないので共鳴しません。</p>
+<p>ばね定数を k = 100 N/m にすると、最大の縮みは 0.19 m、押し返しは 5.6 m/s になります。着地の速さは変わらないので、着地の音は 500 Hz のままで、やはり共鳴します。はね返りの音は 483 Hz のままです。</p>
+<svg class="fig" data-scene="scene-fallLoopCapDopplerResPipe-vary" data-show="" role="img" aria-label="共鳴の比べ。着地の音 500 Hz、L=0.68 m の f2 500 Hz、f0=440 Hz の 448 Hz、閉管の f1 250 Hz"></svg>
+<script type="application/json" id="scene-fallLoopCapDopplerResPipe-vary">{"type":"fallLoopCapDopplerResPipe","phase":"vary","mKg":0.1,"bT":2.0,"loopLM":0.5,"loopHM":0.5,"capF":0.1,"dInsideM":1.5,"resOhm":5.0,"kSpring":50,"fricN":0.5,"g":10,"f0Hz":491,"vSoundMs":340,"pipeLM":0.34}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ⑤が分かった：C=0.40 なら 499 Hz で合わない、B=1.0 なら 500 Hz で共鳴、L=0.68 なら f2 で共鳴</label>
+</div>
+
+<div class="done-box" id="doneBox">
+<p><strong>まとめ</strong></p>
+<p>落下するコイル＋コンデンサー＋ばね＋摩擦（加速度 5.0 m/s²、入りきり 2.2 m/s、ばねに当たるとき 5.9 m/s、最大の縮み 0.27 m、押し返し 5.4 m/s、はね返り 1.5 m）に、ドップラー効果と開管の共鳴を組み合わせました。音は入りきり 494 Hz、着地 500 Hz（厳密には 499.7 Hz）、はね返り 483 Hz で、着地の一瞬だけが管の f1 = 500 Hz と一致して共鳴します。音源そのものの 491 Hz は共鳴しません。橋渡しになった量は「速さ」でした。</p>
+<p><button id="doneBtn">完了にする</button> <span id="doneMsg"></span></p>
+</div>
+
+<div class="top-link"><a href="#">↑ TOP</a></div>
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  const doneKey = 'comboFallLoopCapDopplerResPipeDone';
+  const doneBtn = document.getElementById('doneBtn');
+  const doneMsg = document.getElementById('doneMsg');
+  const doneBox = document.getElementById('doneBox');
+  function refreshDone(msg) {
+    loadProgress().then((p) => {
+      if (p && p[doneKey]) { doneBox.classList.add('done'); doneMsg.textContent = '完了済み ✓'; }
+      else if (msg) { doneMsg.textContent = msg; }
+    });
+  }
+  doneBtn.addEventListener('click', () => {
+    loadProgress().then((p) => {
+      p = p || {};
+      p[doneKey] = true;
+      return saveProgress(p);
+    }).then(() => refreshDone('完了！'));
+  });
+  refreshDone();
+</script>
+</body>
+</html>
