@@ -488,6 +488,20 @@
 
 
 <div class="card">
+  <h2>組み合わせ問題BI：気体＋音速＋開管の共鳴</h2>
+  <p>長さ 0.85 m の開管のヘリウムを 300 K から 600 K に熱すると、音速は 1020 m/s から 1440 m/s になり、管の振動数は f1=600 Hz から 850 Hz へ上がる。1200 Hz の音さは 300 K では f2 と共鳴するが、600 K では共鳴しない。音速は √T に比例する。橋渡し量は「温度（音速）」。</p>
+  <p><a href="content/mechanics/gas-sound-pipe.html">気体＋音速＋開管の共鳴のドリルを開く →</a></p>
+  <p id="progress-combo-gas-sound-pipe">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>組み合わせ問題BJ：光電効果＋ドップラー＋磁場円運動＋コンデンサー充電</h2>
+  <p>400 nm の光源が 0.10c で近づくと波長は 360 nm、光子は 3.4 eV、Kmax=1.4 eV、阻止電圧 1.4 V。コンデンサー（10 nF）には 14 nC、10 nJ がたまり、充電は 14 ms。電子は磁場中で半径 4.1 mm、周期 36 ns の円運動をする。橋渡し量は「電子のエネルギー」。</p>
+  <p><a href="content/mechanics/photo-doppler-cap.html">光電効果＋ドップラー＋磁場円運動＋コンデンサー充電のドリルを開く →</a></p>
+  <p id="progress-combo-photo-doppler-cap">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
   <h2>第7問：気体＋ピストン</h2>
   <p>シリンダーにピストンがのっている。ピストンの力のつり合いから気体の圧力を、状態方程式から体積と高さを求める。加熱するとピストンが上がる等圧変化で、仕事・内部エネルギー・熱を区別しよう。</p>
   <p><a href="content/mechanics/gas-piston.html">気体＋ピストンのドリルを開く →</a></p>
@@ -826,6 +840,10 @@
       p.comboProjDragWallSpringDone ? '進捗：組み合わせ問題BG・斜方投射＋空気抵抗＋壁＋摩擦＋ばねを完了済み ✓' : '進捗：まだ組み合わせ問題BG・斜方投射＋空気抵抗＋壁＋摩擦＋ばねは未完了';
     document.getElementById('progress-combo-pendulum-doppler').textContent =
       p.comboPendulumDopplerDone ? '進捗：組み合わせ問題BH・振り子＋弾性衝突＋ドップラー効果を完了済み ✓' : '進捗：まだ組み合わせ問題BH・振り子＋弾性衝突＋ドップラー効果は未完了';
+    document.getElementById('progress-combo-gas-sound-pipe').textContent =
+      p.comboGasSoundPipeDone ? '進捗：組み合わせ問題BI・気体＋音速＋開管の共鳴を完了済み ✓' : '進捗：まだ組み合わせ問題BI・気体＋音速＋開管の共鳴は未完了';
+    document.getElementById('progress-combo-photo-doppler-cap').textContent =
+      p.comboPhotoDopplerCapDone ? '進捗：組み合わせ問題BJ・光電効果＋ドップラー＋磁場円運動＋コンデンサー充電を完了済み ✓' : '進捗：まだ組み合わせ問題BJ・光電効果＋ドップラー＋磁場円運動＋コンデンサー充電は未完了';
     document.getElementById('progress-gas-piston').textContent =
       p.gasPistonDone ? '進捗：第7問・気体＋ピストンを完了済み ✓' : '進捗：まだ第7問・気体＋ピストンは未完了';
     document.getElementById('progress-young').textContent =
@@ -945,6 +963,8 @@
     document.getElementById('progress-combo-fall-drag-spring').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-proj-drag-wall-spring').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-pendulum-doppler').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-gas-sound-pipe').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-photo-doppler-cap').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-gas-piston').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-young').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-capacitor').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
