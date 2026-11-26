@@ -12378,7 +12378,7 @@ function drawBase(svg, scene) {
       const tV = el('text', { x: 140, y: 170, fill: '#d35400' }); tV.textContent = 'v0=10 m/s'; svg.appendChild(tV);
       const tW = el('text', { x: 252, y: 160 }); tW.textContent = '壁'; svg.appendChild(tW);
       const tL = el('text', { x: 100, y: 222 }); tL.textContent = '着地'; svg.appendChild(tL);
-      const tS = el('text', { x: 24, y: 252 }); tS.textContent = 'ばね'; svg.appendChild(tS);
+      const tS = el('text', { x: 66, y: 236 }); tS.textContent = 'ばね'; svg.appendChild(tS);
       note(256, 'v0=10 m/s、45°、壁は 5.0 m 先');
       note(274, '着地は x=1.0 m、速さ 9.1 m/s');
       note(292, '着地のあと 4.0 m すべってばねにぶつかる');
