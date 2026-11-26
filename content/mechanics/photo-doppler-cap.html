@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題BJ：光電効果＋ドップラー＋磁場円運動＋コンデンサー充電 — 高校物理攻略</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", sans-serif; margin: 0; background: #fff; color: #222; line-height: 1.8; }
+  main { max-width: 720px; margin: 0 auto; padding: 24px 18px 80px; }
+  h1 { font-size: 24px; line-height: 1.4; }
+  h2 { font-size: 20px; margin-top: 40px; }
+  .step { border-top: 1px solid #ddd; padding-top: 16px; margin-top: 32px; }
+  .step h2 { font-size: 18px; margin: 0 0 8px; }
+  .fig { width: 100%; max-width: 400px; height: auto; display: block; margin: 12px auto; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; font-size: 14px; }
+  th { background: #f2f2f2; }
+  .donebox { border: 2px solid #4a8; background: #f6fffa; padding: 14px; margin-top: 40px; }
+  .nav { margin-top: 32px; font-size: 14px; }
+  .toplink { position: fixed; right: 16px; bottom: 16px; background: #222; color: #fff; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 14px; }
+  label.check { display: block; margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+<p><a href="../../index.html">← トップへ</a> ｜ <a href="gas-sound-pipe.html">← 組み合わせ問題BI：気体＋音速＋開管の共鳴</a></p>
+<h1>組み合わせ問題BJ：光電効果＋ドップラー＋磁場円運動＋コンデンサー充電</h1>
+<p>波長 λ = 400 nm の光を出す光源が、仕事関数 φ = 2.0 eV の金属板に 0.10c（光速の 10%）で近づいている。光のドップラー効果は非相対論的な近似 λ′ = λ(1 − v/c) で考える（正確な式とのちがいは 1% 未満）。出てきた電子は、磁場 B = 1.0 mT の中で円運動をし、コンデンサー（C = 10 nF）を充電する。光電流は 1.0 μA とする。hc = 1240 eV·nm、e = 1.60×10⁻¹⁹ C、m_e = 9.11×10⁻³¹ kg とする。</p>
+<p>(1) 近づく光の波長と光子のエネルギー、電子の最大の運動エネルギーを求めよ。(2) 阻止電圧と、コンデンサーにたまる電荷・エネルギー、充電にかかる時間を求めよ。(3) 磁場中の円運動の半径・周期・ローレンツ力を求めよ。(4) 罠と変えたら。</p>
+
+<div class="step" id="step0">
+<p><b>はじめに：どう切り分けるか</b></p>
+<table>
+<tr><th>場面</th><th>考えること</th><th>使うモデル</th></tr>
+<tr><td>光のドップラー</td><td>波長が短くなり、光子が強くなる</td><td>ドップラー効果</td></tr>
+<tr><td>光電効果</td><td>Kmax と阻止電圧</td><td>光電効果</td></tr>
+<tr><td>コンデンサー</td><td>電荷とエネルギー</td><td>コンデンサー</td></tr>
+<tr><td>円運動</td><td>半径と周期</td><td>ローレンツ力</td></tr>
+</table>
+<p>この問題の橋渡しの量は<b>電子のエネルギー</b>だ。ドップラーで光子のエネルギーが上がると Kmax が上がり、阻止電圧が上がってコンデンサーの電荷も増え、円運動の半径も大きくなる。</p>
+<svg class="fig" data-scene="scene-photoDopplerCap-base" data-show="" role="img" aria-label="流れ。光源 400 nm が 0.10c で近づいて 360 nm、光子 3.4 eV、Kmax 1.4 eV、コンデンサー 14 nC"></svg>
+<script type="application/json" id="scene-photoDopplerCap-base">{"bT":0.001,"beta":0.1,"capNF":10,"currentUA":1.0,"eC":1.602e-19,"hcEvNm":1240,"lambdaNm":400,"phase":"base","phiEV":2.0,"type":"photoDopplerCap"}</script>
+<p><a href="#step1">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step1">
+<h2>① ドップラー：λ′=360 nm、光子 3.4 eV</h2>
+<p>光源が 0.10c で近づくので、波長は λ′ = 400×(1 − 0.10) = 360 nm になる。光子のエネルギーは E = 1240/360 ≈ 3.4 eV だ。静止した光源なら 1240/400 = 3.1 eV なので、近づくことで 0.30 eV だけ大きくなる。</p>
+<svg class="fig" data-scene="scene-photoDopplerCap-doppler" data-show="" role="img" aria-label="波長の比べ。静止 400 nm、近づく 360 nm、遠ざかる 440 nm"></svg>
+<script type="application/json" id="scene-photoDopplerCap-doppler">{"bT":0.001,"beta":0.1,"capNF":10,"currentUA":1.0,"eC":1.602e-19,"hcEvNm":1240,"lambdaNm":400,"phase":"doppler","phiEV":2.0,"type":"photoDopplerCap"}</script>
+<label class="check"><input type="checkbox" id="comboPhotoDopplerCap-check-1"> 近づく光の波長 360 nm と光子 3.4 eV を求めた</label>
+<p><a href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<h2>② 光電効果＋充電：Kmax=1.4 eV、Q=14 nC、U=10 nJ</h2>
+<p>Kmax = 3.4 − 2.0 = 1.4 eV、阻止電圧 V0 = 1.4 V になる。コンデンサーは Q = CV0 = 10 nF×1.4 V = 14 nC、U = ½CV0² = 10 nJ まで充電される。電子の数は N = Q/e ≈ 8.8×10¹⁰ 個だ。光電流 1.0 μA なら、t = Q/I = 14 ms かかる。静止した光源なら 1.1 eV、1.1 V、11 nC、6.1 nJ、11 ms だ。</p>
+<svg class="fig" data-scene="scene-photoDopplerCap-photo" data-show="" role="img" aria-label="エネルギーの棒。光子 3.4 eV、仕事関数 2.0 eV、Kmax 1.4 eV、阻止電圧 1.4 V"></svg>
+<script type="application/json" id="scene-photoDopplerCap-photo">{"bT":0.001,"beta":0.1,"capNF":10,"currentUA":1.0,"eC":1.602e-19,"hcEvNm":1240,"lambdaNm":400,"phase":"photo","phiEV":2.0,"type":"photoDopplerCap"}</script>
+<label class="check"><input type="checkbox" id="comboPhotoDopplerCap-check-2"> Kmax 1.4 eV、Q=14 nC、U=10 nJ、充電 14 ms を求めた</label>
+<p><a href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<h2>③ 円運動：r=4.1 mm、T=36 ns、F≈1.1×10⁻¹⁶ N</h2>
+<p>電子の速さは v = √(2K/m) = 7.1×10⁵ m/s、半径は r = mv/eB ≈ 4.1 mm、周期は T = 2πm/eB ≈ 36 ns、ローレンツ力は F = evB ≈ 1.1×10⁻¹⁶ N になる。磁場は仕事をしないので、速さは変わらない。</p>
+<svg class="fig" data-scene="scene-photoDopplerCap-circle" data-show="" role="img" aria-label="磁場中の円運動。r≈4.1 mm、T≈36 ns、F≈1.1×10⁻¹⁶ N"></svg>
+<script type="application/json" id="scene-photoDopplerCap-circle">{"bT":0.001,"beta":0.1,"capNF":10,"currentUA":1.0,"eC":1.602e-19,"hcEvNm":1240,"lambdaNm":400,"phase":"circle","phiEV":2.0,"type":"photoDopplerCap"}</script>
+<label class="check"><input type="checkbox" id="comboPhotoDopplerCap-check-3"> 円運動の半径 4.1 mm、周期 36 ns を求めた</label>
+<p><a href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<h2>④ 罠：明るい光でも V0 は変わらない</h2>
+<p>罠：「光を明るくすると阻止電圧が上がる」——まちがい。明るさは出てくる電子の数を増やすだけで、1 個あたりの最大のエネルギーは変わらない。V0 は 1.4 V のまま、充電が速くなるだけだ。罠：「コンデンサーの電圧が V0 をこえる」——まちがい。電子は Kmax のエネルギーしかもっていないので、V0 をこえる電圧には逆らえない。充電は V0 で止まる。罠：「ドップラー効果で仕事関数が変わる」——まちがい。変わるのは光子のエネルギーで、仕事関数は 2.0 eV のまま。</p>
+<svg class="fig" data-scene="scene-photoDopplerCap-trap" data-show="" role="img" aria-label="Kmax の比べ。静止 1.1 eV、近づく 1.4 eV、明るい光でも 1.4 eV、遠ざかる 0.82 eV"></svg>
+<script type="application/json" id="scene-photoDopplerCap-trap">{"bT":0.001,"beta":0.1,"capNF":10,"currentUA":1.0,"eC":1.602e-19,"hcEvNm":1240,"lambdaNm":400,"phase":"trap","phiEV":2.0,"type":"photoDopplerCap"}</script>
+<label class="check"><input type="checkbox" id="comboPhotoDopplerCap-check-4"> 明るさは V0 を変えず、充電は V0 で止まることを区別できた</label>
+<p><a href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<h2>⑤ 変えたら：遠ざかる・B・C・波長で変わる</h2>
+<p>遠ざかる光源なら λ′ = 440 nm、光子 2.8 eV、Kmax = 0.82 eV、V0 = 0.82 V、Q = 8.2 nC、U = 3.3 nJ、r = 3.1 mm、充電は 8 ms になる。λ = 300 nm の光源が近づくと λ′ = 270 nm、光子 4.6 eV、Kmax = 2.6 eV、V0 = 2.6 V、Q = 26 nC、U = 34 nJ、r = 5.4 mm、充電は 26 ms になる。B = 2.0 mT なら r = 2.0 mm、T = 18 ns、F = 2.3×10⁻¹⁶ N になる。C = 20 nF なら Q = 29 nC、U = 21 nJ、充電は 29 ms になるが、V0 と r は 1.4 V、4.1 mm のまま変わらない。</p>
+<svg class="fig" data-scene="scene-photoDopplerCap-vary" data-show="" role="img" aria-label="半径の比べ。近づく 4.1 mm、遠ざかる 3.1 mm、300 nm 5.4 mm、B=2.0 mT 2.0 mm"></svg>
+<script type="application/json" id="scene-photoDopplerCap-vary">{"bT":0.001,"beta":0.1,"capNF":10,"currentUA":1.0,"eC":1.602e-19,"hcEvNm":1240,"lambdaNm":400,"phase":"vary","phiEV":2.0,"type":"photoDopplerCap"}</script>
+<label class="check"><input type="checkbox" id="comboPhotoDopplerCap-check-5"> 遠ざかる・B・C・波長を変えたときの値を求めた</label>
+</div>
+
+<div class="donebox" id="donebox">
+<p><b>まとめ（答え）</b></p>
+<p>(1) λ′=360 nm、光子 3.4 eV、Kmax=1.4 eV。(2) V0=1.4 V、Q=14 nC、U=10 nJ、充電 14 ms。(3) r=4.1 mm、T=36 ns、F≈1.1×10⁻¹⁶ N。(4) 明るさは V0 を変えない。コンデンサーの電圧は V0 をこえない。</p>
+<p>もとになった単体モデル：光電効果は<a href="photoelectric.html">第15問：光電効果</a>、ドップラー効果は<a href="doppler.html">第18問：ドップラー効果</a>、コンデンサーは<a href="capacitor.html">第9問：コンデンサ</a>、円運動は<a href="circle.html">第10問：円運動</a>、光電効果＋コンデンサーは<a href="photo-cap.html">組み合わせ問題X：光電効果＋コンデンサ</a>、光電効果＋ドップラー＋円運動は<a href="photo-doppler-circle.html">組み合わせ問題BD：光電効果＋ドップラー効果＋磁場の円運動</a>、光電効果＋コンデンサー＋円運動は<a href="photo-cap-circle.html">組み合わせ問題AS：光電効果＋コンデンサ＋磁場円運動</a>で確かめられる。</p>
+<p id="done-msg"></p>
+</div>
+
+<p class="nav"><a href="../../index.html">← トップへ</a></p>
+</main>
+<a class="toplink" href="#">↑ TOP</a>
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+const doneKey = 'comboPhotoDopplerCapDone';
+const checkIds = ['comboPhotoDopplerCap-check-1','comboPhotoDopplerCap-check-2','comboPhotoDopplerCap-check-3','comboPhotoDopplerCap-check-4','comboPhotoDopplerCap-check-5'];
+const doneMsg = document.getElementById('done-msg');
+function allChecked() { return checkIds.every(id => document.getElementById(id).checked); }
+function refresh() {
+  if (allChecked()) {
+    doneMsg.textContent = '完了！';
+    loadProgress().then(p => { p[doneKey] = true; return saveProgress(p); }).catch(() => {});
+  } else {
+    doneMsg.textContent = '';
+  }
+}
+checkIds.forEach(id => document.getElementById(id).addEventListener('change', refresh));
+renderAllFigures();
+loadProgress().then(p => { if (p[doneKey]) { doneMsg.textContent = '完了済み ✓'; } }).catch(() => {});
+</script>
+</body>
+</html>
