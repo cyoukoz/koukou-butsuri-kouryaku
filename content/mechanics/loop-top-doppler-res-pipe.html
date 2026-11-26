@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせCR：ループ・ザ・ループ＋ばね＋摩擦＋ドップラー＋開管の共鳴（頂点で共鳴）</title>
+<style>
+body{font-family:sans-serif;max-width:760px;margin:0 auto;padding:16px;line-height:1.7}
+h1{font-size:22px}
+h2{font-size:18px;border-left:4px solid #36c;margin-top:28px;padding-left:8px}
+.step{margin:24px 0}
+.step-check{display:block;margin:12px 0;font-size:15px}
+.done-box{margin:28px 0;padding:14px;border:2px solid #36c;border-radius:8px}
+#doneBtn{font-size:16px;padding:8px 16px}
+.fig{width:100%;max-width:400px;height:auto;display:block;margin:8px 0}
+a{color:#36c}
+.map{margin:16px 0;padding:12px;background:#f2f6ff;border-radius:8px}
+</style>
+</head>
+<body>
+<h1>組み合わせCR：ループ・ザ・ループ＋ばね＋摩擦＋ドップラー＋開管の共鳴（頂点で共鳴）</h1>
+<p>質量 m = 1.0 kg の玉を、半径 R = 0.50 m の円形レールの頂点の 1.25 m 上（地面から 2.25 m の高さ）から静かに落とす。レールはなめらかで、玉はレールに沿って1周する。ループを出たあと、玉は水平な床を 6.5 m すべり、ばね（k = 100 N/m）に当たる。床の動摩擦力は 2.0 N とする。玉には振動数 f0 = 493 Hz の音源がついていて、観測者はループの左の地面にいる。そばに長さ L = 0.34 m の開管がある。音速は V = 340 m/s、重力加速度は g = 10 m/s² とする。</p>
+<p>この問題では、（1）ループの最下点と頂点の速さと垂直抗力を求め、（2）ばねに当たるときの速さと最大の縮みを求め、（3）ドップラー効果で聞こえる音の高さと開管の共鳴を調べ、（4）まちがいやすい点と、条件を変えたらどうなるかを考えます。</p>
+<p>土台になっている問題：<a href="loop.html">F・ループ・ザ・ループ</a>、<a href="doppler-resonance.html">BE・ドップラー＋開管の共鳴</a>、<a href="doppler.html">Q18・ドップラー効果</a>、<a href="standing-wave.html">Q14・定常波</a></p>
+
+<div class="map">
+<strong>解き方の地図</strong>
+<ol>
+<li>ループ：最下点 6.7 m/s・100 N、頂点 5.0 m/s・40 N</li>
+<li>ばね：当たるとき 4.4 m/s、縮み 0.42 m、押し返し 4.0 m/s</li>
+<li>ドップラーと共鳴：頂点の音 500 Hz が管の f1 と一致する</li>
+<li>罠：音源の 493 Hz は共鳴しない</li>
+<li>変えたら：L・f0・閉管・R・k・h で共鳴は変わるか</li>
+</ol>
+</div>
+
+<svg class="fig" data-scene="scene-loopTopDopplerResPipe-base" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="F のループに音源と管を足す。橋渡し量は速さ。"></svg>
+<script type="application/json" id="scene-loopTopDopplerResPipe-base">{"type":"loopTopDopplerResPipe","phase":"base","mKg":1.0,"loopRM":0.5,"hM":2.25,"g":10,"slideM":6.5,"fricN":2.0,"kSpring":100,"f0Hz":493,"vSoundMs":340,"pipeLM":0.34}</script>
+
+<div class="step">
+<h2>① ループ：最下点 6.7 m/s・100 N、頂点 5.0 m/s・40 N</h2>
+<p>玉を 2.25 m の高さから静かに落とすと、レールはなめらかなので力学的エネルギーが保存される。最下点では (1/2)mv² = mgh から、v = √(2 × 10 × 2.25) = √45 ≈ 6.7 m/s になる。最下点では、重力と垂直抗力の合力が向心力になる。円の中心は玉の真上だから、N − mg = mv²/R。v² = 45 だから、N = 10 + 1.0 × 45 / 0.50 = 100 N になる。向心加速度は v²/R = 90 m/s² だ。</p>
+<svg class="fig" data-scene="scene-loopTopDopplerResPipe-bottom" data-show="velocity,normal,gravity" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="最下点：速さ 6.7 m/s、垂直抗力 100 N。重力 10 N と垂直抗力の合力が向心力になる。"></svg>
+<script type="application/json" id="scene-loopTopDopplerResPipe-bottom">{"type":"loopTopDopplerResPipe","phase":"bottom","mKg":1.0,"loopRM":0.5,"hM":2.25,"g":10,"slideM":6.5,"fricN":2.0,"kSpring":100,"f0Hz":493,"vSoundMs":340,"pipeLM":0.34}</script>
+<p>頂点では高さが 2R = 1.0 m だけ上がっている。エネルギー保存から、(1/2)mv² = mg(h − 2R) となり、v² = 2 × 10 × (2.25 − 1.0) = 25 だから、v = 5.0 m/s になる。頂点では、重力も垂直抗力もどちらも下向き（円の中心向き）だ。だから N + mg = mv²/R。v² = 25 だから、N = 1.0 × 25 / 0.50 − 10 = 40 N になる。向心加速度は v²/R = 50 m/s² だ。頂点はループの中で一番遅い点だ。</p>
+<svg class="fig" data-scene="scene-loopTopDopplerResPipe-top" data-show="velocity,normal,gravity" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="頂点：速さ 5.0 m/s、垂直抗力 40 N。重力 10 N と垂直抗力 40 N の合力が向心力になる。"></svg>
+<script type="application/json" id="scene-loopTopDopplerResPipe-top">{"type":"loopTopDopplerResPipe","phase":"top","mKg":1.0,"loopRM":0.5,"hM":2.25,"g":10,"slideM":6.5,"fricN":2.0,"kSpring":100,"f0Hz":493,"vSoundMs":340,"pipeLM":0.34}</script>
+<p>頂点をちょうど回れる最小の高さは h = 2.5R = 1.25 m で、そのときの頂点の速さは v = √(gR) = √5 ≈ 2.2 m/s、垂直抗力は 0 になる。落としはじめてから最下点まで 0.67 s、ループを 1 周するのに 0.54 s かかる。</p>
+<label class="step-check"><input type="checkbox" class="step-done"> ① 最下点 6.7 m/s・100 N、頂点 5.0 m/s・40 N を確かめた</label>
+</div>
+
+<div class="step">
+<h2>② ばね：当たるとき 4.4 m/s、縮み 0.42 m、押し返し 4.0 m/s</h2>
+<p>ループを出た玉は、最下点と同じ速さ 6.7 m/s で水平な床をすべり出す。床の摩擦力は 2.0 N で、6.5 m すべると摩擦の仕事は 2.0 × 6.5 = 13 J になる。運動エネルギーは、v² = 45 だから (1/2) × 1.0 × 45 = 22.5 J から 13 J へって 9.5 J になるので、ばねに当たるときの速さは v = √19 ≈ 4.4 m/s になる。すべるのに 1.2 s かかる。</p>
+<p>ばねの角振動数は ω = √(k/m) = √(100/1.0) = 10 rad/s になる。摩擦がある水平なばねでは、つり合いのずれは x_eq = f/k = 2.0/100 = 0.020 m になる。最大の縮みは x_max = −0.020 + √[0.020² + (4.4/10)²] ≈ 0.42 m になる。ばねの力は k·x_max = 100 × 0.42 ≈ 42 N になる。圧縮にかかる時間は 0.15 s だ。</p>
+<svg class="fig" data-scene="scene-loopTopDopplerResPipe-spring" data-show="springForce" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="ばねを最大 0.42 m 縮める。ばねの力は 42 N、この瞬間の速さは 0。"></svg>
+<script type="application/json" id="scene-loopTopDopplerResPipe-spring">{"type":"loopTopDopplerResPipe","phase":"spring","mKg":1.0,"loopRM":0.5,"hM":2.25,"g":10,"slideM":6.5,"fricN":2.0,"kSpring":100,"f0Hz":493,"vSoundMs":340,"pipeLM":0.34}</script>
+<p>戻るとき、摩擦の向きが変わるので、押し返しの速さは v_return = ω√[(x_max − x_eq)² − x_eq²] = 10 × √(0.40² − 0.020²) ≈ 4.0 m/s になる。戻りに 0.15 s かかる。摩擦熱は 1.7 J、押し返しの運動エネルギーは 7.8 J になる。戻った玉は 3.9 m すべって、ループの手前 2.6 m で止まる。落としはじめてから止まるまで 4.7 s かかる。</p>
+<label class="step-check"><input type="checkbox" class="step-done"> ② ばねに当たるとき 4.4 m/s、最大の縮み 0.42 m、押し返し 4.0 m/s を確かめた</label>
+</div>
+
+<div class="step">
+<h2>③ ドップラーと共鳴：頂点の音 500 Hz が管の f1 と一致する</h2>
+<p>玉には 493 Hz の音源がついていて、観測者はループの左の地面にいる。玉が観測者に近づくとき、聞こえる音は f′ = f0 × V/(V − v) で高くなり、遠ざかるときは f′ = f0 × V/(V + v) で低くなる。はじめは 493 Hz だ。落ちているあいだ玉は観測者に近づくので、音は高くなり、最下点に着く直前は 503 Hz（厳密には 502.92 Hz）になる。最下点で玉は右向きに曲がるので、音は 483 Hz（厳密には 483.46 Hz）にとぶ。頂点では玉は左向きに進むので近づき、音は 500 Hz（厳密には 500.36 Hz）になる。ループを出るときはまた右向きで 483 Hz、ばねに当たるときは 487 Hz（厳密には 486.76 Hz）、はね返りは 499 Hz（厳密には 498.81 Hz）になり、止まると 493 Hz に戻る。</p>
+<svg class="fig" data-scene="scene-loopTopDopplerResPipe-doppler" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="音の高さの時間変化：落ちきり 503 Hz、最下点で 483 Hz にとび、頂点で 500 Hz、ばねに当たるとき 487 Hz、はね返り 499 Hz。"></svg>
+<script type="application/json" id="scene-loopTopDopplerResPipe-doppler">{"type":"loopTopDopplerResPipe","phase":"doppler","mKg":1.0,"loopRM":0.5,"hM":2.25,"g":10,"slideM":6.5,"fricN":2.0,"kSpring":100,"f0Hz":493,"vSoundMs":340,"pipeLM":0.34}</script>
+<p>そばには、長さ L = 0.34 m の開管がある。開管の振動数は f_n = n·V/(2L) で、f1 = 340/(2 × 0.34) = 500 Hz、f2 = 1000 Hz、f3 = 1500 Hz だ。頂点の音は、厳密には 500.36 Hz で、有効数字 3 けたでは 500 Hz となり、管の f1 と一致する。だから、頂点の一瞬だけ、管が共鳴する。最下点の 503 Hz と 483 Hz、ばねに当たるときの 487 Hz、はね返りの 499 Hz、音源の 493 Hz は、管の振動数と一致しないので共鳴しない。</p>
+<svg class="fig" data-scene="scene-loopTopDopplerResPipe-resonate" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="開管 L=0.34 m の基本振動：両端が腹、中央が節。f1=500 Hz。"></svg>
+<script type="application/json" id="scene-loopTopDopplerResPipe-resonate">{"type":"loopTopDopplerResPipe","phase":"resonate","mKg":1.0,"loopRM":0.5,"hM":2.25,"g":10,"slideM":6.5,"fricN":2.0,"kSpring":100,"f0Hz":493,"vSoundMs":340,"pipeLM":0.34}</script>
+<p>うなりも確かめられる。動かない 493 Hz の音源と比べると、落ちきりの音とのうなりは 503 − 493 = 10 Hz で最大になる（厳密には 9.92 Hz）。</p>
+<label class="step-check"><input type="checkbox" class="step-done"> ③ 頂点の音 500 Hz だけが管の f1 と一致して共鳴することを確かめた</label>
+</div>
+
+<div class="step">
+<h2>④ 罠：音源の 493 Hz は共鳴しない</h2>
+<p>罠が 4 つある。1 つ目は、音源そのものの振動数 493 Hz は、管のどの振動数とも一致しないことだ。管の振動数は 500 Hz、1000 Hz、1500 Hz で、493 Hz はどれとも合わない。玉が止まっているときに聞こえる音は共鳴しない。</p>
+<p>2 つ目は、共鳴するのは頂点の一瞬だけだということだ。一番速い最下点の音は、落ちきりで 503 Hz、ループの中では 483 Hz で、どちらも管の f1 = 500 Hz とは一致しない。速いからといって共鳴するとは限らない。ばねに当たるときの 487 Hz も合わない。</p>
+<svg class="fig" data-scene="scene-loopTopDopplerResPipe-trap" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="頂点の音 500 Hz だけが管の f1 と一致する。音源の 493 Hz は合わない。"></svg>
+<script type="application/json" id="scene-loopTopDopplerResPipe-trap">{"type":"loopTopDopplerResPipe","phase":"trap","mKg":1.0,"loopRM":0.5,"hM":2.25,"g":10,"slideM":6.5,"fricN":2.0,"kSpring":100,"f0Hz":493,"vSoundMs":340,"pipeLM":0.34}</script>
+<p>3 つ目は、はね返りの音 499 Hz が f1 に 1 Hz 近いのに、共鳴しないことだ。499 Hz は 500 Hz に近いが、有効数字 3 けたでは 499 Hz と 500 Hz はちがう。近いだけでは共鳴しない。</p>
+<p>4 つ目は、「頂点では重力だけで向心力がまかなえる」と思うことだ。頂点で必要な向心力は mv²/R = 50 N で、重力は 10 N しかない。残りの 40 N はレールの垂直抗力が出している。重力だけで回れるのは、最小の高さ h = 1.25 m から落としたときだけで、そのときの頂点の速さは 2.2 m/s、音は 496 Hz（厳密には 496.26 Hz）になって、管とは一致しない。</p>
+<label class="step-check"><input type="checkbox" class="step-done"> ④ 493 Hz は共鳴しないことと、はね返り 499 Hz は 1 Hz 近いが合わないことを確かめた</label>
+</div>
+
+<div class="step">
+<h2>⑤ 変えたら：L・f0・閉管・R・k・h で共鳴は変わるか</h2>
+<p>管の長さを L = 0.68 m にすると、f1 = 250 Hz、f2 = 500 Hz になる。頂点の音 500 Hz は f2 と一致するので、やはり共鳴する。管の長さを L = 0.17 m にすると、f1 = 1000 Hz になり、頂点の音とは一致しないので共鳴しない。</p>
+<p>音源の振動数を f0 = 440 Hz にすると、頂点の音は 447 Hz（厳密には 446.57 Hz）、最下点は 431 Hz、はね返りは 445 Hz になり、管の振動数とは一致しないので共鳴しない。閉管（片端が閉じた管）にすると、振動数は 250 Hz、750 Hz、1250 Hz になり、頂点の音 500 Hz とは一致しないので共鳴しない。</p>
+<svg class="fig" data-scene="scene-loopTopDopplerResPipe-vary" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="管の長さ・音源・閉管・ループの半径・ばね定数・落とす高さを変えたときの共鳴。"></svg>
+<script type="application/json" id="scene-loopTopDopplerResPipe-vary">{"type":"loopTopDopplerResPipe","phase":"vary","mKg":1.0,"loopRM":0.5,"hM":2.25,"g":10,"slideM":6.5,"fricN":2.0,"kSpring":100,"f0Hz":493,"vSoundMs":340,"pipeLM":0.34}</script>
+<p>ループの半径を R = 0.25 m にしても、頂点の上の高さが 1.25 m のままなら、頂点の速さは 5.0 m/s のままで、頂点の音は 500 Hz のままだから、やはり共鳴する。ただし、最下点の速さは 5.9 m/s、垂直抗力は頂点で 90 N、最下点で 150 N になる。ばねに当たるときは 3.0 m/s、最大の縮みは 0.28 m、ばねの力は 28 N、押し返しは 2.6 m/s になる。</p>
+<p>ばね定数を k = 200 N/m にすると、最大の縮みは 0.30 m、ばねの力は 60 N、押し返しは 4.1 m/s になる。頂点の速さは変わらないので、頂点の音は 500 Hz のままで、管の f1 と一致して、やはり共鳴する。</p>
+<p>落とす高さを h = 1.25 m（ちょうど回れる最小の高さ）にすると、頂点の速さは 2.2 m/s、垂直抗力は 0 になる。頂点の音は 496 Hz で、管とは一致しないので共鳴しない。最下点の速さは 5.0 m/s で、玉は 6.25 m すべって止まるので、6.5 m 先のばねには届かない。なお、h = 2.0 m から落としても、頂点の速さは 4.5 m/s、音は 500 Hz（厳密には 499.57 Hz）になって、やはり共鳴する。</p>
+<label class="step-check"><input type="checkbox" class="step-done"> ⑤ L=0.68 m なら共鳴し、f0=440 Hz・閉管・h=1.25 m なら共鳴しないこと、R=0.25 m でも頂点で共鳴することを確かめた</label>
+</div>
+
+<div class="done-box" id="doneBox">
+<button id="doneBtn">完了にする</button>
+<span id="doneMsg"></span>
+<p>ループ・ザ・ループ（最下点 6.7 m/s・100 N、頂点 5.0 m/s・40 N）に、ばね＋摩擦（当たるとき 4.4 m/s、最大の縮み 0.42 m、押し返し 4.0 m/s）とドップラー効果＋開管の共鳴を組み合わせました。音は落ちきり 503 Hz、最下点 483 Hz、頂点 500 Hz（厳密には 500.36 Hz）、ばねに当たるとき 487 Hz、はね返り 499 Hz で、頂点の一瞬だけが管の f1 = 500 Hz と一致して共鳴します。音源そのものの 493 Hz は共鳴しません。橋渡しになった量は「速さ」でした。</p>
+</div>
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+renderAllFigures();
+(function () {
+  var KEY = 'comboLoopTopDopplerResPipeDone';
+  var btn = document.getElementById('doneBtn');
+  var msg = document.getElementById('doneMsg');
+  var boxes = Array.prototype.slice.call(document.querySelectorAll('.step-done'));
+  function allChecked() { return boxes.length > 0 && boxes.every(function (b) { return b.checked; }); }
+  function refresh() {
+    loadProgress().then(function (p) {
+      if (p[KEY]) { msg.textContent = '完了済み ✓'; btn.disabled = true; }
+    });
+  }
+  btn.addEventListener('click', function () {
+    if (!allChecked()) { msg.textContent = 'まず 5 つのチェックを全部入れてください。'; return; }
+    loadProgress().then(function (p) {
+      p[KEY] = true;
+      return saveProgress(p);
+    }).then(function () { msg.textContent = '完了！'; btn.disabled = true; });
+  });
+  refresh();
+})();</script>
+</body>
+</html>
