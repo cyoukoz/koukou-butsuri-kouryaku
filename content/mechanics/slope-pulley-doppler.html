@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題BM：斜面＋滑車＋ばね＋摩擦＋ドップラー効果 — 高校物理攻略</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", sans-serif; margin: 0; background: #fff; color: #222; line-height: 1.8; }
+  main { max-width: 720px; margin: 0 auto; padding: 24px 18px 80px; }
+  h1 { font-size: 24px; line-height: 1.4; }
+  h2 { font-size: 20px; margin-top: 40px; }
+  .step { border-top: 1px solid #ddd; padding-top: 16px; margin-top: 32px; }
+  .step h2 { font-size: 18px; margin: 0 0 8px; }
+  .fig { width: 100%; max-width: 400px; height: auto; display: block; margin: 12px auto; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; font-size: 14px; }
+  th { background: #f2f2f2; }
+  .donebox { border: 2px solid #4a8; background: #f6fffa; padding: 14px; margin-top: 40px; }
+  .nav { margin-top: 32px; font-size: 14px; }
+  .toplink { position: fixed; right: 16px; bottom: 16px; background: #222; color: #fff; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 14px; }
+  label.check { display: block; margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+<p><a href="../../index.html">← トップへ</a> ｜ <a href="gen-rect-rc.html">← 組み合わせ問題BL：発電機＋変圧器＋整流＋平滑＋RC充電</a></p>
+<h1>組み合わせ問題BM：斜面＋滑車＋ばね＋摩擦＋ドップラー効果</h1>
+<p>斜面（θ = 30°）の上に玉 m1 = 2.0 kg があり、糸でつながった玉 m2 = 1.0 kg が滑車を越えてつり下がっている。m2 の下にはばね（k = 120 N/m）が自然長のまま床につながっている。m1 と斜面のあいだの動摩擦係数は μ = 0.10 である。m2 には小さな音源（f0 = 2000 Hz）がついており、観測者は m2 の真上の台にいる。はじめ m2 を 0.10 m 下に引いて静かに放す。音速は 340 m/s、重力加速度は g = 10 m/s² とする。</p>
+<p>(1) つり合いの位置と、m1 にはたらく力を求めよ。(2) 振動の周期と、振幅の減り方を求めよ。(3) 観測される音の高さの時間変化と、うなりを求めよ。(4) 罠と変えたら。</p>
+
+<div class="step" id="step0">
+<p><b>はじめに：どう切り分けるか</b></p>
+<table>
+<tr><th>場面</th><th>考えること</th><th>使うモデル</th></tr>
+<tr><td>斜面＋滑車＋ばね</td><td>つり合いと単振動</td><td>2 物体単振動</td></tr>
+<tr><td>摩擦</td><td>つり合いのずれと振幅の減り</td><td>動摩擦</td></tr>
+<tr><td>ドップラー効果</td><td>速さで音の高さが変わる</td><td>ドップラー効果</td></tr>
+<tr><td>エネルギー</td><td>摩擦熱と最後のばね</td><td>エネルギー保存</td></tr>
+</table>
+<p>この問題の橋渡しの量は<b>速さ</b>だ。単振動の速さがドップラーの音の高さを決める。速さは半周期ごとに小さくなるので、音の高さの変化も半周期ごとに小さくなる。</p>
+<svg class="fig" data-scene="scene-slopePulleyDoppler-base" data-show="" role="img" aria-label="流れ。斜面と滑車とばねと摩擦で単振動し、音源の速さがドップラーの音の高さを決める"></svg>
+<script type="application/json" id="scene-slopePulleyDoppler-base">{"ampM":0.1,"f0Hz":2000,"g":10,"kNperM":120,"m1Kg":2.0,"m2Kg":1.0,"mu":0.1,"phase":"base","thetaDeg":30,"type":"slopePulleyDoppler","vSoundMs":340}</script>
+<p><a href="#step1">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step1">
+<h2>① つり合い：m1 g sinθ = m2 g = 10 N、ばねは自然長</h2>
+<p>m1 にはたらく斜面に沿った重力は m1 g sinθ = 20 × 0.50 = 10 N、垂直抗力は m1 g cosθ ≈ 17 N、摩擦力は f = μN ≈ 1.7 N になる。m2 の重力は m2 g = 10 N だ。つり合いの条件は m1 g sinθ = m2 g = 10 N で、ちょうどつり合う。ばねは自然長のままで、力は 0 だ。つり合いでは摩擦の向きは決まらない。糸の張力は 10 N になる。</p>
+<p>つり合いの位置は 1 点ではなく範囲で、|x| ≤ f/k ≈ 0.014 m のあいだならどこでも止まれる。はじめ m2 を 0.10 m 下に引いたのは、この範囲の外だからだ。</p>
+<svg class="fig" data-scene="scene-slopePulleyDoppler-equilibrium" data-show="" role="img" aria-label="つり合い。m1 の重力 20 N の斜面成分 10 N、垂直抗力 17 N、張力 10 N、m2 の重力 10 N、観測者は m2 の真上の台にいる"></svg>
+<script type="application/json" id="scene-slopePulleyDoppler-equilibrium">{"ampM":0.1,"f0Hz":2000,"g":10,"kNperM":120,"m1Kg":2.0,"m2Kg":1.0,"mu":0.1,"phase":"equilibrium","thetaDeg":30,"type":"slopePulleyDoppler","vSoundMs":340}</script>
+<label class="check"><input type="checkbox" id="comboSlopePulleyDoppler-check-1"> つり合いの条件 m1 g sinθ = m2 g = 10 N を求めた</label>
+<p><a href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<h2>② 単振動：振幅は半周期ごとに 0.029 m 減り、3 半周期で止まる</h2>
+<p>2 物体をまとめて考えると、運動方程式は (m1 + m2)a = −k x ∓ f になる。角振動数は ω = √(k/(m1 + m2)) = √(120/3.0) ≈ 6.3 rad/s、周期は T = 2π/ω ≈ 0.99 s、半周期は 0.50 s になる。はじめのエネルギーは E = ½kA² = 0.60 J だ。</p>
+<p>摩擦は m1 の動く向きと反対向きにはたらく。半周期ごとに摩擦の向きが変わるので、つり合いの位置は +0.014 m と −0.014 m のあいだを行き来し、振幅は半周期ごとに 2f/k ≈ 0.029 m ずつ減る。折れ点は 0.10 m → −0.071 m → 0.042 m → −0.013 m で、3 半周期（1.5 s）で止まる。最後の位置 −0.013 m はつり合いの範囲 |x| ≤ 0.014 m の中だ。</p>
+<svg class="fig" data-scene="scene-slopePulleyDoppler-oscillate" data-show="" role="img" aria-label="x-t グラフ。周期 0.99 s、半周期 0.50 s、折れ点 0.10 m、−0.071 m、0.042 m、−0.013 m"></svg>
+<script type="application/json" id="scene-slopePulleyDoppler-oscillate">{"ampM":0.1,"f0Hz":2000,"g":10,"kNperM":120,"m1Kg":2.0,"m2Kg":1.0,"mu":0.1,"phase":"oscillate","thetaDeg":30,"type":"slopePulleyDoppler","vSoundMs":340}</script>
+<svg class="fig" data-scene="scene-slopePulleyDoppler-decay" data-show="" role="img" aria-label="振幅の減り。はじめ 0.10 m、1 半周期後 0.071 m、2 半周期後 0.042 m、3 半周期後 0.013 m"></svg>
+<script type="application/json" id="scene-slopePulleyDoppler-decay">{"ampM":0.1,"f0Hz":2000,"g":10,"kNperM":120,"m1Kg":2.0,"m2Kg":1.0,"mu":0.1,"phase":"decay","thetaDeg":30,"type":"slopePulleyDoppler","vSoundMs":340}</script>
+<label class="check"><input type="checkbox" id="comboSlopePulleyDoppler-check-2"> 周期 0.99 s と、振幅が半周期ごとに 0.029 m 減ることを求めた</label>
+<p><a href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<h2>③ ドップラー：音は 2003 Hz → 1998 Hz → 2001 Hz、うなりは最大 3.2 Hz</h2>
+<p>観測者は m2 の真上にいるので、m2 の上下の速さがそのまま観測者に近づく・遠ざかる速さになる。m2 が上がるとき音は高く、下がるとき音は低く聞こえる。</p>
+<p>半周期ごとの最大の速さは 0.54 m/s、0.36 m/s、0.18 m/s で、音の高さは 2003 Hz、1998 Hz、2001 Hz になる。はじめの半周期は m2 が上がるので、音は 2000 Hz から 2003 Hz まで上がる。折り返し点では速さが 0 なので音は 2000 Hz そのまま、中心ではその半周期の最大値になる。0.25 s で 2003 Hz、0.50 s で 2000 Hz、0.75 s で 1998 Hz、1.0 s で 2000 Hz、1.25 s で 2001 Hz、1.5 s で止まって 2000 Hz になる。</p>
+<p>音の高さの変化は 2003 − 2000 = 3.2 Hz が最大で、2000 Hz の音とのうなりは最大で 3.2 Hz になる。振幅が減るにつれて音の変化も小さくなるのは、速さが小さくなるからだ。移動距離は 0.34 m、摩擦熱は 0.59 J、最後のばねのエネルギーは 0.011 J で、0.59 J + 0.011 J = 0.60 J と合う。</p>
+<svg class="fig" data-scene="scene-slopePulleyDoppler-doppler" data-show="" role="img" aria-label="音の高さの時間変化。0.25 s で最大 2003 Hz、0.75 s で最小 1998 Hz、1.25 s で 2001 Hz、止まると 2000 Hz"></svg>
+<script type="application/json" id="scene-slopePulleyDoppler-doppler">{"ampM":0.1,"f0Hz":2000,"g":10,"kNperM":120,"m1Kg":2.0,"m2Kg":1.0,"mu":0.1,"phase":"doppler","thetaDeg":30,"type":"slopePulleyDoppler","vSoundMs":340}</script>
+<svg class="fig" data-scene="scene-slopePulleyDoppler-energy" data-show="" role="img" aria-label="エネルギー。はじめ 0.60 J、摩擦熱 0.59 J、最後のばね 0.011 J"></svg>
+<script type="application/json" id="scene-slopePulleyDoppler-energy">{"ampM":0.1,"f0Hz":2000,"g":10,"kNperM":120,"m1Kg":2.0,"m2Kg":1.0,"mu":0.1,"phase":"energy","thetaDeg":30,"type":"slopePulleyDoppler","vSoundMs":340}</script>
+<label class="check"><input type="checkbox" id="comboSlopePulleyDoppler-check-3"> 音の高さ 2003 Hz・1998 Hz・2001 Hz と、うなり 3.2 Hz を求めた</label>
+<p><a href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<h2>④ 罠：振幅は 1 周期で減るのではない、折り返し点が一番高いのではない</h2>
+<p>罠：「振幅は 1 周期ごとに減る」——まちがい。摩擦の向きは折れ点で変わるので、振幅は半周期ごとに 2f/k ≈ 0.029 m 減る。1 周期で減ると思うと、止まるまでの時間は 3.0 s になってしまう。正しくは 1.5 s だ。</p>
+<p>罠：「音がいちばん高く聞こえるのは、m2 がいちばん高いところ（折り返し点）」——まちがい。折り返し点では速さが 0 なので、音は 2000 Hz そのまま。いちばん高いのは中心を通るときで、最初の半周期の 2003 Hz だ。音の高さを決めるのは高さではなく速さと向きだ。2 番目の半周期は速さ 0.36 m/s で下がるので 1998 Hz、3 番目の半周期は速さ 0.18 m/s で上がるので 2001 Hz になる。速さだけを見ると 2 番目の半周期のほうが速いが、向きが遠ざかるので音は低くなる。</p>
+<p>罠：「摩擦がなければ音は 2000 Hz のまま」——まちがい。摩擦がなければ v_max = ωA ≈ 0.63 m/s でずっと振動し、音は 2004 Hz と 1996 Hz のあいだを往復しつづける。うなりは最大で 3.7 Hz になる。</p>
+<svg class="fig" data-scene="scene-slopePulleyDoppler-trap" data-show="" role="img" aria-label="1 半周期後の振幅の比べ。摩擦なし 0.10 m、μ=0.10 0.071 m、μ=0.20 0.042 m、k=200 0.083 m"></svg>
+<script type="application/json" id="scene-slopePulleyDoppler-trap">{"ampM":0.1,"f0Hz":2000,"g":10,"kNperM":120,"m1Kg":2.0,"m2Kg":1.0,"mu":0.1,"phase":"trap","thetaDeg":30,"type":"slopePulleyDoppler","vSoundMs":340}</script>
+<label class="check"><input type="checkbox" id="comboSlopePulleyDoppler-check-4"> 振幅は半周期ごとに減り、音を決めるのは速さと向きだと区別できた</label>
+<p><a href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<h2>⑤ 変えたら：μ・k・A で止まるまでの時間と音が変わる</h2>
+<p>μ = 0.20 なら、摩擦は 3.5 N になり、つり合いのずれは 0.029 m、振幅は半周期ごとに 0.058 m 減る。折れ点は 0.10 m → −0.042 m → −0.015 m で、2 半周期（1.0 s）で止まる。音の高さは半周期ごとに 2003 Hz、2000 Hz になる。2 番目の半周期の速さは 0.085 m/s しかないので、音はほぼ 2000 Hz のまま（1999.5 Hz）だ。</p>
+<p>k = 200 N/m なら、ω = √(200/3.0) ≈ 8.2 rad/s、T ≈ 0.77 s、半周期は 0.38 s になる。振幅の減りは半周期ごとに 0.017 m で、6 半周期（2.3 s）で止まる。最初の半周期の最大の速さは 0.75 m/s で、音は 2004 Hz になる。2 番目の半周期は速さ 0.60 m/s で下がるので 1996 Hz になる。</p>
+<p>A = 0.20 m から放すと、はじめのエネルギーは 2.4 J になり、7 半周期（3.5 s）で止まる。最初の半周期の最大の速さは 1.2 m/s で、音は 2007 Hz になる。2 番目の半周期は速さ 0.99 m/s で下がるので 1994 Hz になる。</p>
+<svg class="fig" data-scene="scene-slopePulleyDoppler-vary" data-show="" role="img" aria-label="止まるまでの時間の比べ。もと 1.5 s、μ=0.20 1.0 s、k=200 2.3 s、A=0.20 m 3.5 s"></svg>
+<script type="application/json" id="scene-slopePulleyDoppler-vary">{"ampM":0.1,"f0Hz":2000,"g":10,"kNperM":120,"m1Kg":2.0,"m2Kg":1.0,"mu":0.1,"phase":"vary","thetaDeg":30,"type":"slopePulleyDoppler","vSoundMs":340}</script>
+<label class="check"><input type="checkbox" id="comboSlopePulleyDoppler-check-5"> μ・k・A を変えたときの止まるまでの時間と音を求めた</label>
+</div>
+
+<div class="donebox" id="donebox">
+<p><b>まとめ（答え）</b></p>
+<p>(1) つり合い：m1 g sinθ = m2 g = 10 N、N ≈ 17 N、f ≈ 1.7 N、つり合いの範囲 |x| ≤ 0.014 m。(2) ω ≈ 6.3 rad/s、T ≈ 0.99 s、振幅は半周期ごとに 0.029 m 減り、3 半周期（1.5 s）で止まる。(3) 音の高さは 2003 Hz → 1998 Hz → 2001 Hz、うなりは最大 3.2 Hz。(4) 音の高さを決めるのは速さと向き。振幅は半周期ごとに減る。</p>
+<p>もとになった単体モデル：2 物体単振動は<a href="slope-pulley-fric.html">組み合わせ問題AW：斜面＋滑車＋摩擦＋ばねの2物体単振動</a>、斜面＋滑車＋ばねは<a href="slope-pulley-spring.html">組み合わせ問題AM：斜面＋滑車＋ばねの2物体単振動</a>、ドップラー効果は<a href="doppler.html">第18問：ドップラー効果</a>、ドップラー＋単振動は<a href="doppler-shm.html">組み合わせ問題I：ドップラー効果＋単振動</a>、単振動は<a href="shm.html">第11問：単振動・振り子</a>で確かめられる。</p>
+<p id="done-msg"></p>
+</div>
+
+<p class="nav"><a href="../../index.html">← トップへ</a> ｜ <a href="gas-carnot-cycle.html">組み合わせ問題BN：気体＋ピストン＋ばね＋カルノー効率 →</a></p>
+</main>
+<a class="toplink" href="#">↑ TOP</a>
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+const doneKey = 'comboSlopePulleyDopplerDone';
+const checkIds = ['comboSlopePulleyDoppler-check-1','comboSlopePulleyDoppler-check-2','comboSlopePulleyDoppler-check-3','comboSlopePulleyDoppler-check-4','comboSlopePulleyDoppler-check-5'];
+const doneMsg = document.getElementById('done-msg');
+function allChecked() { return checkIds.every(id => document.getElementById(id).checked); }
+function refresh() {
+  if (allChecked()) {
+    doneMsg.textContent = '完了！';
+    loadProgress().then(p => { p[doneKey] = true; return saveProgress(p); }).catch(() => {});
+  } else {
+    doneMsg.textContent = '';
+  }
+}
+checkIds.forEach(id => document.getElementById(id).addEventListener('change', refresh));
+renderAllFigures();
+loadProgress().then(p => { if (p[doneKey]) { doneMsg.textContent = '完了済み ✓'; } }).catch(() => {});
+</script>
+</body>
+</html>
