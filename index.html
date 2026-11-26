@@ -700,7 +700,18 @@
   <p><a href="content/mechanics/slope-spring-fric-last-centre-res-pipe.html">斜面上のばね振り子＋摩擦＋ドップラー＋開管の共鳴のドリルを開く →</a></p>
   <p id="progress-combo-slope-spring-fric-last-centre-res-pipe">進捗：読み込み中…</p>
 </div>
-
+<div class="card">
+  <h2>組み合わせ問題CO：斜方投射＋空気抵抗＋壁＋摩擦＋ばね＋ドップラー＋開管の共鳴（ばねに当たる瞬間に共鳴）</h2>
+  <p>音源の振動数 f0 = 490 Hz、管は L = 0.342 m（f1 = 497 Hz）。共鳴するのはばねに当たる瞬間の音 497 Hz で、管の f1 と一致する。はね返りの音 505 Hz や着地の音 500 Hz、音源そのものの 490 Hz は合わない。BX でははね返り、CI では着地が共鳴した。橋渡し量は「速さ」（横向きの成分）。</p>
+  <p><a href="content/mechanics/proj-drag-wall-spring-res-pipe.html">斜方投射＋空気抵抗＋壁＋摩擦＋ばね＋ドップラー＋開管の共鳴のドリルを開く →</a></p>
+  <p id="progress-combo-proj-drag-wall-spring-res-pipe">進捗：読み込み中…</p>
+</div>
+<div class="card">
+  <h2>組み合わせ問題CP：気体＋カルノーサイクル＋ドップラー＋開管の共鳴（D で f1 と共鳴）</h2>
+  <p>カルノーサイクル（高温 600 K・低温 300 K）の気体に、音源 f0 = 1031 Hz と管 L = 0.50 m（300 K で f1 = 1019 Hz）を組み合わせた問題。共鳴するのは最も冷たい D の音 1019 Hz で、管の f1 と一致する。A の音 1056 Hz・B の音 1051 Hz・C の音 990 Hz や音源そのものの 1031 Hz は合わない。BV では A、BZ では B の f1、CF では C、CL では B の f2 が共鳴した。橋渡し量は「温度」と「速さ」。</p>
+  <p><a href="content/mechanics/gas-d-f1-res-pipe.html">気体＋カルノーサイクル＋ドップラー＋開管の共鳴のドリルを開く →</a></p>
+  <p id="progress-combo-gas-d-f1-res-pipe">進捗：読み込み中…</p>
+</div>
 
 <div class="card">
   <h2>第7問：気体＋ピストン</h2>
@@ -1105,6 +1116,10 @@
       p.comboPendulumFirstCollideDopplerResPipeDone ? '進捗：組み合わせ問題CM・振り子＋弾性衝突＋ばね＋摩擦＋ドップラー＋開管の共鳴を完了済み ✓' : '進捗：まだ組み合わせ問題CM・振り子＋弾性衝突＋ばね＋摩擦＋ドップラー＋開管の共鳴は未完了';
     document.getElementById('progress-combo-slope-spring-fric-last-centre-res-pipe').textContent =
       p.comboSlopeSpringFricLastCentreResPipeDone ? '進捗：組み合わせ問題CN・斜面上のばね振り子＋摩擦＋ドップラー＋開管の共鳴を完了済み ✓' : '進捗：まだ組み合わせ問題CN・斜面上のばね振り子＋摩擦＋ドップラー＋開管の共鳴は未完了';
+    document.getElementById('progress-combo-proj-drag-wall-spring-res-pipe').textContent =
+      p.comboProjDragWallSpringResPipeDone ? '進捗：組み合わせ問題CO・斜方投射＋空気抵抗＋壁＋摩擦＋ばね＋ドップラー＋開管の共鳴を完了済み ✓' : '進捗：まだ組み合わせ問題CO・斜方投射＋空気抵抗＋壁＋摩擦＋ばね＋ドップラー＋開管の共鳴は未完了';
+    document.getElementById('progress-combo-gas-d-f1-res-pipe').textContent =
+      p.comboGasDF1ResPipeDone ? '進捗：組み合わせ問題CP・気体＋カルノーサイクル＋ドップラー＋開管の共鳴を完了済み ✓' : '進捗：まだ組み合わせ問題CP・気体＋カルノーサイクル＋ドップラー＋開管の共鳴は未完了';
     document.getElementById('progress-gas-piston').textContent =
       p.gasPistonDone ? '進捗：第7問・気体＋ピストンを完了済み ✓' : '進捗：まだ第7問・気体＋ピストンは未完了';
     document.getElementById('progress-young').textContent =
@@ -1256,6 +1271,8 @@
     document.getElementById('progress-combo-gas-b-f2-res-pipe').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-pendulum-first-collide-doppler-res-pipe').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-slope-spring-fric-last-centre-res-pipe').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-proj-drag-wall-spring-res-pipe').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-gas-d-f1-res-pipe').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-gas-piston').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-young').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-capacitor').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
