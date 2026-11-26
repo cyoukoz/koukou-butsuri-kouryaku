@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせCX：鉛直ばね振り子＋ドップラー＋開管の共鳴（上向きに通るとき共鳴）</title>
+<style>
+body { font-family: sans-serif; max-width: 720px; margin: 0 auto; padding: 16px; line-height: 1.7; }
+h1 { font-size: 1.4em; }
+h2 { font-size: 1.15em; margin-top: 2em; }
+.step { border-top: 1px solid #ccc; padding-top: 8px; margin-top: 32px; }
+.step-check { display: block; margin: 12px 0; }
+.done-box { border: 2px solid #333; padding: 12px; margin-top: 32px; }
+.next { margin-top: 16px; }
+.top-link { margin-top: 32px; }
+.fig { display: block; margin: 12px 0; max-width: 100%; height: auto; }
+.fig text { font-size: 14px; fill: #333; }
+</style>
+</head>
+<body>
+<h1>組み合わせCX：鉛直ばね振り子＋ドップラー＋開管の共鳴（上向きに通るとき共鳴）</h1>
+<p>質量 m = 1.0 kg のおもりを、ばね定数 k = 100 N/m のばねで天井からつるします。重力加速度は g = 10 m/s² とします。ばねの自然長から 0.30 m 下の点でおもりを静かにはなすと、おもりは上下に振動します。おもりには振動数 f0 = 402.5 Hz の音源がついていて、観測者はおもりのはるか下にいます。音速は V = 340 m/s です。長さ L = 0.425 m の開管がそばに置いてあります。</p>
+<p>この問題では、（1）鉛直ばね振り子のつりあいと振動を求め、（2）鉛直方向の速さを調べ、（3）ドップラー効果で聞こえる音の高さと開管の共鳴を調べ、（4）まちがいやすい点と、条件を変えたらどうなるかを考えます。</p>
+<p>土台になっている問題：<a href="spring.html">第5問・ばねのつり合い</a>、<a href="shm.html">第11問・単振動・振り子</a>、<a href="doppler-resonance.html">BE・ドップラー＋開管の共鳴</a>、<a href="doppler.html">第18問・ドップラー効果</a>、<a href="standing-wave.html">第14問・定常波</a></p>
+
+<h2>解き方の地図</h2>
+<ul>
+<li>① 鉛直ばね振り子：つりあい 0.10 m 下、振幅 0.20 m、周期 0.63 s、速さの最大 2.0 m/s</li>
+<li>② 鉛直方向の速さ：上向きに通るとき −2.0 m/s、下向きは +2.0 m/s、折り返し点では 0</li>
+<li>③ ドップラーと共鳴：上向きに通る音 400 Hz が管の f1 と有効数字3けたで一致して共鳴する</li>
+<li>④ 罠：音源の 402.5 Hz・下向きの 405 Hz・折り返し点の 402.5 Hz は共鳴しない</li>
+<li>⑤ 変えたら：L・f0・閉管・振幅・k で共鳴は変わるか</li>
+</ul>
+<svg class="fig" data-scene="scene-vertSpringRecedeDopplerResPipe-base" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="鉛直ばね振り子に音源と管を足す。橋渡し量は速度（鉛直方向）。"></svg>
+<script type="application/json" id="scene-vertSpringRecedeDopplerResPipe-base">{"type":"vertSpringRecedeDopplerResPipe","phase":"base","mKg":1,"kNperM":100,"ampM":0.20,"releaseM":0.30,"g":10,"f0Hz":402.5,"vSoundMs":340,"pipeLM":0.425}</script>
+
+<div class="step" id="step1">
+<h2>① 鉛直ばね振り子：つりあいと振動</h2>
+<p>おもりにはたらく力は、重力 mg = 1.0 × 10 = 10 N（下向き）とばねの力です。おもりが静止するつりあいの位置では、ばねの力と重力がつり合います。ばねの伸びを δ とすると、kδ = mg なので、δ = 1.0 × 10/100 = 0.10 m です。つりあいの位置は、ばねの自然長から 0.10 m 下です。</p>
+<p>おもりをはなす点は自然長から 0.30 m 下なので、つりあいの位置からは 0.30 − 0.10 = 0.20 m 下です。おもりはつりあいの位置を中心に、振幅 A = 0.20 m の単振動をします。上端はつりあいの位置から 0.20 m 上、つまり自然長から 0.10 m 上です。</p>
+<p>角振動数は ω = √(k/m) = √(100/1.0) = 10 rad/s、周期は T = 2π/ω = 2π/10 = 0.63 s です。T = 2π√(m/k) = 2π√(1.0/100) = 2π × 0.10 = 0.63 s とも求められます。速さの最大は v_max = Aω = 0.20 × 10 = 2.0 m/s で、つりあいの位置を通るときです。加速度の最大は a_max = ω²A = 10² × 0.20 = 20 m/s² です。</p>
+<p>はなす点では、ばねの力は k × 0.30 = 30 N（上向き）、重力は 10 N（下向き）で、合力は 20 N 上向きです。加速度は 20 m/s² で、ω²A = 20 m/s² と一致します。上端では、ばねは 0.10 m ちぢんでおもりを 10 N 下向きに押し、重力 10 N と合わせて 20 N 下向きになります。</p>
+<svg class="fig" data-scene="scene-vertSpringRecedeDopplerResPipe-spring" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="鉛直ばね振り子。つりあいは自然長から 0.10 m 下、はなす点は自然長から 0.30 m 下、振幅 0.20 m。はなす点のばねの力は 30 N。"></svg>
+<script type="application/json" id="scene-vertSpringRecedeDopplerResPipe-spring">{"type":"vertSpringRecedeDopplerResPipe","phase":"spring","mKg":1,"kNperM":100,"ampM":0.20,"releaseM":0.30,"g":10,"f0Hz":402.5,"vSoundMs":340,"pipeLM":0.425}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ① つりあい 0.10 m 下、振幅 0.20 m、周期 0.63 s、速さの最大 2.0 m/s を確かめた</label>
+ <p class="next"><a href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<h2>② 鉛直方向の速さ</h2>
+<p>観測者はおもりのはるか下にいるので、音の高さを決めるのは、おもりの速さそのものではなく、下向きの速さです（下向きを + とします）。おもりがつりあいの位置を上向きに通るとき、速さは −2.0 m/s（遠ざかる最大）になります。</p>
+<p>おもりがつりあいの位置を下向きに通るとき、速さは +2.0 m/s（近づく最大）になります。折り返し点（上端と下端）では、速さは 0 になります。</p>
+<p>時刻 t での下向きの速さは、v = −2.0·sin(10t) m/s と書けます（t = 0 ではなす点）。t = 0.16 s（つりあいを上向きに通る）で −2.0 m/s、t = 0.31 s（上端）で 0、t = 0.47 s（つりあいを下向きに通る）で +2.0 m/s、t = 0.63 s（下端）で 0 にもどります。上向きに通る最大は 1周期に 1回だけおとずれます。</p>
+<svg class="fig" data-scene="scene-vertSpringRecedeDopplerResPipe-motion" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="3つの瞬間。上端では速さ 0 で 402.5 Hz、つりあいを上向きに通るとき速さ −2.0 m/s で 400 Hz、下端では速さ 0 で 402.5 Hz。"></svg>
+<script type="application/json" id="scene-vertSpringRecedeDopplerResPipe-motion">{"type":"vertSpringRecedeDopplerResPipe","phase":"motion","mKg":1,"kNperM":100,"ampM":0.20,"releaseM":0.30,"g":10,"f0Hz":402.5,"vSoundMs":340,"pipeLM":0.425}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ② 下向きの速さが −2.0 → 0 → +2.0 → 0 m/s と変わることを確かめた</label>
+ <p class="next"><a href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<h2>③ ドップラーと共鳴</h2>
+<p>音源が速さ v_r で観測者に近づくとき、聞こえる音は f′ = f0 × V/(V − v_r) です。上向きに通るとき v_r = −2.0 m/s なので、f′ = 402.5 × 340/(340 + 2.0) = 400.15 Hz → 400 Hz です。下向きに通るとき v_r = +2.0 m/s なので、f′ = 402.5 × 340/(340 − 2.0) = 404.88 Hz → 405 Hz です。折り返し点では v_r = 0 なので、音は 402.5 Hz のままです。</p>
+<p>1周期のあいだの音の高さは、t = 0 s（下端）で 402.5 Hz、t = 0.16 s（つりあいを上向きに通る）で 400.15 Hz、t = 0.31 s（上端）で 402.5 Hz、t = 0.47 s（つりあいを下向きに通る）で 404.88 Hz、t = 0.63 s（下端）で 402.5 Hz と変わります。1周期に 1回だけ、音は 400 Hz になります。</p>
+<p>一方、開管の振動数は f1 = 340/(2 × 0.425) = 400 Hz、f2 = 800 Hz、f3 = 1200 Hz です。</p>
+<p>上向きに通る音 400.15 Hz は、管の f1 = 400.00 Hz と有効数字3けたで 400 Hz に一致します。厳密な値は 0.15 Hz だけちがうので「ちょうど一致」とは言えませんが、3けたの有効数字では同じ 400 Hz です。だからおもりがつりあいの位置を上向きに通る瞬間、1周期に 1回だけ管が共鳴して大きく鳴ります。</p>
+<p>動かない 402.5 Hz の音源と比べると、下向きに通る音とのうなりは 404.88 − 402.5 = 2.4 Hz、上向きに通る音とのうなりは 402.5 − 400.15 = 2.4 Hz で、最大は 2.4 Hz です（厳密には 2.38 Hz）。</p>
+<svg class="fig" data-scene="scene-vertSpringRecedeDopplerResPipe-doppler" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="音の高さ f'(t)：1周期のあいだに 400 Hz から 405 Hz まで変わり、上向きに通るときだけ管の f1=400 Hz に一致する。"></svg>
+<script type="application/json" id="scene-vertSpringRecedeDopplerResPipe-doppler">{"type":"vertSpringRecedeDopplerResPipe","phase":"doppler","mKg":1,"kNperM":100,"ampM":0.20,"releaseM":0.30,"g":10,"f0Hz":402.5,"vSoundMs":340,"pipeLM":0.425}</script>
+<svg class="fig" data-scene="scene-vertSpringRecedeDopplerResPipe-resonate" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="開管 L=0.425 m の f1=400 Hz の定常波。上向きに通る音 400 Hz が f1 と有効数字3けたで一致して共鳴する。"></svg>
+<script type="application/json" id="scene-vertSpringRecedeDopplerResPipe-resonate">{"type":"vertSpringRecedeDopplerResPipe","phase":"resonate","mKg":1,"kNperM":100,"ampM":0.20,"releaseM":0.30,"g":10,"f0Hz":402.5,"vSoundMs":340,"pipeLM":0.425}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ③ 上向きに通る音 400 Hz だけが管の f1 と有効数字3けたで一致して共鳴することを確かめた</label>
+ <p class="next"><a href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<h2>④ 罠</h2>
+<p>罠1：「音源そのものの 402.5 Hz が共鳴する」——まちがい。402.5 Hz は管の f1 = 400 Hz と 2.5 Hz はなれているので共鳴しません。音源の音が共鳴するわけではありません。</p>
+<p>罠2：「下向きに通る最大の 405 Hz が共鳴する」——まちがい。404.88 Hz は f1 = 400 Hz と 5 Hz はなれているので共鳴しません。速さの大きさは上向きに通る最大と同じ 2.0 m/s なのに、音はちがいます。</p>
+<p>罠3：「おもりが止まる折り返し点で共鳴する」——まちがい。折り返し点ではおもりは止まりますが、音は音源そのものの 402.5 Hz になるだけで、f1 = 400 Hz とは一致しないので共鳴しません。止まっているだけでは共鳴しません。</p>
+<p>罠4：重力を無視して、振幅を自然長からの 0.30 m とすると、速さの最大は v_max = 0.30 × 10 = 3.0 m/s になって、上向きに通る音は 402.5 × 340/(340 + 3.0) = 399 Hz、下向きに通る音は 402.5 × 340/(340 − 3.0) = 406 Hz になって、共鳴しないとまちがえます。振動の中心は自然長ではなく、つりあいの位置（自然長から 0.10 m 下）で、振幅は 0.20 m です。</p>
+<p>罠5：符号をまちがえて f′ = f0 × V/(V + v) を使うと、上向きに通る音が 402.5 × 340/(340 − 2.0) = 404.88 Hz、下向きに通る音が 402.5 × 340/(340 + 2.0) = 400.15 Hz になって、共鳴するのは下向きに通るときだとまちがえます。400 Hz という値は出ますが、ちがう瞬間の音です。上向き（遠ざかるとき）は分母が V + v、下向き（近づくとき）は V − v です。</p>
+<svg class="fig" data-scene="scene-vertSpringRecedeDopplerResPipe-trap" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="罠：音源の 402.5 Hz、下向きの 405 Hz、折り返し点の 402.5 Hz、重力無視の 399 Hz はどれも共鳴しない。共鳴するのは上向きに通る 400 Hz だけ。"></svg>
+<script type="application/json" id="scene-vertSpringRecedeDopplerResPipe-trap">{"type":"vertSpringRecedeDopplerResPipe","phase":"trap","mKg":1,"kNperM":100,"ampM":0.20,"releaseM":0.30,"g":10,"f0Hz":402.5,"vSoundMs":340,"pipeLM":0.425}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ④ 音源の音・下向きの音・折り返し点の音・重力無視の音は共鳴しないことを確かめた</label>
+ <p class="next"><a href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<h2>⑤ 変えたら</h2>
+<p>L = 0.85 m にすると、f1 = 340/(2 × 0.85) = 200 Hz、f2 = 400 Hz、f3 = 600 Hz、f4 = 800 Hz になります。上向きに通る音 400 Hz は f2 と一致するので、やはり共鳴します。L = 0.17 m にすると f1 = 1000 Hz、f2 = 2000 Hz、f3 = 3000 Hz になり、上向きに通る音とは一致しないので共鳴しません。</p>
+<p>f0 = 440 Hz にすると、下向きに通る音は 440 × 340/(340 − 2.0) = 443 Hz、上向きに通る音は 440 × 340/(340 + 2.0) = 437 Hz になり、管の振動数とは一致しないので共鳴しません。管を閉管（片端が閉じた管）にすると、振動数は 200 Hz、600 Hz、1000 Hz になり、上向きに通る音 400 Hz とは一致しないので共鳴しません。</p>
+<p>振幅を A = 0.30 m にすると（つりあいから 0.30 m 下ではなす）、速さの最大は v_max = 0.30 × 10 = 3.0 m/s になり、上向きに通る音は 402.5 × 340/(340 + 3.0) = 399 Hz になって、管の f1 = 400 Hz とは一致しないので共鳴しません。399 Hz は f1 と 1 Hz しかちがわないのに、一致しないので共鳴しません。</p>
+<p>k = 200 N/m にすると、つりあいの位置は自然長から mg/k = 0.05 m 下になり、振幅 0.20 m のままなら角振動数は ω = √(200/1.0) = 14.1 rad/s、速さの最大は v_max = 0.20 × 14.1 = 2.8 m/s になります。上向きに通る音は 402.5 × 340/(340 + 2.8) = 399 Hz になって、管の f1 = 400 Hz とは一致しないので共鳴しません。周期は T = 2π/√200 = 0.44 s になります。</p>
+<svg class="fig" data-scene="scene-vertSpringRecedeDopplerResPipe-vary" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="変えたら：L=0.85 m なら f2=400 Hz で共鳴。f0=440 Hz なら 437 Hz、A=0.30 m なら 399 Hz、k=200 N/m なら 399 Hz で共鳴しない。"></svg>
+<script type="application/json" id="scene-vertSpringRecedeDopplerResPipe-vary">{"type":"vertSpringRecedeDopplerResPipe","phase":"vary","mKg":1,"kNperM":100,"ampM":0.20,"releaseM":0.30,"g":10,"f0Hz":402.5,"vSoundMs":340,"pipeLM":0.425}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ⑤ L=0.85 m なら共鳴し、f0=440 Hz・閉管・A=0.30 m・k=200 N/m なら共鳴しないことを確かめた</label>
+</div>
+
+<div class="done-box" id="doneBox">
+<button id="doneBtn">完了にする</button> <span id="doneMsg"></span>
+<p>鉛直ばね振り子（つりあい 0.10 m 下、振幅 0.20 m、周期 0.63 s、速さの最大 2.0 m/s）に、ドップラー効果と開管の共鳴を組み合わせました。下向きの速さは −2.0 → 0 → +2.0 → 0 m/s と変わります。上向きに通る音は 400.15 Hz で、管の f1 = 400.00 Hz と有効数字3けたで 400 Hz に一致して、1周期に 1回だけ共鳴します。音源の 402.5 Hz、下向きに通る 405 Hz、折り返し点の 402.5 Hz は共鳴しません。橋渡しになった量は「速度（鉛直方向）」でした。</p>
+</div>
+
+<p class="top-link"><a href="#">↑ TOP</a></p>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+renderAllFigures();
+(function () {
+  var KEY = 'comboVertSpringRecedeDopplerResPipeDone';
+  var btn = document.getElementById('doneBtn');
+  var msg = document.getElementById('doneMsg');
+  var boxes = Array.prototype.slice.call(document.querySelectorAll('.step-done'));
+  function allChecked() { return boxes.length > 0 && boxes.every(function (b) { return b.checked; }); }
+  function refresh() {
+    loadProgress().then(function (p) {
+      if (p[KEY]) { msg.textContent = '完了済み ✓'; btn.disabled = true; }
+    });
+  }
+  btn.addEventListener('click', function () {
+    if (!allChecked()) { msg.textContent = 'まず 5 つのチェックを全部入れてください。'; return; }
+    loadProgress().then(function (p) {
+      p[KEY] = true;
+      return saveProgress(p);
+    }).then(function () { msg.textContent = '完了！'; btn.disabled = true; });
+  });
+  refresh();
+})();
+</script>
+</body>
+</html>
