@@ -17545,7 +17545,7 @@ function drawBase(svg, scene) {
       note(274, '上向き 400・401 Hz、下向き 404・403 Hz');
       note(292, '1 回目の上向きだけ 400 Hz で共鳴');
     } else if (phase === 'doppler') {
-      // f'(t)：t 0→1.57 s（止まるまで）、f' 400→405 Hz。400 Hz（管の f1）の破線。
+      // f'(t)：t 0→1.57 s（止まるまで）、f' 400→404 Hz。400 Hz（管の f1）の破線。
       const x0 = 60, x1 = 340, y0 = 240;
       const yOf = (f) => y0 - (f - 393) * 14;
       const xOf = (t) => x0 + (t / d.tStopS) * (x1 - x0);
@@ -17566,7 +17566,7 @@ function drawBase(svg, scene) {
         pts += `${xOf(t)},${yOf(d.fPrimeAt(t))} `;
       }
       svg.appendChild(el('polyline', { points: pts.trim(), stroke: '#333', 'stroke-width': 2, fill: 'none' }));
-      const tMax = el('text', { x: 200, y: 64, fill: '#c00' }); tMax.textContent = '最大 405 Hz'; svg.appendChild(tMax);
+      const tMax = el('text', { x: 200, y: 64, fill: '#c00' }); tMax.textContent = '最大 404 Hz'; svg.appendChild(tMax);
       const tMin = el('text', { x: 160, y: 231 }); tMin.textContent = '最小 400 Hz'; svg.appendChild(tMin);
     } else if (phase === 'resonate') {
       // 開管の第1倍音の定常波：両端が腹、中央が節。
