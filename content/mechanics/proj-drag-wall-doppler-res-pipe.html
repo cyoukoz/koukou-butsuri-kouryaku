@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせBX：斜方投射＋空気抵抗＋壁＋摩擦＋ばね＋ドップラー＋開管の共鳴｜高校物理攻略</title>
+<style>
+  body { font-family: system-ui, sans-serif; line-height: 1.8; max-width: 760px; margin: 0 auto; padding: 16px; color: #222; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 18px; margin-top: 40px; }
+  .step h2 { font-size: 18px; }
+  .step { border-top: 2px solid #888; padding-top: 8px; margin-top: 48px; }
+  .fig { width: 100%; max-width: 400px; height: auto; display: block; margin: 16px auto; border: 1px solid #ccc; }
+  .nav { margin: 16px 0; font-size: 14px; }
+  .nav a { color: #06c; }
+  .done-box { border: 2px solid #2a7; background: #efe; padding: 16px; margin-top: 48px; }
+  .done-box.done { background: #cfc; }
+  .top-link { position: fixed; right: 16px; bottom: 16px; background: #fff; border: 1px solid #888; padding: 8px 12px; border-radius: 4px; }
+  .top-link a { color: #06c; text-decoration: none; }
+  label.step-check { display: block; margin-top: 16px; font-weight: bold; }
+  .next-link { margin-top: 24px; }
+  .slice-map { background: #f5f5f5; padding: 12px 16px; border-radius: 6px; }
+  .slice-map li { margin: 4px 0; }
+</style>
+</head>
+<body>
+<div class="nav"><a href="../../index.html">← トップへ</a> ｜ <a href="fall-loop-cap-doppler-res-pipe.html">← 前の問題：BW 落下するコイル＋コンデンサー＋ばね＋摩擦＋ドップラー＋開管の共鳴</a></div>
+<h1>組み合わせBX：斜方投射＋空気抵抗＋壁＋摩擦＋ばね＋ドップラー＋開管の共鳴</h1>
+<p>問題：質量 m = 0.50 kg の玉を、速さ v0 = 20 m/s、仰角 45° で打ち出す。空気抵抗は速さの 2 乗に比例し、F = kv²（k = 0.010 kg/m）とする。5.0 m 先に壁があり、玉は壁ではね返る（反発係数 e = 0.80）。着地したあと、玉は動摩擦係数 μ = 0.20 の床をすべり、x = −16 m にあるばね（k = 50 N/m）に当たる。重力加速度は g = 10 m/s² とする。</p>
+<p>玉には振動数 f0 = 500 Hz の音源がのっている。観測者は、玉の軌道から十分に遠い地面の左にいて、玉の音を聞く。玉と観測者の距離は、玉の動く範囲よりずっと大きいので、音の高さを決めるのは玉の横向きの速さだけだとみなせる。縦向きの速さは、観測者への近づき方には関係しない。地面のそばには、長さ L = 0.33 m の開管（両端が開いた管）が置かれている。音速は V = 340 m/s とする。</p>
+<p>この問題は、単体モデルの組み合わせです。BG「斜方投射＋空気抵抗＋壁＋摩擦＋ばね」と BE「ドップラー＋開管の共鳴」を組み合わせた問題です。橋渡しになる量は「速さ」（横向きの成分）です。</p>
+<p>単体モデルのページ：<a href="proj-drag-wall-spring.html">BG 斜方投射＋空気抵抗＋壁＋摩擦＋ばね</a> ｜ <a href="doppler-resonance.html">BE ドップラー＋開管の共鳴</a> ｜ <a href="proj-drag-wall.html">BC 斜方投射＋空気抵抗＋壁＋エネルギー</a> ｜ <a href="doppler.html">Q18 ドップラー効果</a> ｜ <a href="standing-wave.html">Q14 定常波</a></p>
+<ol class="slice-map">
+<li>① 壁に当たるまで：0.38 s、高さ 4.3 m、速さ 15 m/s</li>
+<li>② はね返って着地：x=−12 m、速さ 13 m/s、ばねは 0.49 m</li>
+<li>③ ドップラーと共鳴：はね返りの音 515 Hz が管の f1 と一致する</li>
+<li>④ 罠：音源の 500 Hz は共鳴しない</li>
+<li>⑤ 変えたら：L・f0・閉管・e で共鳴は変わるか</li>
+</ol>
+
+<svg class="fig" data-scene="scene-projDragWallDopplerResPipe-base" data-show="" role="img" aria-label="玉の軌道。打ち出して壁ではね返り、x=−12 m に着地してすべり、ばねに当たって x=−10 m で止まる"></svg>
+<script type="application/json" id="scene-projDragWallDopplerResPipe-base">{"type":"projDragWallDopplerResPipe","phase":"base","mKg":0.5,"v0Ms":20,"angDeg":45,"kKgPerM":0.01,"wallXM":5.0,"eRest":0.8,"muKin":0.2,"springK":50,"springXM":-16,"g":10,"f0Hz":500,"vSoundMs":340,"pipeLM":0.33}</script>
+
+<div class="step" id="step1">
+<h2>① 壁に当たるまで：0.38 s、高さ 4.3 m、速さ 15 m/s</h2>
+<p>初速度の成分は、v0x = v0y = 20 × cos45° = 14 m/s だ。空気抵抗がなければ壁まで 5.0/14 = 0.35 s だが、抵抗で速さが落ちるので、壁に着くのは 0.38 s、高さは 4.3 m になる（数値計算）。このとき vx = 12 m/s、vy = 8.8 m/s で、速さは √(12² + 8.8²) = 15 m/s だ。運動エネルギーは ½ × 0.50 × 15² = 58 J になる。はじめの 100 J のうち、運動エネルギーは 58 J、位置エネルギーは 22 J になっている。残りは空気抵抗の仕事で、くわしくはステップ②の終わりで追う。</p>
+<p>玉は観測者から遠ざかりながら飛ぶので、音は低く聞こえる。遠ざかるとき、聞こえる音は f′ = f0 × V/(V + v) だ。打ち出しのとき、横向きの速さは 14.1 m/s（有効数字 3 けた）なので、音は f′ = 500 × 340/(340 + 14.1) ≈ 480 Hz になる。壁の直前は、横向きの速さが 12.4 m/s なので、音は f′ = 500 × 340/(340 + 12.4) ≈ 482 Hz になる。縦向きの速さ 8.8 m/s は、観測者への遠ざかり方には関係しない。</p>
+<svg class="fig" data-scene="scene-projDragWallDopplerResPipe-wall" data-show="vx,vy,v" role="img" aria-label="壁に当たる瞬間の速度の分解。横 12 m/s、縦 8.8 m/s、速さ 15 m/s"></svg>
+<script type="application/json" id="scene-projDragWallDopplerResPipe-wall">{"type":"projDragWallDopplerResPipe","phase":"wall","mKg":0.5,"v0Ms":20,"angDeg":45,"kKgPerM":0.01,"wallXM":5.0,"eRest":0.8,"muKin":0.2,"springK":50,"springXM":-16,"g":10,"f0Hz":500,"vSoundMs":340,"pipeLM":0.33}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ①が分かった：壁まで 0.38 s、高さ 4.3 m、速さ 15 m/s、打ち出しの音 480 Hz、壁の直前 482 Hz</label>
+<p class="next-link"><a href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<h2>② はね返って着地：x=−12 m、速さ 13 m/s、ばねは 0.49 m</h2>
+<p>壁ではね返ると、横向きの速さは vx′ = −0.80 × 12 = −9.9 m/s になる（鉛直成分は 8.8 m/s のまま）。はね返ったあとの速さは √(9.9² + 8.8²) = 13 m/s、運動エネルギーは 44 J になる。壁での損失は 58 − 44 = 14 J だ。</p>
+<p>玉はまだ上がっている（vy = 8.8 m/s）。打ち出してから 1.2 s 後に最高点（高さ 7.7 m、x = −2.3 m）に達し、そこから落ちて、打ち出してから 2.5 s 後に着地する。はね返ってから 2.1 s で 17 m もどり、着地点は x = −12 m（出発点より 12 m うしろ！）になる。着地のとき vx = −6.5 m/s、vy = −11 m/s、速さは 13 m/s、運動エネルギーは 42.5 J（横 10.5 J + 縦 32.0 J）になる。着地の向きは水平から下向きに 60° だ。</p>
+<p>はね返ったあと、玉は観測者に近づく向きに飛ぶ。近づくとき、聞こえる音は f′ = f0 × V/(V − v) だ。はね返った直後、横向きの速さは 9.91 m/s（有効数字 3 けた）なので、音は f′ = 500 × 340/(340 − 9.91) ≈ 515 Hz になる。着地のときは、横向きの速さが 6.47 m/s なので、音は f′ = 500 × 340/(340 − 6.47) ≈ 510 Hz になる。着地の縦向きの速さ 11 m/s は、音の高さには関係しない。</p>
+<svg class="fig" data-scene="scene-projDragWallDopplerResPipe-land" data-show="vx,vy,v" role="img" aria-label="着地の速度の分解。横 6.5 m/s、縦 11 m/s、速さ 13 m/s"></svg>
+<script type="application/json" id="scene-projDragWallDopplerResPipe-land">{"type":"projDragWallDopplerResPipe","phase":"land","mKg":0.5,"v0Ms":20,"angDeg":45,"kKgPerM":0.01,"wallXM":5.0,"eRest":0.8,"muKin":0.2,"springK":50,"springXM":-16,"g":10,"f0Hz":500,"vSoundMs":340,"pipeLM":0.33}</script>
+<p>着地のあと、玉は横の速さ 6.5 m/s で床をすべる。摩擦は μmg = 1.0 N、減速は 2.0 m/s² だ。ばね（x = −16 m）まで 4.0 m すべるのに 0.69 s かかり、ばねに当たるときの速さは 5.1 m/s、運動エネルギーは 6.5 J になる。縦の 32.0 J は着地で失われた（地面にめり込まないから、縦の運動エネルギーは残らない）。ばねに当たるとき、横向きの速さは 5.10 m/s（有効数字 3 けた）なので、音は f′ = 500 × 340/(340 − 5.10) ≈ 508 Hz になる。</p>
+<p>ばねにぶつかったあとの動きは、ばねの力と摩擦のつり合い位置のまわりでの単振動だ。角振動数は ω = √(k/m) = √(50/0.50) = 10 rad/s になる。縮むとき、摩擦は玉の動きと逆向き（右向き）にはたらくので、つり合い位置は x1 = −0.020 m にずれる。振幅は A1 = √(0.020² + (5.1/10)²) = 0.51 m、最大の縮みは x_max = 0.51 − 0.020 = 0.49 m、ばねの最大の力は 50 × 0.49 = 25 N だ。縮むまでにかかる時間は 0.15 s になる。</p>
+<p>押し返されるとき、摩擦の向きが変わるので、つり合い位置は +0.020 m にずれる（AV・BA・BF と同じ 2 段の計算）。押し返しの速さは 4.7 m/s になる。押し返された玉は観測者から遠ざかるので、音は f′ = 500 × 340/(340 + 4.70) ≈ 493 Hz になる。往復の摩擦熱は 2 × 1.0 × 0.49 = 0.98 J で、6.5 − 0.98 = 5.5 J = ½ × 0.50 × 4.7² と合う。押し返された玉は 5.5 m すべって、2.4 s 後に x = −10 m で止まる。打ち出してから止まるまで 5.8 s かかる。止まれば音はもとの 500 Hz に戻る。</p>
+<p>はじめの 100 J の行き先をまとめると、壁の損失 13.8 J、空気抵抗の仕事 43.7 J、着地で失う縦の運動エネルギー 32.0 J、摩擦熱 10.5 J だ。13.8 + 43.7 + 32.0 + 10.5 = 100 J とぴったり合う。摩擦熱 10.5 J のうち、ばねまでが 4.0 J、ばねの往復が 0.98 J、戻りすべりが 5.5 J だ。</p>
+<svg class="fig" data-scene="scene-projDragWallDopplerResPipe-spring" data-show="springF" role="img" aria-label="ばねの最大の縮み。0.49 m 縮み、ばねの力 25 N"></svg>
+<script type="application/json" id="scene-projDragWallDopplerResPipe-spring">{"type":"projDragWallDopplerResPipe","phase":"spring","mKg":0.5,"v0Ms":20,"angDeg":45,"kKgPerM":0.01,"wallXM":5.0,"eRest":0.8,"muKin":0.2,"springK":50,"springXM":-16,"g":10,"f0Hz":500,"vSoundMs":340,"pipeLM":0.33}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ②が分かった：着地 x=−12 m、速さ 13 m/s、ばねに当たる速さ 5.1 m/s、最大の縮み 0.49 m、止まる位置 x=−10 m、はね返りの音 515 Hz</label>
+<p class="next-link"><a href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<h2>③ ドップラーと共鳴：はね返りの音 515 Hz が管の f1 と一致する</h2>
+<p>音の高さの時間変化をまとめると、打ち出し 480 Hz、壁の直前 482 Hz、はね返った直後 515 Hz、着地 510 Hz、ばねに当たるとき 508 Hz、最大の縮みで 500 Hz、押し返し 493 Hz、止まって 500 Hz になる。いちばん高いのは、はね返った直後の 515 Hz だ。横向きの速さが 0 になると、音はもとの 500 Hz に戻る。</p>
+<p>地面のそばには、長さ L = 0.33 m の開管がある。開管の振動数は f_n = n·V/(2L) で、f1 = 340/(2 × 0.33) = 515 Hz、f2 = 1030 Hz、f3 = 1545 Hz だ。はね返った直後の音は、厳密には 515.0 Hz、管の f1 は厳密には 515.2 Hz で、有効数字 3 けたではどちらも 515 Hz となり、一致する。だから、はね返った直後の瞬間だけ、管が共鳴する。打ち出しの 480 Hz、壁の直前の 482 Hz、着地の 510 Hz、ばねに当たるときの 508 Hz、押し返しの 493 Hz は、管の振動数と一致しないので共鳴しない。</p>
+<p>うなりも確かめられる。動かない 500 Hz の音源と比べると、はね返りの音とのうなりは 515 − 500 = 15 Hz で最大になる。</p>
+<svg class="fig" data-scene="scene-projDragWallDopplerResPipe-doppler" data-show="" role="img" aria-label="f'(t) グラフ：はじめ 480 Hz、壁で 482 Hz から 515 Hz に跳び、着地 510 Hz、押し返し 493 Hz、止まって 500 Hz"></svg>
+<script type="application/json" id="scene-projDragWallDopplerResPipe-doppler">{"type":"projDragWallDopplerResPipe","phase":"doppler","mKg":0.5,"v0Ms":20,"angDeg":45,"kKgPerM":0.01,"wallXM":5.0,"eRest":0.8,"muKin":0.2,"springK":50,"springXM":-16,"g":10,"f0Hz":500,"vSoundMs":340,"pipeLM":0.33}</script>
+<svg class="fig" data-scene="scene-projDragWallDopplerResPipe-resonate" data-show="" role="img" aria-label="開管の共鳴：両端が腹、中央が節、f1=515 Hz"></svg>
+<script type="application/json" id="scene-projDragWallDopplerResPipe-resonate">{"type":"projDragWallDopplerResPipe","phase":"resonate","mKg":0.5,"v0Ms":20,"angDeg":45,"kKgPerM":0.01,"wallXM":5.0,"eRest":0.8,"muKin":0.2,"springK":50,"springXM":-16,"g":10,"f0Hz":500,"vSoundMs":340,"pipeLM":0.33}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ③が分かった：はね返りの音 515 Hz が管の f1 と一致して共鳴する、ほかの瞬間は合わない、うなりは最大 15 Hz</label>
+<p class="next-link"><a href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<h2>④ 罠：音源の 500 Hz は共鳴しない</h2>
+<p>罠が 3 つある。1 つ目は、音源そのものの振動数 500 Hz は、管のどの振動数とも一致しないことだ。管の振動数は 515 Hz、1030 Hz、1545 Hz で、500 Hz はどれとも合わない。玉が止まっているときに聞こえる音は共鳴しない。</p>
+<p>2 つ目は、共鳴するのははね返った直後の一瞬だけだということだ。着地の音は 510 Hz で、管の f1 = 515 Hz とは一致しない。速さが変われば、音の高さも変わる。着地の速さ 13 m/s をそのままドップラーに入れて「500 × 340/(340 − 13) = 520 Hz」とするのもまちがいだ。観測者が左にいるのだから、音の高さを決めるのは横向きの速さ 6.5 m/s だけで、正しくは 510 Hz になる。</p>
+<p>3 つ目は、空気抵抗を無視すると、着地の音まで変わってしまうことだ。抵抗なしなら、着地の横向きの速さは 11 m/s になり、音は f′ = 500 × 340/(340 − 11) ≈ 517 Hz になる。管の f1 = 515 Hz とは一致しないので、やはり共鳴しない。抵抗が音の高さまで変えている。</p>
+<svg class="fig" data-scene="scene-projDragWallDopplerResPipe-trap" data-show="" role="img" aria-label="音の高さの比べ。はね返り 515 Hz、着地 510 Hz、音源 500 Hz、抵抗なし 517 Hz"></svg>
+<script type="application/json" id="scene-projDragWallDopplerResPipe-trap">{"type":"projDragWallDopplerResPipe","phase":"trap","mKg":0.5,"v0Ms":20,"angDeg":45,"kKgPerM":0.01,"wallXM":5.0,"eRest":0.8,"muKin":0.2,"springK":50,"springXM":-16,"g":10,"f0Hz":500,"vSoundMs":340,"pipeLM":0.33}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ④が分かった：音源の 500 Hz は共鳴しない、共鳴するのははね返った直後の一瞬だけ、抵抗なしなら 517 Hz</label>
+<p class="next-link"><a href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<h2>⑤ 変えたら：L・f0・閉管・e で共鳴は変わるか</h2>
+<p>管の長さを L = 0.66 m にすると、f1 = 258 Hz、f2 = 515 Hz になる。はね返りの音 515 Hz は f2 と一致するので、やはり共鳴する。管の長さを L = 0.165 m にすると、f1 = 1030 Hz になり、はね返りの音とは一致しないので共鳴しない。</p>
+<p>音源の振動数を f0 = 440 Hz にすると、はね返りの音は 453 Hz、着地の音は 449 Hz になり、管の振動数とは一致しないので共鳴しない。閉管（片端が閉じた管）にすると、振動数は 258 Hz、773 Hz、1288 Hz になり、はね返りの音 515 Hz とは一致しないので共鳴しない。</p>
+<p>反発係数を e = 1.0（弾性衝突）にすると、壁での損失は 0 になり、着地は x = −15.5 m、速さ 14 m/s、運動エネルギー 46 J になる。はね返りの音は 519 Hz、着地の音は 511 Hz、ばねに当たるときの音も 511 Hz、押し返しの音は 490 Hz になり、管の振動数とはどれも一致しないので共鳴しない。ばねまで 0.50 m すべって 7.5 m/s で当たり、最大の縮みは 0.73 m、ばねの力は 37 N、押し返しは 7.1 m/s、戻って 12.6 m すべり、x = −3.4 m で止まる。抵抗の仕事は 54 J だ。</p>
+<svg class="fig" data-scene="scene-projDragWallDopplerResPipe-vary" data-show="" role="img" aria-label="共鳴の比べ。はね返りの音 515 Hz、L=0.66 m の f2 515 Hz、f0=440 Hz の 453 Hz、閉管の f1 258 Hz"></svg>
+<script type="application/json" id="scene-projDragWallDopplerResPipe-vary">{"type":"projDragWallDopplerResPipe","phase":"vary","mKg":0.5,"v0Ms":20,"angDeg":45,"kKgPerM":0.01,"wallXM":5.0,"eRest":0.8,"muKin":0.2,"springK":50,"springXM":-16,"g":10,"f0Hz":500,"vSoundMs":340,"pipeLM":0.33}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ⑤が分かった：L=0.66 m なら f2 で共鳴、L=0.165 m・f0=440 Hz・閉管・e=1.0 なら共鳴しない</label>
+</div>
+
+<div class="done-box" id="doneBox">
+<p><strong>まとめ</strong></p>
+<p>斜方投射＋空気抵抗＋壁＋摩擦＋ばね（壁まで 0.38 s・4.3 m・15 m/s、着地 x=−12 m・13 m/s、ばねに当たるとき 5.1 m/s、最大の縮み 0.49 m・ばねの力 25 N、押し返し 4.7 m/s、止まるのは x=−10 m）に、ドップラー効果と開管の共鳴を組み合わせました。音は打ち出し 480 Hz、壁の直前 482 Hz、はね返った直後 515 Hz（厳密には 515.0 Hz）、着地 510 Hz、ばねに当たるとき 508 Hz、押し返し 493 Hz で、はね返った直後の一瞬だけが管の f1 = 515 Hz（厳密には 515.2 Hz）と一致して共鳴します。音源そのものの 500 Hz は共鳴しません。橋渡しになった量は「速さ」（横向きの成分）でした。</p>
+<p><button id="doneBtn">完了にする</button> <span id="doneMsg"></span></p>
+</div>
+
+<div class="top-link"><a href="#">↑ TOP</a></div>
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  const doneKey = 'comboProjDragWallDopplerResPipeDone';
+  const doneBtn = document.getElementById('doneBtn');
+  const doneMsg = document.getElementById('doneMsg');
+  const doneBox = document.getElementById('doneBox');
+  function refreshDone(msg) {
+    loadProgress().then((p) => {
+      if (p && p[doneKey]) { doneBox.classList.add('done'); doneMsg.textContent = '完了済み ✓'; }
+      else if (msg) { doneMsg.textContent = msg; }
+    });
+  }
+  doneBtn.addEventListener('click', () => {
+    loadProgress().then((p) => {
+      p = p || {};
+      p[doneKey] = true;
+      return saveProgress(p);
+    }).then(() => refreshDone('完了！'));
+  });
+  refreshDone();
+</script>
+</body>
+</html>
