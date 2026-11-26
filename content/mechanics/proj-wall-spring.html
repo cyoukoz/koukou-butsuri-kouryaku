@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題BA：斜方投射＋壁＋摩擦＋ばね — 高校物理攻略</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", sans-serif; margin: 0; background: #fff; color: #222; line-height: 1.8; }
+  main { max-width: 720px; margin: 0 auto; padding: 24px 18px 80px; }
+  h1 { font-size: 24px; line-height: 1.4; }
+  h2 { font-size: 20px; margin-top: 40px; }
+  .step { border-top: 1px solid #ddd; padding-top: 16px; margin-top: 32px; }
+  .step h2 { font-size: 18px; margin: 0 0 8px; }
+  .fig { width: 100%; max-width: 400px; height: auto; display: block; margin: 12px auto; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; font-size: 14px; }
+  th { background: #f2f2f2; }
+  .donebox { border: 2px solid #4a8; background: #f6fffa; padding: 14px; margin-top: 40px; }
+  .nav { margin-top: 32px; font-size: 14px; }
+  .toplink { position: fixed; right: 16px; bottom: 16px; background: #222; color: #fff; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 14px; }
+  label.check { display: block; margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+<p><a href="../../index.html">← トップへ</a> ｜ <a href="proj-wall-fric.html">← 組み合わせ問題AQ：斜方投射＋壁＋床の摩擦</a></p>
+<h1>組み合わせ問題BA：斜方投射＋壁＋摩擦＋ばね</h1>
+<p>質量 m = 0.50 kg の玉を、速さ v0 = 10 m/s、仰角 45° で打ち出す。5.0 m 先に壁があり、玉は壁ではね返る（反発係数 e = 0.80）。玉は地面に落ちたあと、動摩擦係数 μ = 0.20 の床をすべる。着地点から 4.0 m のところに、ばね定数 k = 50 N/m のばねがある（自然長の端は着地点から 4.0 m）。玉はばねにぶつかって縮め、押し返されて止まる。重力加速度は g = 10 m/s² とする。</p>
+<p>(1) 玉が壁に当たるまでの時間と高さを求めよ。(2) はね返ったあとの着地点と着地の速さを求めよ。(3) ばねの最大の縮みと、押し返された玉が止まる位置を求めよ。(4) 罠と変えたら。</p>
+
+<div class="step" id="step0">
+<p><b>はじめに：どう切り分けるか</b></p>
+<table>
+<tr><th>場面</th><th>考えること</th><th>使うモデル</th></tr>
+<tr><td>壁に当たるまで</td><td>斜方投射・最高点</td><td>斜方投射・エネルギー</td></tr>
+<tr><td>はね返って着地</td><td>反発係数・落下</td><td>衝突・等加速度運動</td></tr>
+<tr><td>床をすべってばね</td><td>摩擦・単振動</td><td>摩擦・ばね・エネルギー</td></tr>
+</table>
+<p>この問題の橋渡しの量は<b>エネルギー</b>だ。はじめの 25 J が、壁・着地・摩擦・ばねへどう分かれるかを追う。</p>
+<svg class="fig" data-scene="scene-projWallSpring-base" data-show="" role="img" aria-label="玉の軌道。打ち出して壁ではね返り、着地してすべり、ばねにぶつかる"></svg>
+<script type="application/json" id="scene-projWallSpring-base">{"angleDeg":45,"eRest":0.8,"g":10,"mKg":0.5,"muKin":0.2,"phase":"base","springK":50,"springXM":-3.0,"type":"projWallSpring","v0Ms":10,"wallXM":5.0}</script>
+<p><a href="#step1">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step1">
+<h2>① 壁に当たるまで：最高点に着く</h2>
+<p>初速度の成分は、v0x = v0y = 10 × cos45° = 7.1 m/s だ。壁までにかかる時間は t = 5.0/7.1 = 0.71 s。そのあいだに玉は y = 7.1 × 0.71 − 5.0 × 0.71² = 2.5 m 上がる。ちょうど最高点で、vy = 7.1 − 10 × 0.71 = 0 になっている。壁に当たるときの運動エネルギーは ½ × 0.50 × 7.1² = 12.5 J で、はじめの 25 J の半分は位置エネルギーになっている。</p>
+<svg class="fig" data-scene="scene-projWallSpring-wall" data-show="" role="img" aria-label="壁に当たるまで。0.71 s で高さ 2.5 m、鉛直速度は 0"></svg>
+<script type="application/json" id="scene-projWallSpring-wall">{"angleDeg":45,"eRest":0.8,"g":10,"mKg":0.5,"muKin":0.2,"phase":"wall","springK":50,"springXM":-3.0,"type":"projWallSpring","v0Ms":10,"wallXM":5.0}</script>
+<label class="check"><input type="checkbox" id="comboProjWallSpring-check-1"> 壁まで 0.71 s、高さ 2.5 m を求めた</label>
+<p><a href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<h2>② はね返って着地：速さ 9.1 m/s</h2>
+<p>壁ではね返ると、横向きの速さは vx′ = −0.80 × 7.1 = −5.7 m/s になる（鉛直成分は最高点なので 0 のまま）。2.5 m 落ちるのにかかる時間は t = √(2 × 2.5/10) = 0.71 s。着地点は x = 5.0 − 5.7 × 0.71 = 1.0 m だ。着地のときの鉛直速度は vy = −7.1 m/s、速さは √(5.7² + 7.1²) = 9.1 m/s になる。着地の運動エネルギーは ½ × 0.50 × 9.1² = 20.5 J（横 8.0 J + 縦 12.5 J）だ。壁での損失は 12.5 − 8.0 = 4.5 J である。</p>
+<svg class="fig" data-scene="scene-projWallSpring-land" data-show="vx,vy,v" role="img" aria-label="着地の速度の分解。横 5.7 m/s、縦 7.1 m/s、速さ 9.1 m/s"></svg>
+<script type="application/json" id="scene-projWallSpring-land">{"angleDeg":45,"eRest":0.8,"g":10,"mKg":0.5,"muKin":0.2,"phase":"land","springK":50,"springXM":-3.0,"type":"projWallSpring","v0Ms":10,"wallXM":5.0}</script>
+<label class="check"><input type="checkbox" id="comboProjWallSpring-check-2"> 着地 x=1.0 m、速さ 9.1 m/s を求めた</label>
+<p><a href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<h2>③ ばねを縮める：最大 0.38 m、押し返されて止まる</h2>
+<p>着地のあと、玉は横向きに 5.7 m/s ですべる。摩擦力は μmg = 0.20 × 0.50 × 10 = 1.0 N、加速度は 2.0 m/s² だ。ばねまで 4.0 m すべると、v² = 5.7² − 2 × 2.0 × 4.0 = 16 から v = 4.0 m/s になる（かかる時間は 0.83 s）。ばねにぶつかると、玉はばねを縮めながら摩擦にもあらがう。ばねの縮みを x とすると、運動エネルギー 4.0 J は、ばねのエネルギー ½ × 50 × x² と摩擦の仕事 1.0 × x になる。25x² + x − 4.0 = 0 を解くと、x = 0.38 m だ。最大のばねの力は 50 × 0.38 = 19 N、縮むまでの時間は 0.15 s である。</p>
+<p>ばねは玉を押し返す。戻るときも摩擦がはたらくので、ばねを離れるときの速さは 3.6 m/s になる（往復で摩擦熱は 0.76 J）。そのあと 3.2 m すべって、x = −3.0 + 3.2 = 0.24 m で止まる（かかる時間は 1.8 s）。</p>
+<svg class="fig" data-scene="scene-projWallSpring-spring" data-show="springF" role="img" aria-label="ばねが最大に縮んだところ。ばねの力 19 N、この瞬間の速さは 0"></svg>
+<script type="application/json" id="scene-projWallSpring-spring">{"angleDeg":45,"eRest":0.8,"g":10,"mKg":0.5,"muKin":0.2,"phase":"spring","springK":50,"springXM":-3.0,"type":"projWallSpring","v0Ms":10,"wallXM":5.0}</script>
+<label class="check"><input type="checkbox" id="comboProjWallSpring-check-3"> 最大の縮み 0.38 m、押し返しの速さ 3.6 m/s を求めた</label>
+<p><a href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<h2>④ 罠：エネルギーはどこへ行ったか</h2>
+<p>罠：「着地の運動エネルギー 20.5 J は全部、摩擦熱になる」——まちがい。縦の 12.5 J は着地の瞬間に失われ、摩擦熱になるのは横の 8.0 J だけだ。</p>
+<p>罠：「ばねが最大に縮んだところで玉は止まる」——まちがい。ばねは玉を押し返し、玉は 3.6 m/s で戻ってくる。止まるのは、押し返されたあと 3.2 m すべってから（x = 0.24 m）だ。</p>
+<p>罠：「摩擦を無視すれば、ばねの縮みは 0.40 m」——まちがいに近い。摩擦なしなら ½ × 50 × x² = 4.0 から x = 0.40 m だが、摩擦があるので 0.38 m になる。ちがいは小さいが、エネルギーでは 0.76 J のちがいがある。</p>
+<p>はじめの 25 J の行き先は、壁での損失 4.5 J、着地で失う 12.5 J、摩擦熱 8.0 J（ばねまで 4.0 J、ばねの往復 0.76 J、押し返されたあと 3.2 J）で、4.5 + 12.5 + 8.0 = 25 J とぴったり合う。</p>
+<svg class="fig" data-scene="scene-projWallSpring-trap" data-show="" role="img" aria-label="エネルギーの行き先。はじめ 25 J、壁 4.5 J、着地 12.5 J、摩擦 8.0 J"></svg>
+<script type="application/json" id="scene-projWallSpring-trap">{"angleDeg":45,"eRest":0.8,"g":10,"mKg":0.5,"muKin":0.2,"phase":"trap","springK":50,"springXM":-3.0,"type":"projWallSpring","v0Ms":10,"wallXM":5.0}</script>
+<label class="check"><input type="checkbox" id="comboProjWallSpring-check-4"> エネルギーの行き先を区別できた</label>
+<p><a href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<h2>⑤ 変えたら：μ・k・e で縮みが変わる</h2>
+<p>μ = 0.40 なら、摩擦力は 2.0 N になり、止まるまでの距離は 8.0/2.0 = 4.0 m。ばねにちょうど届いて止まる（ばねを縮めることはない）。</p>
+<p>k = 100 N/m なら、最大の縮みは 0.27 m、ばねの力は 27 N、押し返しの速さは 3.7 m/s になる。ばねが硬いほど、縮みは小さい。</p>
+<p>e = 1.0（弾性衝突）なら、はね返ったあとの vx = −7.1 m/s、着地は x = 0 m、着地の速さは 10 m/s になる。ばねまで 3.0 m すべって v = 6.2 m/s、最大の縮みは 0.60 m、ばねの力は 30 N、押し返しの速さは 5.8 m/s になる。</p>
+<svg class="fig" data-scene="scene-projWallSpring-vary" data-show="" role="img" aria-label="ばねの最大の縮みの比べ。もと 0.38 m、摩擦なし 0.40 m、k=100 で 0.27 m、e=1.0 で 0.60 m"></svg>
+<script type="application/json" id="scene-projWallSpring-vary">{"angleDeg":45,"eRest":0.8,"g":10,"mKg":0.5,"muKin":0.2,"phase":"vary","springK":50,"springXM":-3.0,"type":"projWallSpring","v0Ms":10,"wallXM":5.0}</script>
+<label class="check"><input type="checkbox" id="comboProjWallSpring-check-5"> μ・k・e を変えたときの縮みを求めた</label>
+</div>
+
+<div class="donebox" id="donebox">
+<p><b>まとめ（答え）</b></p>
+<p>(1) 壁まで 0.71 s、高さ 2.5 m。(2) 着地 x=1.0 m、速さ 9.1 m/s、運動エネルギー 20.5 J。(3) ばねの最大の縮み 0.38 m、押し返されて x=0.24 m で止まる。(4) エネルギー 25 J = 壁 4.5 J + 着地 12.5 J + 摩擦 8.0 J。</p>
+<p>もとになった単体モデル：斜方投射は<a href="projectile.html">投げ上げの動きを見る</a>、壁との衝突は<a href="proj-wall.html">組み合わせ問題AB：斜方投射＋壁との衝突</a>、壁＋摩擦は<a href="proj-wall-fric.html">組み合わせ問題AQ：斜方投射＋壁＋床の摩擦</a>、ばねは<a href="spring.html">第5問：ばねのつり合い</a>で確かめられる。</p>
+<p id="done-msg"></p>
+<p><a href="gen-rect-smooth.html">次：組み合わせ問題BB：発電機＋変圧器＋整流＋コンデンサーの平滑化 →</a></p>
+</div>
+
+<p class="nav"><a href="../../index.html">← トップへ</a></p>
+</main>
+<a class="toplink" href="#">↑ TOP</a>
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+const doneKey = 'comboProjWallSpringDone';
+const checkIds = ['comboProjWallSpring-check-1','comboProjWallSpring-check-2','comboProjWallSpring-check-3','comboProjWallSpring-check-4','comboProjWallSpring-check-5'];
+const doneMsg = document.getElementById('done-msg');
+function allChecked() { return checkIds.every(id => document.getElementById(id).checked); }
+function refresh() {
+  if (allChecked()) {
+    doneMsg.textContent = '完了！';
+    loadProgress().then(p => { p[doneKey] = true; return saveProgress(p); }).catch(() => {});
+  } else {
+    doneMsg.textContent = '';
+  }
+}
+checkIds.forEach(id => document.getElementById(id).addEventListener('change', refresh));
+renderAllFigures();
+loadProgress().then(p => { if (p[doneKey]) { doneMsg.textContent = '完了済み ✓'; } }).catch(() => {});
+</script>
+</body>
+</html>
