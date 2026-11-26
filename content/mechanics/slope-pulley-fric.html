@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>組み合わせ問題AW：斜面＋滑車＋摩擦＋ばねの2物体単振動</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body { max-width: 760px; margin: 0 auto; padding: 16px; font-family: sans-serif; line-height: 1.8; }
+h1 { font-size: 22px; }
+.step { border-top: 2px solid #eee; padding: 18px 0; }
+.fig { margin: 12px 0; }
+.fig svg { width: 100%; height: auto; display: block; }
+.check { font-size: 18px; margin-right: 8px; }
+.next { display: inline-block; margin-top: 8px; }
+.toplink { position: fixed; right: 12px; bottom: 12px; background: #fff; border: 1px solid #ccc; padding: 6px 10px; border-radius: 6px; text-decoration: none; }
+.donebox { border: 2px solid #4a4; padding: 14px; margin: 20px 0; }
+table { border-collapse: collapse; margin: 10px 0; }
+th, td { border: 1px solid #999; padding: 6px 8px; text-align: left; }
+</style>
+</head>
+<body id="top">
+<h1>組み合わせ問題AW：斜面＋滑車＋摩擦＋ばねの2物体単振動</h1>
+<p>斜面（θ=30°）の上に質量 m1=2.0 kg の物体を置き、軽い糸で滑車をとおして質量 m2=1.0 kg のおもりとつなぐ。おもりの下には、ばね定数 k=120 N/m のばねが床についている。斜面はあらく、動摩擦係数は μ=0.10 である。はじめ、ばねは自然長で、全体がつり合っている。(1) つり合いの力と、摩擦があるときのつり合いの範囲を求めよ。(2) おもりを 0.10 m 下に引いて放すと、全体が単振動する。角振動数・周期・最大の速さを求めよ。摩擦があると振幅はどうなるか。(3) 振幅がどう減って、いつ止まるか求めよ。(4) エネルギーの行き先を求めよ。(5) 罠と変えたら。重力加速度は g = 10 m/s² とする。</p>
+
+<div class="step">
+<p><b>はじめに：どう切り分けるか</b></p>
+<p>つり合い → 単振動 → 振幅の減り → エネルギー → 罠・変えたら、の順に区切る。橋渡し量は「力・エネルギー」だ。</p>
+<table>
+<tr><th>いつ</th><th>何が起きるか</th><th>橋渡し量</th><th>どこで解くか</th></tr>
+<tr><td>はじめ</td><td>つり合い</td><td>m1 g sinθ = m2 g = 10 N、つり合いは範囲</td><td>ステップ①</td></tr>
+<tr><td>ずらす</td><td>単振動</td><td>ω=6.3 rad/s、T=0.99 s</td><td>ステップ②</td></tr>
+<tr><td>振動中</td><td>振幅の減り</td><td>0.10 → 0.071 → 0.042 → 0.013 m、1.5 s で止まる</td><td>ステップ③</td></tr>
+<tr><td>エネルギー</td><td>摩擦熱</td><td>0.60 J = 0.59 J + 0.011 J</td><td>ステップ④</td></tr>
+<tr><td>罠・変えたら</td><td>振幅</td><td>摩擦なしなら 0.10 m のまま</td><td>ステップ⑤</td></tr>
+</table>
+<p>図：斜面の上の m1 と、吊るした m2 と、ばね。糸はゆるまないので、m1 と m2 はいつも同じ速さで動く。摩擦がなければ<a href="slope-pulley-spring.html">組み合わせ問題AM：斜面＋滑車＋ばねの2物体単振動</a>と同じだ。摩擦で振幅が減る仕組みは<a href="slope-spring-fric.html">組み合わせ問題AA：斜面＋ばね＋摩擦</a>、2段階の計算は<a href="pendulum-spring-fric.html">組み合わせ問題AV：振り子＋弾性衝突＋ばね＋摩擦</a>に戻って確認しよう。</p>
+<script type="application/json" id="scene-slopePulleyFric-base">{"type":"slopePulleyFric","m1Kg":2.0,"m2Kg":1.0,"kNperM":120,"thetaDeg":30,"ampM":0.1,"mu":0.1,"g":10,"phase":"base"}</script>
+<svg class="fig" data-scene="scene-slopePulleyFric-base" data-show="" width="100%" role="img" aria-label="斜面の上の m1 と、吊るした m2 と、ばね。斜面はあらく、摩擦係数は 0.10"></svg>
+</div>
+
+<div class="step">
+<p><b>ステップ① つり合い：m1 g sinθ = m2 g = 10 N、つり合いは範囲 |x| ≤ 0.014 m</b></p>
+<script type="application/json" id="scene-slopePulleyFric-equilibrium">{"type":"slopePulleyFric","m1Kg":2.0,"m2Kg":1.0,"kNperM":120,"thetaDeg":30,"ampM":0.1,"mu":0.1,"g":10,"phase":"equilibrium"}</script>
+<svg class="fig" data-scene="scene-slopePulleyFric-equilibrium" data-show="" width="100%" role="img" aria-label="つり合い：m1 g sinθ = m2 g = 10 N、つり合いは範囲"></svg>
+<p>m1 の重力は 2.0×10=20 N。斜面に沿った成分は 20×sin30°=10 N、垂直抗力は 20×cos30°≈17 N になる。m2 の重力は 1.0×10=10 N。張力は両方 10 N で、m1 を斜面の上へ、m2 を上へ引く。</p>
+<p>ばねの力は 0 N。つり合っているので、ばねは自然長のままだ。摩擦がなければ AM と同じつり合いになる。</p>
+<p>摩擦があると、つり合いは 1 点ではなく「範囲」になる。静止摩擦は 0〜最大 1.7 N（f = μN = 0.10×17 ≈ 1.7 N）まで出るので、ばねの力 kx が 1.7 N におさまる範囲、|x| ≤ 1.7/120 ≈ 0.014 m なら、どこでも止まっていられる。ばねが 0.014 m 縮んでも、伸びても、静止摩擦がつり合わせる。</p>
+<p><label><input type="checkbox" class="check">① つり合いとその範囲が分かった</label></p>
+<p><a class="next" href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<p><b>ステップ② 単振動：ω=6.3 rad/s、T=0.99 s、振幅は半周期ごとに減る</b></p>
+<script type="application/json" id="scene-slopePulleyFric-oscillate">{"type":"slopePulleyFric","m1Kg":2.0,"m2Kg":1.0,"kNperM":120,"thetaDeg":30,"ampM":0.1,"mu":0.1,"g":10,"phase":"oscillate"}</script>
+<svg class="fig" data-scene="scene-slopePulleyFric-oscillate" data-show="" width="100%" role="img" aria-label="単振動：振幅が半周期ごとに減る x-t グラフ"></svg>
+<p>おもりを 0.10 m 下に引いて放す。ばねが縮んで、ばねの力が復元力になる。m1 と m2 は糸でつながっているので、2 つ合わせて振る。振る質量は m1+m2=3.0 kg だ。</p>
+<p>ω = √(k/(m1+m2)) = √(120/3.0) = √40 ≈ 6.3 rad/s。T = 2π/ω ≈ 0.99 s ≈ 1.0 s。半周期は 0.50 s。摩擦がなければ AM と同じで、振幅 0.10 m のまま振動し続ける。</p>
+<p>摩擦があると、つり合いの位置が動く向きでずれる。m2 が上がるときは摩擦が下向きにはたらくので、つり合いは +0.014 m にずれる。m2 が下がるときは −0.014 m にずれる。だから 1 つの式では解けない。AV のばね＋摩擦と同じく、圧縮と戻りを分けて解く。</p>
+<p>振幅は半周期ごとに 2f/k = 2×1.7/120 ≈ 0.029 m ずつ減る。はじめの最大の速さは v_max = 0.54 m/s（摩擦なしなら 0.63 m/s）。張力は下端 1.4 N、上端 15 N で、AM の 2〜18 N より狭い。なお、上端では、到着した瞬間は 15 N、折り返して動き出す瞬間は 16 N になる。摩擦の向きが反転するため、張力は折れ点でとぶ。</p>
+<p><label><input type="checkbox" class="check">② 単振動とつり合いのずれが分かった</label></p>
+<p><a class="next" href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<p><b>ステップ③ 振幅の減り：0.10 → 0.071 → 0.042 → 0.013 m、1.5 s で止まる</b></p>
+<script type="application/json" id="scene-slopePulleyFric-decay">{"type":"slopePulleyFric","m1Kg":2.0,"m2Kg":1.0,"kNperM":120,"thetaDeg":30,"ampM":0.1,"mu":0.1,"g":10,"phase":"decay"}</script>
+<svg class="fig" data-scene="scene-slopePulleyFric-decay" data-show="" width="100%" role="img" aria-label="振幅の減り：0.10 m から 0.071 m、0.042 m、0.013 m"></svg>
+<p>折れ点（半周期ごとの端）は、0.10 m → −0.071 m → +0.042 m → −0.013 m。振幅は 0.10 → 0.071 → 0.042 → 0.013 m と、半周期ごとに 0.029 m ずつ減る。</p>
+<p>3 半周期（1.5 s）で、振幅は 0.013 m になる。最後の折れ点 −0.013 m は、つり合いの範囲 |x| ≤ 0.014 m の中にある。ばねの力は 120×0.013 ≈ 1.6 N で、最大の静止摩擦 1.7 N におさまるので、そこで止まる。</p>
+<p>振幅の減り方は 1 周期ごとではなく半周期ごとだ。1 周期では 0.058 m 減る。半周期ごとの最大の速さも、0.54 → 0.36 → 0.18 m/s と減っていく。</p>
+<p><label><input type="checkbox" class="check">③ 振幅の減りと止まるまでが分かった</label></p>
+<p><a class="next" href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<p><b>ステップ④ エネルギー：0.60 J = 摩擦熱 0.59 J + ばね 0.011 J</b></p>
+<script type="application/json" id="scene-slopePulleyFric-energy">{"type":"slopePulleyFric","m1Kg":2.0,"m2Kg":1.0,"kNperM":120,"thetaDeg":30,"ampM":0.1,"mu":0.1,"g":10,"phase":"energy"}</script>
+<svg class="fig" data-scene="scene-slopePulleyFric-energy" data-show="" width="100%" role="img" aria-label="エネルギー：はじめ 0.60 J、摩擦熱 0.59 J、最後のばね 0.011 J"></svg>
+<p>はじめのエネルギーは E = ½kA² = 0.5×120×0.10² = 0.60 J。</p>
+<p>止まるまでに動いた距離は 0.34 m（0.17 + 0.11 + 0.056 m）。摩擦熱は f×距離 = 1.7×0.34 ≈ 0.59 J になる。</p>
+<p>最後に残るばねのエネルギーは ½×120×0.013² ≈ 0.011 J。0.59 + 0.011 = 0.60 J で、はじめのエネルギーと合う。摩擦がなければ 0.60 J のまま（AM）。</p>
+<p><label><input type="checkbox" class="check">④ エネルギーの行き先が分かった</label></p>
+<p><a class="next" href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<p><b>ステップ⑤ 罠と変えたら</b></p>
+<script type="application/json" id="scene-slopePulleyFric-trap">{"type":"slopePulleyFric","m1Kg":2.0,"m2Kg":1.0,"kNperM":120,"thetaDeg":30,"ampM":0.1,"mu":0.1,"g":10,"phase":"trap"}</script>
+<svg class="fig" data-scene="scene-slopePulleyFric-trap" data-show="" width="100%" role="img" aria-label="1 半周期後の振幅の比べ：摩擦なし 0.10 m、μ=0.10 0.071 m、μ=0.20 0.042 m、k=200 0.083 m"></svg>
+<p>罠：「摩擦を無視すると、AM のように 0.10 m でずっと振動する」——まちがい。摩擦で振幅は減り、1.5 s で止まる。</p>
+<p>罠：「振幅は 1 周期ごとに 0.029 m 減る」——まちがい。半周期ごとに 0.029 m 減る（1 周期では 0.058 m）。</p>
+<p>罠：「つり合いの位置は 1 点」——まちがい。摩擦があると、つり合いは |x| ≤ 0.014 m の範囲になる。</p>
+<p>変えたら：μ=0.20（摩擦 3.5 N）なら、振幅は 0.10 → 0.042 → 0.016 m と減り、2 半周期 1.0 s で止まる。k=200 N/m なら、振幅の減りは 0.017 m/半周期になり、6 半周期 2.3 s かけて止まる。はじめの最大の速さは 0.75 m/s になる。</p>
+<p><label><input type="checkbox" class="check">⑤ 罠と変えたらが分かった</label></p>
+</div>
+
+<div class="donebox">
+<p id="done-message">5つのチェックをすべて入れると完了になります。</p>
+<button id="done-btn">完了にする</button>
+<p>答え：ω≈6.3 rad/s、T≈0.99 s、振幅 0.10 → 0.071 → 0.042 → 0.013 m、3 半周期 1.5 s で止まる、摩擦熱 0.59 J。つり合いの力の図示は<a href="slope.html">第1問：斜面上の物体の力の図示</a>、ばねは<a href="spring.html">第5問：ばねのつり合い</a>、摩擦のある単振動は<a href="slope-spring-fric.html">組み合わせ問題AA：斜面＋ばね＋摩擦</a>、2段階の計算は<a href="pendulum-spring-fric.html">組み合わせ問題AV：振り子＋弾性衝突＋ばね＋摩擦</a>、摩擦なしの2物体単振動は<a href="slope-pulley-spring.html">組み合わせ問題AM：斜面＋滑車＋ばねの2物体単振動</a>に戻って確認しよう。</p>
+<p><a href="pendulum-spring-fric.html">← 組み合わせ問題AV：振り子＋弾性衝突＋ばね＋摩擦</a></p>
+</div>
+
+<a class="toplink" href="#top">↑ TOP</a>
+<script src="../../assets/js/figure.js"></script>
+<script src="../../assets/js/idb.js"></script>
+<script>
+renderAllFigures();
+const boxes = Array.from(document.querySelectorAll('.check'));
+const doneBtn = document.getElementById('done-btn');
+const doneMsg = document.getElementById('done-message');
+const doneKey = 'comboSlopePulleyFricDone';
+const allChecked = () => boxes.every(b => b.checked);
+boxes.forEach(b => b.addEventListener('change', () => { doneBtn.disabled = !allChecked(); }));
+doneBtn.disabled = true;
+(async () => {
+  try {
+    const saved = await loadProgress();
+    if (saved && saved[doneKey]) { doneMsg.textContent = '完了済み ✓'; doneBtn.disabled = true; }
+  } catch (e) { /* IndexedDB が使えない環境では無視 */ }
+})();
+doneBtn.addEventListener('click', async () => {
+  if (!allChecked()) return;
+  try {
+    const saved = await loadProgress();
+    saved[doneKey] = true;
+    await saveProgress(saved);
+    doneMsg.textContent = '完了済み ✓';
+    doneBtn.disabled = true;
+  } catch (e) { doneMsg.textContent = '保存できませんでした（IndexedDB が使えません）。'; }
+});
+</script>
+</body>
+</html>
