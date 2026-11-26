@@ -3819,6 +3819,264 @@ function horizSpringFricRecedeDopplerResPipeDerived(data) {
 
 function horizSpringFricRecedeDopplerResPipeForces(data) { return []; }
 
+// ---- 斜面上のばね振り子＋摩擦＋ドップラー＋開管の共鳴（組み合わせDC）：CY を斜面にしたもの ----
+// 具体値（検算済み）：m=1.0 kg、k=100 N/m、θ=30°、g=10。重力の斜面成分 mg sinθ=5.0 N、
+//   つりあいは自然長から 0.050 m 下、摩擦 f=2.0 N（δ=0.020 m）、ω=10 rad/s、T≈0.63 s、T/2≈0.31 s。
+//   振幅 0.20→0.16→0.12→0.08→0.04→0 m、5半周期（1.57 s）で止まる。動いた距離 1.00 m、熱 2.0 J。
+//   中心の速さ（つりあいの位置の中心を通るとき）：1.79、1.39、0.98、0.57、0 m/s。
+//   観測者は斜面の下。音源 f0=397.5 Hz、中心の音：下向き 399.60/398.65、上向き 395.89/396.84 Hz。
+//   管 L=0.425 m：f1=400、f2=800、f3=1200 Hz。1回目の下向きの音（399.60 Hz）だけが
+//   有効数字3けたで 400 Hz となり、f1 と一致して共鳴する。橋渡し量は「速さ」。
+//   罠：音源そのものの 397.5 Hz は合わない。摩擦なしなら中心の速さはつねに 2.0 m/s で、
+//   音は 399.85 Hz と 395.18 Hz になり、1 回目の答えは同じ 400 Hz。斜面を鉛直とすると
+//   つりあいが 0.10 m ずれて振幅 0.30 m、速さ 3.0 m/s、音は 401.04 Hz で合わない。
+//   下端からはなすと 1 回目の下向きは 399.13 Hz で合わない。
+//   変えたら：L=0.85 m なら f2=400 Hz で共鳴。L=0.17 m（f1=1000 Hz）、f0=440 Hz（442 Hz）、
+//   閉管（200/600/1000 Hz）は合わない。μ=0.40 なら中心の音は 399.32 Hz で合わず、
+//   振幅 0.30 m なら共鳴は 3 回目の中心にずれる。
+function slopeSpringFricDownDopplerResPipeDerived(data) {
+  const m = data.mKg, k = data.kNperM, g = data.g || 10;
+  const A = data.ampM, fric = data.fricN, V = data.vSoundMs, f0 = data.f0Hz, L = data.pipeLM;
+  const rad = (data.thetaDeg * Math.PI) / 180;
+  const sinT = data.sinTheta || Math.sin(rad), cosT = data.cosTheta || Math.cos(rad);
+  const mgSinN = m * g * sinT; // 重力の斜面成分（下向き）
+  const mgCosN = m * g * cosT; // 重力の斜面に垂直な成分
+  const deltaM = mgSinN / k; // つりあいの位置（自然長から斜面下向きに 0.050 m）
+  const deltaFricM = fric / k; // 摩擦によるずれ
+  const dAmpM = 2 * deltaFricM; // 半周期ごとの振幅の減少
+  const releaseAboveM = A - deltaM; // はなす点（自然長から上：0.15 m）
+  const bottomM = deltaM + A; // 下端（自然長から下：0.25 m）
+  const omega = Math.sqrt(k / m);
+  const periodS = (2 * Math.PI) / omega;
+  const halfS = periodS / 2;
+  const nStop = Math.round(A / dAmpM);
+  const ampsM = [];
+  for (let n = 0; n <= nStop; n++) ampsM.push(A - dAmpM * n);
+  const tStopS = (nStop * periodS) / 2;
+  // 動いた距離：A0 + 2(A1+A2+A3+A4) + A5。
+  const distTotalM = ampsM[0] + 2 * (ampsM[1] + ampsM[2] + ampsM[3] + ampsM[4]) + ampsM[5];
+  const heatJ = fric * distTotalM;
+  const e0J = 0.5 * k * A * A;
+  // 各半周期の、ずれたつり合い位置のまわりの振幅 A'_n = A_n − δ。
+  const aPrimeM = ampsM.slice(0, 5).map((a) => a - deltaFricM);
+  // 中心の速さ：v = ω√(A'² − δ²)。はなす点が上端なので、n が偶数なら下向き、奇数なら上向き。
+  const vCentreMs = aPrimeM.map((ap) => omega * Math.sqrt(Math.max(0, ap * ap - deltaFricM * deltaFricM)));
+  const vSignedMs = vCentreMs.map((v, n) => (n % 2 === 0 ? v : -v));
+  const fCentreHz = vSignedMs.map((v) => (f0 * V) / (V - v));
+  const fMaxHz = Math.max(...fCentreHz);
+  const fMinHz = Math.min(...fCentreHz);
+  // 中心を通る時刻：cos(ωτ) = −δ/A'、τ はその半周期の始めからの時間。
+  const tCentreS = aPrimeM.map((ap, n) => n * halfS + Math.acos(Math.max(-1, Math.min(1, -deltaFricM / ap))) / omega);
+  const vAt = (t) => {
+    if (t <= 0 || t >= tStopS) return 0;
+    const n = Math.min(4, Math.floor(t / halfS));
+    const tau = t - n * halfS;
+    return (n % 2 === 0 ? 1 : -1) * aPrimeM[n] * omega * Math.sin(omega * tau);
+  };
+  const fPrimeAt = (t) => (f0 * V) / (V - vAt(t));
+  const f1 = V / (2 * L);
+  const harmonics = [f1, 2 * f1, 3 * f1];
+  // 共鳴の判定は BW と同じ有効数字3けた（1 Hz 単位）での一致。
+  const matches = (f) => harmonics.some((fn) => Math.round(f) === Math.round(fn));
+  const matchCentre = fCentreHz.map(matches);
+  const matchRest = matches(f0);
+  const fMaxBeat = Math.max(...fCentreHz.map((f) => Math.abs(f - f0)));
+  // 罠：摩擦なしなら中心の速さはつねに ωA = 2.0 m/s。
+  const vNoFricMs = omega * A;
+  const fNoFricApp = (f0 * V) / (V - vNoFricMs);
+  const fNoFricRec = (f0 * V) / (V + vNoFricMs);
+  // 罠：符号をまちがえると、下向き 395.42 Hz、上向き 399.13 Hz になる。
+  const fWrongSignDownHz = (f0 * V) / (V + vCentreMs[0]);
+  const fWrongSignUpHz = (f0 * V) / (V - vCentreMs[1]);
+  // 罠：斜面を鉛直とするとつりあいは mg/k = 0.10 m ずれ、振幅は 0.30 m になり、v_max=3.0 m/s、音は 401.04 Hz。
+  const vWrongSlopeMs = (A + (m * g) / k) * omega;
+  const fWrongSlopeHz = (f0 * V) / (V - vWrongSlopeMs);
+  // 罠：下端からはなすと、1 回目の下向きの中心は 2 回目で、速さ 1.3856 m/s、音は 399.13 Hz になる。
+  const fBottomReleaseHz = (f0 * V) / (V - vCentreMs[1]);
+  // 図の座標：斜面に沿う単位ベクトル (cosθ, sinθ)。s は斜面の上端 A からの斜面に沿う距離（px）。
+  const slopeA = { x: 80, y: 60 };
+  const along = { x: cosT, y: sinT };
+  const atS = (s) => ({ x: slopeA.x + along.x * s, y: slopeA.y + along.y * s });
+  const anchorS = 20, naturalPx = 120, pxPerM = 200;
+  const sEq = anchorS + naturalPx + deltaM * pxPerM; // 150
+  const ballEq = atS(sEq);
+  const slopeB = { x: slopeA.x + along.x * 300, y: slopeA.y + along.y * 300 }; // (340, 210)
+  // 変えたら：L=0.85 m、L=0.17 m、f0=440 Hz、閉管、μ=0.40、A=0.30 m。
+  const f1L085 = V / (2 * 0.85), f2L085 = V / 0.85, f3L085 = 3 * f1L085, f4L085 = 4 * f1L085;
+  const f1L017 = V / (2 * 0.17), f2L017 = V / 0.17, f3L017 = 3 * f1L017;
+  const f440Centre = vSignedMs.map((v) => (440 * V) / (V - v));
+  const fc1 = V / (4 * L), fc3 = 3 * fc1, fc5 = 5 * fc1;
+  // μ=0.40：摩擦力 4.0 N、δ=0.040 m、振幅 0.20→0.12→0.04→0 m。
+  const fMu40 = 4.0, dMu40 = fMu40 / k;
+  const ampsMu40 = [0, 1, 2, 3].map((n) => A - 2 * dMu40 * n);
+  const aPrimeMu40 = ampsMu40.slice(0, 3).map((a) => a - dMu40);
+  const vMu40 = aPrimeMu40.map((ap) => omega * Math.sqrt(Math.max(0, ap * ap - dMu40 * dMu40)));
+  const fMu40Centre = vMu40.map((v, n) => (f0 * V) / (V - (n % 2 === 0 ? v : -v)));
+  const distMu40M = ampsMu40[0] + 2 * ampsMu40[1] + ampsMu40[2];
+  const heatMu40J = fMu40 * distMu40M;
+  // A=0.30 m：振幅 0.30→0.26→…→0.02→0 m、7 半周期で止まる。共鳴は 3 回目の中心にずれる。
+  const ampsA030 = [];
+  for (let n = 0; n <= 8; n++) ampsA030.push(0.30 - 2 * deltaFricM * n);
+  const aPrimeA030 = ampsA030.slice(0, 8).map((a) => a - deltaFricM);
+  const vA030 = aPrimeA030.map((ap) => omega * Math.sqrt(Math.max(0, ap * ap - deltaFricM * deltaFricM)));
+  const fA030Centre = vA030.map((v, n) => (f0 * V) / (V - (n % 2 === 0 ? v : -v)));
+  const distA030M = ampsA030[0] + 2 * (ampsA030[1] + ampsA030[2] + ampsA030[3] + ampsA030[4] + ampsA030[5] + ampsA030[6] + ampsA030[7]) + ampsA030[8];
+  const heatA030J = fric * distA030M;
+  const e0A030J = 0.5 * k * 0.30 * 0.30;
+  return {
+    m, k, g, A, fricN: fric, thetaDeg: data.thetaDeg, sinT, cosT, mgSinN, mgCosN,
+    deltaM, deltaFricM, dAmpM, releaseAboveM, bottomM,
+    omega, periodS, halfS, ampsM, nStop, tStopS, distTotalM, heatJ, e0J,
+    aPrimeM, vCentreMs, vSignedMs, fCentreHz, fMaxHz, fMinHz, tCentreS, vAt, fPrimeAt,
+    vSoundMs: V, f0Hz: f0, pipeLM: L, f1, f2: 2 * f1, f3: 3 * f1,
+    matchCentre, matchRest, fMaxBeat,
+    vNoFricMs, fNoFricApp, fNoFricRec,
+    fWrongSignDownHz, fWrongSignUpHz, vWrongSlopeMs, fWrongSlopeHz,
+    matchWrongSlope: matches(fWrongSlopeHz),
+    fBottomReleaseHz, matchBottomRelease: matches(fBottomReleaseHz),
+    slopeA, slopeB, along, atS, anchorS, naturalPx, pxPerM, sEq, ballEq,
+    f1L085, f2L085, f3L085, f4L085, f1L017, f2L017, f3L017,
+    f440Centre, fc1, fc3, fc5,
+    matchFirstL085: Math.round(fCentreHz[0]) === Math.round(f2L085),
+    matchFirstL017: [f1L017, f2L017, f3L017].some((fn) => Math.round(fCentreHz[0]) === Math.round(fn)),
+    match440: f440Centre.some(matches),
+    matchClosed: [fc1, fc3, fc5].some((fn) => Math.round(fCentreHz[0]) === Math.round(fn)),
+    fMu40, dMu40, ampsMu40, aPrimeMu40, vMu40, fMu40Centre, distMu40M, heatMu40J,
+    matchMu40: fMu40Centre.some(matches),
+    ampsA030, aPrimeA030, vA030, fA030Centre, distA030M, heatA030J, e0A030J,
+    matchA030: fA030Centre.some(matches),
+    matchA030First: matches(fA030Centre[0]),
+    matchA030Third: matches(fA030Centre[2]),
+  };
+}
+
+function slopeSpringFricDownDopplerResPipeForces(data) { return []; }
+
+// ---- 斜面上のばね振り子＋摩擦＋ドップラー＋開管の共鳴（組み合わせDD：上向きの最初の1回だけ共鳴） ----
+// DC と同じ斜面ベース（θ=30°、m=1.0 kg、k=100 N/m、f=2.0 N）で、下端からはなして
+// 1 回目の上向きの中心だけが管の f1=400 Hz と有効数字3けたで一致する（f0=402.5 Hz）。
+function slopeSpringFricRecedeDopplerResPipeDerived(data) {
+  const m = data.mKg, k = data.kNperM, g = data.g || 10;
+  const A = data.ampM, fric = data.fricN, V = data.vSoundMs, f0 = data.f0Hz, L = data.pipeLM;
+  const rad = (data.thetaDeg * Math.PI) / 180;
+  const sinT = data.sinTheta || Math.sin(rad), cosT = data.cosTheta || Math.cos(rad);
+  const mgSinN = m * g * sinT; // 重力の斜面成分（下向き）
+  const mgCosN = m * g * cosT; // 重力の斜面に垂直な成分
+  const deltaM = mgSinN / k; // つりあいの位置（自然長から斜面下向きに 0.050 m）
+  const deltaFricM = fric / k; // 摩擦によるずれ
+  const dAmpM = 2 * deltaFricM; // 半周期ごとの振幅の減少
+  const releaseBelowM = deltaM + A; // はなす点（自然長から下：0.25 m）
+  const topM = A - deltaM; // 上端（自然長から上：0.15 m）
+  const releaseForceUpN = k * (A + deltaM); // はなす点のばねの力（斜面上向き）= 25 N
+  const releaseNetUpN = releaseForceUpN - mgSinN; // はなす点の合力（斜面上向き）= 20 N
+  const omega = Math.sqrt(k / m);
+  const periodS = (2 * Math.PI) / omega;
+  const halfS = periodS / 2;
+  const nStop = Math.round(A / dAmpM);
+  const ampsM = [];
+  for (let n = 0; n <= nStop; n++) ampsM.push(A - dAmpM * n);
+  const tStopS = (nStop * periodS) / 2;
+  // 動いた距離：A0 + 2(A1+A2+A3+A4) + A5。
+  const distTotalM = ampsM[0] + 2 * (ampsM[1] + ampsM[2] + ampsM[3] + ampsM[4]) + ampsM[5];
+  const heatJ = fric * distTotalM;
+  const e0J = 0.5 * k * A * A;
+  // 各半周期の、ずれたつり合い位置のまわりの振幅 A'_n = A_n − δ。
+  const aPrimeM = ampsM.slice(0, 5).map((a) => a - deltaFricM);
+  // 中心の速さ：v = ω√(A'² − δ²)。はなす点が下端なので、n が偶数なら上向き、奇数なら下向き。
+  const vCentreMs = aPrimeM.map((ap) => omega * Math.sqrt(Math.max(0, ap * ap - deltaFricM * deltaFricM)));
+  const vSignedMs = vCentreMs.map((v, n) => (n % 2 === 0 ? -v : v));
+  const fCentreHz = vSignedMs.map((v) => (f0 * V) / (V - v));
+  const fMaxHz = Math.max(...fCentreHz);
+  const fMinHz = Math.min(...fCentreHz);
+  // 中心を通る時刻：cos(ωτ) = −δ/A'、τ はその半周期の始めからの時間。
+  const tCentreS = aPrimeM.map((ap, n) => n * halfS + Math.acos(Math.max(-1, Math.min(1, -deltaFricM / ap))) / omega);
+  const vAt = (t) => {
+    if (t <= 0 || t >= tStopS) return 0;
+    const n = Math.min(4, Math.floor(t / halfS));
+    const tau = t - n * halfS;
+    return (n % 2 === 0 ? -1 : 1) * aPrimeM[n] * omega * Math.sin(omega * tau);
+  };
+  const fPrimeAt = (t) => (f0 * V) / (V - vAt(t));
+  const f1 = V / (2 * L);
+  const harmonics = [f1, 2 * f1, 3 * f1];
+  // 共鳴の判定は BW と同じ有効数字3けた（1 Hz 単位）での一致。
+  const matches = (f) => harmonics.some((fn) => Math.round(f) === Math.round(fn));
+  const matchCentre = fCentreHz.map(matches);
+  const matchRest = matches(f0);
+  const fMaxBeat = Math.max(...fCentreHz.map((f) => Math.abs(f - f0)));
+  // 罠：摩擦なしなら中心の速さはつねに ωA = 2.0 m/s。
+  const vNoFricMs = omega * A;
+  const fNoFricApp = (f0 * V) / (V - vNoFricMs);
+  const fNoFricRec = (f0 * V) / (V + vNoFricMs);
+  // 罠：符号をまちがえると、上向き 404.63 Hz、下向き 400.87 Hz になる。
+  const fWrongSignUpHz = (f0 * V) / (V - vCentreMs[0]);
+  const fWrongSignDownHz = (f0 * V) / (V + vCentreMs[1]);
+  // 罠：斜面を鉛直とするとつりあいは mg/k = 0.10 m ずれ、振幅は 0.30 m になり、v_max=3.0 m/s、上向きの音は 398.98 Hz、下向きの音は 406.08 Hz。
+  const vWrongSlopeMs = (A + (m * g) / k) * omega;
+  const fWrongSlopeHz = (f0 * V) / (V + vWrongSlopeMs);
+  const fWrongSlopeDownHz = (f0 * V) / (V - vWrongSlopeMs);
+  // 罠：上端からはなすと、1 回目の上向きの中心は 2 回目で、速さ 1.3856 m/s、音は 400.87 Hz になる。
+  const fTopReleaseHz = (f0 * V) / (V + vCentreMs[1]);
+  const fTopReleaseUp2Hz = (f0 * V) / (V + vCentreMs[3]);
+  // 図の座標：斜面に沿う単位ベクトル (cosθ, sinθ)。s は斜面の上端 A からの斜面に沿う距離（px）。
+  const slopeA = { x: 80, y: 60 };
+  const along = { x: cosT, y: sinT };
+  const atS = (s) => ({ x: slopeA.x + along.x * s, y: slopeA.y + along.y * s });
+  const anchorS = 20, naturalPx = 120, pxPerM = 200;
+  const sEq = anchorS + naturalPx + deltaM * pxPerM; // 150
+  const ballEq = atS(sEq);
+  const slopeB = { x: slopeA.x + along.x * 300, y: slopeA.y + along.y * 300 }; // (340, 210)
+  // 変えたら：L=0.85 m、L=0.17 m、f0=440 Hz、閉管、μ=0.40、A=0.30 m。
+  const f1L085 = V / (2 * 0.85), f2L085 = V / 0.85, f3L085 = 3 * f1L085, f4L085 = 4 * f1L085;
+  const f1L017 = V / (2 * 0.17), f2L017 = V / 0.17, f3L017 = 3 * f1L017;
+  const f440Centre = vSignedMs.map((v) => (440 * V) / (V - v));
+  const fc1 = V / (4 * L), fc3 = 3 * fc1, fc5 = 5 * fc1;
+  // μ=0.40：摩擦力 4.0 N、δ=0.040 m、振幅 0.20→0.12→0.04→0 m。
+  const fMu40 = 4.0, dMu40 = fMu40 / k;
+  const ampsMu40 = [0, 1, 2, 3].map((n) => A - 2 * dMu40 * n);
+  const aPrimeMu40 = ampsMu40.slice(0, 3).map((a) => a - dMu40);
+  const vMu40 = aPrimeMu40.map((ap) => omega * Math.sqrt(Math.max(0, ap * ap - dMu40 * dMu40)));
+  const fMu40Centre = vMu40.map((v, n) => (f0 * V) / (V - (n % 2 === 0 ? -v : v)));
+  const distMu40M = ampsMu40[0] + 2 * ampsMu40[1] + ampsMu40[2];
+  const heatMu40J = fMu40 * distMu40M;
+  // A=0.30 m：振幅 0.30→0.26→…→0.02→0 m、7 半周期で止まる。共鳴は 3 回目の中心にずれる。
+  const ampsA030 = [];
+  for (let n = 0; n <= 8; n++) ampsA030.push(0.30 - 2 * deltaFricM * n);
+  const aPrimeA030 = ampsA030.slice(0, 8).map((a) => a - deltaFricM);
+  const vA030 = aPrimeA030.map((ap) => omega * Math.sqrt(Math.max(0, ap * ap - deltaFricM * deltaFricM)));
+  const fA030Centre = vA030.map((v, n) => (f0 * V) / (V - (n % 2 === 0 ? -v : v)));
+  const distA030M = ampsA030[0] + 2 * (ampsA030[1] + ampsA030[2] + ampsA030[3] + ampsA030[4] + ampsA030[5] + ampsA030[6] + ampsA030[7]) + ampsA030[8];
+  const heatA030J = fric * distA030M;
+  const e0A030J = 0.5 * k * 0.30 * 0.30;
+  return {
+    m, k, g, A, fricN: fric, thetaDeg: data.thetaDeg, sinT, cosT, mgSinN, mgCosN,
+    deltaM, deltaFricM, dAmpM, releaseBelowM, topM, releaseForceUpN, releaseNetUpN,
+    omega, periodS, halfS, ampsM, nStop, tStopS, distTotalM, heatJ, e0J,
+    aPrimeM, vCentreMs, vSignedMs, fCentreHz, fMaxHz, fMinHz, tCentreS, vAt, fPrimeAt,
+    vSoundMs: V, f0Hz: f0, pipeLM: L, f1, f2: 2 * f1, f3: 3 * f1,
+    matchCentre, matchRest, fMaxBeat,
+    vNoFricMs, fNoFricApp, fNoFricRec,
+    fWrongSignUpHz, fWrongSignDownHz, vWrongSlopeMs, fWrongSlopeHz, fWrongSlopeDownHz,
+    matchWrongSlope: matches(fWrongSlopeHz),
+    fTopReleaseHz, fTopReleaseUp2Hz, matchTopRelease: matches(fTopReleaseHz),
+    slopeA, slopeB, along, atS, anchorS, naturalPx, pxPerM, sEq, ballEq,
+    f1L085, f2L085, f3L085, f4L085, f1L017, f2L017, f3L017,
+    f440Centre, fc1, fc3, fc5,
+    matchFirstL085: Math.round(fCentreHz[0]) === Math.round(f2L085),
+    matchFirstL017: [f1L017, f2L017, f3L017].some((fn) => Math.round(fCentreHz[0]) === Math.round(fn)),
+    match440: f440Centre.some(matches),
+    matchClosed: [fc1, fc3, fc5].some((fn) => Math.round(fCentreHz[0]) === Math.round(fn)),
+    fMu40, dMu40, ampsMu40, aPrimeMu40, vMu40, fMu40Centre, distMu40M, heatMu40J,
+    matchMu40: fMu40Centre.some(matches),
+    ampsA030, aPrimeA030, vA030, fA030Centre, distA030M, heatA030J, e0A030J,
+    matchA030: fA030Centre.some(matches),
+    matchA030First: matches(fA030Centre[0]),
+    matchA030Third: matches(fA030Centre[2]),
+  };
+}
+
+function slopeSpringFricRecedeDopplerResPipeForces(data) { return []; }
+
 // ---- RC回路の充電＋エネルギー（組み合わせAP）：コンデンサ・直流回路・RC過渡 ----
 // 具体値（検算済み）：E=12 V、R=100 Ω、C=100 μF。
 //   τ = RC = 0.010 s、Q∞ = CE = 1.2 mC、I0 = E/R = 0.12 A、U∞ = ½CE² = 7.2 mJ。
@@ -6218,6 +6476,30 @@ function sceneFor(type, thetaDeg, mgPx, fPx, data) {
       derived: d,
       center: { x: 200, y: 150 }, centerDot: false,
       forces: horizSpringFricRecedeDopplerResPipeForces(data),
+    };
+  }
+  if (type === 'slopeSpringFricDownDopplerResPipe') {
+    const d = slopeSpringFricDownDopplerResPipeDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      thetaDeg: data.thetaDeg, sinTheta: data.sinTheta, cosTheta: data.cosTheta,
+      mKg: data.mKg, kNperM: data.kNperM, ampM: data.ampM, fricN: data.fricN,
+      f0Hz: data.f0Hz, vSoundMs: data.vSoundMs, pipeLM: data.pipeLM, g: data.g || 10,
+      derived: d,
+      center: { x: 200, y: 150 }, centerDot: false,
+      forces: slopeSpringFricDownDopplerResPipeForces(data),
+    };
+  }
+  if (type === 'slopeSpringFricRecedeDopplerResPipe') {
+    const d = slopeSpringFricRecedeDopplerResPipeDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      thetaDeg: data.thetaDeg, sinTheta: data.sinTheta, cosTheta: data.cosTheta,
+      mKg: data.mKg, kNperM: data.kNperM, ampM: data.ampM, fricN: data.fricN,
+      f0Hz: data.f0Hz, vSoundMs: data.vSoundMs, pipeLM: data.pipeLM, g: data.g || 10,
+      derived: d,
+      center: { x: 200, y: 150 }, centerDot: false,
+      forces: slopeSpringFricRecedeDopplerResPipeForces(data),
     };
   }
   if (type === 'rcCharge') {
@@ -8864,6 +9146,164 @@ function validateScene(scene) {
     if (Math.abs(d.heatA030J - d.fricN * d.distA030M) > 1e-9) return ['A=0.30 m の熱が一致しません'];
     if (Math.abs(d.e0A030J - 0.5 * d.k * 0.30 * 0.30) > 1e-9) return ['A=0.30 m のはじめのエネルギーが一致しません'];
     if (d.matchA030First !== false) return ['A=0.30 m で 1 回目の右向きの音が共鳴してしまっています'];
+    if (d.matchA030Third !== true) return ['A=0.30 m で 3 回目の中心の音が共鳴しなくなっています'];
+    if (Math.round(d.fA030Centre[2]) !== Math.round(d.f1)) return ['A=0.30 m の 3 回目の中心の音が f1 と 1 Hz 単位で一致しなくなっています'];
+  }
+  if (scene.type === 'slopeSpringFricDownDopplerResPipe') {
+    const d = scene.derived;
+    if (Math.abs(d.mgSinN - d.m * d.g * d.sinT) > 1e-9) return ['重力の斜面成分 mg sinθ が間違っています'];
+    if (Math.abs(d.mgCosN - d.m * d.g * d.cosT) > 1e-9) return ['重力の斜面に垂直な成分 mg cosθ が間違っています'];
+    if (Math.abs(d.deltaM - d.mgSinN / d.k) > 1e-9) return ['つりあいのずれ δ=mg sinθ/k が間違っています'];
+    if (Math.abs(d.releaseAboveM - (d.A - d.deltaM)) > 1e-9) return ['はなす点の自然長からのずれが間違っています'];
+    if (Math.abs(d.bottomM - (d.deltaM + d.A)) > 1e-9) return ['下端の自然長からのずれが間違っています'];
+    if (Math.abs(d.deltaFricM - d.fricN / d.k) > 1e-9) return ['摩擦によるずれ δ=f/k が間違っています'];
+    if (Math.abs(d.dAmpM - 2 * d.deltaFricM) > 1e-9) return ['半周期ごとの振幅の減少が間違っています'];
+    if (Math.abs(d.omega - Math.sqrt(d.k / d.m)) > 1e-9) return ['角振動数 ω が間違っています'];
+    if (Math.abs(d.periodS - (2 * Math.PI) / d.omega) > 1e-9) return ['周期 T が間違っています'];
+    if (Math.abs(d.halfS - d.periodS / 2) > 1e-9) return ['半周期 T/2 が間違っています'];
+    if (d.ampsM.length !== 6 || d.ampsM[0] !== 0.20 || d.ampsM[5] !== 0) return ['振幅の数列が間違っています'];
+    if (Math.abs(d.ampsM[1] - 0.16) > 1e-9 || Math.abs(d.ampsM[2] - 0.12) > 1e-9 || Math.abs(d.ampsM[3] - 0.08) > 1e-9 || Math.abs(d.ampsM[4] - 0.04) > 1e-9) return ['振幅の数列が間違っています'];
+    if (d.nStop !== 5) return ['止まるまでの半周期の数が間違っています'];
+    if (Math.abs(d.tStopS - 5 * d.halfS) > 1e-9) return ['止まるまでの時間が間違っています'];
+    if (Math.abs(d.distTotalM - 1.00) > 1e-9) return ['動いた距離が間違っています'];
+    if (Math.abs(d.heatJ - d.fricN * d.distTotalM) > 1e-9) return ['摩擦で熱になった量が間違っています'];
+    if (Math.abs(d.e0J - 0.5 * d.k * d.A * d.A) > 1e-9) return ['はじめのエネルギーが間違っています'];
+    if (Math.abs(d.heatJ - d.e0J) > 1e-9) return ['熱になった量がはじめのエネルギーと一致しません'];
+    if (Math.abs(d.vCentreMs[0] - 1.7889) > 0.001) return ['1 回目の中心の速さが間違っています'];
+    if (Math.abs(d.vCentreMs[1] - 1.3856) > 0.001) return ['2 回目の中心の速さが間違っています'];
+    if (Math.abs(d.vCentreMs[2] - 0.9798) > 0.001) return ['3 回目の中心の速さが間違っています'];
+    if (Math.abs(d.vCentreMs[3] - 0.5657) > 0.001) return ['4 回目の中心の速さが間違っています'];
+    if (d.vSignedMs[0] <= 0 || d.vSignedMs[1] >= 0 || d.vSignedMs[2] <= 0 || d.vSignedMs[3] >= 0) return ['中心の向きが間違っています（奇数回は下向き、偶数回は上向きのはず）'];
+    if (Math.abs(d.tCentreS[0] - 0.168) > 0.002) return ['1 回目に中心を通る時刻が間違っています'];
+    if (Math.abs(d.tCentreS[1] - 0.486) > 0.002) return ['2 回目に中心を通る時刻が間違っています'];
+    if (Math.abs(d.tCentreS[2] - 0.806) > 0.002) return ['3 回目に中心を通る時刻が間違っています'];
+    if (Math.abs(d.tCentreS[3] - 1.134) > 0.002) return ['4 回目に中心を通る時刻が間違っています'];
+    if (Math.abs(d.fCentreHz[0] - 399.60) > 0.01) return ['1 回目の中心の音が間違っています'];
+    if (Math.abs(d.fCentreHz[1] - 395.89) > 0.01) return ['2 回目の中心の音が間違っています'];
+    if (Math.abs(d.fCentreHz[2] - 398.65) > 0.01) return ['3 回目の中心の音が間違っています'];
+    if (Math.abs(d.fCentreHz[3] - 396.84) > 0.01) return ['4 回目の中心の音が間違っています'];
+    if (Math.abs(d.fMaxHz - Math.max(...d.fCentreHz)) > 1e-9) return ['音の最大値が間違っています'];
+    if (Math.abs(d.fMinHz - Math.min(...d.fCentreHz)) > 1e-9) return ['音の最小値が間違っています'];
+    if (Math.round(d.fMaxHz) !== 400) return ['音の最大値は 1 Hz 単位で 400 Hz になるはずです'];
+    if (Math.round(d.fMinHz) !== 396) return ['音の最小値は 1 Hz 単位で 396 Hz になるはずです'];
+    if (Math.abs(d.f1 - 400) > 1e-9 || Math.abs(d.f2 - 800) > 1e-9 || Math.abs(d.f3 - 1200) > 1e-9) return ['開管の振動数が間違っています'];
+    if (d.matchCentre[0] !== true) return ['1 回目の下向きの中心で共鳴しなくなっています'];
+    if (d.matchCentre[1] !== false || d.matchCentre[2] !== false || d.matchCentre[3] !== false) return ['2 回目以降の中心でも共鳴してしまっています'];
+    if (d.matchRest !== false) return ['音源そのものの音が管と共鳴してしまっています'];
+    if (Math.abs(d.fMaxBeat - 2.10) > 0.01) return ['最大のうなりが間違っています'];
+    if (Math.abs(d.vNoFricMs - 2.0) > 1e-9) return ['摩擦なしの中心の速さが間違っています'];
+    if (Math.abs(d.fNoFricApp - 399.85) > 0.01) return ['摩擦なしの近づくときの音が間違っています'];
+    if (Math.abs(d.fNoFricRec - 395.18) > 0.01) return ['摩擦なしの遠ざかるときの音が間違っています'];
+    if (Math.abs(d.fWrongSignDownHz - 395.42) > 0.01) return ['符号をまちがえた下向きの音が間違っています'];
+    if (Math.abs(d.fWrongSignUpHz - 399.13) > 0.01) return ['符号をまちがえた上向きの音が間違っています'];
+    if (Math.abs(d.vWrongSlopeMs - 3.0) > 1e-9) return ['斜面を鉛直とみなしたときの速さが間違っています'];
+    if (Math.abs(d.fWrongSlopeHz - 401.04) > 0.01) return ['斜面を鉛直とみなしたときの音が間違っています'];
+    if (d.matchWrongSlope !== false) return ['斜面を鉛直とみなした音が管と共鳴してしまっています'];
+    if (Math.abs(d.fBottomReleaseHz - 399.13) > 0.01) return ['下端からはなしたときの 1 回目の下向きの音が間違っています'];
+    if (d.matchBottomRelease !== false) return ['下端からはなしても共鳴してしまっています'];
+    if (Math.abs(d.sEq - (d.anchorS + d.naturalPx + d.deltaM * d.pxPerM)) > 1e-9) return ['つりあいの位置の図の座標が間違っています'];
+    if (Math.abs(d.ballEq.x - d.atS(d.sEq).x) > 1e-9 || Math.abs(d.ballEq.y - d.atS(d.sEq).y) > 1e-9) return ['つりあいの玉の位置が間違っています'];
+    if (Math.abs(d.f2L085 - 400) > 1e-9) return ['L=0.85 m のときの f2 が 400 Hz になりません'];
+    if (d.matchFirstL085 !== true) return ['L=0.85 m で 1 回目の下向きの音が共鳴しなくなっています'];
+    if (d.matchFirstL017 !== false) return ['L=0.17 m で共鳴してしまっています'];
+    if (Math.abs(d.f440Centre[0] - 442.33) > 0.01) return ['f0=440 Hz のときの 1 回目の下向きの音が間違っています'];
+    if (Math.abs(d.f440Centre[1] - 438.21) > 0.01) return ['f0=440 Hz のときの 1 回目の上向きの音が間違っています'];
+    if (d.match440 !== false) return ['f0=440 Hz で共鳴してしまっています'];
+    if (Math.abs(d.fc1 - 200) > 1e-9 || Math.abs(d.fc3 - 600) > 1e-9 || Math.abs(d.fc5 - 1000) > 1e-9) return ['閉管の振動数が間違っています'];
+    if (d.matchClosed !== false) return ['閉管で共鳴してしまっています'];
+    if (Math.abs(d.vMu40[0] - 1.5492) > 0.001) return ['μ=0.40 のときの 1 回目の中心の速さが間違っています'];
+    if (Math.abs(d.fMu40Centre[0] - 399.32) > 0.01) return ['μ=0.40 のときの 1 回目の下向きの音が間違っています'];
+    if (Math.abs(d.distMu40M - 0.48) > 1e-9) return ['μ=0.40 のときの動いた距離が間違っています'];
+    if (Math.abs(d.heatMu40J - 1.92) > 1e-9) return ['μ=0.40 のときの熱が間違っています'];
+    if (d.matchMu40 !== false) return ['μ=0.40 で共鳴してしまっています'];
+    if (Math.abs(d.vA030[0] - 2.7928) > 0.001) return ['A=0.30 m のときの 1 回目の中心の速さが間違っています'];
+    if (Math.abs(d.fA030Centre[0] - 400.79) > 0.01) return ['A=0.30 m のときの 1 回目の下向きの音が間違っています'];
+    if (Math.abs(d.vA030[2] - 1.9900) > 0.001) return ['A=0.30 m のときの 3 回目の中心の速さが間違っています'];
+    if (Math.abs(d.fA030Centre[2] - 399.84) > 0.01) return ['A=0.30 m のときの 3 回目の下向きの音が間違っています'];
+    if (Math.abs(d.distA030M - 2.24) > 1e-9) return ['A=0.30 m のときの動いた距離が間違っています'];
+    if (Math.abs(d.heatA030J - 4.48) > 1e-9) return ['A=0.30 m のときの熱が間違っています'];
+    if (d.matchA030First !== false) return ['A=0.30 m で 1 回目の中心でも共鳴してしまっています'];
+    if (d.matchA030Third !== true) return ['A=0.30 m で 3 回目の中心の音が共鳴しなくなっています'];
+    if (Math.round(d.fA030Centre[2]) !== Math.round(d.f1)) return ['A=0.30 m の 3 回目の中心の音が f1 と 1 Hz 単位で一致しなくなっています'];
+  }
+  if (scene.type === 'slopeSpringFricRecedeDopplerResPipe') {
+    const d = scene.derived;
+    if (Math.abs(d.mgSinN - d.m * d.g * d.sinT) > 1e-9) return ['重力の斜面成分 mg sinθ が間違っています'];
+    if (Math.abs(d.mgCosN - d.m * d.g * d.cosT) > 1e-9) return ['重力の斜面に垂直な成分 mg cosθ が間違っています'];
+    if (Math.abs(d.deltaM - d.mgSinN / d.k) > 1e-9) return ['つりあいのずれ δ=mg sinθ/k が間違っています'];
+    if (Math.abs(d.releaseBelowM - (d.deltaM + d.A)) > 1e-9) return ['はなす点の自然長からのずれが間違っています'];
+    if (Math.abs(d.topM - (d.A - d.deltaM)) > 1e-9) return ['上端の自然長からのずれが間違っています'];
+    if (Math.abs(d.releaseForceUpN - d.k * (d.A + d.deltaM)) > 1e-9) return ['はなす点のばねの力が間違っています'];
+    if (Math.abs(d.releaseNetUpN - (d.releaseForceUpN - d.mgSinN)) > 1e-9) return ['はなす点の合力が間違っています'];
+    if (Math.abs(d.deltaFricM - d.fricN / d.k) > 1e-9) return ['摩擦によるずれ δ=f/k が間違っています'];
+    if (Math.abs(d.dAmpM - 2 * d.deltaFricM) > 1e-9) return ['半周期ごとの振幅の減少が間違っています'];
+    if (Math.abs(d.omega - Math.sqrt(d.k / d.m)) > 1e-9) return ['角振動数 ω が間違っています'];
+    if (Math.abs(d.periodS - (2 * Math.PI) / d.omega) > 1e-9) return ['周期 T が間違っています'];
+    if (Math.abs(d.halfS - d.periodS / 2) > 1e-9) return ['半周期 T/2 が間違っています'];
+    if (d.ampsM.length !== 6 || d.ampsM[0] !== 0.20 || d.ampsM[5] !== 0) return ['振幅の数列が間違っています'];
+    if (Math.abs(d.ampsM[1] - 0.16) > 1e-9 || Math.abs(d.ampsM[2] - 0.12) > 1e-9 || Math.abs(d.ampsM[3] - 0.08) > 1e-9 || Math.abs(d.ampsM[4] - 0.04) > 1e-9) return ['振幅の数列が間違っています'];
+    if (d.nStop !== 5) return ['止まるまでの半周期の数が間違っています'];
+    if (Math.abs(d.tStopS - 5 * d.halfS) > 1e-9) return ['止まるまでの時間が間違っています'];
+    if (Math.abs(d.distTotalM - 1.00) > 1e-9) return ['動いた距離が間違っています'];
+    if (Math.abs(d.heatJ - d.fricN * d.distTotalM) > 1e-9) return ['摩擦で熱になった量が間違っています'];
+    if (Math.abs(d.e0J - 0.5 * d.k * d.A * d.A) > 1e-9) return ['はじめのエネルギーが間違っています'];
+    if (Math.abs(d.heatJ - d.e0J) > 1e-9) return ['熱になった量がはじめのエネルギーと一致しません'];
+    if (Math.abs(d.vCentreMs[0] - 1.7889) > 0.001) return ['1 回目の中心の速さが間違っています'];
+    if (Math.abs(d.vCentreMs[1] - 1.3856) > 0.001) return ['2 回目の中心の速さが間違っています'];
+    if (Math.abs(d.vCentreMs[2] - 0.9798) > 0.001) return ['3 回目の中心の速さが間違っています'];
+    if (Math.abs(d.vCentreMs[3] - 0.5657) > 0.001) return ['4 回目の中心の速さが間違っています'];
+    if (d.vSignedMs[0] >= 0 || d.vSignedMs[1] <= 0 || d.vSignedMs[2] >= 0 || d.vSignedMs[3] <= 0) return ['中心の向きが間違っています（奇数回は上向き、偶数回は下向きのはず）'];
+    if (Math.abs(d.tCentreS[0] - 0.168) > 0.002) return ['1 回目に中心を通る時刻が間違っています'];
+    if (Math.abs(d.tCentreS[1] - 0.486) > 0.002) return ['2 回目に中心を通る時刻が間違っています'];
+    if (Math.abs(d.tCentreS[2] - 0.806) > 0.002) return ['3 回目に中心を通る時刻が間違っています'];
+    if (Math.abs(d.tCentreS[3] - 1.134) > 0.002) return ['4 回目に中心を通る時刻が間違っています'];
+    if (Math.abs(d.fCentreHz[0] - 400.39) > 0.01) return ['1 回目の中心の音が間違っています'];
+    if (Math.abs(d.fCentreHz[1] - 404.15) > 0.01) return ['2 回目の中心の音が間違っています'];
+    if (Math.abs(d.fCentreHz[2] - 401.34) > 0.01) return ['3 回目の中心の音が間違っています'];
+    if (Math.abs(d.fCentreHz[3] - 403.17) > 0.01) return ['4 回目の中心の音が間違っています'];
+    if (Math.abs(d.fMaxHz - Math.max(...d.fCentreHz)) > 1e-9) return ['音の最大値が間違っています'];
+    if (Math.abs(d.fMinHz - Math.min(...d.fCentreHz)) > 1e-9) return ['音の最小値が間違っています'];
+    if (Math.round(d.fMaxHz) !== 404) return ['音の最大値は 1 Hz 単位で 404 Hz になるはずです'];
+    if (Math.round(d.fMinHz) !== 400) return ['音の最小値は 1 Hz 単位で 400 Hz になるはずです'];
+    if (Math.abs(d.f1 - 400) > 1e-9 || Math.abs(d.f2 - 800) > 1e-9 || Math.abs(d.f3 - 1200) > 1e-9) return ['開管の振動数が間違っています'];
+    if (d.matchCentre[0] !== true) return ['1 回目の上向きの中心で共鳴しなくなっています'];
+    if (d.matchCentre[1] !== false || d.matchCentre[2] !== false || d.matchCentre[3] !== false) return ['2 回目以降の中心でも共鳴してしまっています'];
+    if (d.matchRest !== false) return ['音源そのものの音が管と共鳴してしまっています'];
+    if (Math.abs(d.fMaxBeat - 2.11) > 0.01) return ['最大のうなりが間違っています'];
+    if (Math.abs(d.vNoFricMs - 2.0) > 1e-9) return ['摩擦なしの中心の速さが間違っています'];
+    if (Math.abs(d.fNoFricApp - 404.88) > 0.01) return ['摩擦なしの近づくときの音が間違っています'];
+    if (Math.abs(d.fNoFricRec - 400.15) > 0.01) return ['摩擦なしの遠ざかるときの音が間違っています'];
+    if (Math.abs(d.fWrongSignUpHz - 404.63) > 0.01) return ['符号をまちがえた上向きの音が間違っています'];
+    if (Math.abs(d.fWrongSignDownHz - 400.87) > 0.01) return ['符号をまちがえた下向きの音が間違っています'];
+    if (Math.abs(d.vWrongSlopeMs - 3.0) > 1e-9) return ['斜面を鉛直とみなしたときの速さが間違っています'];
+    if (Math.abs(d.fWrongSlopeHz - 398.98) > 0.01) return ['斜面を鉛直とみなしたときの上向きの音が間違っています'];
+    if (Math.abs(d.fWrongSlopeDownHz - 406.08) > 0.01) return ['斜面を鉛直とみなしたときの下向きの音が間違っています'];
+    if (d.matchWrongSlope !== false) return ['斜面を鉛直とみなした音が管と共鳴してしまっています'];
+    if (Math.abs(d.fTopReleaseHz - 400.87) > 0.01) return ['上端からはなしたときの 1 回目の上向きの音が間違っています'];
+    if (Math.abs(d.fTopReleaseUp2Hz - 401.83) > 0.01) return ['上端からはなしたときの 2 回目の上向きの音が間違っています'];
+    if (d.matchTopRelease !== false) return ['上端からはなしても共鳴してしまっています'];
+    if (Math.abs(d.sEq - (d.anchorS + d.naturalPx + d.deltaM * d.pxPerM)) > 1e-9) return ['つりあいの位置の図の座標が間違っています'];
+    if (Math.abs(d.ballEq.x - d.atS(d.sEq).x) > 1e-9 || Math.abs(d.ballEq.y - d.atS(d.sEq).y) > 1e-9) return ['つりあいの玉の位置が間違っています'];
+    if (Math.abs(d.f2L085 - 400) > 1e-9) return ['L=0.85 m のときの f2 が 400 Hz になりません'];
+    if (d.matchFirstL085 !== true) return ['L=0.85 m で 1 回目の上向きの音が共鳴しなくなっています'];
+    if (d.matchFirstL017 !== false) return ['L=0.17 m で共鳴してしまっています'];
+    if (Math.abs(d.f440Centre[0] - 437.70) > 0.01) return ['f0=440 Hz のときの 1 回目の上向きの音が間違っています'];
+    if (Math.abs(d.f440Centre[1] - 441.80) > 0.01) return ['f0=440 Hz のときの 1 回目の下向きの音が間違っています'];
+    if (d.match440 !== false) return ['f0=440 Hz で共鳴してしまっています'];
+    if (Math.abs(d.fc1 - 200) > 1e-9 || Math.abs(d.fc3 - 600) > 1e-9 || Math.abs(d.fc5 - 1000) > 1e-9) return ['閉管の振動数が間違っています'];
+    if (d.matchClosed !== false) return ['閉管で共鳴してしまっています'];
+    if (Math.abs(d.vMu40[0] - 1.5492) > 0.001) return ['μ=0.40 のときの 1 回目の中心の速さが間違っています'];
+    if (Math.abs(d.fMu40Centre[0] - 400.67) > 0.01) return ['μ=0.40 のときの 1 回目の上向きの音が間違っています'];
+    if (Math.abs(d.distMu40M - 0.48) > 1e-9) return ['μ=0.40 のときの動いた距離が間違っています'];
+    if (Math.abs(d.heatMu40J - 1.92) > 1e-9) return ['μ=0.40 のときの熱が間違っています'];
+    if (d.matchMu40 !== false) return ['μ=0.40 で共鳴してしまっています'];
+    if (Math.abs(d.vA030[0] - 2.7928) > 0.001) return ['A=0.30 m のときの 1 回目の中心の速さが間違っています'];
+    if (Math.abs(d.fA030Centre[0] - 399.22) > 0.01) return ['A=0.30 m のときの 1 回目の上向きの音が間違っています'];
+    if (Math.abs(d.vA030[2] - 1.9900) > 0.001) return ['A=0.30 m のときの 3 回目の中心の速さが間違っています'];
+    if (Math.abs(d.fA030Centre[2] - 400.16) > 0.01) return ['A=0.30 m のときの 3 回目の上向きの音が間違っています'];
+    if (Math.abs(d.distA030M - 2.24) > 1e-9) return ['A=0.30 m のときの動いた距離が間違っています'];
+    if (Math.abs(d.heatA030J - 4.48) > 1e-9) return ['A=0.30 m のときの熱が間違っています'];
+    if (d.matchA030First !== false) return ['A=0.30 m で 1 回目の中心でも共鳴してしまっています'];
     if (d.matchA030Third !== true) return ['A=0.30 m で 3 回目の中心の音が共鳴しなくなっています'];
     if (Math.round(d.fA030Centre[2]) !== Math.round(d.f1)) return ['A=0.30 m の 3 回目の中心の音が f1 と 1 Hz 単位で一致しなくなっています'];
   }
@@ -14419,8 +14859,8 @@ function drawBase(svg, scene) {
     };
     // ばねのジグザグ（AA と同じ）。
     const springPath = (s1, s2) => {
-      const ax = 80 + d.sinT * s1, ay = 60 + d.cosT * s1;
-      const bx = 80 + d.sinT * s2, by = 60 + d.cosT * s2;
+      const ax = 80 + d.cosT * s1, ay = 60 + d.sinT * s1;
+      const bx = 80 + d.cosT * s2, by = 60 + d.sinT * s2;
       const total = Math.hypot(bx - ax, by - ay);
       const n = 8, step = total / n, dx = (bx - ax) / n, dy = (by - ay) / n;
       const px = -(by - ay) / total * 8, py = (bx - ax) / total * 8;
@@ -14610,8 +15050,8 @@ function drawBase(svg, scene) {
     };
     // ばねのジグザグ（AA と同じ）。
     const springPath = (s1, s2) => {
-      const ax = 80 + d.sinT * s1, ay = 60 + d.cosT * s1;
-      const bx = 80 + d.sinT * s2, by = 60 + d.cosT * s2;
+      const ax = 80 + d.cosT * s1, ay = 60 + d.sinT * s1;
+      const bx = 80 + d.cosT * s2, by = 60 + d.sinT * s2;
       const total = Math.hypot(bx - ax, by - ay);
       const n = 8, step = total / n, dx = (bx - ax) / n, dy = (by - ay) / n;
       const px = -(by - ay) / total * 8, py = (bx - ax) / total * 8;
@@ -14800,8 +15240,8 @@ function drawBase(svg, scene) {
     };
     // ばねのジグザグ（AA と同じ）。
     const springPath = (s1, s2) => {
-      const ax = 80 + d.sinT * s1, ay = 60 + d.cosT * s1;
-      const bx = 80 + d.sinT * s2, by = 60 + d.cosT * s2;
+      const ax = 80 + d.cosT * s1, ay = 60 + d.sinT * s1;
+      const bx = 80 + d.cosT * s2, by = 60 + d.sinT * s2;
       const total = Math.hypot(bx - ax, by - ay);
       const n = 8, step = total / n, dx = (bx - ax) / n, dy = (by - ay) / n;
       const px = -(by - ay) / total * 8, py = (bx - ax) / total * 8;
@@ -14996,8 +15436,8 @@ function drawBase(svg, scene) {
     };
     // ばねのジグザグ（AA と同じ）。
     const springPath = (s1, s2) => {
-      const ax = 80 + d.sinT * s1, ay = 60 + d.cosT * s1;
-      const bx = 80 + d.sinT * s2, by = 60 + d.cosT * s2;
+      const ax = 80 + d.cosT * s1, ay = 60 + d.sinT * s1;
+      const bx = 80 + d.cosT * s2, by = 60 + d.sinT * s2;
       const total = Math.hypot(bx - ax, by - ay);
       const n = 8, step = total / n, dx = (bx - ax) / n, dy = (by - ay) / n;
       const px = -(by - ay) / total * 8, py = (bx - ax) / total * 8;
@@ -15191,8 +15631,8 @@ function drawBase(svg, scene) {
     };
     // ばねのジグザグ（AA と同じ）。
     const springPath = (s1, s2) => {
-      const ax = 80 + d.sinT * s1, ay = 60 + d.cosT * s1;
-      const bx = 80 + d.sinT * s2, by = 60 + d.cosT * s2;
+      const ax = 80 + d.cosT * s1, ay = 60 + d.sinT * s1;
+      const bx = 80 + d.cosT * s2, by = 60 + d.sinT * s2;
       const total = Math.hypot(bx - ax, by - ay);
       const n = 8, step = total / n, dx = (bx - ax) / n, dy = (by - ay) / n;
       const px = -(by - ay) / total * 8, py = (bx - ax) / total * 8;
@@ -18431,6 +18871,465 @@ function drawBase(svg, scene) {
     } else if (phase === 'vary') {
       barRows([
         { name: '右向き1回目 400 Hz', w: d.fCentreHz[0] * 0.2, val: '400 Hz', color: '#ffd24d' },
+        { name: 'L=0.85 m f2', w: d.f2L085 * 0.2, val: '400 Hz', color: '#b3e6b3' },
+        { name: 'f0=440 Hz 438 Hz', w: d.f440Centre[0] * 0.2, val: '438 Hz', color: '#cfe3ff' },
+        { name: 'μ=0.40 401 Hz', w: d.fMu40Centre[0] * 0.2, val: '401 Hz', color: '#ffb3b3' },
+      ]);
+      note(256, 'L=0.85 m なら f2=400 Hz で共鳴');
+      note(274, 'μ=0.40 なら 401 Hz で共鳴しない');
+      note(292, 'A=0.30 m なら 3 回目で共鳴');
+    }
+  } else if (scene.type === 'slopeSpringFricDownDopplerResPipe') {
+    const d = scene.derived;
+    const phase = scene.phase;
+    const tH = el('text', { x: 40, y: 36, fill: '#333' });
+    tH.textContent = phase === 'spring' ? '斜面ばね振り子：摩擦とつりあい'
+      : phase === 'decay' ? '振幅は等差数列で減る'
+      : phase === 'speeds' ? '中心の速さ 1.8・1.4・0.98・0.57 m/s'
+      : phase === 'doppler' ? '音の高さ：最初の1回だけ 400 Hz になる'
+      : phase === 'resonate' ? '開管の共鳴：f1=400 Hz'
+      : phase === 'trap' ? '罠：共鳴は1周期ごとにくり返されない'
+      : phase === 'vary' ? '変えたら：L・f0・μ・振幅で変わる'
+      : '斜面ばね振り子＋摩擦＋ドップラー＋共鳴';
+    svg.appendChild(tH);
+    const note = (y, text) => { const t = el('text', { x: 60, y, fill: '#333' }); t.textContent = text; svg.appendChild(t); };
+    const barRows = (rows) => {
+      rows.forEach((r, i) => {
+        const y = 75 + i * 45;
+        const tN = el('text', { x: 60, y: y - 8 }); tN.textContent = r.name; svg.appendChild(tN);
+        svg.appendChild(el('rect', { x: 140, y, width: Math.max(r.w, 5), height: 18, fill: r.color, stroke: '#333', 'stroke-width': 1 }));
+        const tV = el('text', { x: 140 + Math.max(r.w, 5) + 8, y: y + 15 }); tV.textContent = r.val; svg.appendChild(tV);
+      });
+    };
+    // 斜面の幾何：斜面に沿う単位ベクトル (cosθ, sinθ) = (0.87, 0.50)。AA/CS のばねの
+    // ジグザグは (sinθ, cosθ) 方向に描かれていて玉につながらないので、ここでは斜面方向を使う。
+    const along = d.along, perpOut = { x: -d.sinT, y: -d.cosT }; // 斜面に垂直・外向き
+    const atS = d.atS;
+    const springPath = (s1, s2) => {
+      const ax = 80 + along.x * s1, ay = 60 + along.y * s1;
+      const bx = 80 + along.x * s2, by = 60 + along.y * s2;
+      const total = Math.hypot(bx - ax, by - ay);
+      const n = 8, step = total / n, dx = (bx - ax) / n, dy = (by - ay) / n;
+      const px = -(by - ay) / total * 8, py = (bx - ax) / total * 8;
+      let str = `M ${ax} ${ay}`;
+      for (let i = 1; i < n; i++) {
+        const pxn = ax + dx * i + (i % 2 === 1 ? px : -px);
+        const pyn = ay + dy * i + (i % 2 === 1 ? py : -py);
+        str += ` L ${pxn} ${pyn}`;
+      }
+      str += ` L ${bx} ${by}`;
+      return str;
+    };
+    const slopeFig = () => {
+      // 斜面（多角形）と地面、斜面の線、θ の弧。
+      svg.appendChild(el('polygon', { points: `80,60 ${d.slopeB.x},${d.slopeB.y} ${d.slopeB.x},280 80,280`, fill: '#eee' }));
+      svg.appendChild(el('line', { x1: 40, y1: d.slopeB.y, x2: 360, y2: d.slopeB.y, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: d.slopeA.x, y1: d.slopeA.y, x2: d.slopeB.x, y2: d.slopeB.y, stroke: '#333', 'stroke-width': 3 }));
+      let arc = '';
+      for (let deg = 180; deg <= 210; deg += 5) {
+        const r = deg2rad(deg);
+        const x = (d.slopeB.x + 30 * Math.cos(r)).toFixed(1), y = (d.slopeB.y + 30 * Math.sin(r)).toFixed(1);
+        arc += (arc ? ' L ' : 'M ') + x + ' ' + y;
+      }
+      svg.appendChild(el('path', { d: arc, fill: 'none', stroke: '#333', 'stroke-width': 1.5 }));
+      const tT = el('text', { x: 258, y: 204 }); tT.textContent = 'θ=30°'; svg.appendChild(tT);
+    };
+    if (phase === 'base') {
+      // 流れ：斜面ばね振り子＋摩擦 → 速さ → ドップラー → 開管。
+      const boxes = [
+        { x: 4, label: '斜面ばね', sub: 'θ=30°' },
+        { x: 100, label: '速さ', sub: '1.8 m/s' },
+        { x: 196, label: 'ドップラー', sub: '400 Hz' },
+        { x: 292, label: '開管', sub: 'f1=400' },
+      ];
+      boxes.forEach((b, i) => {
+        svg.appendChild(el('rect', { x: b.x, y: 100, width: 88, height: 80, fill: '#fff', stroke: '#333', 'stroke-width': 2 }));
+        const tL = el('text', { x: b.x + 44, y: 130, 'text-anchor': 'middle', 'font-size': 14 }); tL.textContent = b.label; svg.appendChild(tL);
+        const tS = el('text', { x: b.x + 44, y: 155, 'text-anchor': 'middle', 'font-size': 14 }); tS.textContent = b.sub; svg.appendChild(tS);
+        if (i < 3) svg.appendChild(el('line', { x1: b.x + 88, y1: 140, x2: b.x + 96, y2: 140, stroke: '#333', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+      });
+      note(256, '玉は斜面を上下に振動する');
+      note(274, '最初の1回だけ、下向きに通るとき共鳴');
+      note(292, '橋渡し量は速度（斜面方向）');
+    } else if (phase === 'spring') {
+      slopeFig();
+      const sRel = d.sEq - d.A * d.pxPerM; // はなす点の s（110）
+      const sEdge = sRel + 14; // 玉の下端（124）
+      // ばねの固定端の印とジグザグ（固定端 s=20 から玉の縁 s=96 まで）。
+      const a = atS(d.anchorS);
+      svg.appendChild(el('line', { x1: a.x - perpOut.x * 8, y1: a.y - perpOut.y * 8, x2: a.x + perpOut.x * 8, y2: a.y + perpOut.y * 8, stroke: '#333', 'stroke-width': 3 }));
+      svg.appendChild(el('path', { d: springPath(d.anchorS, sRel - 14), fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      const rel = atS(sRel);
+      svg.appendChild(el('circle', { cx: rel.x, cy: rel.y, r: 14, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      // 自然長・つりあいの破線。斜面の内側（下側）にだけ引く。外側は力の矢印の場所。
+      const nat = atS(d.anchorS + d.naturalPx); // s=140
+      const eq = atS(d.sEq); // s=150
+      svg.appendChild(el('line', { x1: nat.x, y1: nat.y, x2: nat.x - perpOut.x * 20, y2: nat.y - perpOut.y * 20, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+      svg.appendChild(el('line', { x1: eq.x, y1: eq.y, x2: eq.x - perpOut.x * 20, y2: eq.y - perpOut.y * 20, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+      // はなす点の力：ばね 15 N と重力の斜面成分 5 N（どちらも斜面下向き）。縮尺 2 px/N。
+      const spr0 = { x: atS(sEdge).x + perpOut.x * 14, y: atS(sEdge).y + perpOut.y * 14 };
+      const spr1 = { x: atS(sEdge + 30).x + perpOut.x * 14, y: atS(sEdge + 30).y + perpOut.y * 14 };
+      svg.appendChild(el('line', { x1: spr0.x, y1: spr0.y, x2: spr1.x, y2: spr1.y, stroke: '#b00', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+      const grv0 = { x: atS(sEdge).x + perpOut.x * 28, y: atS(sEdge).y + perpOut.y * 28 };
+      const grv1 = { x: atS(sEdge + 10).x + perpOut.x * 28, y: atS(sEdge + 10).y + perpOut.y * 28 };
+      svg.appendChild(el('line', { x1: grv0.x, y1: grv0.y, x2: grv1.x, y2: grv1.y, stroke: '#333', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+      const tS = el('text', { x: 185, y: 104, fill: '#b00' }); tS.textContent = 'ばね 15 N'; svg.appendChild(tS);
+      const tG = el('text', { x: 169, y: 85 }); tG.textContent = 'mg sinθ 5 N'; svg.appendChild(tG);
+      const tN = el('text', { x: 166, y: 66, 'text-anchor': 'end' }); tN.textContent = '自然長'; svg.appendChild(tN);
+      const tE = el('text', { x: 231, y: 171 }); tE.textContent = 'つりあい'; svg.appendChild(tE);
+      const tR = el('text', { x: 150, y: 148, 'text-anchor': 'end' }); tR.textContent = 'はなす点'; svg.appendChild(tR);
+      const tM = el('text', { x: 250, y: 62 }); tM.textContent = 'm=1.0 kg'; svg.appendChild(tM);
+      const tK = el('text', { x: 40, y: 120 }); tK.textContent = 'ばね k=100 N/m'; svg.appendChild(tK);
+      // 観測者：斜面の下、地面に立つ。
+      svg.appendChild(el('circle', { cx: 368, cy: 178, r: 7, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 368, y1: 185, x2: 368, y2: 210, stroke: '#333', 'stroke-width': 2 }));
+      const tO = el('text', { x: 320, y: 170 }); tO.textContent = '観測者'; svg.appendChild(tO);
+      note(256, 'つりあいは自然長から 0.050 m 下');
+      note(274, 'はなす点は自然長から 0.15 m 上');
+      note(292, 'ばね 15 N＋mg sinθ 5 N＝20 N');
+    } else if (phase === 'decay') {
+      // x–t グラフ（CY と同じ）：x はつりあい位置からの変位（斜面上向きを正）。
+      // 横軸 t：0〜1.6 s、縦軸 x：−0.20〜+0.20 m。
+      const xOf = (t) => 60 + t * 175;
+      const yOf = (x) => 150 - x * 450;
+      svg.appendChild(el('line', { x1: 60, y1: 240, x2: 340, y2: 240, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: 60, y1: 50, x2: 60, y2: 240, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: 60, y1: 150, x2: 340, y2: 150, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      // 振幅の包絡線（直線で減る）。上側 +A(t)、下側 −A(t)。
+      svg.appendChild(el('line', { x1: 60, y1: yOf(0.20), x2: xOf(1.571), y2: 150, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      svg.appendChild(el('line', { x1: 60, y1: yOf(-0.20), x2: xOf(1.571), y2: 150, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      // 振動の曲線：半周期ごとに x(t) = (−1)^n [δ + (A_n−δ)cos ω(t−nT/2)]。
+      let path = '';
+      for (let t = 0; t <= 1.571; t += 0.005) {
+        const n = Math.min(5, Math.floor(t / (d.periodS / 2)));
+        const x = (n % 2 === 0 ? 1 : -1) * (d.deltaFricM + (d.ampsM[n] - d.deltaFricM) * Math.cos(d.omega * (t - (n * d.periodS) / 2)));
+        path += (path ? ' L ' : 'M ') + xOf(t).toFixed(1) + ' ' + yOf(x).toFixed(1);
+      }
+      svg.appendChild(el('path', { d: path, fill: 'none', stroke: '#0066cc', 'stroke-width': 2 }));
+      const tE = el('text', { x: 200, y: 90 }); tE.textContent = '振幅は直線で減る'; svg.appendChild(tE);
+      const tA = el('text', { x: 12, y: 64 }); tA.textContent = '0.20'; svg.appendChild(tA);
+      const tB = el('text', { x: 8, y: 238 }); tB.textContent = '－0.20'; svg.appendChild(tB);
+      const t0 = el('text', { x: 44, y: 154 }); t0.textContent = '0'; svg.appendChild(t0);
+      const tX = el('text', { x: 48, y: 70 }); tX.textContent = 'x'; svg.appendChild(tX);
+      const tT = el('text', { x: 344, y: 244 }); tT.textContent = 't'; svg.appendChild(tT);
+      note(256, '半周期ごとに振幅は 0.040 m ずつ減る');
+      note(274, '0.20→0.16→0.12→0.08→0.04→0 m');
+      note(292, '5半周期で止まる（T/2≈0.31 s ずつ）');
+    } else if (phase === 'speeds') {
+      // 中心を通る 4 回を並べる：玉はつねにつりあいの位置。速さの矢印は斜面と平行に 30° 傾ける。
+      // 速さの矢印は 20 px/(m/s)：1.8 m/s → 36 px、1.4 m/s → 28 px、0.98 m/s → 20 px、0.57 m/s → 11 px。
+      const eqY = 150;
+      const cols = [65, 155, 245, 335];
+      svg.appendChild(el('line', { x1: 30, y1: eqY, x2: 370, y2: eqY, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+      cols.forEach((cx, n) => {
+        svg.appendChild(el('circle', { cx, cy: eqY, r: 9, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+        const v = d.vCentreMs[n];
+        const len = v * 20;
+        const dir = n % 2 === 0 ? 1 : -1; // 奇数回は下向き、偶数回は上向き
+        const dx = along.x * dir, dy = along.y * dir;
+        const x0 = cx - (dx * len) / 2, y0 = eqY - (dy * len) / 2;
+        const x1 = cx + (dx * len) / 2, y1 = eqY + (dy * len) / 2;
+        svg.appendChild(el('line', { x1: x0, y1: y0, x2: x1, y2: y1, stroke: '#d35400', 'stroke-width': 3, 'marker-end': 'url(#fig-arrow)' }));
+        // 速さの数値：下向きは玉の右下、上向きは玉の左上に置く（CY と同じ配置）。
+        if (dir === 1) {
+          const tV = el('text', { x: cx + 8, y: eqY + 33, fill: '#d35400' }); tV.textContent = `${v.toFixed(2)} m/s`; svg.appendChild(tV);
+        } else {
+          const tV = el('text', { x: cx - 8, y: eqY - 33, 'text-anchor': 'end', fill: '#d35400' }); tV.textContent = `${v.toFixed(2)} m/s`; svg.appendChild(tV);
+        }
+        const t1 = el('text', { x: cx, y: eqY + 62, 'text-anchor': 'middle' }); t1.textContent = `${n + 1} 回目 ${dir === 1 ? '下' : '上'}`; svg.appendChild(t1);
+        const t2 = el('text', { x: cx, y: eqY + 80, 'text-anchor': 'middle' }); t2.textContent = `${d.fCentreHz[n].toFixed(2)} Hz`; svg.appendChild(t2);
+      });
+      note(256, '速さ 1.8→1.4→0.98→0.57 m/s');
+      note(274, '下向き 400・399 Hz、上向き 396・397 Hz');
+      note(292, '1 回目の下向きだけ 400 Hz で共鳴');
+    } else if (phase === 'doppler') {
+      // f'(t)：t 0→1.57 s（止まるまで）、f' 395→400 Hz。400 Hz（管の f1）の破線。CY と同じ。
+      const x0 = 60, x1 = 340, y0 = 240;
+      const yOf = (f) => y0 - (f - 393) * 14;
+      const xOf = (t) => x0 + (t / d.tStopS) * (x1 - x0);
+      svg.appendChild(el('line', { x1: x0, y1: y0, x2: x1, y2: y0, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: x0, y1: 60, x2: x0, y2: y0, stroke: '#333', 'stroke-width': 2 }));
+      const tY = el('text', { x: 36, y: 64, fill: '#333' }); tY.textContent = 'f′'; svg.appendChild(tY);
+      [[0, '0 s'], [0.5, '0.5 s'], [1.0, '1.0 s'], [1.5, '1.5 s']].forEach(([t, label]) => {
+        const tx = el('text', { x: xOf(t), y: 258, 'text-anchor': 'middle' }); tx.textContent = label; svg.appendChild(tx);
+        svg.appendChild(el('line', { x1: xOf(t), y1: y0, x2: xOf(t), y2: y0 + 6, stroke: '#333', 'stroke-width': 1 }));
+      });
+      svg.appendChild(el('line', { x1: x0, y1: yOf(400), x2: x1, y2: yOf(400), stroke: '#c00', 'stroke-width': 1, 'stroke-dasharray': '4 3' }));
+      const tF0 = el('text', { x: 64, y: yOf(400) - 8 }); tF0.textContent = '400 Hz'; svg.appendChild(tF0);
+      const tF1 = el('text', { x: x1, y: yOf(400) - 16, 'text-anchor': 'end' }); tF1.textContent = '管の f1'; svg.appendChild(tF1);
+      let pts = '';
+      for (let i = 0; i <= 80; i++) {
+        const t = (i / 80) * d.tStopS;
+        pts += `${xOf(t)},${yOf(d.fPrimeAt(t))} `;
+      }
+      svg.appendChild(el('polyline', { points: pts.trim(), stroke: '#333', 'stroke-width': 2, fill: 'none' }));
+      // 最大・最小のラベルはこの型の導出値から計算する（CZ の直書きミスを防ぐ）。
+      const tMax = el('text', { x: 200, y: 64, fill: '#c00' }); tMax.textContent = `最大 ${Math.round(d.fMaxHz)} Hz`; svg.appendChild(tMax);
+      const tMin = el('text', { x: 160, y: 231 }); tMin.textContent = `最小 ${Math.round(d.fMinHz)} Hz`; svg.appendChild(tMin);
+    } else if (phase === 'resonate') {
+      // 開管の第1倍音の定常波：両端が腹、中央が節。CY と同じ。
+      const x0 = 60, span = 280, yMid = 170, amp = 35;
+      svg.appendChild(el('rect', { x: x0, y: yMid - 40, width: span, height: 80, fill: '#f2f6ff', stroke: '#333', 'stroke-width': 2 }));
+      const tO = el('text', { x: x0, y: yMid - 52 }); tO.textContent = '開管 L=0.425 m'; svg.appendChild(tO);
+      const tF = el('text', { x: 250, y: yMid - 52 }); tF.textContent = 'f1=400 Hz'; svg.appendChild(tF);
+      let p = '';
+      for (let i = 0; i <= 120; i++) {
+        const t = i / 120;
+        const x = (x0 + t * span).toFixed(1), y = (yMid - amp * Math.cos(Math.PI * t)).toFixed(1);
+        p += (p ? ' L ' : 'M ') + x + ' ' + y;
+      }
+      svg.appendChild(el('path', { d: p, fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 200, y1: yMid - 10, x2: 200, y2: yMid + 10, stroke: '#b00', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx: x0, cy: yMid - amp, r: 4, fill: '#b00' }));
+      svg.appendChild(el('circle', { cx: x0 + span, cy: yMid + amp, r: 4, fill: '#b00' }));
+      const tN = el('text', { x: 194, y: 230, fill: '#b00' }); tN.textContent = '節'; svg.appendChild(tN);
+      const tA1 = el('text', { x: 48, y: 230, fill: '#b00' }); tA1.textContent = '腹'; svg.appendChild(tA1);
+      const tA2 = el('text', { x: 330, y: 230, fill: '#b00' }); tA2.textContent = '腹'; svg.appendChild(tA2);
+      note(256, '両端が腹、中央が節');
+      note(274, 'f1 = 340/0.85 = 400 Hz');
+      note(292, '1 回目の下向きの音が f1 と一致');
+    } else if (phase === 'trap') {
+      barRows([
+        { name: '下向き1回目 400 Hz', w: (d.fCentreHz[0] - 390) * 10, val: '400 Hz', color: '#b3e6b3' },
+        { name: '下向き2回目 399 Hz', w: (d.fCentreHz[2] - 390) * 10, val: '399 Hz', color: '#ffd24d' },
+        { name: '音源 397.5 Hz', w: (d.f0Hz - 390) * 10, val: '397.5 Hz', color: '#cfe3ff' },
+        { name: '鉛直とすると 401 Hz', w: (d.fWrongSlopeHz - 390) * 10, val: '401 Hz', color: '#ffb3b3' },
+      ]);
+      note(256, '罠：2 回目の下向きは 399 Hz');
+      note(274, '共鳴は最初の1回だけ');
+      note(292, '摩擦なしでも 1 回目は 400 Hz');
+    } else if (phase === 'vary') {
+      barRows([
+        { name: '下向き1回目 400 Hz', w: d.fCentreHz[0] * 0.2, val: '400 Hz', color: '#ffd24d' },
+        { name: 'L=0.85 m f2', w: d.f2L085 * 0.2, val: '400 Hz', color: '#b3e6b3' },
+        { name: 'f0=440 Hz 442 Hz', w: d.f440Centre[0] * 0.2, val: '442 Hz', color: '#cfe3ff' },
+        { name: 'μ=0.40 399 Hz', w: d.fMu40Centre[0] * 0.2, val: '399 Hz', color: '#ffb3b3' },
+      ]);
+      note(256, 'L=0.85 m なら f2=400 Hz で共鳴');
+      note(274, 'μ=0.40 なら 399 Hz で共鳴しない');
+      note(292, 'A=0.30 m なら 3 回目で共鳴');
+    }
+  } else if (scene.type === 'slopeSpringFricRecedeDopplerResPipe') {
+    const d = scene.derived;
+    const phase = scene.phase;
+    const tH = el('text', { x: 40, y: 36, fill: '#333' });
+    tH.textContent = phase === 'spring' ? '斜面ばね振り子：摩擦とつりあい'
+      : phase === 'decay' ? '振幅は等差数列で減る'
+      : phase === 'speeds' ? '中心の速さ 1.8・1.4・0.98・0.57 m/s'
+      : phase === 'doppler' ? '音の高さ：最初の1回だけ 400 Hz になる'
+      : phase === 'resonate' ? '開管の共鳴：f1=400 Hz'
+      : phase === 'trap' ? '罠：共鳴は1周期ごとにくり返されない'
+      : phase === 'vary' ? '変えたら：L・f0・μ・振幅で変わる'
+      : '斜面ばね振り子＋摩擦＋ドップラー＋共鳴';
+    svg.appendChild(tH);
+    const note = (y, text) => { const t = el('text', { x: 60, y, fill: '#333' }); t.textContent = text; svg.appendChild(t); };
+    const barRows = (rows) => {
+      rows.forEach((r, i) => {
+        const y = 75 + i * 45;
+        const tN = el('text', { x: 60, y: y - 8 }); tN.textContent = r.name; svg.appendChild(tN);
+        svg.appendChild(el('rect', { x: 140, y, width: Math.max(r.w, 5), height: 18, fill: r.color, stroke: '#333', 'stroke-width': 1 }));
+        const tV = el('text', { x: 140 + Math.max(r.w, 5) + 8, y: y + 15 }); tV.textContent = r.val; svg.appendChild(tV);
+      });
+    };
+    // 斜面の幾何：斜面に沿う単位ベクトル (cosθ, sinθ) = (0.87, 0.50)。DC と同じく斜面方向を使う。
+    const along = d.along, perpOut = { x: -d.sinT, y: -d.cosT }; // 斜面に垂直・外向き
+    const atS = d.atS;
+    const springPath = (s1, s2) => {
+      const ax = 80 + along.x * s1, ay = 60 + along.y * s1;
+      const bx = 80 + along.x * s2, by = 60 + along.y * s2;
+      const total = Math.hypot(bx - ax, by - ay);
+      const n = 8, step = total / n, dx = (bx - ax) / n, dy = (by - ay) / n;
+      const px = -(by - ay) / total * 8, py = (bx - ax) / total * 8;
+      let str = `M ${ax} ${ay}`;
+      for (let i = 1; i < n; i++) {
+        const pxn = ax + dx * i + (i % 2 === 1 ? px : -px);
+        const pyn = ay + dy * i + (i % 2 === 1 ? py : -py);
+        str += ` L ${pxn} ${pyn}`;
+      }
+      str += ` L ${bx} ${by}`;
+      return str;
+    };
+    const slopeFig = () => {
+      // 斜面（多角形）と地面、斜面の線、θ の弧。
+      svg.appendChild(el('polygon', { points: `80,60 ${d.slopeB.x},${d.slopeB.y} ${d.slopeB.x},280 80,280`, fill: '#eee' }));
+      svg.appendChild(el('line', { x1: 40, y1: d.slopeB.y, x2: 360, y2: d.slopeB.y, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: d.slopeA.x, y1: d.slopeA.y, x2: d.slopeB.x, y2: d.slopeB.y, stroke: '#333', 'stroke-width': 3 }));
+      let arc = '';
+      for (let deg = 180; deg <= 210; deg += 5) {
+        const r = deg2rad(deg);
+        const x = (d.slopeB.x + 30 * Math.cos(r)).toFixed(1), y = (d.slopeB.y + 30 * Math.sin(r)).toFixed(1);
+        arc += (arc ? ' L ' : 'M ') + x + ' ' + y;
+      }
+      svg.appendChild(el('path', { d: arc, fill: 'none', stroke: '#333', 'stroke-width': 1.5 }));
+      const tT = el('text', { x: 258, y: 204 }); tT.textContent = 'θ=30°'; svg.appendChild(tT);
+    };
+    if (phase === 'base') {
+      // 流れ：斜面ばね振り子＋摩擦 → 速さ → ドップラー → 開管。
+      const boxes = [
+        { x: 4, label: '斜面ばね', sub: 'θ=30°' },
+        { x: 100, label: '速さ', sub: '1.8 m/s' },
+        { x: 196, label: 'ドップラー', sub: '400 Hz' },
+        { x: 292, label: '開管', sub: 'f1=400' },
+      ];
+      boxes.forEach((b, i) => {
+        svg.appendChild(el('rect', { x: b.x, y: 100, width: 88, height: 80, fill: '#fff', stroke: '#333', 'stroke-width': 2 }));
+        const tL = el('text', { x: b.x + 44, y: 130, 'text-anchor': 'middle', 'font-size': 14 }); tL.textContent = b.label; svg.appendChild(tL);
+        const tS = el('text', { x: b.x + 44, y: 155, 'text-anchor': 'middle', 'font-size': 14 }); tS.textContent = b.sub; svg.appendChild(tS);
+        if (i < 3) svg.appendChild(el('line', { x1: b.x + 88, y1: 140, x2: b.x + 96, y2: 140, stroke: '#333', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+      });
+      note(256, '玉は斜面を上下に振動する');
+      note(274, '最初の1回だけ、上向きに通るとき共鳴');
+      note(292, '橋渡し量は速度（斜面方向）');
+    } else if (phase === 'spring') {
+      slopeFig();
+      const sRel = d.sEq + d.A * d.pxPerM; // はなす点の s（190、下端）
+      const sEdge = sRel - 14; // 玉の上端（176）
+      // ばねの固定端の印とジグザグ（固定端 s=20 から玉の縁 s=176 まで）。
+      const a = atS(d.anchorS);
+      svg.appendChild(el('line', { x1: a.x - perpOut.x * 8, y1: a.y - perpOut.y * 8, x2: a.x + perpOut.x * 8, y2: a.y + perpOut.y * 8, stroke: '#333', 'stroke-width': 3 }));
+      svg.appendChild(el('path', { d: springPath(d.anchorS, sRel - 14), fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      const rel = atS(sRel);
+      svg.appendChild(el('circle', { cx: rel.x, cy: rel.y, r: 14, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      // 自然長・つりあいの破線。斜面の内側（下側）にだけ引く。外側は力の矢印の場所。
+      const nat = atS(d.anchorS + d.naturalPx); // s=140
+      const eq = atS(d.sEq); // s=150
+      svg.appendChild(el('line', { x1: nat.x, y1: nat.y, x2: nat.x - perpOut.x * 20, y2: nat.y - perpOut.y * 20, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+      svg.appendChild(el('line', { x1: eq.x, y1: eq.y, x2: eq.x - perpOut.x * 20, y2: eq.y - perpOut.y * 20, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+      // はなす点の力：ばね 25 N（斜面上向き）と重力の斜面成分 5 N（斜面下向き）。縮尺 2 px/N。
+      const spr0 = { x: atS(sEdge).x + perpOut.x * 14, y: atS(sEdge).y + perpOut.y * 14 };
+      const spr1 = { x: atS(sEdge - d.releaseForceUpN * 2).x + perpOut.x * 14, y: atS(sEdge - d.releaseForceUpN * 2).y + perpOut.y * 14 };
+      svg.appendChild(el('line', { x1: spr0.x, y1: spr0.y, x2: spr1.x, y2: spr1.y, stroke: '#b00', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+      const grv0 = { x: atS(sEdge).x + perpOut.x * 28, y: atS(sEdge).y + perpOut.y * 28 };
+      const grv1 = { x: atS(sEdge + d.mgSinN * 2).x + perpOut.x * 28, y: atS(sEdge + d.mgSinN * 2).y + perpOut.y * 28 };
+      svg.appendChild(el('line', { x1: grv0.x, y1: grv0.y, x2: grv1.x, y2: grv1.y, stroke: '#333', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+      const tS = el('text', { x: 175, y: 95, fill: '#b00' }); tS.textContent = 'ばね 25 N'; svg.appendChild(tS);
+      const tG = el('text', { x: 250, y: 108 }); tG.textContent = 'mg sinθ 5 N'; svg.appendChild(tG);
+      const tN = el('text', { x: 166, y: 66, 'text-anchor': 'end' }); tN.textContent = '自然長'; svg.appendChild(tN);
+      const tE = el('text', { x: 215, y: 190 }); tE.textContent = 'つりあい'; svg.appendChild(tE);
+      const tR = el('text', { x: 300, y: 140 }); tR.textContent = 'はなす点'; svg.appendChild(tR);
+      const tM = el('text', { x: 250, y: 62 }); tM.textContent = 'm=1.0 kg'; svg.appendChild(tM);
+      const tK = el('text', { x: 40, y: 120 }); tK.textContent = 'ばね k=100 N/m'; svg.appendChild(tK);
+      // 観測者：斜面の下、地面に立つ。
+      svg.appendChild(el('circle', { cx: 368, cy: 178, r: 7, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 368, y1: 185, x2: 368, y2: 210, stroke: '#333', 'stroke-width': 2 }));
+      const tO = el('text', { x: 320, y: 170 }); tO.textContent = '観測者'; svg.appendChild(tO);
+      note(256, 'つりあいは自然長から 0.050 m 下');
+      note(274, 'はなす点は自然長から 0.25 m 下');
+      note(292, 'ばね 25 N−mg sinθ 5 N＝20 N');
+    } else if (phase === 'decay') {
+      // x–t グラフ（DC と同じ）：x はつりあい位置からの変位（斜面上向きを正）。DD は下端からはなすので初めは負。
+      // 横軸 t：0〜1.6 s、縦軸 x：−0.20〜+0.20 m。
+      const xOf = (t) => 60 + t * 175;
+      const yOf = (x) => 150 - x * 450;
+      svg.appendChild(el('line', { x1: 60, y1: 240, x2: 340, y2: 240, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: 60, y1: 50, x2: 60, y2: 240, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: 60, y1: 150, x2: 340, y2: 150, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      // 振幅の包絡線（直線で減る）。上側 +A(t)、下側 −A(t)。
+      svg.appendChild(el('line', { x1: 60, y1: yOf(0.20), x2: xOf(1.571), y2: 150, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      svg.appendChild(el('line', { x1: 60, y1: yOf(-0.20), x2: xOf(1.571), y2: 150, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      // 振動の曲線：半周期ごとに x(t) = (−1)^(n+1) [δ + (A_n−δ)cos ω(t−nT/2)]。
+      let path = '';
+      for (let t = 0; t <= 1.571; t += 0.005) {
+        const n = Math.min(5, Math.floor(t / (d.periodS / 2)));
+        const x = (n % 2 === 0 ? -1 : 1) * (d.deltaFricM + (d.ampsM[n] - d.deltaFricM) * Math.cos(d.omega * (t - (n * d.periodS) / 2)));
+        path += (path ? ' L ' : 'M ') + xOf(t).toFixed(1) + ' ' + yOf(x).toFixed(1);
+      }
+      svg.appendChild(el('path', { d: path, fill: 'none', stroke: '#0066cc', 'stroke-width': 2 }));
+      const tE = el('text', { x: 200, y: 90 }); tE.textContent = '振幅は直線で減る'; svg.appendChild(tE);
+      const tA = el('text', { x: 12, y: 64 }); tA.textContent = '0.20'; svg.appendChild(tA);
+      const tB = el('text', { x: 8, y: 238 }); tB.textContent = '－0.20'; svg.appendChild(tB);
+      const t0 = el('text', { x: 44, y: 154 }); t0.textContent = '0'; svg.appendChild(t0);
+      const tX = el('text', { x: 48, y: 70 }); tX.textContent = 'x'; svg.appendChild(tX);
+      const tT = el('text', { x: 344, y: 244 }); tT.textContent = 't'; svg.appendChild(tT);
+      note(256, '半周期ごとに振幅は 0.040 m ずつ減る');
+      note(274, '0.20→0.16→0.12→0.08→0.04→0 m');
+      note(292, '5半周期で止まる（T/2≈0.31 s ずつ）');
+    } else if (phase === 'speeds') {
+      // 中心を通る 4 回を並べる：玉はつねにつりあいの位置。速さの矢印は斜面と平行に 30° 傾ける。
+      // 速さの矢印は 20 px/(m/s)：1.8 m/s → 36 px、1.4 m/s → 28 px、0.98 m/s → 20 px、0.57 m/s → 11 px。
+      const eqY = 150;
+      const cols = [65, 155, 245, 335];
+      svg.appendChild(el('line', { x1: 30, y1: eqY, x2: 370, y2: eqY, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+      cols.forEach((cx, n) => {
+        svg.appendChild(el('circle', { cx, cy: eqY, r: 9, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+        const v = d.vCentreMs[n];
+        const len = v * 20;
+        const dir = n % 2 === 0 ? -1 : 1; // 偶数回は上向き、奇数回は下向き
+        const dx = along.x * dir, dy = along.y * dir;
+        const x0 = cx - (dx * len) / 2, y0 = eqY - (dy * len) / 2;
+        const x1 = cx + (dx * len) / 2, y1 = eqY + (dy * len) / 2;
+        svg.appendChild(el('line', { x1: x0, y1: y0, x2: x1, y2: y1, stroke: '#d35400', 'stroke-width': 3, 'marker-end': 'url(#fig-arrow)' }));
+        // 速さの数値：下向きは玉の右下、上向きは玉の左上に置く（DC と同じ配置）。
+        if (dir === 1) {
+          const tV = el('text', { x: cx + 8, y: eqY + 33, fill: '#d35400' }); tV.textContent = `${v.toFixed(2)} m/s`; svg.appendChild(tV);
+        } else {
+          const tV = el('text', { x: cx - 8, y: eqY - 33, 'text-anchor': 'end', fill: '#d35400' }); tV.textContent = `${v.toFixed(2)} m/s`; svg.appendChild(tV);
+        }
+        const t1 = el('text', { x: cx, y: eqY + 62, 'text-anchor': 'middle' }); t1.textContent = `${n + 1} 回目 ${dir === 1 ? '下' : '上'}`; svg.appendChild(t1);
+        const t2 = el('text', { x: cx, y: eqY + 80, 'text-anchor': 'middle' }); t2.textContent = `${d.fCentreHz[n].toFixed(2)} Hz`; svg.appendChild(t2);
+      });
+      note(256, '速さ 1.8→1.4→0.98→0.57 m/s');
+      note(274, '上向き 400・401 Hz、下向き 404・403 Hz');
+      note(292, '1 回目の上向きだけ 400 Hz で共鳴');
+    } else if (phase === 'doppler') {
+      // f'(t)：t 0→1.57 s（止まるまで）、f' 400→404 Hz。400 Hz（管の f1）の破線。DC と同じ。
+      const x0 = 60, x1 = 340, y0 = 240;
+      const yOf = (f) => y0 - (f - 393) * 14;
+      const xOf = (t) => x0 + (t / d.tStopS) * (x1 - x0);
+      svg.appendChild(el('line', { x1: x0, y1: y0, x2: x1, y2: y0, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: x0, y1: 60, x2: x0, y2: y0, stroke: '#333', 'stroke-width': 2 }));
+      const tY = el('text', { x: 36, y: 64, fill: '#333' }); tY.textContent = 'f′'; svg.appendChild(tY);
+      [[0, '0 s'], [0.5, '0.5 s'], [1.0, '1.0 s'], [1.5, '1.5 s']].forEach(([t, label]) => {
+        const tx = el('text', { x: xOf(t), y: 258, 'text-anchor': 'middle' }); tx.textContent = label; svg.appendChild(tx);
+        svg.appendChild(el('line', { x1: xOf(t), y1: y0, x2: xOf(t), y2: y0 + 6, stroke: '#333', 'stroke-width': 1 }));
+      });
+      svg.appendChild(el('line', { x1: x0, y1: yOf(400), x2: x1, y2: yOf(400), stroke: '#c00', 'stroke-width': 1, 'stroke-dasharray': '4 3' }));
+      const tF0 = el('text', { x: 64, y: yOf(400) - 8 }); tF0.textContent = '400 Hz'; svg.appendChild(tF0);
+      const tF1 = el('text', { x: x1, y: yOf(400) - 16, 'text-anchor': 'end' }); tF1.textContent = '管の f1'; svg.appendChild(tF1);
+      let pts = '';
+      for (let i = 0; i <= 80; i++) {
+        const t = (i / 80) * d.tStopS;
+        pts += `${xOf(t)},${yOf(d.fPrimeAt(t))} `;
+      }
+      svg.appendChild(el('polyline', { points: pts.trim(), stroke: '#333', 'stroke-width': 2, fill: 'none' }));
+      // 最大・最小のラベルはこの型の導出値から計算する（CZ の直書きミスを防ぐ）。
+      const tMax = el('text', { x: 200, y: 64, fill: '#c00' }); tMax.textContent = `最大 ${Math.round(d.fMaxHz)} Hz`; svg.appendChild(tMax);
+      const tMin = el('text', { x: 160, y: 231 }); tMin.textContent = `最小 ${Math.round(d.fMinHz)} Hz`; svg.appendChild(tMin);
+    } else if (phase === 'resonate') {
+      // 開管の第1倍音の定常波：両端が腹、中央が節。DC と同じ。
+      const x0 = 60, span = 280, yMid = 170, amp = 35;
+      svg.appendChild(el('rect', { x: x0, y: yMid - 40, width: span, height: 80, fill: '#f2f6ff', stroke: '#333', 'stroke-width': 2 }));
+      const tO = el('text', { x: x0, y: yMid - 52 }); tO.textContent = '開管 L=0.425 m'; svg.appendChild(tO);
+      const tF = el('text', { x: 250, y: yMid - 52 }); tF.textContent = 'f1=400 Hz'; svg.appendChild(tF);
+      let p = '';
+      for (let i = 0; i <= 120; i++) {
+        const t = i / 120;
+        const x = (x0 + t * span).toFixed(1), y = (yMid - amp * Math.cos(Math.PI * t)).toFixed(1);
+        p += (p ? ' L ' : 'M ') + x + ' ' + y;
+      }
+      svg.appendChild(el('path', { d: p, fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 200, y1: yMid - 10, x2: 200, y2: yMid + 10, stroke: '#b00', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx: x0, cy: yMid - amp, r: 4, fill: '#b00' }));
+      svg.appendChild(el('circle', { cx: x0 + span, cy: yMid + amp, r: 4, fill: '#b00' }));
+      const tN = el('text', { x: 194, y: 230, fill: '#b00' }); tN.textContent = '節'; svg.appendChild(tN);
+      const tA1 = el('text', { x: 48, y: 230, fill: '#b00' }); tA1.textContent = '腹'; svg.appendChild(tA1);
+      const tA2 = el('text', { x: 330, y: 230, fill: '#b00' }); tA2.textContent = '腹'; svg.appendChild(tA2);
+      note(256, '両端が腹、中央が節');
+      note(274, 'f1 = 340/0.85 = 400 Hz');
+      note(292, '1 回目の上向きの音が f1 と一致');
+    } else if (phase === 'trap') {
+      barRows([
+        { name: '上向き1回目 400 Hz', w: (d.fCentreHz[0] - 390) * 10, val: '400 Hz', color: '#b3e6b3' },
+        { name: '上向き2回目 401 Hz', w: (d.fCentreHz[2] - 390) * 10, val: '401 Hz', color: '#ffd24d' },
+        { name: '音源 402.5 Hz', w: (d.f0Hz - 390) * 10, val: '402.5 Hz', color: '#cfe3ff' },
+        { name: '鉛直とすると 399 Hz', w: (d.fWrongSlopeHz - 390) * 10, val: '399 Hz', color: '#ffb3b3' },
+      ]);
+      note(256, '罠：2 回目の上向きは 401 Hz');
+      note(274, '共鳴は最初の1回だけ');
+      note(292, '摩擦なしでも 1 回目は 400 Hz');
+    } else if (phase === 'vary') {
+      barRows([
+        { name: '上向き1回目 400 Hz', w: d.fCentreHz[0] * 0.2, val: '400 Hz', color: '#ffd24d' },
         { name: 'L=0.85 m f2', w: d.f2L085 * 0.2, val: '400 Hz', color: '#b3e6b3' },
         { name: 'f0=440 Hz 438 Hz', w: d.f440Centre[0] * 0.2, val: '438 Hz', color: '#cfe3ff' },
         { name: 'μ=0.40 401 Hz', w: d.fMu40Centre[0] * 0.2, val: '401 Hz', color: '#ffb3b3' },
@@ -31420,5 +32319,5 @@ function pendulumApexDopplerResPipeForces(data) {
 }
 
 
-if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, capSpringGravDerived, capSpringGravForces, gasSpringCycleDerived, gasSpringCycleForces, slopeSpringDerived, slopeSpringForces, fallLoopDerived, fallLoopForces, beltSpringDerived, beltSpringForces, massSpecDerived, massSpecForces, coilHallDerived, coilHallForces, platformChargeDerived, platformChargeForces, pendulumCollideDerived, pendulumCollideForces, photoCapDerived, photoCapForces, orbitTransferDerived, orbitTransferForces, cyclotronDerived, cyclotronForces, slopeSpringFricDerived, slopeSpringFricForces, projWallDerived, projWallForces, railSpringDampDerived, railSpringDampForces, pendulumSpringDerived, pendulumSpringForces, gasPistonOscDerived, gasPistonOscForces, photoCircleDerived, photoCircleForces, earthTunnelDerived, earthTunnelForces, heaterGasDerived, heaterGasForces, specPhotoCircleDerived, specPhotoCircleForces, ottoCycleDerived, ottoCycleForces, generatorACDerived, generatorACForces, explodeProjectileDerived, explodeProjectileForces, slopePulleySpringDerived, slopePulleySpringForces, cathodeRayDerived, cathodeRayForces, conicalPendulumDerived, conicalPendulumForces, conicalDopplerResPipeDerived, conicalDopplerResPipeForces, conicalDopplerRecedeResPipeDerived, conicalDopplerRecedeResPipeForces, vertSpringDopplerResPipeDerived, vertSpringDopplerResPipeForces, vertSpringRecedeDopplerResPipeDerived, vertSpringRecedeDopplerResPipeForces, vertSpringFricDopplerResPipeDerived, vertSpringFricDopplerResPipeForces, vertSpringFricRecedeDopplerResPipeDerived, vertSpringFricRecedeDopplerResPipeForces, horizSpringFricDopplerResPipeDerived, horizSpringFricDopplerResPipeForces, horizSpringFricRecedeDopplerResPipeDerived, horizSpringFricRecedeDopplerResPipeForces, rcChargeDerived, rcChargeForces, projWallFricDerived, projWallFricForces, rlcChargeDerived, rlcChargeForces, photoCapCircleDerived, photoCapCircleForces, acRlcDerived, acRlcForces, projDragIntegrate, projDragDerived, projDragForces, pendulumSpringFricDerived, pendulumSpringFricForces, slopePulleyFricDerived, slopePulleyFricForces, selectorCircleDerived, selectorCircleForces, fallLoopCapDerived, fallLoopCapForces, genTransformerDerived, genTransformerForces, projWallSpringDerived, projWallSpringForces, genRectSmoothDerived, genRectSmoothForces, projDragWallIntegrate, projDragWallDerived, projDragWallForces, photoDopplerCircleDerived, photoDopplerCircleForces, dopplerResonanceDerived, dopplerResonanceForces, fallDragSpringDerived, fallDragSpringForces, projDragWallSpringDerived, projDragWallSpringForces, pendulumDopplerDerived, pendulumDopplerForces, gasSoundPipeDerived, gasSoundPipeForces, photoDopplerCapDerived, photoDopplerCapForces, pendulumDopplerSpringDerived, pendulumDopplerSpringForces, genRectRcDerived, genRectRcForces, slopePulleyDopplerDerived, slopePulleyDopplerForces, slopePulleyResPipeDerived, slopePulleyResPipeForces,
+if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, capSpringGravDerived, capSpringGravForces, gasSpringCycleDerived, gasSpringCycleForces, slopeSpringDerived, slopeSpringForces, fallLoopDerived, fallLoopForces, beltSpringDerived, beltSpringForces, massSpecDerived, massSpecForces, coilHallDerived, coilHallForces, platformChargeDerived, platformChargeForces, pendulumCollideDerived, pendulumCollideForces, photoCapDerived, photoCapForces, orbitTransferDerived, orbitTransferForces, cyclotronDerived, cyclotronForces, slopeSpringFricDerived, slopeSpringFricForces, projWallDerived, projWallForces, railSpringDampDerived, railSpringDampForces, pendulumSpringDerived, pendulumSpringForces, gasPistonOscDerived, gasPistonOscForces, photoCircleDerived, photoCircleForces, earthTunnelDerived, earthTunnelForces, heaterGasDerived, heaterGasForces, specPhotoCircleDerived, specPhotoCircleForces, ottoCycleDerived, ottoCycleForces, generatorACDerived, generatorACForces, explodeProjectileDerived, explodeProjectileForces, slopePulleySpringDerived, slopePulleySpringForces, cathodeRayDerived, cathodeRayForces, conicalPendulumDerived, conicalPendulumForces, conicalDopplerResPipeDerived, conicalDopplerResPipeForces, conicalDopplerRecedeResPipeDerived, conicalDopplerRecedeResPipeForces, vertSpringDopplerResPipeDerived, vertSpringDopplerResPipeForces, vertSpringRecedeDopplerResPipeDerived, vertSpringRecedeDopplerResPipeForces, vertSpringFricDopplerResPipeDerived, vertSpringFricDopplerResPipeForces, vertSpringFricRecedeDopplerResPipeDerived, vertSpringFricRecedeDopplerResPipeForces, horizSpringFricDopplerResPipeDerived, horizSpringFricDopplerResPipeForces, horizSpringFricRecedeDopplerResPipeDerived, horizSpringFricRecedeDopplerResPipeForces, slopeSpringFricDownDopplerResPipeDerived, slopeSpringFricDownDopplerResPipeForces, slopeSpringFricRecedeDopplerResPipeDerived, slopeSpringFricRecedeDopplerResPipeForces, rcChargeDerived, rcChargeForces, projWallFricDerived, projWallFricForces, rlcChargeDerived, rlcChargeForces, photoCapCircleDerived, photoCapCircleForces, acRlcDerived, acRlcForces, projDragIntegrate, projDragDerived, projDragForces, pendulumSpringFricDerived, pendulumSpringFricForces, slopePulleyFricDerived, slopePulleyFricForces, selectorCircleDerived, selectorCircleForces, fallLoopCapDerived, fallLoopCapForces, genTransformerDerived, genTransformerForces, projWallSpringDerived, projWallSpringForces, genRectSmoothDerived, genRectSmoothForces, projDragWallIntegrate, projDragWallDerived, projDragWallForces, photoDopplerCircleDerived, photoDopplerCircleForces, dopplerResonanceDerived, dopplerResonanceForces, fallDragSpringDerived, fallDragSpringForces, projDragWallSpringDerived, projDragWallSpringForces, pendulumDopplerDerived, pendulumDopplerForces, gasSoundPipeDerived, gasSoundPipeForces, photoDopplerCapDerived, photoDopplerCapForces, pendulumDopplerSpringDerived, pendulumDopplerSpringForces, genRectRcDerived, genRectRcForces, slopePulleyDopplerDerived, slopePulleyDopplerForces, slopePulleyResPipeDerived, slopePulleyResPipeForces,
  slopePulleyTurnResPipeDerived, slopePulleyTurnResPipeForces, slopePulleySecondCentreResPipeDerived, slopePulleySecondCentreResPipeForces, gasCarnotCycleDerived, gasCarnotCycleForces, fallDragDopplerDerived, fallDragDopplerForces, dopplerResPipeDerived, dopplerResPipeForces, forkDopplerResPipeDerived, forkDopplerResPipeForces, fallLoopCapSpringDerived, fallLoopCapSpringForces, fallLoopCapDopplerResPipeDerived, fallLoopCapDopplerResPipeForces, fallLoopCapEnterResPipeDerived, fallLoopCapEnterResPipeForces, fallLoopCapReboundResPipeDerived, fallLoopCapReboundResPipeForces, fallLoopCapEnterF2ResPipeDerived, fallLoopCapEnterF2ResPipeForces, projDragWallDopplerResPipeDerived, projDragWallDopplerResPipeForces, projDragWallDopplerResPipeSeries, projDragWallLandResPipeDerived, projDragWallLandResPipeForces, projDragWallLandResPipeSeries, projDragWallSpringResPipeDerived, projDragWallSpringResPipeForces, projDragWallSpringResPipeSeries, gasCycleResPipeDerived, gasCycleResPipeForces, gasCycleDopplerResPipeDerived, gasCycleDopplerResPipeForces, gasDescentResPipeDerived, gasDescentResPipeForces, fallDopplerResPipeDerived, fallDopplerResPipeForces, pendulumDopplerResPipeDerived, pendulumDopplerResPipeForces, pendulumRiseDopplerResPipeDerived, pendulumRiseDopplerResPipeForces, pendulumReboundDopplerResPipeDerived, pendulumReboundDopplerResPipeForces, pendulumFirstCollideDopplerResPipeDerived, pendulumFirstCollideDopplerResPipeForces, pendulumApexDopplerResPipeDerived, pendulumApexDopplerResPipeForces, slopeSpringFricDopplerResPipeDerived, slopeSpringFricDopplerResPipeForces, slopeSpringFricFirstCentreResPipeDerived, slopeSpringFricFirstCentreResPipeForces, slopeSpringFricLastCentreResPipeDerived, slopeSpringFricLastCentreResPipeForces, slopeSpringFricThirdCentreResPipeDerived, slopeSpringFricThirdCentreResPipeForces, slopeSpringFricTurnResPipeDerived, slopeSpringFricTurnResPipeForces, gasCarnotDopplerResPipeDerived, gasCarnotDopplerResPipeForces, gasBF2ResPipeDerived, gasBF2ResPipeForces, gasDF1ResPipeDerived, gasDF1ResPipeForces, loopTopDopplerResPipeDerived, loopTopDopplerResPipeForces, sceneFor, validateScene, renderFigure };
