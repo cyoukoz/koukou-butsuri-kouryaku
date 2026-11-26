@@ -13385,7 +13385,7 @@ function drawBase(svg, scene) {
       const tSt = el('text', { x: 150, y: 230 }); tSt.textContent = '−10 m'; svg.appendChild(tSt);
       note(256, 'v0=20 m/s、45°、壁は 5.0 m 先');
       note(274, '着地は x=−12 m、速さ 13 m/s');
-      note(292, '4.0 m すべってばねに当たり、x=−10 m で止まる');
+      note(292, '4.0 m すべってばねに当たり、−10 m で止まる');
     } else if (phase === 'wall') {
       // BC の壁の図とまったく同じ（飛行は BC と同一）。
       svg.appendChild(el('line', { x1: 40, y1: 236, x2: 360, y2: 236, stroke: '#333', 'stroke-width': 2 }));
