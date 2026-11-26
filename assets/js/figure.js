@@ -15832,19 +15832,20 @@ function drawBase(svg, scene) {
     };
     if (phase === 'base') {
       // 流れの箱：気体 → ピストン＋ばね → サイクル → 音速と共鳴（BN の base と同じ配置）。
+      // 下段の箱の下端（236）から注釈（256）まで 8 px 以上あける（注釈が箱の中に入る欠陥の修正）。
       const boxes = [
-        { x: 50, y: 80, name: '気体（He）' },
-        { x: 210, y: 80, name: 'ピストン＋ばね' },
-        { x: 50, y: 180, name: 'サイクル' },
-        { x: 210, y: 180, name: '音速と共鳴' },
+        { x: 50, y: 80, h: 76, name: '気体（He）' },
+        { x: 210, y: 80, h: 76, name: 'ピストン＋ばね' },
+        { x: 50, y: 164, h: 72, name: 'サイクル' },
+        { x: 210, y: 164, h: 72, name: '音速と共鳴' },
       ];
       for (const b of boxes) {
-        svg.appendChild(el('rect', { x: b.x, y: b.y, width: 140, height: 80, fill: '#eef', stroke: '#333', 'stroke-width': 1.5 }));
+        svg.appendChild(el('rect', { x: b.x, y: b.y, width: 140, height: b.h, fill: '#eef', stroke: '#333', 'stroke-width': 1.5 }));
         const tB = el('text', { x: b.x + 70, y: b.y + 46, 'text-anchor': 'middle' }); tB.textContent = b.name; svg.appendChild(tB);
       }
-      svg.appendChild(el('line', { x1: 190, y1: 120, x2: 210, y2: 120, stroke: '#333', 'stroke-width': 1.5 }));
-      svg.appendChild(el('line', { x1: 280, y1: 160, x2: 280, y2: 180, stroke: '#333', 'stroke-width': 1.5 }));
-      svg.appendChild(el('line', { x1: 210, y1: 220, x2: 190, y2: 220, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: 190, y1: 118, x2: 210, y2: 118, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: 280, y1: 156, x2: 280, y2: 164, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: 210, y1: 200, x2: 190, y2: 200, stroke: '#333', 'stroke-width': 1.5 }));
       note(256, 'A→B 加熱、B→C 冷却、C→A 等温');
       note(274, '温度が音速を決め、音速が共鳴を決める');
       note(292, '1200 Hz の音さは A・C で共鳴する');
@@ -15960,19 +15961,20 @@ function drawBase(svg, scene) {
     };
     if (phase === 'base') {
       // 流れの箱：気体 → ピストン＋ばね → サイクル → ドップラー＋共鳴（BR の base と同じ配置）。
+      // 下段の箱の下端（236）から注釈（256）まで 8 px 以上あける（注釈が箱の中に入る欠陥の修正）。
       const boxes = [
-        { x: 50, y: 80, name: '気体（He）' },
-        { x: 210, y: 80, name: 'ピストン＋ばね' },
-        { x: 50, y: 180, name: 'サイクル' },
-        { x: 210, y: 180, name: 'ドップラー＋共鳴' },
+        { x: 50, y: 80, h: 76, name: '気体（He）' },
+        { x: 210, y: 80, h: 76, name: 'ピストン＋ばね' },
+        { x: 50, y: 164, h: 72, name: 'サイクル' },
+        { x: 210, y: 164, h: 72, name: 'ドップラー＋共鳴' },
       ];
       for (const b of boxes) {
-        svg.appendChild(el('rect', { x: b.x, y: b.y, width: 140, height: 80, fill: '#eef', stroke: '#333', 'stroke-width': 1.5 }));
+        svg.appendChild(el('rect', { x: b.x, y: b.y, width: 140, height: b.h, fill: '#eef', stroke: '#333', 'stroke-width': 1.5 }));
         const tB = el('text', { x: b.x + 70, y: b.y + 46, 'text-anchor': 'middle' }); tB.textContent = b.name; svg.appendChild(tB);
       }
-      svg.appendChild(el('line', { x1: 190, y1: 120, x2: 210, y2: 120, stroke: '#333', 'stroke-width': 1.5 }));
-      svg.appendChild(el('line', { x1: 280, y1: 160, x2: 280, y2: 180, stroke: '#333', 'stroke-width': 1.5 }));
-      svg.appendChild(el('line', { x1: 210, y1: 220, x2: 190, y2: 220, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: 190, y1: 118, x2: 210, y2: 118, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: 280, y1: 156, x2: 280, y2: 164, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: 210, y1: 200, x2: 190, y2: 200, stroke: '#333', 'stroke-width': 1.5 }));
       note(256, 'A→B 加熱、B→C 冷却、C→A 等温');
       note(274, '温度が音速とドップラー音を決める');
       note(292, '音源はピストンにのって 34 m/s で動く');
