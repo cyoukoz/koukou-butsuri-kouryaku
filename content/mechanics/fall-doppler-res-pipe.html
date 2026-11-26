@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題BS：落下＋ばね＋摩擦＋ドップラー＋開管の共鳴 — 高校物理攻略</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", sans-serif; margin: 0; background: #fff; color: #222; line-height: 1.8; }
+  main { max-width: 720px; margin: 0 auto; padding: 24px 18px 80px; }
+  h1 { font-size: 24px; line-height: 1.4; }
+  h2 { font-size: 20px; margin-top: 40px; }
+  .step { border-top: 1px solid #ddd; padding-top: 16px; margin-top: 32px; }
+  .step h2 { font-size: 18px; margin: 0 0 8px; }
+  .fig { width: 100%; max-width: 400px; height: auto; display: block; margin: 12px auto; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; font-size: 14px; }
+  th { background: #f2f2f2; }
+  .donebox { border: 2px solid #4a8; background: #f6fffa; padding: 14px; margin-top: 40px; }
+  .nav { margin-top: 32px; font-size: 14px; }
+  .toplink { position: fixed; right: 16px; bottom: 16px; background: #222; color: #fff; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 14px; }
+  label.check { display: block; margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+<p><a href="../../index.html">← トップへ</a> ｜ <a href="gas-cycle-res-pipe.html">← 組み合わせ問題BR：気体＋ピストン＋ばね＋音速＋共鳴管</a></p>
+<h1>組み合わせ問題BS：落下＋ばね＋摩擦＋ドップラー＋開管の共鳴</h1>
+<p>質量 0.20 kg の玉を、3.0 m の高さから静かに落とす。玉には音源（f0 = 490 Hz）がついている。玉は空気抵抗（F = kv²、k = 0.010 kg/m）を受けながら落ち、下のばね（k = 50 N/m）に当たる。ばねに当たっているあいだ、玉には動摩擦力 1.0 N がはたらく。玉が落ちる地面の横には、開管（長さ 0.34 m）が置いてある。音速は 340 m/s、重力加速度は g = 10 m/s² とする。</p>
+<p>(1) 落下：終端速度と着地の速さ、着地の音を求めよ。(2) ばね：最大の縮みと押し返し、はね返りを求めよ。(3) 音の高さの時間変化と開管の共鳴。(4) 罠と変えたら。</p>
+
+<div class="step" id="step0">
+<p><b>はじめに：どう切り分けるか</b></p>
+<table>
+<tr><th>場面</th><th>考えること</th><th>使うモデル</th></tr>
+<tr><td>落下</td><td>空気抵抗で落ち、着地 7.2 m/s</td><td>2乗の空気抵抗</td></tr>
+<tr><td>ばね</td><td>2段の計算で縮みと押し返し</td><td>単振動＋摩擦</td></tr>
+<tr><td>ドップラー</td><td>着地で 500 Hz、はね返りで 481 Hz</td><td>ドップラー効果</td></tr>
+<tr><td>共鳴</td><td>着地の 500 Hz が管の f1 と一致</td><td>開管の共鳴</td></tr>
+</table>
+<p>この問題の橋渡しの量は<b>速さ</b>だ。落下の速さがばねの縮みと観測される振動数の両方を決める。速さが変われば、縮みも音の高さも変わる。</p>
+<svg class="fig" data-scene="scene-fallDopplerResPipe-base" data-show="" role="img" aria-label="流れ。落下してばねに当たり、音は 500 Hz になって管と共鳴する"></svg>
+<script type="application/json" id="scene-fallDopplerResPipe-base">{"f0Hz":490,"fricN":1.0,"g":10,"hM":3.0,"kDragKgPerM":0.01,"kSpring":50,"mKg":0.2,"phase":"base","pipeLM":0.34,"type":"fallDopplerResPipe","vSoundMs":340}</script>
+<p><a href="#step1">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step1">
+<h2>① 落下：終端速度 14 m/s、着地 7.2 m/s、音は 500 Hz</h2>
+<p>終端速度は v_t = √(mg/k) = √(2.0/0.010) = 14 m/s になる。着地の速さは v = v_t√(1 − e^(−2gh/v_t²)) = 14 × √(1 − e^(−60/196)) ≈ 7.2 m/s、落下時間は t = (v_t/g)·atanh(v/v_t) ≈ 0.79 s になる。着地の空気抵抗は F = kv² = 0.010 × 7.2² ≈ 0.52 N、運動エネルギーは ½mv² ≈ 5.2 J、空気抵抗の仕事は 0.82 J になる。mgh = 6.0 J と、5.2 + 0.82 = 6.0 J はぴったり合う。</p>
+<p>ドップラー効果：音源が速さ v で近づくので、観測される振動数は f′ = f0·V/(V − v) になる。着地の直前は f′ = 490 × 340/(340 − 7.2) ≈ 500 Hz になる。0.25 s では v ≈ 2.5 m/s で f′ ≈ 494 Hz、0.40 s では v ≈ 3.9 m/s で f′ ≈ 496 Hz になる。うなりは、着地の音と音源の 490 Hz の差で、最大で約 11 Hz になる。</p>
+<svg class="fig" data-scene="scene-fallDopplerResPipe-fall" data-show="gravityA,velocityB,gravityB,dragB" role="img" aria-label="落下。はじめは v=0、着地は v=7.2 m/s、重力 2.0 N、着地の空気抵抗 0.52 N、音源つき"></svg>
+<script type="application/json" id="scene-fallDopplerResPipe-fall">{"f0Hz":490,"fricN":1.0,"g":10,"hM":3.0,"kDragKgPerM":0.01,"kSpring":50,"mKg":0.2,"phase":"fall","pipeLM":0.34,"type":"fallDopplerResPipe","vSoundMs":340}</script>
+<label class="check"><input type="checkbox" id="comboFallDopplerResPipe-check-1"> 終端速度 14 m/s と着地 7.2 m/s、着地の音 500 Hz を求めた</label>
+<p><a href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<h2>② ばね：最大の縮み 0.48 m、ばねの力 24 N、押し返し 6.5 m/s</h2>
+<p>ばねの角振動数は ω = √(k/m) = √(50/0.20) ≈ 16 rad/s になる。縮むとき、摩擦は上向きにはたらくので、つり合いのずれは x_eq1 = (mg − f)/k = (2.0 − 1.0)/50 = 0.020 m になる。最大の縮みは x_max = x_eq1 + √[x_eq1² + (v/ω)²] ≈ 0.48 m になる。ばねの力は k·x_max = 50 × 0.48 = 24 N になる。圧縮にかかる時間は 0.10 s だ。</p>
+<p>戻るとき、摩擦は下向きにはたらくので、つり合いのずれは x_eq2 = (mg + f)/k = 0.060 m に変わる。押し返しの速さは v_return = ω√[(x_max − x_eq2)² − x_eq2²] ≈ 6.5 m/s になる。戻りに 0.11 s かかる。摩擦熱は 0.95 J、押し返しの運動エネルギーは 4.2 J になる。はね返りの高さは 1.9 m になる。落としはじめてからはね返りの頂点まで 1.6 s かかる。</p>
+<svg class="fig" data-scene="scene-fallDopplerResPipe-spring" data-show="springForce" role="img" aria-label="ばねを縮める。自然長から 0.48 m 縮み、ばねの力 24 N、押し返すと 6.5 m/s"></svg>
+<script type="application/json" id="scene-fallDopplerResPipe-spring">{"f0Hz":490,"fricN":1.0,"g":10,"hM":3.0,"kDragKgPerM":0.01,"kSpring":50,"mKg":0.2,"phase":"spring","pipeLM":0.34,"type":"fallDopplerResPipe","vSoundMs":340}</script>
+<label class="check"><input type="checkbox" id="comboFallDopplerResPipe-check-2"> 最大の縮み 0.48 m と押し返し 6.5 m/s を求めた</label>
+<p><a href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<h2>③ 音の高さの時間変化と開管の共鳴：着地の 500 Hz が f1 と一致する</h2>
+<p>音の高さは、落下するにつれて上がっていく。はじめ 490 Hz、0.25 s で 494 Hz、0.40 s で 496 Hz、着地の直前で 500 Hz になる。はね返りの直後は、玉が 6.5 m/s で遠ざかるので f′ = 490 × 340/(340 + 6.5) ≈ 481 Hz になり、頂点で 490 Hz に戻る。</p>
+<p>開管の振動数は f_n = n·v/(2L) = n × 340/(2 × 0.34) = n × 500 Hz になる。f1 = 500 Hz、f2 = 1000 Hz、f3 = 1500 Hz だ。着地の音は厳密には 501 Hz だが、有効数字 2 けたでは 500 Hz になり、管の f1 と一致するので、共鳴する。はね返りの音 481 Hz はどの振動数とも合わないので、共鳴しない。音源の 490 Hz そのものも、管の振動数ではない。</p>
+<svg class="fig" data-scene="scene-fallDopplerResPipe-doppler" data-show="" role="img" aria-label="音の高さの時間変化。はじめ 490 Hz、着地の直前 500 Hz、はね返りの直後 481 Hz、頂点で 490 Hz"></svg>
+<script type="application/json" id="scene-fallDopplerResPipe-doppler">{"f0Hz":490,"fricN":1.0,"g":10,"hM":3.0,"kDragKgPerM":0.01,"kSpring":50,"mKg":0.2,"phase":"doppler","pipeLM":0.34,"type":"fallDopplerResPipe","vSoundMs":340}</script>
+<svg class="fig" data-scene="scene-fallDopplerResPipe-resonate" data-show="" role="img" aria-label="開管の基本振動。両端が腹、中央が節、f1=500 Hz、着地の 500 Hz と一致する"></svg>
+<script type="application/json" id="scene-fallDopplerResPipe-resonate">{"f0Hz":490,"fricN":1.0,"g":10,"hM":3.0,"kDragKgPerM":0.01,"kSpring":50,"mKg":0.2,"phase":"resonate","pipeLM":0.34,"type":"fallDopplerResPipe","vSoundMs":340}</script>
+<label class="check"><input type="checkbox" id="comboFallDopplerResPipe-check-3"> 音の高さの時間変化と、着地の 500 Hz が f1 と一致することを確かめた</label>
+<p><a href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<h2>④ 罠：音源の 490 Hz は共鳴しない、抵抗なしでも 501 Hz</h2>
+<p>罠：「音源の 490 Hz が共鳴する」——まちがい。管の振動数は 500・1000・1500 Hz で、490 Hz はどれとも合わない。共鳴するのはドップラーで高くなった着地の音 500 Hz だけだ。</p>
+<p>罠：「はね返りの 481 Hz も共鳴する」——まちがい。481 Hz は 500 Hz の f1 とも 1000 Hz の f2 とも合わない。はね返りのあいだ、管は鳴らない。</p>
+<p>罠：「空気抵抗がなければ、着地の音は変わって共鳴しなくなる」——まちがい。抵抗なしでも着地は 7.7 m/s、音は 501 Hz になり、やはり f1 = 500 Hz と一致して共鳴する。空気抵抗は着地の音を 1 Hz しか変えない。</p>
+<p>罠：「1段の計算で押し返し 7.2 m/s、はね返りの音 480 Hz」——まちがい。1段の計算だと押し返しは着地の速さと同じ 7.2 m/s、はね返りの音は 480 Hz になるが、摩擦の向きの反転を入れると正しくは 6.5 m/s、481 Hz だ。摩擦なしだと 0.50 m、重力を無視すると 0.44 m になる。</p>
+<svg class="fig" data-scene="scene-fallDopplerResPipe-trap" data-show="" role="img" aria-label="音の高さの比べ。着地 500 Hz、音源 490 Hz、はね返り 481 Hz、抵抗なし 501 Hz"></svg>
+<script type="application/json" id="scene-fallDopplerResPipe-trap">{"f0Hz":490,"fricN":1.0,"g":10,"hM":3.0,"kDragKgPerM":0.01,"kSpring":50,"mKg":0.2,"phase":"trap","pipeLM":0.34,"type":"fallDopplerResPipe","vSoundMs":340}</script>
+<label class="check"><input type="checkbox" id="comboFallDopplerResPipe-check-4"> 罠を 4 つ確かめた</label>
+<p><a href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<h2>⑤ 変えたら：L・f0・閉管・k で共鳴が変わる</h2>
+<p>L = 0.68 m なら、f1 = 250 Hz、f2 = 500 Hz になる。着地の音 500 Hz は f2 と一致して、やはり共鳴する。</p>
+<p>f0 = 440 Hz なら、着地の音は 440 × 340/(340 − 7.2) ≈ 450 Hz になり、管の 500 Hz と合わず、共鳴しない。</p>
+<p>閉管なら、f_n = (2n − 1)v/4L で、250・750・1250 Hz になる。着地の 500 Hz はどれとも合わず、共鳴しない。</p>
+<p>k = 100 N/m なら、最大の縮み 0.33 m、ばねの力 33 N、押し返し 6.7 m/s、はね返りの音 481 Hz になる。着地の音は 500 Hz のままで、やはり共鳴する。</p>
+<svg class="fig" data-scene="scene-fallDopplerResPipe-vary" data-show="" role="img" aria-label="変えたら。着地 500 Hz、L=0.68 m の f2 は 500 Hz、f0=440 Hz は 450 Hz、閉管 f1 は 250 Hz"></svg>
+<script type="application/json" id="scene-fallDopplerResPipe-vary">{"f0Hz":490,"fricN":1.0,"g":10,"hM":3.0,"kDragKgPerM":0.01,"kSpring":50,"mKg":0.2,"phase":"vary","pipeLM":0.34,"type":"fallDopplerResPipe","vSoundMs":340}</script>
+<label class="check"><input type="checkbox" id="comboFallDopplerResPipe-check-5"> L・f0・閉管・k を変えたときの共鳴を求めた</label>
+</div>
+
+<div class="donebox" id="donebox">
+<p><b>まとめ（答え）</b></p>
+<p>(1) 終端速度 14 m/s、着地 7.2 m/s・0.79 s、着地の音 500 Hz、うなり最大 11 Hz。(2) 最大の縮み 0.48 m、ばねの力 24 N、押し返し 6.5 m/s、はね返り 1.9 m、合計 1.6 s。(3) 着地の 500 Hz が管の f1 と一致して共鳴、はね返りの 481 Hz は共鳴しない。(4) 音源の 490 Hz は共鳴しない。</p>
+<p>もとになった単体モデル：落下＋ドップラーは<a href="fall-drag-doppler.html">組み合わせ問題BO：空気抵抗で落下＋ばね＋摩擦＋ドップラー</a>、開管の共鳴は<a href="doppler-resonance.html">組み合わせ問題BE：ドップラー効果＋開管の共鳴</a>、ばね＋摩擦は<a href="fall-drag-spring.html">組み合わせ問題BF：空気抵抗で落下＋ばね＋摩擦</a>、ドップラー効果は<a href="doppler.html">第18問：ドップラー効果</a>で確かめられる。</p>
+<p id="done-msg"></p>
+</div>
+
+<p class="nav"><a href="../../index.html">← トップへ</a> ｜ <a href="pendulum-doppler-res-pipe.html">組み合わせ問題BT：振り子＋弾性衝突＋ばね＋摩擦＋ドップラー＋開管の共鳴 →</a></p>
+</main>
+<a class="toplink" href="#">↑ TOP</a>
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+const doneKey = 'comboFallDopplerResPipeDone';
+const checkIds = ['comboFallDopplerResPipe-check-1','comboFallDopplerResPipe-check-2','comboFallDopplerResPipe-check-3','comboFallDopplerResPipe-check-4','comboFallDopplerResPipe-check-5'];
+const doneMsg = document.getElementById('done-msg');
+function allChecked() { return checkIds.every(id => document.getElementById(id).checked); }
+function refresh() {
+  if (allChecked()) {
+    doneMsg.textContent = '完了！';
+    loadProgress().then(p => { p[doneKey] = true; return saveProgress(p); }).catch(() => {});
+  } else {
+    doneMsg.textContent = '';
+  }
+}
+checkIds.forEach(id => document.getElementById(id).addEventListener('change', refresh));
+renderAllFigures();
+loadProgress().then(p => { if (p[doneKey]) { doneMsg.textContent = '完了済み ✓'; } }).catch(() => {});
+</script>
+</body>
+</html>
