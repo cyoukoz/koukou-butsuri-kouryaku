@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題BF：空気抵抗で落下＋ばね＋摩擦 — 高校物理攻略</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", sans-serif; margin: 0; background: #fff; color: #222; line-height: 1.8; }
+  main { max-width: 720px; margin: 0 auto; padding: 24px 18px 80px; }
+  h1 { font-size: 24px; line-height: 1.4; }
+  h2 { font-size: 20px; margin-top: 40px; }
+  .step { border-top: 1px solid #ddd; padding-top: 16px; margin-top: 32px; }
+  .step h2 { font-size: 18px; margin: 0 0 8px; }
+  .fig { width: 100%; max-width: 400px; height: auto; display: block; margin: 12px auto; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; font-size: 14px; }
+  th { background: #f2f2f2; }
+  .donebox { border: 2px solid #4a8; background: #f6fffa; padding: 14px; margin-top: 40px; }
+  .nav { margin-top: 32px; font-size: 14px; }
+  .toplink { position: fixed; right: 16px; bottom: 16px; background: #222; color: #fff; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 14px; }
+  label.check { display: block; margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+<p><a href="../../index.html">← トップへ</a> ｜ <a href="pendulum-spring-fric.html">← 組み合わせ問題AV：振り子＋弾性衝突＋ばね＋摩擦</a></p>
+<h1>組み合わせ問題BF：空気抵抗で落下＋ばね＋摩擦</h1>
+<p>質量 0.20 kg の玉を、高さ 3.0 m のところから静かに落とす。空気抵抗は速さの 2 乗に比例し、F = kv²（k = 0.010 kg/m）とする。地面にはばね（k = 50 N/m）がガイドの中に置いてあり、玉はばねにぶつかって縮める。玉はガイドに沿ってすべるので、ばねを縮めるときも押し返されるときも 1.0 N の動摩擦力がはたらく。重力加速度は g = 10 m/s² とする。</p>
+<p>(1) 着地の速さと運動エネルギーを求めよ。(2) ばねの最大の縮みとばねの力を求めよ。(3) 押し返しの速さとはね返りの高さを求めよ。(4) 罠と変えたら。</p>
+
+<div class="step" id="step0">
+<p><b>はじめに：どう切り分けるか</b></p>
+<table>
+<tr><th>場面</th><th>考えること</th><th>使うモデル</th></tr>
+<tr><td>落下（抵抗あり）</td><td>着地の速さ</td><td>空気抵抗・終端速度</td></tr>
+<tr><td>ばねの圧縮</td><td>最大の縮み</td><td>ばね・単振動</td></tr>
+<tr><td>はね返り</td><td>押し返しの速さ</td><td>摩擦・エネルギー</td></tr>
+</table>
+<p>この問題の橋渡しの量は<b>エネルギー</b>だ。はじめの位置エネルギー 6.0 J が、抵抗の仕事とばねのエネルギーと摩擦熱に分かれていく。</p>
+<svg class="fig" data-scene="scene-fallDragSpring-base" data-show="" role="img" aria-label="流れ。落下 7.2 m/s、ばね 0.48 m、押し返し 6.5 m/s、はね返り 1.9 m"></svg>
+<script type="application/json" id="scene-fallDragSpring-base">{"fricN":1.0,"g":10,"hM":3.0,"kDragKgPerM":0.01,"kSpring":50,"mKg":0.2,"phase":"base","type":"fallDragSpring"}</script>
+<p><a href="#step1">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step1">
+<h2>① 落下：着地 7.2 m/s、運動エネルギー 5.2 J</h2>
+<p>終端速度は vt = √(mg/k) = √(0.20×10/0.010) = √200 = 14 m/s だ。静かに落とすときの速さは、解析解 v² = vt²(1 − e^(−2gh/vt²)) で求まる。h = 3.0 m なので、v² = 200×(1 − e^(−0.30)) = 200×0.26 = 52、v = 7.2 m/s になる。運動エネルギーは ½ × 0.20 × 52 = 5.2 J だ。</p>
+<p>抵抗がなければ v = √(2gh) = 7.7 m/s、運動エネルギーは 6.0 J になる。抵抗の仕事は 6.0 − 5.2 = 0.82 J だ。落下にかかる時間は 0.79 s で、抵抗なしの 0.77 s とほとんど変わらない（速さは変わるのに、時間はあまり変わらない）。</p>
+<svg class="fig" data-scene="scene-fallDragSpring-fall" data-show="gravityA,velocityB,gravityB,dragB" role="img" aria-label="落下の2つの瞬間。はじめは速さ 0、着地は速さ 7.2 m/s、空気抵抗 0.52 N"></svg>
+<script type="application/json" id="scene-fallDragSpring-fall">{"fricN":1.0,"g":10,"hM":3.0,"kDragKgPerM":0.01,"kSpring":50,"mKg":0.2,"phase":"fall","type":"fallDragSpring"}</script>
+<label class="check"><input type="checkbox" id="comboFallDragSpring-check-1"> 着地 7.2 m/s、運動エネルギー 5.2 J を求めた</label>
+<p><a href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<h2>② ばねの圧縮：最大 0.48 m、ばねの力 24 N</h2>
+<p>ばねにぶつかったあとの動きは、重力とばねの力と摩擦のつり合い位置のまわりでの単振動だ。角振動数は ω = √(k/m) = √(50/0.20) = 15.8 rad/s になる。</p>
+<p>縮むとき、摩擦は上向きにはたらくので、つり合い位置は x1 = (mg − f)/k = (2.0 − 1.0)/50 = 0.020 m だ。振幅は A1 = √(0.020² + (7.2/15.8)²) = √(0.0004 + 0.21) = 0.46 m になる。最大の縮みは x_max = 0.020 + 0.46 = 0.48 m、ばねの最大の力は 50 × 0.48 = 24 N だ。縮むまでにかかる時間は 0.10 s になる。</p>
+<svg class="fig" data-scene="scene-fallDragSpring-spring" data-show="springForce" role="img" aria-label="縦のばねの最大の縮み。自然長から 0.48 m 縮み、ばねの力 24 N"></svg>
+<script type="application/json" id="scene-fallDragSpring-spring">{"fricN":1.0,"g":10,"hM":3.0,"kDragKgPerM":0.01,"kSpring":50,"mKg":0.2,"phase":"spring","type":"fallDragSpring"}</script>
+<label class="check"><input type="checkbox" id="comboFallDragSpring-check-2"> 最大の縮み 0.48 m、ばねの力 24 N を求めた</label>
+<p><a href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<h2>③ はね返り：押し返し 6.5 m/s、高さ 1.9 m</h2>
+<p>押し返されるとき、玉は上向きに動くので、摩擦は下向きにはたらく。つり合い位置は x2 = (mg + f)/k = (2.0 + 1.0)/50 = 0.060 m にずれる。摩擦の向きが変わるので、つり合い位置も変わる——これが AV・BA と同じ 2 段の計算だ。</p>
+<p>押し返しの速さは 6.5 m/s になる。着地の 7.2 m/s より遅いのは、往復の摩擦熱 2 × 1.0 × 0.48 = 0.95 J の分だけエネルギーが減ったからだ。確かめると、5.2 − 0.95 = 4.2 J = ½ × 0.20 × 6.5² と合う。ばねを出てから上がる高さは、空気抵抗があるので 1.9 m になる（抵抗なしなら 2.1 m）。往復にかかる時間は 0.21 s だ。</p>
+<svg class="fig" data-scene="scene-fallDragSpring-energy" data-show="" role="img" aria-label="エネルギーの流れ。はじめ 6.0 J、着地 5.2 J、ばねの最大 5.6 J、はね返り 4.2 J"></svg>
+<script type="application/json" id="scene-fallDragSpring-energy">{"fricN":1.0,"g":10,"hM":3.0,"kDragKgPerM":0.01,"kSpring":50,"mKg":0.2,"phase":"energy","type":"fallDragSpring"}</script>
+<label class="check"><input type="checkbox" id="comboFallDragSpring-check-3"> 押し返し 6.5 m/s、摩擦熱 0.95 J、はね返り 1.9 m を求めた</label>
+<p><a href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<h2>④ 罠：抵抗・摩擦・重力を忘れない</h2>
+<p>罠：「抵抗を無視しても、着地は 7.2 m/s くらい」——まちがい。抵抗なしなら 7.7 m/s、運動エネルギーは 6.0 J、最大の縮みは 0.51 m になる。抵抗で 0.82 J が失われている。</p>
+<p>罠：「摩擦を無視しても、押し返しは 6.5 m/s くらい」——まちがい。摩擦なしなら最大の縮みは 0.50 m、押し返しは着地と同じ 7.2 m/s、はね返りは 2.3 m になる。摩擦で 0.95 J が熱になっている。</p>
+<p>罠：「つり合い位置は縮むときも戻るときも同じ」——まちがい。摩擦の向きが変わるので、つり合い位置は 0.020 m から 0.060 m にずれる。1 段の計算（つり合いを 0.020 m のままにする）だと、押し返しは 7.2 m/s、往復の時間は 0.20 s になってしまう（正しくは 6.5 m/s、0.21 s）。</p>
+<p>罠：「縮むときの重力は無視できる」——まちがい。重力を無視すると、縮みは x = 7.2×√(0.20/50) = 0.46 m になる（正しくは 0.48 m）。重力が縮むあいだも仕事をするからだ。</p>
+<svg class="fig" data-scene="scene-fallDragSpring-trap" data-show="" role="img" aria-label="最大の縮みの比べ。もと 0.48 m、抵抗なし 0.51 m、摩擦なし 0.50 m、重力無視 0.46 m"></svg>
+<script type="application/json" id="scene-fallDragSpring-trap">{"fricN":1.0,"g":10,"hM":3.0,"kDragKgPerM":0.01,"kSpring":50,"mKg":0.2,"phase":"trap","type":"fallDragSpring"}</script>
+<label class="check"><input type="checkbox" id="comboFallDragSpring-check-4"> 抵抗なし・摩擦なし・1段の計算のまちがいを区別できた</label>
+<p><a href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<h2>⑤ 変えたら：m・k・h で縮みが変わる</h2>
+<p>m = 0.40 kg なら、終端速度は 20 m/s、着地は 7.5 m/s、運動エネルギーは 11 J になる。最大の縮みは 0.73 m、ばねの力は 37 N、押し返しは 7.0 m/s、はね返りは 2.3 m になる。</p>
+<p>k = 100 N/m なら、最大の縮みは 0.33 m、ばねの力は 33 N、押し返しは 6.7 m/s、はね返りは 2.0 m になる。ばねが硬いほど縮みは小さいが、力は大きくなる。</p>
+<p>h = 5.0 m から落とすと、着地は 8.9 m/s、運動エネルギーは 7.9 J、最大の縮みは 0.58 m、ばねの力は 29 N、押し返しは 8.2 m/s、はね返りは 2.9 m になる。</p>
+<svg class="fig" data-scene="scene-fallDragSpring-vary" data-show="" role="img" aria-label="最大の縮みの比べ。もと 0.48 m、m=0.40 kg で 0.73 m、k=100 で 0.33 m、h=5.0 m で 0.58 m"></svg>
+<script type="application/json" id="scene-fallDragSpring-vary">{"fricN":1.0,"g":10,"hM":3.0,"kDragKgPerM":0.01,"kSpring":50,"mKg":0.2,"phase":"vary","type":"fallDragSpring"}</script>
+<label class="check"><input type="checkbox" id="comboFallDragSpring-check-5"> m・k・h を変えたときの縮みを求めた</label>
+</div>
+
+<div class="donebox" id="donebox">
+<p><b>まとめ（答え）</b></p>
+<p>(1) 着地 7.2 m/s、運動エネルギー 5.2 J（抵抗の仕事 0.82 J）。(2) 最大の縮み 0.48 m、ばねの力 24 N。(3) 押し返し 6.5 m/s、摩擦熱 0.95 J、はね返り 1.9 m。(4) 摩擦の向きが変わるので、つり合い位置は 0.020 m から 0.060 m にずれる（2 段の計算）。</p>
+<p>もとになった単体モデル：空気抵抗は<a href="drag.html">第26問：空気抵抗・終端速度</a>、ばねは<a href="spring.html">第5問：ばねのつり合い</a>、単振動は<a href="shm.html">第11問：単振動・振り子</a>、摩擦のあるばねは<a href="pendulum-spring-fric.html">組み合わせ問題AV：振り子＋弾性衝突＋ばね＋摩擦</a>と<a href="proj-wall-spring.html">組み合わせ問題BA：斜方投射＋壁＋摩擦＋ばね</a>で確かめられる。</p>
+<p id="done-msg"></p>
+</div>
+
+<p class="nav"><a href="../../index.html">← トップへ</a></p>
+</main>
+<a class="toplink" href="#">↑ TOP</a>
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+const doneKey = 'comboFallDragSpringDone';
+const checkIds = ['comboFallDragSpring-check-1','comboFallDragSpring-check-2','comboFallDragSpring-check-3','comboFallDragSpring-check-4','comboFallDragSpring-check-5'];
+const doneMsg = document.getElementById('done-msg');
+function allChecked() { return checkIds.every(id => document.getElementById(id).checked); }
+function refresh() {
+  if (allChecked()) {
+    doneMsg.textContent = '完了！';
+    loadProgress().then(p => { p[doneKey] = true; return saveProgress(p); }).catch(() => {});
+  } else {
+    doneMsg.textContent = '';
+  }
+}
+checkIds.forEach(id => document.getElementById(id).addEventListener('change', refresh));
+renderAllFigures();
+loadProgress().then(p => { if (p[doneKey]) { doneMsg.textContent = '完了済み ✓'; } }).catch(() => {});
+</script>
+</body>
+</html>

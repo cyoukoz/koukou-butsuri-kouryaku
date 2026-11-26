@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題BE：音波＋ドップラー効果＋開管の共鳴 — 高校物理攻略</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", sans-serif; margin: 0; background: #fff; color: #222; line-height: 1.8; }
+  main { max-width: 720px; margin: 0 auto; padding: 24px 18px 80px; }
+  h1 { font-size: 24px; line-height: 1.4; }
+  h2 { font-size: 20px; margin-top: 40px; }
+  .step { border-top: 1px solid #ddd; padding-top: 16px; margin-top: 32px; }
+  .step h2 { font-size: 18px; margin: 0 0 8px; }
+  .fig { width: 100%; max-width: 400px; height: auto; display: block; margin: 12px auto; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; font-size: 14px; }
+  th { background: #f2f2f2; }
+  .donebox { border: 2px solid #4a8; background: #f6fffa; padding: 14px; margin-top: 40px; }
+  .nav { margin-top: 32px; font-size: 14px; }
+  .toplink { position: fixed; right: 16px; bottom: 16px; background: #222; color: #fff; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 14px; }
+  label.check { display: block; margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+<p><a href="../../index.html">← トップへ</a> ｜ <a href="doppler-shm.html">← 組み合わせ問題I：ドップラー効果＋単振動</a></p>
+<h1>組み合わせ問題BE：音波＋ドップラー効果＋開管の共鳴</h1>
+<p>振動数 450 Hz のサイレンを鳴らした車が、長さ 0.34 m の開管に向かって速さ 34 m/s で近づいている。音速は 340 m/s、観測者は管口にいるものとする。重力加速度はこの問題では使わない。</p>
+<p>(1) 管口に届く音の振動数と波長を求めよ。(2) 開管の基本振動数と 2 倍・3 倍振動数を求めよ。共鳴するか。(3) 車が遠ざかるとき、共鳴するか。(4) 罠と変えたら。</p>
+
+<div class="step" id="step0">
+<p><b>はじめに：どう切り分けるか</b></p>
+<table>
+<tr><th>場面</th><th>考えること</th><th>使うモデル</th></tr>
+<tr><td>ドップラー効果</td><td>届く音の振動数</td><td>波・ドップラー効果</td></tr>
+<tr><td>開管の定常波</td><td>管の振動数</td><td>定常波・共鳴</td></tr>
+<tr><td>共鳴の条件</td><td>振動数が合うか</td><td>共鳴</td></tr>
+</table>
+<p>この問題の橋渡しの量は<b>振動数</b>だ。ドップラー効果で変わった振動数が、管の振動数のどれかと一致するときだけ、管は大きく共鳴する。</p>
+<svg class="fig" data-scene="scene-dopplerResonance-base" data-show="" role="img" aria-label="流れ。音源 450 Hz、ドップラーで 500 Hz、開管 0.34 m、共鳴 f1=500 Hz"></svg>
+<script type="application/json" id="scene-dopplerResonance-base">{"f0Hz":450,"phase":"base","pipeLM":0.34,"type":"dopplerResonance","vSoundMs":340,"vsMs":34}</script>
+<p><a href="#step1">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step1">
+<h2>① ドップラー効果：500 Hz、波長 0.68 m</h2>
+<p>音源が近づくと、観測振動数は f′ = f·v/(v−vs) = 450 × 340/(340−34) = 450 × 340/306 = 500 Hz になる。波長は λ′ = v/f′ = 340/500 = 0.68 m だ。もとの波長は λ = 340/450 = 0.76 m なので、波長は 0.90 倍に縮んでいる。</p>
+<p>音源が近づく速さは音速の 1/10（34 m/s）なので、振動数は 10/9 倍、波長は 9/10 倍になると覚えてもよい。</p>
+<svg class="fig" data-scene="scene-dopplerResonance-doppler" data-show="" role="img" aria-label="振動数の比べ。音源 450 Hz、近づく 500 Hz、遠ざかる 409 Hz"></svg>
+<script type="application/json" id="scene-dopplerResonance-doppler">{"f0Hz":450,"phase":"doppler","pipeLM":0.34,"type":"dopplerResonance","vSoundMs":340,"vsMs":34}</script>
+<label class="check"><input type="checkbox" id="comboDopplerResonance-check-1"> 近づくときの振動数 500 Hz、波長 0.68 m を求めた</label>
+<p><a href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<h2>② 開管の共鳴：基本振動数 500 Hz、共鳴する</h2>
+<p>開管の振動数は fn = n·v/2L だ。L = 0.34 m なので、基本振動数は f1 = 340/(2×0.34) = 500 Hz、2 倍振動数は f2 = 1000 Hz、3 倍振動数は f3 = 1500 Hz になる。</p>
+<p>ステップ①の 500 Hz は、ちょうど f1 と一致する。だから管は大きく共鳴して、音が大きく聞こえる。開管の基本振動では、両端が腹、中央が節になる。</p>
+<svg class="fig" data-scene="scene-dopplerResonance-pipe" data-show="" role="img" aria-label="開管の基本振動の定常波。両端が腹、中央が節、基本振動数 500 Hz"></svg>
+<script type="application/json" id="scene-dopplerResonance-pipe">{"f0Hz":450,"phase":"pipe","pipeLM":0.34,"type":"dopplerResonance","vSoundMs":340,"vsMs":34}</script>
+<label class="check"><input type="checkbox" id="comboDopplerResonance-check-2"> 開管の f1=500 Hz、f2=1000 Hz を求め、共鳴することを確かめた</label>
+<p><a href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<h2>③ 遠ざかると 409 Hz：共鳴しない</h2>
+<p>車が 34 m/s で遠ざかると、観測振動数は f′ = f·v/(v+vs) = 450 × 340/(340+34) = 450 × 340/374 = 409 Hz になる。波長は λ′ = 340/409 = 0.83 m だ。</p>
+<p>409 Hz は、管の振動数 500・1000・1500 Hz のどれとも合わない。だから管は共鳴せず、音は小さいままになる。車が止まっているときも、450 Hz は管の振動数と合わないので共鳴しない。</p>
+<svg class="fig" data-scene="scene-dopplerResonance-recede" data-show="" role="img" aria-label="振動数の一致。近づく 500 Hz は管の f1 と一致、遠ざかる 409 Hz は合わない"></svg>
+<script type="application/json" id="scene-dopplerResonance-recede">{"f0Hz":450,"phase":"recede","pipeLM":0.34,"type":"dopplerResonance","vSoundMs":340,"vsMs":34}</script>
+<label class="check"><input type="checkbox" id="comboDopplerResonance-check-3"> 遠ざかるとき 409 Hz で共鳴しないことを求めた</label>
+<p><a href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<h2>④ 罠：450 Hz では共鳴しない</h2>
+<p>罠：「管は音源の 450 Hz で共鳴する」——まちがい。共鳴するのは、管口に届く音の振動数 500 Hz であって、音源の 450 Hz ではない。450 Hz は管の振動数 500・1000・1500 Hz のどれとも合わない。</p>
+<p>罠：「閉管の式 v/4L を使う」——まちがい。この管は両端が開いた開管なので、基本振動数は v/2L = 500 Hz だ。閉管の式 v/4L = 250 Hz を使うと、振動数を半分に間違える。閉管の振動数は 250・750・1250 Hz で、500 Hz とは合わない。</p>
+<p>罠：「近づけばいつでも共鳴する」——まちがい。近づく速さがちがえば、ドップラー後の振動数は 500 Hz にならない。たとえば vs = 17 m/s なら f′ = 474 Hz で、管の振動数とは合わず、共鳴しない。</p>
+<svg class="fig" data-scene="scene-dopplerResonance-trap" data-show="" role="img" aria-label="振動数の比べ。音源 450 Hz、開管 f1 500 Hz、開管 f2 1000 Hz、閉管 f1 250 Hz"></svg>
+<script type="application/json" id="scene-dopplerResonance-trap">{"f0Hz":450,"phase":"trap","pipeLM":0.34,"type":"dopplerResonance","vSoundMs":340,"vsMs":34}</script>
+<label class="check"><input type="checkbox" id="comboDopplerResonance-check-4"> 音源の 450 Hz では共鳴しないこと、閉管の式は使えないことを区別できた</label>
+<p><a href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<h2>⑤ 変えたら：L・f で共鳴が変わる</h2>
+<p>管の長さを L = 0.68 m にすると、基本振動数は f1 = 340/(2×0.68) = 250 Hz、2 倍振動数は f2 = 500 Hz になる。近づくときの 500 Hz は f2 と一致するので、この管も共鳴する（2 倍振動での共鳴）。</p>
+<p>サイレンの振動数を 900 Hz にすると、近づくときの観測振動数は f′ = 900 × 340/306 = 1000 Hz になり、もとの管（L = 0.34 m）の f2 = 1000 Hz と一致して共鳴する。</p>
+<p>同じ長さの閉管（L = 0.34 m）では、振動数は 250・750・1250 Hz になる。近づくときの 500 Hz とは合わないので、閉管は共鳴しない。</p>
+<svg class="fig" data-scene="scene-dopplerResonance-vary" data-show="" role="img" aria-label="共鳴する場合の比べ。もと 500 Hz、L=0.68 m の f2 500 Hz、900 Hz の f′ 1000 Hz、閉管は共鳴なし"></svg>
+<script type="application/json" id="scene-dopplerResonance-vary">{"f0Hz":450,"phase":"vary","pipeLM":0.34,"type":"dopplerResonance","vSoundMs":340,"vsMs":34}</script>
+<label class="check"><input type="checkbox" id="comboDopplerResonance-check-5"> L・f を変えたときの共鳴を求めた</label>
+</div>
+
+<div class="donebox" id="donebox">
+<p><b>まとめ（答え）</b></p>
+<p>(1) 近づくとき 500 Hz、波長 0.68 m。(2) 開管の f1 = 500 Hz、f2 = 1000 Hz、f3 = 1500 Hz。500 Hz が f1 と一致して共鳴する。(3) 遠ざかると 409 Hz で、管の振動数と合わず共鳴しない。(4) 共鳴するのはドップラー後の振動数が管の振動数と一致するときだけ。</p>
+<p>もとになった単体モデル：ドップラー効果は<a href="doppler.html">第18問：ドップラー効果</a>、定常波・共鳴は<a href="standing-wave.html">第14問：定常波・共鳴</a>、ドップラー効果＋単振動は<a href="doppler-shm.html">組み合わせ問題I：ドップラー効果＋単振動</a>で確かめられる。</p>
+<p id="done-msg"></p>
+<p><a href="fall-drag-spring.html">次：組み合わせ問題BF：空気抵抗で落下＋ばね＋摩擦 →</a></p>
+</div>
+
+<p class="nav"><a href="../../index.html">← トップへ</a></p>
+</main>
+<a class="toplink" href="#">↑ TOP</a>
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+const doneKey = 'comboDopplerResonanceDone';
+const checkIds = ['comboDopplerResonance-check-1','comboDopplerResonance-check-2','comboDopplerResonance-check-3','comboDopplerResonance-check-4','comboDopplerResonance-check-5'];
+const doneMsg = document.getElementById('done-msg');
+function allChecked() { return checkIds.every(id => document.getElementById(id).checked); }
+function refresh() {
+  if (allChecked()) {
+    doneMsg.textContent = '完了！';
+    loadProgress().then(p => { p[doneKey] = true; return saveProgress(p); }).catch(() => {});
+  } else {
+    doneMsg.textContent = '';
+  }
+}
+checkIds.forEach(id => document.getElementById(id).addEventListener('change', refresh));
+renderAllFigures();
+loadProgress().then(p => { if (p[doneKey]) { doneMsg.textContent = '完了済み ✓'; } }).catch(() => {});
+</script>
+</body>
+</html>
