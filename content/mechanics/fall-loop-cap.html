@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題AY：落下するコイル＋コンデンサー＋エネルギー — 高校物理攻略</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", sans-serif; margin: 0; background: #fff; color: #222; line-height: 1.8; }
+  main { max-width: 720px; margin: 0 auto; padding: 24px 18px 80px; }
+  h1 { font-size: 24px; line-height: 1.4; }
+  h2 { font-size: 20px; margin-top: 40px; }
+  .step { border-top: 1px solid #ddd; padding-top: 16px; margin-top: 32px; }
+  .step h2 { font-size: 18px; margin: 0 0 8px; }
+  .fig { width: 100%; max-width: 400px; height: auto; display: block; margin: 12px auto; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; font-size: 14px; }
+  th { background: #f2f2f2; }
+  .donebox { border: 2px solid #4a8; background: #f6fffa; padding: 14px; margin-top: 40px; }
+  .nav { margin-top: 32px; font-size: 14px; }
+  .toplink { position: fixed; right: 16px; bottom: 16px; background: #222; color: #fff; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 14px; }
+  label.check { display: block; margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+<p><a href="../../index.html">← トップへ</a> ｜ <a href="selector-circle.html">← 組み合わせ問題AX：加速＋速度選別＋磁場円運動</a></p>
+<h1>組み合わせ問題AY：落下するコイル＋コンデンサー＋エネルギー</h1>
+<p>質量 m = 0.10 kg の長方形のコイルがある。コイルの横の辺の長さは L = 0.50 m、縦の高さは 0.50 m だ。コイルには抵抗はなく、電気容量 C = 0.10 F のコンデンサーだけがつながっている。コイルの下の辺が磁場（磁束密度 B = 2.0 T、紙の裏向き）の上の端にちょうどふれる位置で、コイルを静かに放す。コイルが磁場に入ると、誘導起電力が生じてコンデンサーに電荷がたまる。重力加速度は g = 10 m/s² とする。</p>
+<p>(1) コイルが磁場に入るときの加速度を求めよ。(2) コイルが磁場に入りきったときの速さ・起電力・電気量・コンデンサーのエネルギーを求め、エネルギーの行き先を確かめよ。(3) コイルが磁場の中に完全に入ったあとの運動を求めよ。(4) 罠と変えたら。</p>
+
+<div class="step" id="step0">
+<p><b>はじめに：どう切り分けるか</b></p>
+<table>
+<tr><th>場面</th><th>考えること</th><th>使うモデル</th></tr>
+<tr><td>磁場に入るとき</td><td>起電力と磁気の力</td><td>電磁誘導・コンデンサー・運動方程式</td></tr>
+<tr><td>入りきったとき</td><td>速さ・電気量・エネルギー</td><td>エネルギー保存・コンデンサーのエネルギー</td></tr>
+<tr><td>磁場の中</td><td>自由落下</td><td>等加速度運動</td></tr>
+</table>
+<p>この問題の橋渡しの量は<b>エネルギー</b>と<b>電荷</b>だ。重力の仕事が、運動エネルギーとコンデンサーのエネルギーの両方になる。</p>
+<svg class="fig" data-scene="scene-fallLoopCap-base" data-show="gravity" role="img" aria-label="磁場の上からコイルを落とす図"></svg>
+<script type="application/json" id="scene-fallLoopCap-base">{"bT":2.0,"capF":0.1,"dInsideM":1.5,"g":10,"loopHM":0.5,"loopLM":0.5,"mKg":0.1,"phase":"base","resOhm":5.0,"type":"fallLoopCap"}</script>
+<p><a href="#step1">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step1">
+<h2>① 磁場に入るとき：加速度は 5.0 m/s² のまま</h2>
+<p>コイルが磁場に入るとき、下の辺が磁場を切る。起電力は ε = BLv だ。コンデンサーの電圧はこの起電力に等しいので、電気量は Q = Cε = CBLv になる。電流は、電荷の変化の割合 I = dQ/dt = CBL·a（a は加速度）だ。コイルにはたらく磁気の力は F = BLI = B²L²C·a で、上向きにはたらく。運動方程式は ma = mg − B²L²C·a だ。a について解くと、a = mg/(m + B²L²C) になる。B²L²C = 2.0² × 0.50² × 0.10 = 0.10 kg なので、a = 1.0/(0.10 + 0.10) = 5.0 m/s² だ。加速度は一定のままだ。コンデンサーは、質量が 0.10 kg 増えたのと同じはたらきをする。</p>
+<svg class="fig" data-scene="scene-fallLoopCap-enter" data-show="gravity,magForce" role="img" aria-label="磁場に入るときの力の図。重力 1.0 N 下向き、磁気の力 0.50 N 上向き"></svg>
+<script type="application/json" id="scene-fallLoopCap-enter">{"bT":2.0,"capF":0.1,"dInsideM":1.5,"g":10,"loopHM":0.5,"loopLM":0.5,"mKg":0.1,"phase":"enter","resOhm":5.0,"type":"fallLoopCap"}</script>
+<label class="check"><input type="checkbox" id="comboFallLoopCap-check-1"> a = mg/(m + B²L²C) = 5.0 m/s² を求めた</label>
+<p><a href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<h2>② 入りきったとき：重力の仕事は半分がコンデンサーへ</h2>
+<p>コイルが 0.50 m 落ちて磁場に入りきる。加速度は 5.0 m/s² で一定なので、v² = 2ah = 2 × 5.0 × 0.50 = 5.0 から、v = 2.2 m/s だ。かかる時間は t = v/a = 2.2/5.0 = 0.45 s。起電力は ε = BLv = 2.0 × 0.50 × 2.2 = 2.2 V。電気量は Q = Cε = 0.10 × 2.2 = 0.22 C。コンデンサーのエネルギーは U = ½CV² = 0.5 × 0.10 × 2.2² = 0.25 J。運動エネルギーは KE = ½mv² = 0.5 × 0.10 × 2.2² = 0.25 J。重力の仕事は mgh = 0.10 × 10 × 0.50 = 0.50 J。0.25 + 0.25 = 0.50 J で、エネルギーはぴったり合う。重力の仕事の半分が運動エネルギー、半分がコンデンサーにたまる。</p>
+<svg class="fig" data-scene="scene-fallLoopCap-energy" data-show="" role="img" aria-label="エネルギーの棒グラフ。重力の仕事 0.50 J、運動エネルギー 0.25 J、コンデンサー 0.25 J"></svg>
+<script type="application/json" id="scene-fallLoopCap-energy">{"bT":2.0,"capF":0.1,"dInsideM":1.5,"g":10,"loopHM":0.5,"loopLM":0.5,"mKg":0.1,"phase":"energy","resOhm":5.0,"type":"fallLoopCap"}</script>
+<label class="check"><input type="checkbox" id="comboFallLoopCap-check-2"> v = 2.2 m/s、ε = 2.2 V、Q = 0.22 C、U = 0.25 J を求めた</label>
+<p><a href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<h2>③ 磁場の中：自由落下する</h2>
+<p>コイルが磁場の中に完全に入ると、コイルを貫く磁束は変わらなくなる。磁束が変わらなければ起電力は生じない。電流は流れず、磁気の力もはたらかない。コイルは自由落下する。入りきったときの速さ 2.2 m/s から、1.5 m 落ちると、v² = 2.2² + 2 × 10 × 1.5 = 35 から、v = 5.9 m/s になる。かかる時間は (5.9 − 2.2)/10 = 0.37 s。運動エネルギーは 0.25 J から 1.75 J になり、増えた 1.5 J は重力の仕事 mg × 1.5 = 1.5 J と合う。（細かい話：この理想化したモデルでは、磁場に入りきった瞬間にコンデンサーの電荷がどうなるかは決められない。実際には配線の小さな抵抗で熱になるが、コイルの運動には影響しない。）</p>
+<svg class="fig" data-scene="scene-fallLoopCap-inside" data-show="" role="img" aria-label="速さと時間のグラフ。0.45 s までは傾き 5.0、そのあとは傾き 10 で速くなる"></svg>
+<script type="application/json" id="scene-fallLoopCap-inside">{"bT":2.0,"capF":0.1,"dInsideM":1.5,"g":10,"loopHM":0.5,"loopLM":0.5,"mKg":0.1,"phase":"inside","resOhm":5.0,"type":"fallLoopCap"}</script>
+<label class="check"><input type="checkbox" id="comboFallLoopCap-check-3"> 磁場の中は自由落下、1.5 m で 5.9 m/s を求めた</label>
+<p><a href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<h2>④ 罠：コンデンサーでもブレーキがかかる</h2>
+<p>罠：「抵抗がないから、コイルは自由落下する」——まちがい。コンデンサーがあっても磁気の力がはたらき、加速度は 5.0 m/s² になる。自由落下なら v = √(2gh) = √(2 × 10 × 0.50) = 3.2 m/s になるはずだが、本当は 2.2 m/s だ。</p>
+<p>罠：「重力の仕事 0.50 J は全部、運動エネルギーになる」——まちがい。半分の 0.25 J はコンデンサーにたまる。運動エネルギーは 0.25 J だけだ。</p>
+<p>罠：「コイルはやがて終端速度になる」——まちがい。抵抗の場合（組み合わせ問題R）は、磁気の力が重力とつり合って終端速度 5.0 m/s になる。コンデンサーの場合、磁気の力は加速度に比例するので、つり合うことはなく、一定の加速度で加速し続ける。終端速度はない。</p>
+<svg class="fig" data-scene="scene-fallLoopCap-trap" data-show="" role="img" aria-label="入りきったときの速さの比べ。自由落下 3.2 m/s、コンデンサー 2.2 m/s、抵抗の終端速度 5.0 m/s"></svg>
+<script type="application/json" id="scene-fallLoopCap-trap">{"bT":2.0,"capF":0.1,"dInsideM":1.5,"g":10,"loopHM":0.5,"loopLM":0.5,"mKg":0.1,"phase":"trap","resOhm":5.0,"type":"fallLoopCap"}</script>
+<label class="check"><input type="checkbox" id="comboFallLoopCap-check-4"> 3つの罠を区別できた</label>
+<p><a href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<h2>⑤ 変えたら：C・B・m で加速度が変わる</h2>
+<p>C = 0.40 F なら、B²L²C = 0.40 kg、実効質量 0.50 kg、a = 1.0/0.50 = 2.0 m/s²、v = √(2 × 2.0 × 0.50) = 1.4 m/s、ε = 1.4 V、Q = 0.57 C、U = 0.40 J、KE = 0.10 J。コンデンサーが大きいほど、ブレーキが強くなる。</p>
+<p>B = 1.0 T なら、B²L²C = 0.025 kg、実効質量 0.125 kg、a = 1.0/0.125 = 8.0 m/s²、v = 2.8 m/s、ε = 1.4 V、Q = 0.14 C、U = 0.10 J、KE = 0.40 J。磁場が弱いほど、ブレーキが弱くなる。</p>
+<p>m = 0.20 kg なら、実効質量 0.30 kg、a = 2.0/0.30 = 6.7 m/s²、v = 2.6 m/s、ε = 2.6 V、Q = 0.26 C、U = 0.33 J、KE = 0.67 J。重いほど、コンデンサーの影響は小さくなる。</p>
+<svg class="fig" data-scene="scene-fallLoopCap-vary" data-show="" role="img" aria-label="加速度の比べ。C=0.10 F で 5.0、C=0.40 F で 2.0、B=1.0 T で 8.0、m=0.20 kg で 6.7 m/s²"></svg>
+<script type="application/json" id="scene-fallLoopCap-vary">{"bT":2.0,"capF":0.1,"dInsideM":1.5,"g":10,"loopHM":0.5,"loopLM":0.5,"mKg":0.1,"phase":"vary","resOhm":5.0,"type":"fallLoopCap"}</script>
+<label class="check"><input type="checkbox" id="comboFallLoopCap-check-5"> C・B・m を変えたときの加速度を求めた</label>
+</div>
+
+<div class="donebox" id="donebox">
+<p><b>まとめ（答え）</b></p>
+<p>(1) a = 5.0 m/s²（コンデンサーが重さ 0.10 kg になる）。(2) v = 2.2 m/s、ε = 2.2 V、Q = 0.22 C、U = 0.25 J、重力の仕事 0.50 J = KE 0.25 J + コンデンサー 0.25 J。(3) 磁場の中は自由落下、1.5 m で 5.9 m/s。(4) 自由落下なら 3.2 m/s、抵抗なら終端速度 5.0 m/s。</p>
+<p>もとになった単体モデル：電磁誘導は<a href="induction.html">第32問：電磁誘導・ファラデーの法則・レンツの法則</a>、コンデンサーは<a href="capacitor.html">第9問：コンデンサ</a>、落下するコイルは<a href="fall-loop.html">組み合わせ問題R：落下するコイル・磁気ブレーキ</a>、コンデンサーの充電は<a href="rc-charge.html">組み合わせ問題AP：RC回路の充電とエネルギー</a>で確かめられる。</p>
+<p id="done-msg"></p>
+<p><a href="generator-transformer.html">次：組み合わせ問題AZ：発電機＋変圧器＋送電＋電力損失 →</a></p>
+</div>
+
+<p class="nav"><a href="../../index.html">← トップへ</a></p>
+</main>
+<a class="toplink" href="#">↑ TOP</a>
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+const doneKey = 'comboFallLoopCapDone';
+const checkIds = ['comboFallLoopCap-check-1','comboFallLoopCap-check-2','comboFallLoopCap-check-3','comboFallLoopCap-check-4','comboFallLoopCap-check-5'];
+const doneMsg = document.getElementById('done-msg');
+function allChecked() { return checkIds.every(id => document.getElementById(id).checked); }
+function refresh() {
+  if (allChecked()) {
+    doneMsg.textContent = '完了！';
+    loadProgress().then(p => { p[doneKey] = true; return saveProgress(p); }).catch(() => {});
+  } else {
+    doneMsg.textContent = '';
+  }
+}
+checkIds.forEach(id => document.getElementById(id).addEventListener('change', refresh));
+renderAllFigures();
+loadProgress().then(p => { if (p[doneKey]) { doneMsg.textContent = '完了済み ✓'; } }).catch(() => {});
+</script>
+</body>
+</html>
