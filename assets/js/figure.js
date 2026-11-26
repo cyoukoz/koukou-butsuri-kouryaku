@@ -4979,6 +4979,26 @@ function sceneFor(type, thetaDeg, mgPx, fPx, data) {
       forces: genTransformerForces(data),
     };
   }
+  if (type === 'projWallSpring') {
+    const d = projWallSpringDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      angleDeg: data.angleDeg, v0Ms: data.v0Ms, wallXM: data.wallXM, eRest: data.eRest, mKg: data.mKg, muKin: data.muKin, g: data.g || 10, springK: data.springK, springXM: data.springXM,
+      derived: d,
+      center: { x: 200, y: 150 }, centerDot: false,
+      forces: projWallSpringForces(data),
+    };
+  }
+  if (type === 'genRectSmooth') {
+    const d = genRectSmoothDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      genEffV: data.genEffV, freqHz: data.freqHz, ratioUp: data.ratioUp, loadIA: data.loadIA, capF: data.capF,
+      derived: d,
+      center: { x: 200, y: 150 }, centerDot: false,
+      forces: genRectSmoothForces(data),
+    };
+  }
   if (type === 'slopePulley') {
     return {
       type, phase: (data && data.phase) || 'connected',
@@ -6910,6 +6930,119 @@ function validateScene(scene) {
     if (Math.abs(d.noP200.iA - 100 / 70) > 1e-9) return ['負荷 200 W の変圧器なしの電流が一致しません'];
     if (Math.abs(d.noP200.lossW - 2000 / 49) > 1e-9) return ['負荷 200 W の変圧器なしの損失が一致しません'];
     if (Math.abs(d.noP200.pLoadW - 5000 / 49) > 1e-9) return ['負荷 200 W の変圧器なしの負荷の電力が一致しません'];
+  }
+  if (scene.type === 'projWallSpring') {
+    const d = scene.derived;
+    // 初速度の分解：v0x = v0 cos45°、v0y = v0 sin45°。
+    if (Math.abs(d.v0x - scene.v0Ms * Math.cos((scene.angleDeg * Math.PI) / 180)) > 1e-9) return ['初速度の水平成分が v0 cosθ と一致しません'];
+    if (Math.abs(d.v0y - scene.v0Ms * Math.sin((scene.angleDeg * Math.PI) / 180)) > 1e-9) return ['初速度の鉛直成分が v0 sinθ と一致しません'];
+    // 壁に当たるまで：t = 壁までの距離/v0x、高さは斜方投射の式。
+    if (Math.abs(d.tWallS - scene.wallXM / d.v0x) > 1e-9) return ['壁に当たるまでの時間が一致しません'];
+    if (Math.abs(d.yWallM - (d.v0y * d.tWallS - 0.5 * d.g * d.tWallS * d.tWallS)) > 1e-9) return ['壁の高さが一致しません'];
+    if (Math.abs(d.vyWallMs) > 1e-9) return ['壁のところが最高点（vy=0）になっていません'];
+    // エネルギー：はじめの KE = 壁での水平 KE + 位置エネルギー。
+    if (Math.abs(d.ke0J - (d.keWallBeforeJ + d.peWallJ)) > 1e-9) return ['壁でのエネルギーが一致しません'];
+    // はね返って着地：落下時間は高さだけできまる。
+    if (Math.abs(d.tFallS - Math.sqrt((2 * d.yWallM) / d.g)) > 1e-9) return ['落下時間が一致しません'];
+    if (Math.abs(d.xLandM - (scene.wallXM + d.vxAfterMs * d.tFallS)) > 1e-9) return ['着地点が一致しません'];
+    if (Math.abs(d.vyLandMs + d.g * d.tFallS) > 1e-9) return ['着地の鉛直速度が一致しません'];
+    if (Math.abs(d.vLandMs - Math.sqrt(d.vxAfterMs * d.vxAfterMs + d.vyLandMs * d.vyLandMs)) > 1e-9) return ['着地の速さが一致しません'];
+    if (Math.abs(d.vxAfterMs + scene.eRest * d.v0x) > 1e-9) return ['はね返ったあとの横の速さが -e·v0x と一致しません'];
+    if (Math.abs(d.landAngleDeg - (Math.atan2(Math.abs(d.vyLandMs), Math.abs(d.vxAfterMs)) * 180) / Math.PI) > 1e-9) return ['着地の速度の向きが一致しません'];
+    // 壁での損失と着地の KE の内訳。
+    if (Math.abs(d.lossWallJ - (d.keWallBeforeJ - d.keWallAfterJ)) > 1e-9) return ['壁での損失が一致しません'];
+    if (Math.abs(d.keLandJ - (d.keLandHJ + d.keLandVJ)) > 1e-9) return ['着地の KE の内訳が一致しません'];
+    if (Math.abs(d.keLandHJ - d.keWallAfterJ) > 1e-9) return ['横の KE が落下中に変わっています'];
+    // 床をすべる：摩擦力 μmg、加速度 μg。
+    if (Math.abs(d.fricN - scene.muKin * scene.mKg * d.g) > 1e-9) return ['摩擦力が μmg と一致しません'];
+    if (Math.abs(d.aSlideMs2 - scene.muKin * d.g) > 1e-9) return ['すべりの加速度が μg と一致しません'];
+    if (Math.abs(d.sToSpringM - (d.xLandM - scene.springXM)) > 1e-9) return ['ばねまでの距離が一致しません'];
+    if (Math.abs(d.vSpringMs * d.vSpringMs - (d.vxAfterMs * d.vxAfterMs - 2 * d.aSlideMs2 * d.sToSpringM)) > 1e-9) return ['ばねに着くときの速さが一致しません'];
+    if (Math.abs(d.tToSpringS - ((Math.abs(d.vxAfterMs) - d.vSpringMs) / d.aSlideMs2)) > 1e-9) return ['ばねまでの時間が一致しません'];
+    if (Math.abs(d.heatBeforeJ - d.fricN * d.sToSpringM) > 1e-9) return ['ばねまでの摩擦熱が一致しません'];
+    if (Math.abs(d.keSpringJ - (d.keLandHJ - d.heatBeforeJ)) > 1e-9) return ['ばねに着くときの KE が一致しません'];
+    // ばねの圧縮：2 段の単振動（摩擦でつり合いがずれる）。
+    if (Math.abs(d.omega - Math.sqrt(scene.springK / scene.mKg)) > 1e-9) return ['ばねの角振動数が √(k/m) と一致しません'];
+    if (Math.abs(d.xEqM - d.fricN / scene.springK) > 1e-9) return ['つり合いのずれが f/k と一致しません'];
+    if (Math.abs(d.a1M - Math.sqrt((d.vSpringMs / d.omega) * (d.vSpringMs / d.omega) + d.xEqM * d.xEqM)) > 1e-9) return ['圧縮の振幅が一致しません'];
+    if (Math.abs(d.xMaxM - (d.a1M - d.xEqM)) > 1e-9) return ['最大の縮みが一致しません'];
+    if (Math.abs(d.fMaxN - scene.springK * d.xMaxM) > 1e-9) return ['最大のばねの力が k×縮み と一致しません'];
+    if (Math.abs(d.tCompS - Math.atan2(d.vSpringMs / d.omega, d.xEqM) / d.omega) > 1e-9) return ['縮むまでの時間が一致しません'];
+    // エネルギー：ばねに着くときの KE = ばねのエネルギー + 圧縮中の摩擦熱。
+    if (Math.abs(d.keSpringJ - (0.5 * scene.springK * d.xMaxM * d.xMaxM + d.fricN * d.xMaxM)) > 1e-9) return ['圧縮のエネルギーが一致しません'];
+    // 押し返し：戻るときの速さと、すべって止まる位置。
+    if (Math.abs(d.vRetMs - d.omega * Math.sqrt(Math.max(d.a2M * d.a2M - d.xEqM * d.xEqM, 0))) > 1e-9) return ['押し返しの速さが一致しません'];
+    if (Math.abs(d.sBackM - (d.vRetMs * d.vRetMs) / (2 * d.aSlideMs2)) > 1e-9) return ['押し返されたあとのすべる距離が一致しません'];
+    if (Math.abs(d.xStopM - (scene.springXM + d.sBackM)) > 1e-9) return ['止まる位置が一致しません'];
+    if (Math.abs(d.heatBackJ - d.keRetJ) > 1e-9) return ['押し返されたあとの摩擦熱が一致しません'];
+    // エネルギーの合計：はじめの 25 J = 壁 + 着地 + 摩擦。
+    if (Math.abs(d.ke0J - (d.lossWallJ + d.keLandVJ + d.heatTotalJ)) > 1e-9) return ['エネルギーの合計が一致しません'];
+    if (Math.abs(d.heatTotalJ - (d.heatBeforeJ + d.heatSpringJ + d.heatBackJ)) > 1e-9) return ['摩擦熱の合計が一致しません'];
+    if (Math.abs(d.heatSpringJ - d.fricN * 2 * d.xMaxM) > 1e-9) return ['ばねの往復の摩擦熱が一致しません'];
+    // 罠：摩擦なしの縮みは 0.40 m（摩擦ありの 0.38 m より大きい）。
+    if (Math.abs(d.xNoFricM - Math.sqrt((2 * d.keSpringJ) / scene.springK)) > 1e-9) return ['摩擦なしの縮みが一致しません'];
+    if (!(d.xNoFricM > d.xMaxM)) return ['摩擦なしの縮みが摩擦ありより大きくなっていません'];
+    // 変えたら：μ=0.40 ならばねにちょうど届いて止まる（vSpring=0。浮動小数点の誤差 1e-7 程度を許す）。
+    if (Math.abs(d.varyMu4.vSpringMs) > 1e-6) return ['μ=0.40 のばねに着くときの速さが 0 になっていません'];
+    if (Math.abs(d.varyMu4.xStopM - scene.springXM) > 1e-9) return ['μ=0.40 の止まる位置がばねの位置と一致しません'];
+    if (!(d.varyK100.xMaxM < d.xMaxM)) return ['k=100 の縮みがもとより小さくなっていません'];
+    if (!(d.varyK100.fMaxN > d.fMaxN)) return ['k=100 のばねの力がもとより大きくなっていません'];
+    if (Math.abs(d.varyE1.xLandM) > 1e-9) return ['e=1.0 の着地点が出発点と一致しません'];
+    if (Math.abs(d.varyE1.vLandMs - scene.v0Ms) > 1e-9) return ['e=1.0 の着地の速さが初速度と一致しません'];
+    if (!(d.varyE1.xMaxM > d.xMaxM)) return ['e=1.0 の縮みがもとより大きくなっていません'];
+    // 軌道の点列：はじめは (0,0)、壁で (5.0, 2.5)、着地で (1.0, 0)。
+    if (Math.abs(d.trajWall[0][0]) > 1e-12 || Math.abs(d.trajWall[0][1]) > 1e-12) return ['軌道のはじめが (0,0) と一致しません'];
+    if (Math.abs(d.trajWall[8][0] - scene.wallXM) > 1e-9 || Math.abs(d.trajWall[8][1] - d.yWallM) > 1e-9) return ['軌道の壁の点が一致しません'];
+    if (Math.abs(d.trajLand[8][0] - d.xLandM) > 1e-9 || Math.abs(d.trajLand[8][1]) > 1e-9) return ['軌道の着地点が一致しません'];
+    // 図の矢印の長さが縮尺どおりか（速度は 8 px/(m/s)、ばねの力は 3 px/N）。
+    if (byId.vx && Math.abs(Math.hypot(byId.vx.vector[0], byId.vx.vector[1]) - Math.abs(d.vxAfterMs) * 8) > 0.5) return ['横の速度の矢印が 8 px/(m/s) と一致しません'];
+    if (byId.vy && Math.abs(Math.hypot(byId.vy.vector[0], byId.vy.vector[1]) - Math.abs(d.vyLandMs) * 8) > 0.5) return ['縦の速度の矢印が 8 px/(m/s) と一致しません'];
+    if (byId.v && Math.abs(Math.hypot(byId.v.vector[0], byId.v.vector[1]) - d.vLandMs * 8) > 0.5) return ['速さの矢印が 8 px/(m/s) と一致しません'];
+    if (byId.v && byId.vx && byId.vy) {
+      if (Math.abs(byId.v.vector[0] - byId.vx.vector[0]) > 0.5) return ['速さの矢印の水平成分が vx と一致しません'];
+      if (Math.abs(byId.v.vector[1] - byId.vy.vector[1]) > 0.5) return ['速さの矢印の鉛直成分が vy と一致しません'];
+    }
+    if (byId.springF && Math.abs(Math.hypot(byId.springF.vector[0], byId.springF.vector[1]) - d.fMaxN * 3) > 0.5) return ['ばねの力の矢印が 3 px/N と一致しません'];
+  }
+  if (scene.type === 'genRectSmooth') {
+    const d = scene.derived;
+    // 発電機：最大値は実効値 × √2、周期は 1/f。
+    if (Math.abs(d.genPeakV - d.genEffV * Math.SQRT2) > 1e-9) return ['発電機の最大値が 実効値×√2 と一致しません'];
+    if (Math.abs(d.periodS - 1 / d.freqHz) > 1e-12) return ['発電機の周期が 1/f と一致しません'];
+    // 昇圧：電圧は ratio 倍。
+    if (Math.abs(d.v2EffV - d.genEffV * d.ratio) > 1e-9) return ['昇圧後の実効値が一致しません'];
+    if (Math.abs(d.v2PeakV - d.genPeakV * d.ratio) > 1e-9) return ['昇圧後の最大値が一致しません'];
+    // 全波整流（コンデンサーなし）：平均は (2/π)×最大値。
+    if (Math.abs(d.vAvgNoCapV - (2 / Math.PI) * d.v2PeakV) > 1e-9) return ['整流のみの平均電圧が (2/π)×最大値 と一致しません'];
+    if (!(d.vAvgNoCapV < d.v2PeakV)) return ['整流のみの平均電圧が最大値より小さくなっていません'];
+    // 平滑化：全波ではピークの間隔は 1/(2f)、リップルは ΔQ/C。
+    if (Math.abs(d.dtPeakS - 1 / (2 * d.freqHz)) > 1e-12) return ['ピークの間隔が 1/(2f) と一致しません'];
+    if (Math.abs(d.dQc - d.loadIA * d.dtPeakS) > 1e-12) return ['ピークのあいだに流れる電荷が I×Δt と一致しません'];
+    if (Math.abs(d.rippleV - d.dQc / d.capF) > 1e-9) return ['リップルが ΔQ/C と一致しません'];
+    if (Math.abs(d.vDcV - (d.v2PeakV - d.rippleV / 2)) > 1e-9) return ['直流電圧が 最大値−リップル/2 と一致しません'];
+    if (Math.abs(d.pLoadW - d.vDcV * d.loadIA) > 1e-9) return ['負荷の電力が VI と一致しません'];
+    if (Math.abs(d.rLoadOhm - d.vDcV / d.loadIA) > 1e-9) return ['負荷の抵抗が V/I と一致しません'];
+    // 直流電圧は最大値より小さく、整流のみの平均より大きい。
+    if (!(d.vDcV < d.v2PeakV)) return ['直流電圧が最大値より小さくなっていません'];
+    if (!(d.vDcV > d.vAvgNoCapV)) return ['直流電圧が整流のみの平均より大きくなっていません'];
+    // 平滑化の波形：ピークは 283 V、谷は 273 V。
+    const sc = d.smoothCurve;
+    if (Math.abs(sc[0][1] - (d.v2PeakV - d.rippleV)) > 1e-9) return ['平滑化の波形のはじめが一致しません'];
+    if (Math.abs(sc[1][0] - d.dtPeakS / 2) > 1e-12 || Math.abs(sc[1][1] - d.v2PeakV) > 1e-9) return ['平滑化の波形のピークが一致しません'];
+    if (Math.abs(sc[2][0] - (3 * d.dtPeakS) / 2) > 1e-12 || Math.abs(sc[2][1] - (d.v2PeakV - d.rippleV)) > 1e-9) return ['平滑化の波形の谷が一致しません'];
+    if (Math.abs(sc[6][0] - 3 * d.dtPeakS) > 1e-12 || Math.abs(sc[6][1] - (d.v2PeakV - d.rippleV / 2)) > 1e-9) return ['平滑化の波形の終わりが一致しません'];
+    // 変えたら：リップルは I/(2fC)（全波）、半波では I/(fC)。
+    for (const v of [d.varyC2000, d.varyI2, d.varyHalf, d.varyF60]) {
+      if (Math.abs(v.rippleV - (v.loadIA * v.dtPeakS) / v.capF) > 1e-9) return ['変えたらのリップルが一致しません'];
+      if (Math.abs(v.vDcV - (d.v2PeakV - v.rippleV / 2)) > 1e-9) return ['変えたらの直流電圧が一致しません'];
+      if (!(v.vDcV < d.v2PeakV)) return ['変えたらの直流電圧が最大値をこえています'];
+    }
+    if (!(d.varyC2000.rippleV < d.rippleV)) return ['C=2000 μF のリップルがもとより小さくなっていません'];
+    if (Math.abs(d.varyC2000.rippleV - d.rippleV / 4) > 1e-9) return ['C=2000 μF のリップルが 1/4 と一致しません'];
+    if (Math.abs(d.varyI2.rippleV - d.rippleV * 4) > 1e-9) return ['I=2.0 A のリップルが 4 倍と一致しません'];
+    if (Math.abs(d.varyHalf.dtPeakS - 1 / d.freqHz) > 1e-12) return ['半波のピークの間隔が 1/f と一致しません'];
+    if (Math.abs(d.varyHalf.rippleV - d.rippleV * 2) > 1e-9) return ['半波のリップルが 2 倍と一致しません'];
+    if (!(d.varyF60.rippleV < d.rippleV)) return ['f=60 Hz のリップルがもとより小さくなっていません'];
   }
   if (scene.type === 'charged-circle') {
     const d = scene.derived;
@@ -12204,6 +12337,231 @@ function drawBase(svg, scene) {
       note(274, '送電線 100 Ω でも ×10 なら 1.0 W');
       note(292, '変圧器なしなら負荷には 25 W しか届かない');
     }
+  } else if (scene.type === 'projWallSpring') {
+    const d = scene.derived;
+    const phase = scene.phase;
+    const tH = el('text', { x: 40, y: 36, fill: '#333' });
+    tH.textContent = phase === 'wall' ? '壁に当たるまで：最高点に着く'
+      : phase === 'land' ? 'はね返ったあと：x=1.0 m に着地'
+      : phase === 'spring' ? 'ばねを縮める：最大 0.38 m、ばねの力 19 N'
+      : phase === 'trap' ? '罠：エネルギーはどこへ行ったか'
+      : phase === 'vary' ? '変えたら：μ・k・e で縮みが変わる'
+      : '斜方投射＋壁＋摩擦＋ばね：AQ のつづき';
+    svg.appendChild(tH);
+    const note = (y, text) => { const t = el('text', { x: 60, y, fill: '#333' }); t.textContent = text; svg.appendChild(t); };
+    const barRows = (rows) => {
+      rows.forEach((r, i) => {
+        const y = 75 + i * 45;
+        const tN = el('text', { x: 60, y: y - 8 }); tN.textContent = r.name; svg.appendChild(tN);
+        svg.appendChild(el('rect', { x: 140, y, width: Math.max(r.w, 5), height: 18, fill: r.color, stroke: '#333', 'stroke-width': 1 }));
+        const tV = el('text', { x: 140 + Math.max(r.w, 5) + 8, y: y + 15 }); tV.textContent = r.val; svg.appendChild(tV);
+      });
+    };
+    // AQ と同じ座標（24 px/m、原点 x=130、地面 y=240）。x=-3.0 m（ばね）から x=5.0 m（壁）まで入る。
+    const pxPerM = 24, groundY = 240, originX = 130;
+    const xOf = (xm) => originX + xm * pxPerM;
+    const yOf = (ym) => groundY - ym * pxPerM;
+    const trajPath = (pts) => pts.map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${xOf(x).toFixed(1)} ${yOf(y).toFixed(1)}`).join(' ');
+    if (phase === 'base') {
+      svg.appendChild(el('line', { x1: 40, y1: 240, x2: 360, y2: 240, stroke: '#333', 'stroke-width': 2 }));
+      // 壁（x=5.0 m）。
+      svg.appendChild(el('rect', { x: 250, y: 170, width: 10, height: 70, fill: '#888', stroke: '#333', 'stroke-width': 1.5 }));
+      // ばね（x=-3.0 m、自然長の端）。壁に付いた小さなジグザグ。
+      svg.appendChild(el('line', { x1: 30, y1: 220, x2: 30, y2: 240, stroke: '#333', 'stroke-width': 3 }));
+      const springPts = [[30, 232], [36, 228], [42, 236], [48, 228], [54, 236], [58, 232]];
+      svg.appendChild(el('path', { d: springPts.map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${x} ${y}`).join(' '), fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('path', { d: trajPath(d.trajWall), fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
+      svg.appendChild(el('path', { d: trajPath(d.trajLand), fill: 'none', stroke: '#0066cc', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 130, y1: 230, x2: 158, y2: 202, stroke: '#d35400', 'stroke-width': 2, 'stroke-dasharray': '5 4', 'marker-end': 'url(#fig-arrow)' }));
+      svg.appendChild(el('circle', { cx: 130, cy: 230, r: 10, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx: xOf(d.xLandM), cy: 230, r: 10, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      const tV = el('text', { x: 140, y: 170, fill: '#d35400' }); tV.textContent = 'v0=10 m/s'; svg.appendChild(tV);
+      const tW = el('text', { x: 252, y: 160 }); tW.textContent = '壁'; svg.appendChild(tW);
+      const tL = el('text', { x: 100, y: 222 }); tL.textContent = '着地'; svg.appendChild(tL);
+      const tS = el('text', { x: 24, y: 252 }); tS.textContent = 'ばね'; svg.appendChild(tS);
+      note(256, 'v0=10 m/s、45°、壁は 5.0 m 先');
+      note(274, '着地は x=1.0 m、速さ 9.1 m/s');
+      note(292, '着地のあと 4.0 m すべってばねにぶつかる');
+    } else if (phase === 'wall') {
+      svg.appendChild(el('line', { x1: 40, y1: 240, x2: 360, y2: 240, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('rect', { x: 250, y: 170, width: 10, height: 70, fill: '#888', stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('path', { d: trajPath(d.trajWall), fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx: 240, cy: 180, r: 10, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 60, y1: 180, x2: 240, y2: 180, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      const tV = el('text', { x: 56, y: 164 }); tV.textContent = 'vy=0（最高点）'; svg.appendChild(tV);
+      const tH2 = el('text', { x: 200, y: 160 }); tH2.textContent = '高さ 2.5 m'; svg.appendChild(tH2);
+      note(256, '壁に当たるまで 0.71 s');
+      note(274, '壁のところがちょうど最高点（vy=0）');
+      note(292, '高さは 2.5 m、水平の速さは 7.1 m/s');
+    } else if (phase === 'land') {
+      // 着地の速度の分解：玉を (230,120) に置き、vx・vy・v の矢印は drawForce が描く。
+      svg.appendChild(el('circle', { cx: 230, cy: 120, r: 14, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      // 角度の弧：水平（左向き）から v の向きまで（51°）。SVG では角度が時計回りに増えるので、弧は sweep=0。
+      const angRad = (d.landAngleDeg * Math.PI) / 180;
+      const arcR = 28;
+      const arcEndX = 230 + arcR * Math.cos(Math.PI - angRad);
+      const arcEndY = 120 + arcR * Math.sin(Math.PI - angRad);
+      svg.appendChild(el('path', { d: `M ${230 - arcR} 120 A ${arcR} ${arcR} 0 0 0 ${arcEndX.toFixed(1)} ${arcEndY.toFixed(1)}`, fill: 'none', stroke: '#333', 'stroke-width': 1.5 }));
+      const tA = el('text', { x: 190, y: 145, 'text-anchor': 'middle' }); tA.textContent = '51°'; svg.appendChild(tA);
+      const tB = el('text', { x: 60, y: 90 }); tB.textContent = '着地の速度'; svg.appendChild(tB);
+      note(256, '着地の速さ 9.1 m/s を分解する');
+      note(274, '横 5.7 m/s、縦 7.1 m/s');
+      note(292, '縦の 12.5 J は着地で失われる');
+    } else if (phase === 'spring') {
+      // ばねの図：壁（x=50）からばね（50→150）、玉（164,200）、ふれた位置の破線（x=202）。
+      svg.appendChild(el('line', { x1: 40, y1: 240, x2: 360, y2: 240, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 50, y1: 170, x2: 50, y2: 240, stroke: '#333', 'stroke-width': 3 }));
+      const zig = [[50, 200], [60, 192], [70, 208], [80, 192], [90, 208], [100, 192], [110, 208], [120, 192], [130, 208], [140, 192], [150, 200]];
+      svg.appendChild(el('path', { d: zig.map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${x} ${y}`).join(' '), fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx: 164, cy: 200, r: 14, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 202, y1: 170, x2: 202, y2: 230, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      const tC = el('text', { x: 208, y: 190 }); tC.textContent = 'ふれた位置'; svg.appendChild(tC);
+      const tV0 = el('text', { x: 150, y: 178 }); tV0.textContent = 'v=0'; svg.appendChild(tV0);
+      note(256, 'ばねの最大の縮み 0.38 m');
+      note(274, 'ばねの力 19 N、この瞬間の速さは 0');
+      note(292, '押し返すと 3.6 m/s で戻る');
+    } else if (phase === 'trap') {
+      // エネルギーの行き先の比べ（8 px/J）。
+      barRows([
+        { name: 'はじめの 25 J', w: d.ke0J * 8, val: '25 J', color: '#ffd24d' },
+        { name: '壁の損失 4.5 J', w: d.lossWallJ * 8, val: '4.5 J', color: '#ffb3b3' },
+        { name: '着地の損失 12.5 J', w: d.keLandVJ * 8, val: '12.5 J', color: '#cfe3ff' },
+        { name: '摩擦熱 8.0 J', w: d.heatTotalJ * 8, val: '8.0 J', color: '#b3e6b3' },
+      ]);
+      note(256, '縦の 12.5 J は着地で失われる');
+      note(274, '摩擦熱になるのは横の 8.0 J だけ');
+      note(292, '4.5 + 12.5 + 8.0 = 25 J とぴったり合う');
+    } else if (phase === 'vary') {
+      // ばねの最大の縮みの比べ（250 px/m）。
+      barRows([
+        { name: 'もと 0.38 m', w: d.xMaxM * 250, val: '0.38 m', color: '#ffd24d' },
+        { name: '摩擦なし 0.40 m', w: d.xNoFricM * 250, val: '0.40 m', color: '#cfe3ff' },
+        { name: 'k=100 0.27 m', w: d.varyK100.xMaxM * 250, val: '0.27 m', color: '#b3e6b3' },
+        { name: 'e=1.0 0.60 m', w: d.varyE1.xMaxM * 250, val: '0.60 m', color: '#ffb3b3' },
+      ]);
+      note(256, '摩擦なしなら 0.40 m になる');
+      note(274, 'k=100 なら 0.27 m になる');
+      note(292, 'e=1.0 なら 0.60 m になる');
+    }
+  } else if (scene.type === 'genRectSmooth') {
+    const d = scene.derived;
+    const phase = scene.phase;
+    const tH = el('text', { x: 40, y: 36, fill: '#333' });
+    tH.textContent = phase === 'stepup' ? '昇圧：100 V → 200 V、最大値 283 V'
+      : phase === 'rectify' ? '全波整流：平均は 180 V'
+      : phase === 'smooth' ? '平滑化：直流 278 V、リップル 10 V'
+      : phase === 'trap' ? '罠：直流は最大値ではない'
+      : phase === 'vary' ? '変えたら：C・I・半波・f でリップルが変わる'
+      : '発電機＋変圧器＋整流＋平滑化';
+    svg.appendChild(tH);
+    const note = (y, text) => { const t = el('text', { x: 60, y, fill: '#333' }); t.textContent = text; svg.appendChild(t); };
+    const barRows = (rows) => {
+      rows.forEach((r, i) => {
+        const y = 75 + i * 45;
+        const tN = el('text', { x: 60, y: y - 8 }); tN.textContent = r.name; svg.appendChild(tN);
+        svg.appendChild(el('rect', { x: 140, y, width: Math.max(r.w, 5), height: 18, fill: r.color, stroke: '#333', 'stroke-width': 1 }));
+        const tV = el('text', { x: 140 + Math.max(r.w, 5) + 8, y: y + 15 }); tV.textContent = r.val; svg.appendChild(tV);
+      });
+    };
+    if (phase === 'base') {
+      // 電源の流れ：発電機 → 昇圧 → 整流 → 平滑 → 負荷（AZ の base と同じ配置）。
+      const boxes = [
+        { x: 38, label: '発電機', sub: '100 V' },
+        { x: 105, label: '昇圧', sub: '×2' },
+        { x: 172, label: '整流', sub: '全波' },
+        { x: 239, label: '平滑', sub: '500 μF' },
+        { x: 306, label: '負荷', sub: '140 W' },
+      ];
+      boxes.forEach((b, i) => {
+        svg.appendChild(el('rect', { x: b.x, y: 130, width: 55, height: 40, fill: '#eef', stroke: '#333', 'stroke-width': 2 }));
+        const tL = el('text', { x: b.x + 27, y: 155, 'text-anchor': 'middle' }); tL.textContent = b.label; svg.appendChild(tL);
+        const tS = el('text', { x: b.x + 27, y: 195, 'text-anchor': 'middle', fill: '#555' }); tS.textContent = b.sub; svg.appendChild(tS);
+        if (i < boxes.length - 1) {
+          svg.appendChild(el('line', { x1: b.x + 55, y1: 150, x2: b.x + 67, y2: 150, stroke: '#333', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+        }
+      });
+      note(256, '発電機 100 V → 昇圧 ×2 → 200 V');
+      note(274, '整流してコンデンサーで平滑化する');
+      note(292, '負荷には直流 278 V、140 W が届く');
+    } else if (phase === 'stepup') {
+      // 発電機（円）と昇圧変圧器（箱）。AZ の stepup と同じ配置（二次側の電流は書かない）。
+      svg.appendChild(el('circle', { cx: 75, cy: 150, r: 22, fill: '#fff', stroke: '#333', 'stroke-width': 2 }));
+      const tG = el('text', { x: 75, y: 190, 'text-anchor': 'middle' }); tG.textContent = '発電機'; svg.appendChild(tG);
+      svg.appendChild(el('line', { x1: 97, y1: 150, x2: 155, y2: 150, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('rect', { x: 155, y: 115, width: 70, height: 70, fill: '#eef', stroke: '#333', 'stroke-width': 2 }));
+      const tT = el('text', { x: 190, y: 145, 'text-anchor': 'middle' }); tT.textContent = '変圧器'; svg.appendChild(tT);
+      const tR = el('text', { x: 190, y: 165, 'text-anchor': 'middle' }); tR.textContent = '1:2'; svg.appendChild(tR);
+      svg.appendChild(el('line', { x1: 225, y1: 150, x2: 320, y2: 150, stroke: '#333', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+      const tV1 = el('text', { x: 115, y: 105, 'text-anchor': 'middle' }); tV1.textContent = 'V1=100 V'; svg.appendChild(tV1);
+      const tI1 = el('text', { x: 115, y: 210, 'text-anchor': 'middle' }); tI1.textContent = 'T=0.020 s'; svg.appendChild(tI1);
+      const tV2 = el('text', { x: 265, y: 105, 'text-anchor': 'middle' }); tV2.textContent = 'V2=200 V'; svg.appendChild(tV2);
+      const tI2 = el('text', { x: 265, y: 210, 'text-anchor': 'middle' }); tI2.textContent = '最大値 283 V'; svg.appendChild(tI2);
+      note(256, 'V2/V1 = N2/N1 = 2');
+      note(274, '最大値は 141 V → 283 V');
+      note(292, '電力は保存：140 W → 140 W');
+    } else if (phase === 'rectify') {
+      // 全波整流の波形：|sin|、0〜T、最大値 283 V、平均 180 V（破線）。
+      const xOf = (tS) => 60 + (tS / d.periodS) * 280;
+      const yOf = (vV) => 240 - (vV / 300) * 180;
+      svg.appendChild(el('line', { x1: 60, y1: 240, x2: 340, y2: 240, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: 60, y1: 60, x2: 60, y2: 240, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: 60, y1: yOf(d.vAvgNoCapV), x2: 340, y2: yOf(d.vAvgNoCapV), stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      const pts = [];
+      for (let i = 0; i <= 32; i++) {
+        const t = (i / 32) * d.periodS;
+        const v = d.v2PeakV * Math.abs(Math.sin((2 * Math.PI * t) / d.periodS));
+        pts.push([xOf(t), yOf(v)]);
+      }
+      svg.appendChild(el('path', { d: pts.map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`).join(' '), fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
+      const tP = el('text', { x: xOf(d.periodS / 4), y: 60, 'text-anchor': 'middle' }); tP.textContent = '最大値 283 V'; svg.appendChild(tP);
+      const tA = el('text', { x: 310, y: 122 }); tA.textContent = '平均 180 V'; svg.appendChild(tA);
+      const t0 = el('text', { x: 52, y: 232 }); t0.textContent = '0'; svg.appendChild(t0);
+      const tT = el('text', { x: 330, y: 232, 'text-anchor': 'middle' }); tT.textContent = 'T'; svg.appendChild(tT);
+      const tX = el('text', { x: 346, y: 244 }); tX.textContent = 't'; svg.appendChild(tX);
+      const tY = el('text', { x: 48, y: 56 }); tY.textContent = 'V'; svg.appendChild(tY);
+      note(256, '負の部分を正に折り返す');
+      note(274, '平均は (2/π)×283 = 180 V');
+      note(292, '0 から 283 V まで脈を打つ');
+    } else if (phase === 'smooth') {
+      // 平滑化の波形：0〜0.030 s、ピーク 283 V、谷 273 V、平均 278 V（破線）。
+      const xOf = (tS) => 60 + (tS / (3 * d.dtPeakS)) * 280;
+      const yOf = (vV) => 240 - ((vV - 270) / 15) * 180;
+      svg.appendChild(el('line', { x1: 60, y1: 240, x2: 340, y2: 240, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: 60, y1: 60, x2: 60, y2: 240, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: 60, y1: yOf(d.vDcV), x2: 340, y2: yOf(d.vDcV), stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      const pts = d.smoothCurve.map(([t, v]) => [xOf(t), yOf(v)]);
+      svg.appendChild(el('path', { d: pts.map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`).join(' '), fill: 'none', stroke: '#0066cc', 'stroke-width': 2 }));
+      const tP = el('text', { x: xOf(d.smoothCurve[1][0]), y: 76, 'text-anchor': 'middle' }); tP.textContent = '283 V'; svg.appendChild(tP);
+      const tB = el('text', { x: xOf(d.smoothCurve[2][0]), y: 220, 'text-anchor': 'middle' }); tB.textContent = '273 V'; svg.appendChild(tB);
+      const tA = el('text', { x: 250, y: 134, 'text-anchor': 'middle' }); tA.textContent = '平均 278 V'; svg.appendChild(tA);
+      const tHi = el('text', { x: 52, y: 66, 'text-anchor': 'end' }); tHi.textContent = '285 V'; svg.appendChild(tHi);
+      const tLo = el('text', { x: 52, y: 244, 'text-anchor': 'end' }); tLo.textContent = '270 V'; svg.appendChild(tLo);
+      const tX = el('text', { x: 346, y: 244 }); tX.textContent = 't'; svg.appendChild(tX);
+      note(256, '最大値 283 V、最小値 273 V');
+      note(274, 'リップルは 10 V、平均は 278 V');
+      note(292, 'C を大きくするとリップルは小さくなる');
+    } else if (phase === 'trap') {
+      // 電圧の比べ（0.6 px/V）。
+      barRows([
+        { name: '最大値 283 V', w: d.v2PeakV * 0.6, val: '283 V', color: '#ffd24d' },
+        { name: 'コンデンサーなし 180 V', w: d.vAvgNoCapV * 0.6, val: '180 V', color: '#ffb3b3' },
+        { name: '平滑化 278 V', w: d.vDcV * 0.6, val: '278 V', color: '#b3e6b3' },
+      ]);
+      note(256, 'コンデンサーなしの平均は 180 V');
+      note(274, '平滑化しても 283 V にはならない');
+      note(292, '上限は最大値 283 V だ');
+    } else if (phase === 'vary') {
+      // リップルの比べ（5 px/V）。
+      barRows([
+        { name: 'もと 10 V', w: d.rippleV * 5, val: '10 V', color: '#ffd24d' },
+        { name: 'C=2000 μF 2.5 V', w: d.varyC2000.rippleV * 5, val: '2.5 V', color: '#cfe3ff' },
+        { name: 'I=2.0 A 40 V', w: d.varyI2.rippleV * 5, val: '40 V', color: '#ffb3b3' },
+        { name: '半波 20 V', w: d.varyHalf.rippleV * 5, val: '20 V', color: '#b3e6b3' },
+      ]);
+      note(256, 'C=2000 μF ならリップル 2.5 V');
+      note(274, 'I=2.0 A ならリップル 40 V');
+      note(292, '半波ならリップル 20 V、f=60 Hz なら 8.3 V');
+    }
   } else if (scene.type === 'capacitor') {
     const topY = 110, dPx = scene.dPx;
     // 2枚の極板（水平）。上板が +、下板が −。
@@ -13895,4 +14253,173 @@ function genTransformerDerived(data) {
 }
 function genTransformerForces(data) { return []; }
 
-if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, capSpringGravDerived, capSpringGravForces, gasSpringCycleDerived, gasSpringCycleForces, slopeSpringDerived, slopeSpringForces, fallLoopDerived, fallLoopForces, beltSpringDerived, beltSpringForces, massSpecDerived, massSpecForces, coilHallDerived, coilHallForces, platformChargeDerived, platformChargeForces, pendulumCollideDerived, pendulumCollideForces, photoCapDerived, photoCapForces, orbitTransferDerived, orbitTransferForces, cyclotronDerived, cyclotronForces, slopeSpringFricDerived, slopeSpringFricForces, projWallDerived, projWallForces, railSpringDampDerived, railSpringDampForces, pendulumSpringDerived, pendulumSpringForces, gasPistonOscDerived, gasPistonOscForces, photoCircleDerived, photoCircleForces, earthTunnelDerived, earthTunnelForces, heaterGasDerived, heaterGasForces, specPhotoCircleDerived, specPhotoCircleForces, ottoCycleDerived, ottoCycleForces, generatorACDerived, generatorACForces, explodeProjectileDerived, explodeProjectileForces, slopePulleySpringDerived, slopePulleySpringForces, cathodeRayDerived, cathodeRayForces, conicalPendulumDerived, conicalPendulumForces, rcChargeDerived, rcChargeForces, projWallFricDerived, projWallFricForces, rlcChargeDerived, rlcChargeForces, photoCapCircleDerived, photoCapCircleForces, acRlcDerived, acRlcForces, projDragIntegrate, projDragDerived, projDragForces, pendulumSpringFricDerived, pendulumSpringFricForces, slopePulleyFricDerived, slopePulleyFricForces, selectorCircleDerived, selectorCircleForces, fallLoopCapDerived, fallLoopCapForces, genTransformerDerived, genTransformerForces, sceneFor, validateScene, renderFigure };
+// ---- 組み合わせBA：斜方投射＋壁＋摩擦＋ばね ----
+// AQ のつづき：m=0.50 kg、v0=10 m/s、45°、壁 5.0 m、e=0.80、μ=0.20、g=10。
+// 壁のところがちょうど最高点（vy=0、高さ 2.5 m）。はね返って着地は x=1.0 m、
+// 速さ 9.1 m/s、KE 20.5 J（横 8.0 J + 縦 12.5 J）。壁での損失は 4.5 J。
+// 着地のあと、ばねまで 4.0 m すべる（摩擦 1.0 N）。ばねに着くとき v=4.0 m/s、KE 4.0 J。
+// ばねの圧縮は 2 段の単振動（AV と同じ）：摩擦でつり合いが ±0.020 m ずれる。
+//   圧縮：ω=√(k/m)=10 rad/s、振幅 a1=√((v/ω)²+xEq²)=0.40 m、
+//   最大の縮み xMax=a1−xEq=0.38 m、ばねの力 19 N、縮むまでの時間 0.15 s。
+//   押し返し：振幅 a2=xMax−xEq=0.36 m、戻りの速さ vRet=ω√(a2²−xEq²)=3.6 m/s。
+//   ばねの往復の摩擦熱は 0.76 J、押し返されたあと 3.2 m すべって x=0.24 m で止まる。
+// エネルギー：25 J = 壁 4.5 J + 着地 12.5 J + 摩擦 8.0 J（ばねまで 4.0 J、往復 0.76 J、戻り 3.2 J）。
+// 罠：着地の KE が全部熱になる、はまちがい（縦の 12.5 J は着地で失われる）。
+//   最大に縮んだところで止まる、はまちがい（3.6 m/s で押し返される）。
+//   摩擦なしなら縮みは 0.40 m（½kx²=KE から）。
+// 変えたら：μ=0.40 なら止まるまでの距離はちょうど 4.0 m（ばねに届いて止まる）。
+//   k=100 なら縮み 0.27 m、ばねの力 27 N、押し返し 3.7 m/s。
+//   e=1.0 なら着地は x=0 m、速さ 10 m/s、縮み 0.60 m、ばねの力 30 N、押し返し 5.8 m/s。
+function projWallSpringDerived(data) {
+  const g = data.g || 10;
+  const v0 = data.v0Ms, ang = (data.angleDeg * Math.PI) / 180;
+  const v0x = v0 * Math.cos(ang), v0y = v0 * Math.sin(ang);
+  const wallXM = data.wallXM, e = data.eRest, m = data.mKg, mu = data.muKin;
+  const k = data.springK, springXM = data.springXM;
+  // ① 壁に当たるまで：壁のところがちょうど最高点。
+  const tWallS = wallXM / v0x;
+  const yWallM = v0y * tWallS - 0.5 * g * tWallS * tWallS;
+  const vyWallMs = v0y - g * tWallS;
+  const ke0J = 0.5 * m * v0 * v0;
+  const keWallBeforeJ = 0.5 * m * v0x * v0x;
+  const peWallJ = m * g * yWallM;
+  // ② はね返って着地：落下時間は高さだけできまる。
+  const tFallS = Math.sqrt((2 * yWallM) / g);
+  const vyLandMs = -g * tFallS;
+  const keLandVJ = 0.5 * m * vyLandMs * vyLandMs;
+  // 壁・落下・すべり・ばねの連鎖（k・e・μ を変えて同じ計算をする）。
+  const calcChain = (kk, ee, mmu) => {
+    const vxA = -ee * v0x;
+    const xL = wallXM + vxA * tFallS;
+    const vL = Math.sqrt(vxA * vxA + vyLandMs * vyLandMs);
+    const keWA = 0.5 * m * vxA * vxA;
+    const lossW = keWallBeforeJ - keWA;
+    const keLH = keWA; // 横の KE は落下中変わらない
+    const keLJ = keLH + keLandVJ;
+    const fr = mmu * m * g;
+    const aS = mmu * g;
+    const sTS = xL - springXM;
+    const vSp2 = vxA * vxA - 2 * aS * sTS;
+    const vSp = Math.sqrt(Math.max(vSp2, 0));
+    const tTS = (Math.abs(vxA) - vSp) / aS;
+    const keSp = 0.5 * m * vSp * vSp;
+    const heatB = fr * Math.min(sTS, (vxA * vxA) / (2 * aS));
+    // ばねの圧縮：2 段の単振動（摩擦でつり合いがずれる）。
+    const om = Math.sqrt(kk / m);
+    const xEq = fr / kk;
+    const a1 = Math.sqrt((vSp / om) * (vSp / om) + xEq * xEq);
+    const tC = Math.atan2(vSp / om, xEq) / om;
+    const xM = a1 - xEq;
+    const fM = kk * xM;
+    const a2 = xM - xEq;
+    const vR = om * Math.sqrt(Math.max(a2 * a2 - xEq * xEq, 0));
+    const tR = a2 > 0 ? Math.acos(Math.max(-1, Math.min(1, -xEq / a2))) / om : 0;
+    const heatS = fr * 2 * xM;
+    const keR = 0.5 * m * vR * vR;
+    const sB = (vR * vR) / (2 * aS);
+    const tB = vR / aS;
+    const xSt = springXM + sB;
+    const heatBk = keR;
+    return {
+      vxAfterMs: vxA, xLandM: xL, vLandMs: vL, keWallAfterJ: keWA, lossWallJ: lossW,
+      keLandHJ: keLH, keLandJ: keLJ, fricN: fr, aSlideMs2: aS, sToSpringM: sTS,
+      vSpringMs: vSp, tToSpringS: tTS, keSpringJ: keSp, heatBeforeJ: heatB,
+      omega: om, xEqM: xEq, a1M: a1, tCompS: tC, xMaxM: xM, fMaxN: fM, a2M: a2,
+      vRetMs: vR, tRetS: tR, heatSpringJ: heatS, keRetJ: keR,
+      sBackM: sB, tBackS: tB, xStopM: xSt, heatBackJ: heatBk,
+      heatTotalJ: heatB + heatS + heatBk,
+    };
+  };
+  const main = calcChain(k, e, mu);
+  const varyMu4 = calcChain(k, e, 0.40);
+  const varyK100 = calcChain(100, e, mu);
+  const varyE1 = calcChain(k, 1.0, mu);
+  // 摩擦なしのばねの縮み（罠の比べ用）：½kx² = KE。
+  const xNoFricM = Math.sqrt((2 * main.keSpringJ) / k);
+  // 軌道の点列：壁まで（t 0→tWall を 9 点）、壁から着地まで（t 0→tFall を 9 点）。
+  const trajWall = [0, 1 / 8, 2 / 8, 3 / 8, 4 / 8, 5 / 8, 6 / 8, 7 / 8, 1].map((fr) => {
+    const t = fr * tWallS;
+    return [v0x * t, v0y * t - 0.5 * g * t * t];
+  });
+  const trajLand = [0, 1 / 8, 2 / 8, 3 / 8, 4 / 8, 5 / 8, 6 / 8, 7 / 8, 1].map((fr) => {
+    const t = fr * tFallS;
+    return [wallXM + main.vxAfterMs * t, yWallM - 0.5 * g * t * t];
+  });
+  // 着地の速度の向き（水平から下向きに測る）。
+  const landAngleDeg = (Math.atan2(Math.abs(vyLandMs), Math.abs(main.vxAfterMs)) * 180) / Math.PI;
+  return {
+    g, v0x, v0y, tWallS, yWallM, vyWallMs, ke0J, keWallBeforeJ, peWallJ,
+    tFallS, vyLandMs, keLandVJ, landAngleDeg,
+    ...main,
+    varyMu4, varyK100, varyE1, xNoFricM, trajWall, trajLand,
+  };
+}
+
+function projWallSpringForces(data) {
+  const d = projWallSpringDerived(data);
+  const vScale = 8; // px/(m/s)：着地の速度の矢印（vx 5.7 m/s は 45 px、vy 7.1 m/s は 57 px）
+  if (data.phase === 'land') {
+    return [
+      { id: 'vx', short: 'vx=5.7 m/s', color: 'blue', vector: [-Math.abs(d.vxAfterMs) * vScale, 0], dashed: false, labelDx: -8, labelDy: -20, from: { x: 230, y: 120 } },
+      { id: 'vy', short: 'vy=7.1 m/s', color: 'red', vector: [0, Math.abs(d.vyLandMs) * vScale], dashed: false, labelDx: 8, labelDy: -10, from: { x: 230, y: 120 } },
+      { id: 'v', short: 'v=9.1 m/s', color: '#333', vector: [-Math.abs(d.vxAfterMs) * vScale, Math.abs(d.vyLandMs) * vScale], dashed: false, labelDx: -8, labelDy: 16, from: { x: 230, y: 120 } },
+    ];
+  }
+  if (data.phase === 'spring') {
+    return [
+      { id: 'springF', short: 'ばねの力 19 N', color: '#b00', vector: [d.fMaxN * 3, 0], dashed: false, labelDx: 6, labelDy: 16, from: { x: 164, y: 200 } },
+    ];
+  }
+  return [];
+}
+
+// ---- 組み合わせBB：発電機＋変圧器＋整流＋コンデンサーの平滑化 ----
+// AZ の発電機（実効値 100 V、50 Hz）で交流を作り、昇圧 ×2（1:2）で 200 V にし、
+// 全波整流して、コンデンサー C=500 μF で平滑化して、0.50 A の直流負荷に送る。
+// ダイオードの電圧降下は無視し、変圧器は理想的。負荷の電流はほぼ一定とみなす。
+// 具体値（検算済み）：発電機の最大値 141 V、周期 0.020 s。昇圧後は実効値 200 V、最大値 283 V。
+//   コンデンサーなしの整流後の平均は (2/π)×283 = 180 V。
+//   平滑化：ピークの間隔 Δt=1/(2f)=10 ms、ΔQ=IΔt=0.0050 C、リップル ΔV=ΔQ/C=10 V、
+//   直流電圧 Vdc=283−5=278 V、負荷の電力 140 W、負荷の抵抗 560 Ω。
+// 罠：整流すれば直流 283 V が出る、はまちがい（コンデンサーなしなら平均 180 V、
+//   平滑化しても負荷が電流を流せばリップルが出て平均は 278 V）。
+//   コンデンサーを大きくすれば直流電圧はどんどん上がる、はまちがい（上限は最大値 283 V）。
+//   リップルは容量だけで決まる、はまちがい（ΔV=I/(2fC) で、I と f も関係する）。
+// 変えたら：C=2000 μF ならリップル 2.5 V、Vdc≈281 V。I=2.0 A ならリップル 40 V、Vdc≈263 V。
+//   半波整流ならリップル 20 V、Vdc≈273 V。f=60 Hz ならリップル 8.3 V、Vdc≈279 V。
+function genRectSmoothDerived(data) {
+  const genEffV = data.genEffV, freqHz = data.freqHz, ratio = data.ratioUp;
+  const capF = data.capF, loadIA = data.loadIA;
+  const genPeakV = genEffV * Math.SQRT2;
+  const periodS = 1 / freqHz;
+  const v2EffV = genEffV * ratio;
+  const v2PeakV = genPeakV * ratio;
+  const vAvgNoCapV = (2 / Math.PI) * v2PeakV;
+  // 平滑化：全波整流ではピークの間隔は 1/(2f)。
+  const dtPeakS = 1 / (2 * freqHz);
+  const dQc = loadIA * dtPeakS;
+  const rippleV = dQc / capF;
+  const vDcV = v2PeakV - rippleV / 2;
+  const pLoadW = vDcV * loadIA;
+  const rLoadOhm = vDcV / loadIA;
+  // 変えたら：C=2000 μF、I=2.0 A、半波整流、f=60 Hz。
+  const calc = (cc, ii, ff, half) => {
+    const dt = half ? 1 / ff : 1 / (2 * ff);
+    const rip = (ii * dt) / cc;
+    return { capF: cc, loadIA: ii, freqHz: ff, halfWave: half, dtPeakS: dt, dQc: ii * dt, rippleV: rip, vDcV: v2PeakV - rip / 2 };
+  };
+  const varyC2000 = calc(0.002, loadIA, freqHz, false);
+  const varyI2 = calc(capF, 2.0, freqHz, false);
+  const varyHalf = calc(capF, loadIA, freqHz, true);
+  const varyF60 = calc(capF, loadIA, 60, false);
+  // 平滑化の波形：ピーク 283 V、谷 273 V（0〜0.030 s、ピークの間隔は 10 ms）。
+  const smoothCurve = [[0, v2PeakV - rippleV], [dtPeakS / 2, v2PeakV], [(3 * dtPeakS) / 2, v2PeakV - rippleV], [(3 * dtPeakS) / 2, v2PeakV], [(5 * dtPeakS) / 2, v2PeakV - rippleV], [(5 * dtPeakS) / 2, v2PeakV], [3 * dtPeakS, v2PeakV - rippleV / 2]];
+  return {
+    genEffV, freqHz, ratio, capF, loadIA, genPeakV, periodS, v2EffV, v2PeakV,
+    vAvgNoCapV, dtPeakS, dQc, rippleV, vDcV, pLoadW, rLoadOhm,
+    varyC2000, varyI2, varyHalf, varyF60, smoothCurve,
+  };
+}
+function genRectSmoothForces(data) { return []; }
+
+if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, capSpringGravDerived, capSpringGravForces, gasSpringCycleDerived, gasSpringCycleForces, slopeSpringDerived, slopeSpringForces, fallLoopDerived, fallLoopForces, beltSpringDerived, beltSpringForces, massSpecDerived, massSpecForces, coilHallDerived, coilHallForces, platformChargeDerived, platformChargeForces, pendulumCollideDerived, pendulumCollideForces, photoCapDerived, photoCapForces, orbitTransferDerived, orbitTransferForces, cyclotronDerived, cyclotronForces, slopeSpringFricDerived, slopeSpringFricForces, projWallDerived, projWallForces, railSpringDampDerived, railSpringDampForces, pendulumSpringDerived, pendulumSpringForces, gasPistonOscDerived, gasPistonOscForces, photoCircleDerived, photoCircleForces, earthTunnelDerived, earthTunnelForces, heaterGasDerived, heaterGasForces, specPhotoCircleDerived, specPhotoCircleForces, ottoCycleDerived, ottoCycleForces, generatorACDerived, generatorACForces, explodeProjectileDerived, explodeProjectileForces, slopePulleySpringDerived, slopePulleySpringForces, cathodeRayDerived, cathodeRayForces, conicalPendulumDerived, conicalPendulumForces, rcChargeDerived, rcChargeForces, projWallFricDerived, projWallFricForces, rlcChargeDerived, rlcChargeForces, photoCapCircleDerived, photoCapCircleForces, acRlcDerived, acRlcForces, projDragIntegrate, projDragDerived, projDragForces, pendulumSpringFricDerived, pendulumSpringFricForces, slopePulleyFricDerived, slopePulleyFricForces, selectorCircleDerived, selectorCircleForces, fallLoopCapDerived, fallLoopCapForces, genTransformerDerived, genTransformerForces, projWallSpringDerived, projWallSpringForces, genRectSmoothDerived, genRectSmoothForces, sceneFor, validateScene, renderFigure };
