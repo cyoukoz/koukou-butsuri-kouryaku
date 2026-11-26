@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題BD：光電効果＋ドップラー効果＋磁場の円運動 — 高校物理攻略</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", sans-serif; margin: 0; background: #fff; color: #222; line-height: 1.8; }
+  main { max-width: 720px; margin: 0 auto; padding: 24px 18px 80px; }
+  h1 { font-size: 24px; line-height: 1.4; }
+  h2 { font-size: 20px; margin-top: 40px; }
+  .step { border-top: 1px solid #ddd; padding-top: 16px; margin-top: 32px; }
+  .step h2 { font-size: 18px; margin: 0 0 8px; }
+  .fig { width: 100%; max-width: 400px; height: auto; display: block; margin: 12px auto; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; font-size: 14px; }
+  th { background: #f2f2f2; }
+  .donebox { border: 2px solid #4a8; background: #f6fffa; padding: 14px; margin-top: 40px; }
+  .nav { margin-top: 32px; font-size: 14px; }
+  .toplink { position: fixed; right: 16px; bottom: 16px; background: #222; color: #fff; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 14px; }
+  label.check { display: block; margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+<p><a href="../../index.html">← トップへ</a> ｜ <a href="photo-cap-circle.html">← 組み合わせ問題AS：光電効果＋コンデンサ＋磁場の円運動</a></p>
+<h1>組み合わせ問題BD：光電効果＋ドップラー効果＋磁場の円運動</h1>
+<p>波長 λ = 400 nm の光を出す光源が、金属板に向かって速さ v = 0.10c（c は光速、3.0×10⁸ m/s）で近づいている。金属の仕事関数は φ = 2.0 eV、磁場は B = 1.0 mT（紙面の裏向き）とする。光のドップラー効果は、近似式 λ′ = λ(1 − v/c) で考える（正確な式とのちがいは 1% 未満）。hc = 1240 eV·nm、e = 1.60×10⁻¹⁹ C、電子の質量 m_e = 9.11×10⁻³¹ kg とする。</p>
+<p>(1) 金属板に届く光の波長と光子のエネルギーを求めよ。(2) 光電子の最大の運動エネルギー、阻止電圧、最大の速さを求めよ。(3) 磁場に入った電子の円運動の半径・周期・ローレンツ力を求めよ。(4) 罠と変えたら。</p>
+
+<div class="step" id="step0">
+<p><b>はじめに：どう切り分けるか</b></p>
+<table>
+<tr><th>場面</th><th>考えること</th><th>使うモデル</th></tr>
+<tr><td>ドップラー効果</td><td>波長の変化</td><td>波・ドップラー効果</td></tr>
+<tr><td>光電効果</td><td>Kmax・阻止電圧</td><td>光電効果</td></tr>
+<tr><td>磁場の円運動</td><td>半径・周期</td><td>円運動・ローレンツ力</td></tr>
+</table>
+<p>この問題の橋渡しの量は<b>光子のエネルギーと電子の速さ</b>だ。ドップラー効果で光子のエネルギーが変わると、電子の速さが変わり、円の半径が変わる。</p>
+<svg class="fig" data-scene="scene-photoDopplerCircle-base" data-show="" role="img" aria-label="流れ。光源 400 nm、ドップラーで 360 nm、光電効果で 1.4 eV、円運動で 4.1 mm"></svg>
+<script type="application/json" id="scene-photoDopplerCircle-base">{"bT":0.001,"beta":0.1,"eC":1.602e-19,"hcEvNm":1240,"lambdaNm":400,"mKg":9.11e-31,"phase":"base","phiEV":2.0,"type":"photoDopplerCircle"}</script>
+<p><a href="#step1">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step1">
+<h2>① ドップラー効果：λ′ = 360 nm、光子 3.4 eV</h2>
+<p>光源が近づくと、波長は λ′ = λ(1 − v/c) = 400 × (1 − 0.10) = 360 nm になる。光子のエネルギーは E′ = hc/λ′ = 1240/360 = 3.4 eV だ。静止した光源なら 1240/400 = 3.1 eV なので、近づくことで 0.34 eV だけエネルギーが増えたことになる。</p>
+<p>（正確な式は λ′ = λ√((1−β)/(1+β)) で、β = 0.10 なら 362 nm、3.43 eV になる。近似とのちがいは 1% 未満で、この問題の 2 けたの答えには影響しない。）</p>
+<svg class="fig" data-scene="scene-photoDopplerCircle-doppler" data-show="" role="img" aria-label="波長の比べ。静止 400 nm、近づく 360 nm、遠ざかる 440 nm"></svg>
+<script type="application/json" id="scene-photoDopplerCircle-doppler">{"bT":0.001,"beta":0.1,"eC":1.602e-19,"hcEvNm":1240,"lambdaNm":400,"mKg":9.11e-31,"phase":"doppler","phiEV":2.0,"type":"photoDopplerCircle"}</script>
+<label class="check"><input type="checkbox" id="comboPhotoDopplerCircle-check-1"> λ′ = 360 nm、光子 3.4 eV を求めた</label>
+<p><a href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<h2>② 光電効果：Kmax = 1.4 eV、阻止電圧 1.4 V、速さ 7.1×10⁵ m/s</h2>
+<p>光子のエネルギー 3.4 eV のうち、仕事関数 2.0 eV を引いた残りが電子の最大の運動エネルギーだ。Kmax = 3.4 − 2.0 = 1.4 eV になる。静止した光源なら Kmax = 3.1 − 2.0 = 1.1 eV なので、ドップラー効果で 0.34 eV 増えた。</p>
+<p>阻止電圧は V0 = Kmax/e = 1.4 V、最大の速さは v = √(2K/m) = √(2 × 1.4 × 1.60×10⁻¹⁹ / 9.11×10⁻³¹) = 7.1×10⁵ m/s になる。静止した光源なら 6.2×10⁵ m/s だ。</p>
+<svg class="fig" data-scene="scene-photoDopplerCircle-photo" data-show="" role="img" aria-label="エネルギーの棒グラフ。光子 3.4 eV、仕事関数 2.0 eV、Kmax 1.4 eV、阻止電圧 1.4 V"></svg>
+<script type="application/json" id="scene-photoDopplerCircle-photo">{"bT":0.001,"beta":0.1,"eC":1.602e-19,"hcEvNm":1240,"lambdaNm":400,"mKg":9.11e-31,"phase":"photo","phiEV":2.0,"type":"photoDopplerCircle"}</script>
+<label class="check"><input type="checkbox" id="comboPhotoDopplerCircle-check-2"> Kmax = 1.4 eV、阻止電圧 1.4 V、速さ 7.1×10⁵ m/s を求めた</label>
+<p><a href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<h2>③ 磁場の円運動：r = 4.1 mm、T = 36 ns、F = 1.1×10⁻¹⁶ N</h2>
+<p>電子が磁場に入ると、ローレンツ力 F = evB が向心力になって円運動する。半径は r = mv/eB = 9.11×10⁻³¹ × 7.1×10⁵ / (1.60×10⁻¹⁹ × 1.0×10⁻³) = 4.1 mm になる。静止した光源なら 3.5 mm だ。周期は T = 2πm/eB = 36 ns で、速さによらない。ローレンツ力は F = evB = 1.60×10⁻¹⁹ × 7.1×10⁵ × 1.0×10⁻³ = 1.1×10⁻¹⁶ N だ。</p>
+<svg class="fig" data-scene="scene-photoDopplerCircle-circle" data-show="velocity,lorentz" role="img" aria-label="磁場中の円運動。半径 4.1 mm、周期 36 ns、ローレンツ力 1.1×10の−16乗 N"></svg>
+<script type="application/json" id="scene-photoDopplerCircle-circle">{"bT":0.001,"beta":0.1,"eC":1.602e-19,"hcEvNm":1240,"lambdaNm":400,"mKg":9.11e-31,"phase":"circle","phiEV":2.0,"type":"photoDopplerCircle"}</script>
+<label class="check"><input type="checkbox" id="comboPhotoDopplerCircle-check-3"> 半径 4.1 mm、周期 36 ns、ローレンツ力 1.1×10⁻¹⁶ N を求めた</label>
+<p><a href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<h2>④ 罠：ドップラー効果は仕事関数を変えない</h2>
+<p>罠：「ドップラー効果で仕事関数が変わる」——まちがい。変わるのは光子のエネルギー（3.1 eV → 3.4 eV）で、金属の仕事関数 φ = 2.0 eV は変わらない。Kmax が増えるのは、引かれる φ が同じで、引く前の E が増えたからだ。</p>
+<p>罠：「明るい光にすれば Kmax が増える」——まちがい。明るくなるのは光子の数だけで、1 個の光子のエネルギーは 3.4 eV のまま。Kmax は 1.4 eV、阻止電圧は 1.4 V、円の半径は 4.1 mm のままだ。</p>
+<p>罠：「光源が遠ざかっても、いつかは光電子が出る」——まちがい。遠ざかると波長が長くなり、光子のエネルギーが小さくなる。λ′ = 620 nm（限界波長）になると Kmax = 0 になり、それより遠ざかると（v = 0.55c 以上）光電子は出なくなる。</p>
+<svg class="fig" data-scene="scene-photoDopplerCircle-trap" data-show="" role="img" aria-label="Kmax の比べ。静止 1.1 eV、近づく 1.4 eV、明るい光 1.4 eV、遠ざかる 0.82 eV"></svg>
+<script type="application/json" id="scene-photoDopplerCircle-trap">{"bT":0.001,"beta":0.1,"eC":1.602e-19,"hcEvNm":1240,"lambdaNm":400,"mKg":9.11e-31,"phase":"trap","phiEV":2.0,"type":"photoDopplerCircle"}</script>
+<label class="check"><input type="checkbox" id="comboPhotoDopplerCircle-check-4"> 仕事関数は変わらないこと、明るい光でも Kmax は変わらないことを区別できた</label>
+<p><a href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<h2>⑤ 変えたら：遠ざかる・B・波長で半径が変わる</h2>
+<p>光源が 0.10c で遠ざかると、λ′ = 400 × (1 + 0.10) = 440 nm、光子は 2.8 eV、Kmax = 0.82 eV、速さ 5.4×10⁵ m/s、阻止電圧 0.82 V、半径は 3.1 mm になる。</p>
+<p>B = 2.0 mT なら、半径は半分の 2.0 mm、周期も半分の 18 ns、ローレンツ力は 2 倍の 2.3×10⁻¹⁶ N になる。</p>
+<p>λ = 300 nm の光が 0.10c で近づくと、λ′ = 270 nm、光子は 4.6 eV、Kmax = 2.6 eV、速さ 9.5×10⁵ m/s、阻止電圧 2.6 V、半径は 5.4 mm になる。</p>
+<svg class="fig" data-scene="scene-photoDopplerCircle-vary" data-show="" role="img" aria-label="半径の比べ。近づく 4.1 mm、遠ざかる 3.1 mm、300 nm で 5.4 mm、B=2.0 mT で 2.0 mm"></svg>
+<script type="application/json" id="scene-photoDopplerCircle-vary">{"bT":0.001,"beta":0.1,"eC":1.602e-19,"hcEvNm":1240,"lambdaNm":400,"mKg":9.11e-31,"phase":"vary","phiEV":2.0,"type":"photoDopplerCircle"}</script>
+<label class="check"><input type="checkbox" id="comboPhotoDopplerCircle-check-5"> 遠ざかる・B・波長を変えたときの半径を求めた</label>
+</div>
+
+<div class="donebox" id="donebox">
+<p><b>まとめ（答え）</b></p>
+<p>(1) λ′ = 360 nm、光子 3.4 eV。(2) Kmax = 1.4 eV、阻止電圧 1.4 V、速さ 7.1×10⁵ m/s。(3) 半径 4.1 mm、周期 36 ns、ローレンツ力 1.1×10⁻¹⁶ N。(4) ドップラー効果は光子のエネルギーを変える（仕事関数は変わらない）。</p>
+<p>もとになった単体モデル：光電効果は<a href="photoelectric.html">第15問：光電効果</a>、ドップラー効果は<a href="doppler.html">第18問：ドップラー効果</a>、光電効果＋磁場の円運動は<a href="photo-cap-circle.html">組み合わせ問題AS：光電効果＋コンデンサ＋磁場の円運動</a>、光電効果＋磁場の円運動（コンデンサなし）は<a href="photo-circle.html">組み合わせ問題AF：光電効果＋磁場の円運動</a>で確かめられる。</p>
+<p id="done-msg"></p>
+</div>
+
+<p class="nav"><a href="../../index.html">← トップへ</a></p>
+</main>
+<a class="toplink" href="#">↑ TOP</a>
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+const doneKey = 'comboPhotoDopplerCircleDone';
+const checkIds = ['comboPhotoDopplerCircle-check-1','comboPhotoDopplerCircle-check-2','comboPhotoDopplerCircle-check-3','comboPhotoDopplerCircle-check-4','comboPhotoDopplerCircle-check-5'];
+const doneMsg = document.getElementById('done-msg');
+function allChecked() { return checkIds.every(id => document.getElementById(id).checked); }
+function refresh() {
+  if (allChecked()) {
+    doneMsg.textContent = '完了！';
+    loadProgress().then(p => { p[doneKey] = true; return saveProgress(p); }).catch(() => {});
+  } else {
+    doneMsg.textContent = '';
+  }
+}
+checkIds.forEach(id => document.getElementById(id).addEventListener('change', refresh));
+renderAllFigures();
+loadProgress().then(p => { if (p[doneKey]) { doneMsg.textContent = '完了済み ✓'; } }).catch(() => {});
+</script>
+</body>
+</html>
