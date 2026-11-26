@@ -4999,6 +4999,26 @@ function sceneFor(type, thetaDeg, mgPx, fPx, data) {
       forces: genRectSmoothForces(data),
     };
   }
+  if (type === 'projDragWall') {
+    const d = projDragWallDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      angleDeg: data.angDeg, v0Ms: data.v0Ms, wallXM: data.wallXM, eRest: data.eRest, mKg: data.mKg, kKgPerM: data.kKgPerM, g: data.g || 10,
+      derived: d,
+      center: { x: 200, y: 150 }, centerDot: false,
+      forces: projDragWallForces(data),
+    };
+  }
+  if (type === 'photoDopplerCircle') {
+    const d = photoDopplerCircleDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      lambdaNm: data.lambdaNm, phiEV: data.phiEV, beta: data.beta, bT: data.bT, eC: data.eC,
+      derived: d,
+      center: { x: 200, y: 150 }, centerDot: false,
+      forces: photoDopplerCircleForces(data),
+    };
+  }
   if (type === 'slopePulley') {
     return {
       type, phase: (data && data.phase) || 'connected',
@@ -7043,6 +7063,118 @@ function validateScene(scene) {
     if (Math.abs(d.varyHalf.dtPeakS - 1 / d.freqHz) > 1e-12) return ['半波のピークの間隔が 1/f と一致しません'];
     if (Math.abs(d.varyHalf.rippleV - d.rippleV * 2) > 1e-9) return ['半波のリップルが 2 倍と一致しません'];
     if (!(d.varyF60.rippleV < d.rippleV)) return ['f=60 Hz のリップルがもとより小さくなっていません'];
+  }
+  if (scene.type === 'projDragWall') {
+    const d = scene.derived;
+    // 初速度の分解：v0x = v0 cos45°、v0y = v0 sin45°。
+    if (Math.abs(d.v0x - scene.v0Ms * Math.cos(Math.PI / 4)) > 1e-9) return ['初速度の水平成分が v0 cos45° と一致しません'];
+    if (Math.abs(d.v0y - scene.v0Ms * Math.sin(Math.PI / 4)) > 1e-9) return ['初速度の鉛直成分が v0 sin45° と一致しません'];
+    // 終端速度：vt = √(mg/k)。打ち出しの抵抗：F = k v0²。
+    if (Math.abs(d.vt - Math.sqrt((scene.mKg * d.g) / scene.kKgPerM)) > 1e-9) return ['終端速度が √(mg/k) と一致しません'];
+    if (Math.abs(d.fDrag0 - scene.kKgPerM * scene.v0Ms * scene.v0Ms) > 1e-9) return ['打ち出しの空気抵抗が k v0² と一致しません'];
+    // 壁での速さ：KE = ½m(vx²+vy²)。はね返り：vx′ = −e·vx、vy はそのまま。
+    if (Math.abs(d.wallKE - 0.5 * scene.mKg * (d.wallVx * d.wallVx + d.wallVy * d.wallVy)) > 1e-9) return ['壁での運動エネルギーが一致しません'];
+    if (Math.abs(d.afterVx + scene.eRest * d.wallVx) > 1e-9) return ['はね返ったあとの横の速さが -e·vx と一致しません'];
+    if (Math.abs(d.afterVy - d.wallVy) > 1e-9) return ['はね返ったあとの縦の速さが変わっています'];
+    if (Math.abs(d.lossWallJ - (d.wallKE - d.afterKE)) > 1e-9) return ['壁での損失が一致しません'];
+    // 壁は最高点ではない：壁では vy > 0、最高点は壁のあとに来る。
+    if (!(d.wallVy > 0)) return ['壁のところでまだ上がっていません'];
+    if (!(d.topY > d.wallY)) return ['最高点が壁より高くなっていません'];
+    if (!(d.topT > d.wallT)) return ['最高点が壁のあとに来ていません'];
+    if (!(d.topX < 0)) return ['最高点が出発点よりうしろに来ていません'];
+    // 着地：速さは vx・vy の合成、角度は atan2。
+    if (Math.abs(d.landV - Math.hypot(d.landVx, d.landVy)) > 1e-9) return ['着地の速さが一致しません'];
+    if (Math.abs(d.landAngleDeg - (Math.atan2(Math.abs(d.landVy), Math.abs(d.landVx)) * 180) / Math.PI) > 1e-9) return ['着地の速度の向きが一致しません'];
+    if (Math.abs(d.keLand - (d.keLandH + d.keLandV)) > 1e-9) return ['着地の KE の内訳が一致しません'];
+    if (!(d.landX < 0)) return ['着地点が出発点よりうしろに来ていません'];
+    // エネルギー：はじめの 100 J = 壁の損失 + 着地で失う縦の KE + 抵抗の仕事 + 着地の横の KE。
+    if (Math.abs(d.ke0 - (d.lossWallJ + d.keLandV + d.workDragJ + d.keLandH)) > 1e-9) return ['エネルギーの合計が一致しません'];
+    if (Math.abs(d.workDragJ - (d.workDragBeforeJ + d.workDragAfterJ)) > 0.01) return ['抵抗の仕事の内訳が一致しません'];
+    if (Math.abs(d.peWallJ - scene.mKg * d.g * d.wallY) > 1e-9) return ['壁での位置エネルギーが一致しません'];
+    // 抵抗なしの参照値（解析解）：壁まで t = 壁/v0x、高さは斜方投射の式。
+    if (Math.abs(d.tWallNoDrag - scene.wallXM / d.v0x) > 1e-9) return ['抵抗なしの壁までの時間が一致しません'];
+    if (Math.abs(d.yWallNoDrag - (d.v0y * d.tWallNoDrag - 0.5 * d.g * d.tWallNoDrag * d.tWallNoDrag)) > 1e-9) return ['抵抗なしの壁の高さが一致しません'];
+    if (Math.abs(d.vWallNoDrag - Math.hypot(d.v0x, d.vyWallNoDrag)) > 1e-9) return ['抵抗なしの壁での速さが一致しません'];
+    if (Math.abs(d.vxAfterNoDrag + scene.eRest * d.v0x) > 1e-9) return ['抵抗なしのはね返りが一致しません'];
+    if (Math.abs(d.xLandNoDrag - (scene.wallXM + d.vxAfterNoDrag * d.tFallNoDrag)) > 1e-9) return ['抵抗なしの着地点が一致しません'];
+    if (Math.abs(d.vLandNoDrag - Math.hypot(d.vxAfterNoDrag, d.vyLandNoDrag)) > 1e-9) return ['抵抗なしの着地の速さが一致しません'];
+    // 抵抗があると壁での速さも着地の距離も小さくなる。
+    if (!(d.wallV < d.vWallNoDrag)) return ['抵抗ありの壁での速さが抵抗なしより小さくなっていません'];
+    if (!(Math.abs(d.landX) < Math.abs(d.xLandNoDrag))) return ['抵抗ありの着地点が抵抗なしより手前になっていません'];
+    // 変えたら：e=1.0 なら壁での損失は 0、着地はもっとうしろ。m=1.0 kg なら壁での KE が大きい。
+    if (Math.abs(d.varyE1.lossWallJ) > 1e-9) return ['e=1.0 の壁での損失が 0 になっていません'];
+    if (!(Math.abs(d.varyE1.landX) > Math.abs(d.landX))) return ['e=1.0 の着地点がもとよりうしろになっていません'];
+    if (!(d.varyM1.wallKE > d.wallKE)) return ['m=1.0 kg の壁での KE がもとより大きくなっていません'];
+    if (Math.abs(d.vtM1 - Math.sqrt((1.0 * d.g) / scene.kKgPerM)) > 1e-9) return ['m=1.0 kg の終端速度が一致しません'];
+    // 軌道の点列：はじめは (0,0)、壁で (5.0, 4.3)、着地で (−12, 0)。
+    if (Math.abs(d.trajBefore[0][0]) > 1e-12 || Math.abs(d.trajBefore[0][1]) > 1e-12) return ['軌道のはじめが (0,0) と一致しません'];
+    const wb = d.trajBefore[d.trajBefore.length - 1];
+    if (Math.abs(wb[0] - scene.wallXM) > 1e-9 || Math.abs(wb[1] - d.wallY) > 0.05) return ['軌道の壁の点が一致しません'];
+    const la = d.trajAfter[d.trajAfter.length - 1];
+    if (Math.abs(la[0] - d.landX) > 0.05 || Math.abs(la[1]) > 1e-12) return ['軌道の着地点が一致しません'];
+    // 図の矢印の長さが縮尺どおりか（速度は 8 px/(m/s)）。wall と land で同じ id を使うので場面で分ける。
+    if (scene.phase === 'wall') {
+      if (byId.vx && Math.abs(Math.hypot(byId.vx.vector[0], byId.vx.vector[1]) - d.wallVx * 8) > 0.5) return ['壁での横の速度の矢印が 8 px/(m/s) と一致しません'];
+      if (byId.vy && Math.abs(Math.hypot(byId.vy.vector[0], byId.vy.vector[1]) - d.wallVy * 8) > 0.5) return ['壁での縦の速度の矢印が 8 px/(m/s) と一致しません'];
+      if (byId.v && Math.abs(Math.hypot(byId.v.vector[0], byId.v.vector[1]) - d.wallV * 8) > 0.5) return ['壁での速さの矢印が 8 px/(m/s) と一致しません'];
+      if (byId.v && byId.vx && byId.vy) {
+        if (Math.abs(byId.v.vector[0] - byId.vx.vector[0]) > 0.5) return ['壁での速さの矢印の水平成分が vx と一致しません'];
+        if (Math.abs(byId.v.vector[1] - byId.vy.vector[1]) > 0.5) return ['壁での速さの矢印の鉛直成分が vy と一致しません'];
+      }
+    }
+    if (scene.phase === 'land') {
+      if (byId.vx && Math.abs(Math.hypot(byId.vx.vector[0], byId.vx.vector[1]) - Math.abs(d.landVx) * 8) > 0.5) return ['着地の横の速度の矢印が 8 px/(m/s) と一致しません'];
+      if (byId.vy && Math.abs(Math.hypot(byId.vy.vector[0], byId.vy.vector[1]) - Math.abs(d.landVy) * 8) > 0.5) return ['着地の縦の速度の矢印が 8 px/(m/s) と一致しません'];
+      if (byId.v && Math.abs(Math.hypot(byId.v.vector[0], byId.v.vector[1]) - d.landV * 8) > 0.5) return ['着地の速さの矢印が 8 px/(m/s) と一致しません'];
+      if (byId.v && byId.vx && byId.vy) {
+        if (Math.abs(byId.v.vector[0] - byId.vx.vector[0]) > 0.5) return ['着地の速さの矢印の水平成分が vx と一致しません'];
+        if (Math.abs(byId.v.vector[1] - byId.vy.vector[1]) > 0.5) return ['着地の速さの矢印の鉛直成分が vy と一致しません'];
+      }
+    }
+  }
+  if (scene.type === 'photoDopplerCircle') {
+    const d = scene.derived;
+    // ドップラー効果：λ′ = λ(1 − β)、光子のエネルギー E = hc/λ′。
+    if (Math.abs(d.lamShiftNm - scene.lambdaNm * (1 - scene.beta)) > 1e-12) return ['ドップラー効果の波長が λ(1−β) と一致しません'];
+    if (Math.abs(d.ePhEV - d.hc / d.lamShiftNm) > 1e-12) return ['光子のエネルギーが hc/λ′ と一致しません'];
+    if (Math.abs(d.kMaxEV - (d.ePhEV - scene.phiEV)) > 1e-12) return ['Kmax が E − φ と一致しません'];
+    if (Math.abs(d.vMaxMs - Math.sqrt((2 * d.kMaxEV * 1.602e-19) / 9.11e-31)) / d.vMaxMs > 1e-9) return ['最も速い電子の速さが √(2K/m) と一致しません'];
+    if (Math.abs(d.v0V - d.kMaxEV) > 1e-12) return ['阻止電圧が Kmax と一致しません'];
+    // 静止した光源の値（比べ用）。
+    if (Math.abs(d.ePh0EV - d.hc / scene.lambdaNm) > 1e-12) return ['静止の光子のエネルギーが一致しません'];
+    if (Math.abs(d.kMax0EV - (d.ePh0EV - scene.phiEV)) > 1e-12) return ['静止の Kmax が一致しません'];
+    if (Math.abs(d.r0M - (9.11e-31 * d.v0Ms) / (scene.eC * scene.bT)) > 1e-12) return ['静止の半径が mv/eB と一致しません'];
+    if (!(d.ePhEV > d.ePh0EV)) return ['近づく光子のエネルギーが静止より大きくなっていません'];
+    if (!(d.kMaxEV > d.kMax0EV)) return ['近づく Kmax が静止より大きくなっていません'];
+    // 磁場の円運動：r = mv/eB、T = 2πm/eB、F = evB。
+    if (Math.abs(d.rM - (9.11e-31 * d.vMaxMs) / (scene.eC * scene.bT)) > 1e-12) return ['円の半径が mv/eB と一致しません'];
+    if (Math.abs(d.periodS - (2 * Math.PI * 9.11e-31) / (scene.eC * scene.bT)) > 1e-12) return ['円運動の周期が 2πm/eB と一致しません'];
+    if (Math.abs(d.lorentzN - scene.eC * d.vMaxMs * scene.bT) > 1e-24) return ['ローレンツ力が evB と一致しません'];
+    if (Math.abs(d.thresholdNm - d.hc / scene.phiEV) > 1e-9) return ['限界波長が hc/φ と一致しません'];
+    // 遠ざかる光源：λ′ = λ(1 + β)、光子のエネルギーは小さくなる。
+    if (Math.abs(d.lamRecNm - scene.lambdaNm * (1 + scene.beta)) > 1e-12) return ['遠ざかる光源の波長が λ(1+β) と一致しません'];
+    if (Math.abs(d.kMaxRecEV - (d.ePhRecEV - scene.phiEV)) > 1e-12) return ['遠ざかる Kmax が一致しません'];
+    if (Math.abs(d.rRecM - (9.11e-31 * d.vRecMs) / (scene.eC * scene.bT)) > 1e-12) return ['遠ざかる半径が一致しません'];
+    if (!(d.ePhRecEV < d.ePh0EV)) return ['遠ざかる光子のエネルギーが静止より小さくなっていません'];
+    if (!(d.rRecM < d.r0M && d.r0M < d.rM)) return ['半径の大小関係が一致しません'];
+    // 限界波長になる速さ：λ(1 + β) = hc/φ。
+    if (Math.abs(d.betaStop - (d.thresholdNm / scene.lambdaNm - 1)) > 1e-12) return ['光電子が出なくなる速さが一致しません'];
+    if (!(d.betaStop > 0 && d.betaStop < 1)) return ['光電子が出なくなる速さが 0〜1 の範囲にありません'];
+    // 変えたら：λ=300 nm で近づく、B を 2 倍。
+    if (Math.abs(d.lam300Nm - 300 * (1 - scene.beta)) > 1e-12) return ['300 nm のドップラー波長が一致しません'];
+    if (Math.abs(d.kMax300EV - (d.ePh300EV - scene.phiEV)) > 1e-12) return ['300 nm の Kmax が一致しません'];
+    if (Math.abs(d.r300M - (9.11e-31 * d.v300Ms) / (scene.eC * scene.bT)) > 1e-12) return ['300 nm の半径が一致しません'];
+    if (!(d.r300M > d.rM)) return ['300 nm の半径が 400 nm より大きくなっていません'];
+    if (Math.abs(d.rB2M - d.rM / 2) > 1e-12) return ['B を 2 倍にした半径が半分になっていません'];
+    if (Math.abs(d.periodB2S - d.periodS / 2) > 1e-12) return ['B を 2 倍にした周期が半分になっていません'];
+    if (Math.abs(d.lorentzB2N - 2 * d.lorentzN) > 1e-24) return ['B を 2 倍にしたローレンツ力が 2 倍になっていません'];
+    // 矢印の長さ：速度 30 px、ローレンツ力 30 px。ローレンツ力は速度と直角。
+    if (byId.velocity && Math.abs(Math.hypot(byId.velocity.vector[0], byId.velocity.vector[1]) - 30) > 0.5) return ['速度の矢印が 30 px になっていません'];
+    if (byId.lorentz && Math.abs(Math.hypot(byId.lorentz.vector[0], byId.lorentz.vector[1]) - 30) > 0.5) return ['ローレンツ力の矢印が 30 px になっていません'];
+    if (byId.velocity && byId.lorentz) {
+      const dot = byId.velocity.vector[0] * byId.lorentz.vector[0] + byId.velocity.vector[1] * byId.lorentz.vector[1];
+      if (Math.abs(dot) > 0.5) return ['ローレンツ力が速度と直角になっていません'];
+    }
   }
   if (scene.type === 'charged-circle') {
     const d = scene.derived;
@@ -12562,6 +12694,215 @@ function drawBase(svg, scene) {
       note(274, 'I=2.0 A ならリップル 40 V');
       note(292, '半波ならリップル 20 V、f=60 Hz なら 8.3 V');
     }
+  } else if (scene.type === 'projDragWall') {
+    const d = scene.derived;
+    const phase = scene.phase;
+    const tH = el('text', { x: 40, y: 36, fill: '#333' });
+    tH.textContent = phase === 'wall' ? '壁に当たるまで：0.38 s、高さ 4.3 m'
+      : phase === 'land' ? 'はね返って着地：x=−12 m、速さ 13 m/s'
+      : phase === 'energy' ? 'エネルギー：100 J の行き先'
+      : phase === 'trap' ? '罠：壁は最高点ではない'
+      : phase === 'vary' ? '変えたら：e・m で着地点が変わる'
+      : '斜方投射＋空気抵抗＋壁：AU のつづき';
+    svg.appendChild(tH);
+    const note = (y, text) => { const t = el('text', { x: 60, y, fill: '#333' }); t.textContent = text; svg.appendChild(t); };
+    const barRows = (rows) => {
+      rows.forEach((r, i) => {
+        const y = 75 + i * 45;
+        const tN = el('text', { x: 60, y: y - 8 }); tN.textContent = r.name; svg.appendChild(tN);
+        svg.appendChild(el('rect', { x: 140, y, width: Math.max(r.w, 5), height: 18, fill: r.color, stroke: '#333', 'stroke-width': 1 }));
+        const tV = el('text', { x: 140 + Math.max(r.w, 5) + 8, y: y + 15 }); tV.textContent = r.val; svg.appendChild(tV);
+      });
+    };
+    if (phase === 'base') {
+      // 全体図：8 px/m、打ち出し (200,240)、壁 x=5.0 m、着地 x=−12 m。
+      const pxPerM = 8, groundY = 240, originX = 200;
+      const xOf = (xm) => originX + xm * pxPerM;
+      const yOf = (ym) => groundY - ym * pxPerM;
+      const trajPath = (pts) => pts.map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${xOf(x).toFixed(1)} ${yOf(y).toFixed(1)}`).join(' ');
+      svg.appendChild(el('line', { x1: 40, y1: 240, x2: 360, y2: 240, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('rect', { x: 240, y: 170, width: 10, height: 70, fill: '#888', stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('path', { d: trajPath(d.trajBefore), fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
+      svg.appendChild(el('path', { d: trajPath(d.trajAfter), fill: 'none', stroke: '#0066cc', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 200, y1: 230, x2: 228, y2: 202, stroke: '#d35400', 'stroke-width': 2, 'stroke-dasharray': '5 4', 'marker-end': 'url(#fig-arrow)' }));
+      svg.appendChild(el('circle', { cx: 200, cy: 230, r: 10, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx: xOf(d.landX), cy: 230, r: 10, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      const tV = el('text', { x: 150, y: 150, fill: '#d35400' }); tV.textContent = 'v0=20 m/s'; svg.appendChild(tV);
+      const tH2 = el('text', { x: 50, y: 168 }); tH2.textContent = '最高点 7.7 m'; svg.appendChild(tH2);
+      const tW = el('text', { x: 252, y: 160 }); tW.textContent = '壁'; svg.appendChild(tW);
+      const tL = el('text', { x: 28, y: 214 }); tL.textContent = '着地 −12 m'; svg.appendChild(tL);
+      note(256, 'v0=20 m/s、45°、壁は 5.0 m 先');
+      note(274, '着地は x=−12 m、速さ 13 m/s');
+      note(292, '壁のあとで最高点 7.7 m に達する');
+    } else if (phase === 'wall') {
+      // 壁に当たる瞬間の速度の分解：玉を (150,150) に置く。壁は x=250。
+      // 軌道（壁まで）：20 px/m、壁の点を (150,150) に合わせる。
+      const xOf = (xm) => 150 - (d.wallXM - xm) * 20;
+      const yOf = (ym) => 150 + (d.wallY - ym) * 20;
+      const trajPath = (pts) => pts.map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${xOf(x).toFixed(1)} ${yOf(y).toFixed(1)}`).join(' ');
+      svg.appendChild(el('line', { x1: 40, y1: 236, x2: 360, y2: 236, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('rect', { x: 250, y: 70, width: 10, height: 166, fill: '#888', stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('path', { d: trajPath(d.trajBefore), fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx: 150, cy: 150, r: 14, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      // 角度の弧：水平（右向き）から v の向きまで（36°）。sweep=0。
+      const angRad = (d.wallAngleDeg * Math.PI) / 180;
+      const arcR = 28;
+      const arcEndX = 150 + arcR * Math.cos(angRad);
+      const arcEndY = 150 - arcR * Math.sin(angRad);
+      svg.appendChild(el('path', { d: `M ${150 + arcR} 150 A ${arcR} ${arcR} 0 0 0 ${arcEndX.toFixed(1)} ${arcEndY.toFixed(1)}`, fill: 'none', stroke: '#333', 'stroke-width': 1.5 }));
+      const tA = el('text', { x: 185, y: 200, 'text-anchor': 'middle' }); tA.textContent = '36°'; svg.appendChild(tA);
+      const tW = el('text', { x: 262, y: 60 }); tW.textContent = '壁'; svg.appendChild(tW);
+      note(256, '壁に当たるまで 0.38 s、高さ 4.3 m');
+      note(274, 'vy=8.8 m/s で、まだ上がっている');
+      note(292, '速さは 15 m/s、運動エネルギー 58 J');
+    } else if (phase === 'land') {
+      // 着地の速度の分解：玉を (230,120) に置き、vx・vy・v の矢印は drawForce が描く。
+      svg.appendChild(el('circle', { cx: 230, cy: 120, r: 14, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      // 角度の弧：水平（左向き）から v の向きまで（60°）。BA の着地の弧と同じ向きで sweep=0。
+      const angRad = (d.landAngleDeg * Math.PI) / 180;
+      const arcR = 28;
+      const arcEndX = 230 + arcR * Math.cos(Math.PI - angRad);
+      const arcEndY = 120 + arcR * Math.sin(Math.PI - angRad);
+      svg.appendChild(el('path', { d: `M ${230 - arcR} 120 A ${arcR} ${arcR} 0 0 0 ${arcEndX.toFixed(1)} ${arcEndY.toFixed(1)}`, fill: 'none', stroke: '#333', 'stroke-width': 1.5 }));
+      const tA = el('text', { x: 188, y: 150, 'text-anchor': 'middle' }); tA.textContent = '60°'; svg.appendChild(tA);
+      const tB = el('text', { x: 60, y: 70 }); tB.textContent = '着地の速度'; svg.appendChild(tB);
+      note(256, '着地の速さ 13 m/s を分解する');
+      note(274, '横 6.5 m/s、縦 11 m/s');
+      note(292, '横の 10.5 J はすべって熱になる');
+    } else if (phase === 'energy') {
+      // 運動エネルギーの流れ（2 px/J）。
+      barRows([
+        { name: 'はじめ 100 J', w: d.ke0J * 2, val: '100 J', color: '#ffd24d' },
+        { name: '壁で 58 J', w: d.wallKE * 2, val: '58 J', color: '#cfe3ff' },
+        { name: 'はね返り後 44 J', w: d.afterKE * 2, val: '44 J', color: '#b3e6b3' },
+        { name: '着地 42.5 J', w: d.keLand * 2, val: '42.5 J', color: '#ffb3b3' },
+      ]);
+      note(256, 'はじめの KE は 100 J');
+      note(274, '壁で 58 J、はね返り後 44 J');
+      note(292, '着地は 42.5 J（横 10.5 J + 縦 32.0 J）');
+    } else if (phase === 'trap') {
+      // 速さの比べ（8 px/(m/s)）。
+      barRows([
+        { name: '壁・抵抗あり', w: d.wallV * 8, val: '15 m/s', color: '#ffd24d' },
+        { name: '壁・抵抗なし', w: d.vWallNoDrag * 8, val: '18 m/s', color: '#ffb3b3' },
+        { name: '着地・抵抗あり', w: d.landV * 8, val: '13 m/s', color: '#cfe3ff' },
+        { name: '着地・抵抗なし', w: d.vLandNoDrag * 8, val: '18 m/s', color: '#b3e6b3' },
+      ]);
+      note(256, '壁は最高点ではない（vy=8.8 m/s）');
+      note(274, '抵抗を無視すると壁では 18 m/s');
+      note(292, '着地は −12 m（抵抗なし −23 m）');
+    } else if (phase === 'vary') {
+      // 着地点の比べ（8 px/m）。
+      barRows([
+        { name: 'もと', w: Math.abs(d.landX) * 8, val: '−12 m', color: '#ffd24d' },
+        { name: 'e=1.0', w: Math.abs(d.varyE1.landX) * 8, val: '−16 m', color: '#cfe3ff' },
+        { name: 'm=1.0 kg', w: Math.abs(d.varyM1.landX) * 8, val: '−16 m', color: '#b3e6b3' },
+        { name: '抵抗なし', w: Math.abs(d.xLandNoDrag) * 8, val: '−23 m', color: '#ffb3b3' },
+      ]);
+      note(256, 'e=1.0 なら −16 m、速さ 14 m/s');
+      note(274, 'm=1.0 kg なら −16 m、速さ 15 m/s');
+      note(292, '抵抗なしなら −23 m、速さ 18 m/s');
+    }
+  } else if (scene.type === 'photoDopplerCircle') {
+    const d = scene.derived;
+    const phase = scene.phase;
+    const tH = el('text', { x: 40, y: 36, fill: '#333' });
+    tH.textContent = phase === 'doppler' ? 'ドップラー効果：λ′ = 360 nm、光子 3.4 eV'
+      : phase === 'photo' ? '光電効果：Kmax = 1.4 eV、阻止電圧 1.4 V'
+      : phase === 'circle' ? '磁場中の円運動：r≈4.1 mm'
+      : phase === 'trap' ? '罠：ドップラーは仕事関数を変えない'
+      : phase === 'vary' ? '変えたら：遠ざかる・B・波長で半径が変わる'
+      : '光電効果＋ドップラー＋磁場円運動';
+    svg.appendChild(tH);
+    const note = (y, text) => { const t = el('text', { x: 60, y, fill: '#333' }); t.textContent = text; svg.appendChild(t); };
+    const barRows = (rows) => {
+      rows.forEach((r, i) => {
+        const y = 75 + i * 45;
+        const tN = el('text', { x: 60, y: y - 8 }); tN.textContent = r.name; svg.appendChild(tN);
+        svg.appendChild(el('rect', { x: 140, y, width: Math.max(r.w, 5), height: 18, fill: r.color, stroke: '#333', 'stroke-width': 1 }));
+        const tV = el('text', { x: 140 + Math.max(r.w, 5) + 8, y: y + 15 }); tV.textContent = r.val; svg.appendChild(tV);
+      });
+    };
+    if (phase === 'base') {
+      // 流れ：光源 → ドップラー → 光電効果 → 円運動（BB の base と同じ配置）。
+      const boxes = [
+        { x: 20, label: '光源', sub: '400 nm' },
+        { x: 112, label: 'ドップラー', sub: '360 nm' },
+        { x: 204, label: '光電効果', sub: '1.4 eV' },
+        { x: 296, label: '円運動', sub: '4.1 mm' },
+      ];
+      boxes.forEach((b, i) => {
+        svg.appendChild(el('rect', { x: b.x, y: 130, width: 78, height: 40, fill: '#eef', stroke: '#333', 'stroke-width': 2 }));
+        const tL = el('text', { x: b.x + 39, y: 155, 'text-anchor': 'middle', 'font-size': 14 }); tL.textContent = b.label; svg.appendChild(tL);
+        const tS = el('text', { x: b.x + 39, y: 195, 'text-anchor': 'middle', fill: '#555', 'font-size': 14 }); tS.textContent = b.sub; svg.appendChild(tS);
+        if (i < boxes.length - 1) {
+          svg.appendChild(el('line', { x1: b.x + 78, y1: 150, x2: b.x + 92, y2: 150, stroke: '#333', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+        }
+      });
+      note(256, '光源が 0.10c で近づくと 360 nm になる');
+      note(274, '光子 3.4 eV、Kmax 1.4 eV、阻止電圧 1.4 V');
+      note(292, '電子は磁場で r=4.1 mm の円を描く');
+    } else if (phase === 'doppler') {
+      // 波長の比べ（0.4 px/nm）。
+      barRows([
+        { name: '静止', w: d.lambdaNm * 0.4, val: '400 nm', color: '#ffd24d' },
+        { name: '近づく', w: d.lamShiftNm * 0.4, val: '360 nm', color: '#cfe3ff' },
+        { name: '遠ざかる', w: d.lamRecNm * 0.4, val: '440 nm', color: '#ffb3b3' },
+      ]);
+      note(256, '近づくと波長は 0.90 倍になる');
+      note(274, '光子のエネルギー 3.1 → 3.4 eV');
+      note(292, '遠ざかると 440 nm、2.8 eV');
+    } else if (phase === 'photo') {
+      // エネルギーの棒グラフ（50 px/eV）。
+      barRows([
+        { name: '光子 3.4 eV', w: d.ePhEV * 50, val: '3.4 eV', color: '#ffd24d' },
+        { name: '仕事関数 2.0 eV', w: scene.phiEV * 50, val: '2.0 eV', color: '#cfe3ff' },
+        { name: 'Kmax 1.4 eV', w: d.kMaxEV * 50, val: '1.4 eV', color: '#b3e6b3' },
+        { name: '阻止電圧 1.4 V', w: d.v0V * 50, val: '1.4 V', color: '#ffe8e8' },
+      ]);
+      note(256, 'Kmax = 3.4 − 2.0 = 1.4 eV');
+      note(274, '阻止電圧 1.4 V、速さ 7.1×10⁵ m/s');
+      note(292, '静止なら 1.1 eV、1.1 V、6.2×10⁵ m/s');
+    } else if (phase === 'circle') {
+      // 磁場（×）と円軌道。中心 (260,170)、半径 40 px。AS の円運動と同じ配置。
+      for (const x of [100, 140, 180, 220, 260, 300, 340]) {
+        const tX = el('text', { x, y: 70, fill: '#888', 'font-size': 16 }); tX.textContent = '×'; svg.appendChild(tX);
+      }
+      for (const x of [100, 140, 340]) {
+        const tX = el('text', { x, y: 230, fill: '#888', 'font-size': 16 }); tX.textContent = '×'; svg.appendChild(tX);
+      }
+      const tB = el('text', { x: 300, y: 40, fill: '#555' }); tB.textContent = 'B=1.0 mT'; svg.appendChild(tB);
+      svg.appendChild(el('circle', { cx: d.circleCenter.x, cy: d.circleCenter.y, r: d.circleR, fill: 'none', stroke: '#b00', 'stroke-width': 2, 'stroke-dasharray': '5 4' }));
+      svg.appendChild(el('line', { x1: 260, y1: 170, x2: 300, y2: 170, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      svg.appendChild(el('circle', { cx: d.electron.x, cy: d.electron.y, r: 8, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      const tR = el('text', { x: 305, y: 175, fill: '#555' }); tR.textContent = 'r≈4.1 mm'; svg.appendChild(tR);
+      const tC = el('text', { x: 240, y: 192, fill: '#555' }); tC.textContent = '中心'; svg.appendChild(tC);
+      note(258, 'ローレンツ力 F≈1.1×10⁻¹⁶ N が向心力');
+      note(276, '速さは変わらない（磁場は仕事をしない）');
+      note(294, '周期 T≈36 ns、1周で 28 MHz');
+    } else if (phase === 'trap') {
+      // Kmax の比べ（60 px/eV）。
+      barRows([
+        { name: '静止', w: d.kMax0EV * 60, val: '1.1 eV', color: '#cfe3ff' },
+        { name: '近づく', w: d.kMaxEV * 60, val: '1.4 eV', color: '#b3e6b3' },
+        { name: '明るい光（近づく）', w: d.kMaxEV * 60, val: '1.4 eV', color: '#ffd24d' },
+        { name: '遠ざかる', w: d.kMaxRecEV * 60, val: '0.82 eV', color: '#ffb3b3' },
+      ]);
+      note(256, 'ドップラーは光子のエネルギーを変える');
+      note(274, '仕事関数は 2.0 eV のまま変わらない');
+      note(292, '明るい光でも Kmax は 1.4 eV のまま');
+    } else if (phase === 'vary') {
+      // 半径の棒グラフ（30 px/mm）。
+      barRows([
+        { name: '近づく', w: d.rM * 1000 * 30, val: '4.1 mm', color: '#b3e6b3' },
+        { name: '遠ざかる', w: d.rRecM * 1000 * 30, val: '3.1 mm', color: '#cfe3ff' },
+        { name: '300 nm', w: d.r300M * 1000 * 30, val: '5.4 mm', color: '#ffd24d' },
+        { name: 'B=2.0 mT', w: d.rB2M * 1000 * 30, val: '2.0 mm', color: '#ffb3b3' },
+      ]);
+      note(256, '近づくと r=4.1 mm、遠ざかると 3.1 mm');
+      note(274, '300 nm なら 5.4 mm、B=2.0 mT なら 2.0 mm');
+      note(292, '周期は速さによらない（36 ns）');
+    }
   } else if (scene.type === 'capacitor') {
     const topY = 110, dPx = scene.dPx;
     // 2枚の極板（水平）。上板が +、下板が −。
@@ -14422,4 +14763,225 @@ function genRectSmoothDerived(data) {
 }
 function genRectSmoothForces(data) { return []; }
 
-if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, capSpringGravDerived, capSpringGravForces, gasSpringCycleDerived, gasSpringCycleForces, slopeSpringDerived, slopeSpringForces, fallLoopDerived, fallLoopForces, beltSpringDerived, beltSpringForces, massSpecDerived, massSpecForces, coilHallDerived, coilHallForces, platformChargeDerived, platformChargeForces, pendulumCollideDerived, pendulumCollideForces, photoCapDerived, photoCapForces, orbitTransferDerived, orbitTransferForces, cyclotronDerived, cyclotronForces, slopeSpringFricDerived, slopeSpringFricForces, projWallDerived, projWallForces, railSpringDampDerived, railSpringDampForces, pendulumSpringDerived, pendulumSpringForces, gasPistonOscDerived, gasPistonOscForces, photoCircleDerived, photoCircleForces, earthTunnelDerived, earthTunnelForces, heaterGasDerived, heaterGasForces, specPhotoCircleDerived, specPhotoCircleForces, ottoCycleDerived, ottoCycleForces, generatorACDerived, generatorACForces, explodeProjectileDerived, explodeProjectileForces, slopePulleySpringDerived, slopePulleySpringForces, cathodeRayDerived, cathodeRayForces, conicalPendulumDerived, conicalPendulumForces, rcChargeDerived, rcChargeForces, projWallFricDerived, projWallFricForces, rlcChargeDerived, rlcChargeForces, photoCapCircleDerived, photoCapCircleForces, acRlcDerived, acRlcForces, projDragIntegrate, projDragDerived, projDragForces, pendulumSpringFricDerived, pendulumSpringFricForces, slopePulleyFricDerived, slopePulleyFricForces, selectorCircleDerived, selectorCircleForces, fallLoopCapDerived, fallLoopCapForces, genTransformerDerived, genTransformerForces, projWallSpringDerived, projWallSpringForces, genRectSmoothDerived, genRectSmoothForces, sceneFor, validateScene, renderFigure };
+// ---- 組み合わせBC：斜方投射＋2乗の空気抵抗＋壁＋エネルギー ----
+// AU（斜方投射＋2乗の空気抵抗）に壁を足したもの。v0=20 m/s、45°、壁は 5.0 m 先。
+// 壁に当たるのは最高点ではない（vy=8.8 m/s でまだ上がっている）。軌道は数値積分
+// （RK4、dt=0.001 s）。dt=0.0005 s と 3 桁まで一致する。
+// 具体値（検算済み）：壁まで 0.38 s、高さ 4.3 m、vx=12 m/s、vy=8.8 m/s、速さ 15 m/s、KE=58 J。
+//   はね返り後 vx′=−9.9 m/s、速さ 13 m/s、KE=44 J、壁での損失 14 J。
+//   はね返ったあとの最高点は打ち出してから 1.2 s、高さ 7.7 m、x=−2.3 m。
+//   着地は打ち出してから 2.5 s、x=−12 m、vx=−6.5 m/s、vy=−11 m/s、速さ 13 m/s、KE=42.5 J。
+//   エネルギー：はじめの 100 J = 壁の損失 13.8 J + 着地で失う縦の KE 32.0 J
+//   + 抵抗の仕事 43.7 J + 着地の横の KE 10.5 J。
+// 罠：壁は最高点ではない（AB・AQ では壁が最高点だった）。抵抗を無視すると
+//   壁では 18 m/s、着地は x=−23 m、速さ 18 m/s になる。
+// 変えたら：e=1.0 なら着地 x=−16 m、速さ 14 m/s、KE=46 J。
+//   m=1.0 kg なら壁まで 0.37 s、高さ 4.4 m、速さ 16 m/s、着地 x=−16 m、速さ 15 m/s、KE=111 J。
+function projDragWallIntegrate(mKg, v0Ms, angDeg, kKgPerM, g, wallXM, eRest, dt) {
+  const th = deg2rad(angDeg);
+  let x = 0, y = 0, vx = v0Ms * Math.cos(th), vy = v0Ms * Math.sin(th), t = 0;
+  const ptsBefore = [[0, 0]];
+  let nextT = 0.25;
+  const acc = (ux, uy) => {
+    const v = Math.hypot(ux, uy);
+    return [-kKgPerM * v * ux / mKg, -g - (kKgPerM * v * uy) / mKg];
+  };
+  const step = () => {
+    const a1 = acc(vx, vy);
+    const a2 = acc(vx + (a1[0] * dt) / 2, vy + (a1[1] * dt) / 2);
+    const a3 = acc(vx + (a2[0] * dt) / 2, vy + (a2[1] * dt) / 2);
+    const a4 = acc(vx + a3[0] * dt, vy + a3[1] * dt);
+    const v2x = vx + (a1[0] * dt) / 2, v2y = vy + (a1[1] * dt) / 2;
+    const v3x = vx + (a2[0] * dt) / 2, v3y = vy + (a2[1] * dt) / 2;
+    const v4x = vx + a3[0] * dt, v4y = vy + a3[1] * dt;
+    x += (dt / 6) * (vx + 2 * v2x + 2 * v3x + v4x);
+    y += (dt / 6) * (vy + 2 * v2y + 2 * v3y + v4y);
+    vx += (dt / 6) * (a1[0] + 2 * a2[0] + 2 * a3[0] + a4[0]);
+    vy += (dt / 6) * (a1[1] + 2 * a2[1] + 2 * a3[1] + a4[1]);
+    t += dt;
+  };
+  // 壁まで（x が壁をこえた最初のステップで止める。dt=0.001 s なら行き過ぎは 0.02 m 以内）。
+  while (x < wallXM && t < 30) {
+    step();
+    if (t >= nextT) { ptsBefore.push([x, y]); nextT += 0.25; }
+  }
+  const wallT = t, wallY = y, wallVx = vx, wallVy = vy;
+  const wallV = Math.hypot(vx, vy);
+  const wallKE = 0.5 * mKg * wallV * wallV;
+  ptsBefore.push([wallXM, wallY]);
+  // はね返り：横向きの速さだけ反転して e 倍、鉛直成分はそのまま。
+  vx = -eRest * vx;
+  const afterVx = vx, afterVy = vy;
+  const afterV = Math.hypot(vx, vy);
+  const afterKE = 0.5 * mKg * afterV * afterV;
+  const lossWallJ = wallKE - afterKE;
+  // 壁のあと：最高点と着地まで。
+  const ptsAfter = [[wallXM, wallY]];
+  let topT = null, topX = null, topY = null;
+  while (t < 30) {
+    step();
+    if (vy < 0 && topT === null) { topT = t; topX = x; topY = y; }
+    if (t >= nextT) { ptsAfter.push([x, y]); nextT += 0.25; }
+    if (y < 0 && vy < 0) break;
+  }
+  ptsAfter.push([x, 0]);
+  return {
+    wallT, wallY, wallVx, wallVy, wallV, wallKE,
+    afterVx, afterVy, afterV, afterKE, lossWallJ,
+    topT, topX, topY,
+    landT: t, landX: x, landVx: vx, landVy: vy,
+    landV: Math.hypot(vx, vy), landKE: 0.5 * mKg * (vx * vx + vy * vy),
+    trajBefore: ptsBefore, trajAfter: ptsAfter,
+  };
+}
+
+function projDragWallDerived(data) {
+  const g = data.g || 10, mKg = data.mKg, v0Ms = data.v0Ms, angDeg = data.angDeg, k = data.kKgPerM;
+  const wallXM = data.wallXM, e = data.eRest;
+  const th = deg2rad(angDeg);
+  const v0x = v0Ms * Math.cos(th), v0y = v0Ms * Math.sin(th);
+  const vt = Math.sqrt((mKg * g) / k);
+  const fDrag0 = k * v0Ms * v0Ms;
+  const mg = mKg * g;
+  const ke0 = 0.5 * mKg * v0Ms * v0Ms;
+  // 数値積分（抵抗あり）。壁で止めてはね返し、地面まで積分する。
+  const sim = projDragWallIntegrate(mKg, v0Ms, angDeg, k, g, wallXM, e, 0.001);
+  const peWallJ = mKg * g * sim.wallY;
+  const keLandH = 0.5 * mKg * sim.landVx * sim.landVx;
+  const keLandV = 0.5 * mKg * sim.landVy * sim.landVy;
+  const keLand = keLandH + keLandV;
+  // 抵抗の仕事はエネルギー保存から（はじめ − 壁の損失 − 着地で失う縦の KE − 着地の横の KE）。
+  const workDragJ = ke0 - sim.lossWallJ - keLandV - keLandH;
+  const workDragBeforeJ = ke0 - sim.wallKE - peWallJ;
+  const workDragAfterJ = sim.afterKE + peWallJ - keLand;
+  const landAngleDeg = (Math.atan2(Math.abs(sim.landVy), Math.abs(sim.landVx)) * 180) / Math.PI;
+  const wallAngleDeg = (Math.atan2(sim.wallVy, sim.wallVx) * 180) / Math.PI;
+  // 抵抗なしの参照値（解析解）。壁では vy=11 m/s、速さ 18 m/s。
+  const tWallNoDrag = wallXM / v0x;
+  const yWallNoDrag = v0y * tWallNoDrag - 0.5 * g * tWallNoDrag * tWallNoDrag;
+  const vyWallNoDrag = v0y - g * tWallNoDrag;
+  const vWallNoDrag = Math.hypot(v0x, vyWallNoDrag);
+  const keWallNoDrag = 0.5 * mKg * vWallNoDrag * vWallNoDrag;
+  const vxAfterNoDrag = -e * v0x;
+  const tFallNoDrag = (vyWallNoDrag + Math.sqrt(vyWallNoDrag * vyWallNoDrag + 2 * g * yWallNoDrag)) / g;
+  const xLandNoDrag = wallXM + vxAfterNoDrag * tFallNoDrag;
+  const vyLandNoDrag = vyWallNoDrag - g * tFallNoDrag;
+  const vLandNoDrag = Math.hypot(vxAfterNoDrag, vyLandNoDrag);
+  const keLandNoDrag = 0.5 * mKg * vLandNoDrag * vLandNoDrag;
+  // 変えたら：e=1.0、m=1.0 kg（同じ積分）。
+  const varyE1 = projDragWallIntegrate(mKg, v0Ms, angDeg, k, g, wallXM, 1.0, 0.001);
+  const varyM1 = projDragWallIntegrate(1.0, v0Ms, angDeg, k, g, wallXM, e, 0.001);
+  const vtM1 = Math.sqrt((1.0 * g) / k);
+  return {
+    g, v0x, v0y, vt, fDrag0, mg, ke0,
+    ...sim,
+    peWallJ, keLandH, keLandV, keLand, workDragJ, workDragBeforeJ, workDragAfterJ,
+    landAngleDeg, wallAngleDeg,
+    tWallNoDrag, yWallNoDrag, vyWallNoDrag, vWallNoDrag, keWallNoDrag,
+    vxAfterNoDrag, tFallNoDrag, xLandNoDrag, vyLandNoDrag, vLandNoDrag, keLandNoDrag,
+    varyE1, varyM1, vtM1,
+  };
+}
+
+function projDragWallForces(data) {
+  const d = projDragWallDerived(data);
+  const vScale = 8; // px/(m/s)：壁での vx 12 m/s は 99 px、着地の vy 11 m/s は 90 px
+  if (data.phase === 'wall') {
+    return [
+      { id: 'vx', short: 'vx=12 m/s', color: 'blue', vector: [d.wallVx * vScale, 0], dashed: false, labelDx: -89, labelDy: 28, from: { x: 150, y: 150 } },
+      { id: 'vy', short: 'vy=8.8 m/s', color: 'red', vector: [0, -d.wallVy * vScale], dashed: false, labelDx: -130, labelDy: 30, from: { x: 150, y: 150 } },
+      { id: 'v', short: 'v=15 m/s', color: '#333', vector: [d.wallVx * vScale, -d.wallVy * vScale], dashed: false, labelDx: -68, labelDy: -12, from: { x: 150, y: 150 } },
+    ];
+  }
+  if (data.phase === 'land') {
+    return [
+      { id: 'vx', short: 'vx=6.5 m/s', color: 'blue', vector: [-Math.abs(d.landVx) * vScale, 0], dashed: false, labelDx: -8, labelDy: -20, from: { x: 230, y: 120 } },
+      { id: 'vy', short: 'vy=11 m/s', color: 'red', vector: [0, Math.abs(d.landVy) * vScale], dashed: false, labelDx: 8, labelDy: -10, from: { x: 230, y: 120 } },
+      { id: 'v', short: 'v=13 m/s', color: '#333', vector: [-Math.abs(d.landVx) * vScale, Math.abs(d.landVy) * vScale], dashed: false, labelDx: -8, labelDy: 16, from: { x: 230, y: 120 } },
+    ];
+  }
+  return [];
+}
+
+// ---- 組み合わせBD：光電効果＋ドップラー効果＋磁場の円運動 ----
+// AS・AF（光電効果＋磁場円運動）にドップラー効果を足したもの。光源が 0.10c で近づく。
+// ドップラー効果は非相対論的近似 λ′ = λ(1 − v/c) で考える（正確な式とのちがいは 1% 未満）。
+// 具体値（検算済み）：λ=400 nm、φ=2.0 eV、B=1.0 mT。
+//   静止：光子 3.1 eV、Kmax=1.1 eV、V0=1.1 V、v=6.2×10⁵ m/s、r=3.5 mm。
+//   近づく（0.10c）：λ′=360 nm、光子 3.4 eV、Kmax=1.4 eV、V0=1.4 V、v=7.1×10⁵ m/s、r=4.1 mm。
+//   周期は速さによらず T=36 ns、ローレンツ力 F=1.1×10⁻¹⁶ N。
+// 罠：ドップラー効果は光子のエネルギーを変える（仕事関数は変わらない）。
+//   明るい光でも Kmax・V0・r は変わらない。0.55c で遠ざかると光電子は出なくなる。
+// 変えたら：遠ざかる（0.10c）→ λ′=440 nm、Kmax=0.82 eV、r=3.1 mm。
+//   B=2.0 mT → r=2.0 mm、T=18 ns、F=2.3×10⁻¹⁶ N。
+//   λ=300 nm で近づく → λ′=270 nm、Kmax=2.6 eV、r=5.4 mm。
+function photoDopplerCircleDerived(data) {
+  const hc = data.hcEvNm || 1240;
+  const eV = 1.602e-19, me = 9.11e-31;
+  const eC = data.eC || 1.602e-19, bT = data.bT, beta = data.beta;
+  const lambdaNm = data.lambdaNm, phiEV = data.phiEV;
+  // 静止した光源の値（比べ用）。
+  const ePh0EV = hc / lambdaNm;
+  const kMax0EV = ePh0EV - phiEV;
+  const v0Ms = Math.sqrt((2 * kMax0EV * eV) / me);
+  const r0M = (me * v0Ms) / (eC * bT);
+  // 近づく光源：λ′ = λ(1 − β)、光子のエネルギーが増える。
+  const lamShiftNm = lambdaNm * (1 - beta);
+  const ePhEV = hc / lamShiftNm;
+  const kMaxEV = ePhEV - phiEV;
+  const vMaxMs = Math.sqrt((2 * kMaxEV * eV) / me);
+  const v0V = kMaxEV; // 阻止電圧（V）＝ Kmax（eV）の数値。
+  const rM = (me * vMaxMs) / (eC * bT);
+  const periodS = (2 * Math.PI * me) / (eC * bT);
+  const freqHz = 1 / periodS;
+  const lorentzN = eC * vMaxMs * bT;
+  const thresholdNm = hc / phiEV;
+  // 遠ざかる光源：λ′ = λ(1 + β)。
+  const lamRecNm = lambdaNm * (1 + beta);
+  const ePhRecEV = hc / lamRecNm;
+  const kMaxRecEV = ePhRecEV - phiEV;
+  const vRecMs = Math.sqrt((2 * kMaxRecEV * eV) / me);
+  const v0RecV = kMaxRecEV;
+  const rRecM = (me * vRecMs) / (eC * bT);
+  // 限界波長になる速さ：λ(1 + β) = hc/φ。
+  const betaStop = thresholdNm / lambdaNm - 1;
+  // 変えたら：λ=300 nm で近づく。B を 2 倍。
+  const lam300Nm = 300 * (1 - beta);
+  const ePh300EV = hc / lam300Nm;
+  const kMax300EV = ePh300EV - phiEV;
+  const v300Ms = Math.sqrt((2 * kMax300EV * eV) / me);
+  const v0300V = kMax300EV;
+  const r300M = (me * v300Ms) / (eC * bT);
+  const rB2M = rM / 2;
+  const periodB2S = periodS / 2;
+  const freqB2Hz = 1 / periodB2S;
+  const lorentzB2N = 2 * lorentzN;
+  return {
+    hc, ePh0EV, kMax0EV, v0Ms, r0M,
+    lamShiftNm, ePhEV, kMaxEV, vMaxMs, v0V, rM, periodS, freqHz, lorentzN, thresholdNm,
+    lamRecNm, ePhRecEV, kMaxRecEV, vRecMs, v0RecV, rRecM, betaStop,
+    lam300Nm, ePh300EV, kMax300EV, v300Ms, v0300V, r300M,
+    rB2M, periodB2S, freqB2Hz, lorentzB2N,
+    circleCenter: { x: 260, y: 170 }, circleR: 40,
+    electron: { x: 260, y: 130 },
+  };
+}
+
+function photoDopplerCircleForces(data) {
+  const phase = (data && data.phase) || 'base';
+  if (phase !== 'circle') return [];
+  return [
+    {
+      id: 'velocity', short: 'v=7.1×10⁵ m/s', color: '#d35400',
+      from: { x: 260, y: 130 }, vector: [30, 0], dashed: true,
+      labelDx: -30, labelDy: -18,
+    },
+    {
+      id: 'lorentz', short: 'F≈1.1×10⁻¹⁶ N', color: '#b00',
+      from: { x: 260, y: 130 }, vector: [0, 30],
+      labelDx: -170, labelDy: 20,
+    },
+  ];
+}
+
+if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, capSpringGravDerived, capSpringGravForces, gasSpringCycleDerived, gasSpringCycleForces, slopeSpringDerived, slopeSpringForces, fallLoopDerived, fallLoopForces, beltSpringDerived, beltSpringForces, massSpecDerived, massSpecForces, coilHallDerived, coilHallForces, platformChargeDerived, platformChargeForces, pendulumCollideDerived, pendulumCollideForces, photoCapDerived, photoCapForces, orbitTransferDerived, orbitTransferForces, cyclotronDerived, cyclotronForces, slopeSpringFricDerived, slopeSpringFricForces, projWallDerived, projWallForces, railSpringDampDerived, railSpringDampForces, pendulumSpringDerived, pendulumSpringForces, gasPistonOscDerived, gasPistonOscForces, photoCircleDerived, photoCircleForces, earthTunnelDerived, earthTunnelForces, heaterGasDerived, heaterGasForces, specPhotoCircleDerived, specPhotoCircleForces, ottoCycleDerived, ottoCycleForces, generatorACDerived, generatorACForces, explodeProjectileDerived, explodeProjectileForces, slopePulleySpringDerived, slopePulleySpringForces, cathodeRayDerived, cathodeRayForces, conicalPendulumDerived, conicalPendulumForces, rcChargeDerived, rcChargeForces, projWallFricDerived, projWallFricForces, rlcChargeDerived, rlcChargeForces, photoCapCircleDerived, photoCapCircleForces, acRlcDerived, acRlcForces, projDragIntegrate, projDragDerived, projDragForces, pendulumSpringFricDerived, pendulumSpringFricForces, slopePulleyFricDerived, slopePulleyFricForces, selectorCircleDerived, selectorCircleForces, fallLoopCapDerived, fallLoopCapForces, genTransformerDerived, genTransformerForces, projWallSpringDerived, projWallSpringForces, genRectSmoothDerived, genRectSmoothForces, projDragWallIntegrate, projDragWallDerived, projDragWallForces, photoDopplerCircleDerived, photoDopplerCircleForces, sceneFor, validateScene, renderFigure };

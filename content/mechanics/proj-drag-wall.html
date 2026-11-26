@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題BC：斜方投射＋空気抵抗＋壁＋エネルギー — 高校物理攻略</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", sans-serif; margin: 0; background: #fff; color: #222; line-height: 1.8; }
+  main { max-width: 720px; margin: 0 auto; padding: 24px 18px 80px; }
+  h1 { font-size: 24px; line-height: 1.4; }
+  h2 { font-size: 20px; margin-top: 40px; }
+  .step { border-top: 1px solid #ddd; padding-top: 16px; margin-top: 32px; }
+  .step h2 { font-size: 18px; margin: 0 0 8px; }
+  .fig { width: 100%; max-width: 400px; height: auto; display: block; margin: 12px auto; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; font-size: 14px; }
+  th { background: #f2f2f2; }
+  .donebox { border: 2px solid #4a8; background: #f6fffa; padding: 14px; margin-top: 40px; }
+  .nav { margin-top: 32px; font-size: 14px; }
+  .toplink { position: fixed; right: 16px; bottom: 16px; background: #222; color: #fff; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 14px; }
+  label.check { display: block; margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+<p><a href="../../index.html">← トップへ</a> ｜ <a href="proj-drag.html">← 組み合わせ問題AU：斜方投射＋2乗の空気抵抗＋エネルギー</a></p>
+<h1>組み合わせ問題BC：斜方投射＋空気抵抗＋壁＋エネルギー</h1>
+<p>質量 m = 0.50 kg の玉を、速さ v0 = 20 m/s、仰角 45° で打ち出す。空気抵抗は速さの 2 乗に比例し、F = kv²（k = 0.010 kg/m）とする。5.0 m 先に壁があり、玉は壁ではね返る（反発係数 e = 0.80）。重力加速度は g = 10 m/s² とする。</p>
+<p>(1) 玉が壁に当たるまでの時間と高さと速さを求めよ。(2) はね返ったあとの着地点と着地の速さを求めよ。(3) はじめの運動エネルギーの行き先を求めよ。(4) 罠と変えたら。</p>
+
+<div class="step" id="step0">
+<p><b>はじめに：どう切り分けるか</b></p>
+<table>
+<tr><th>場面</th><th>考えること</th><th>使うモデル</th></tr>
+<tr><td>壁に当たるまで</td><td>斜方投射＋空気抵抗</td><td>斜方投射・抵抗</td></tr>
+<tr><td>はね返って着地</td><td>反発＋落下</td><td>衝突・等加速度運動</td></tr>
+<tr><td>エネルギー</td><td>壁・抵抗・着地</td><td>エネルギー保存</td></tr>
+</table>
+<p>この問題の橋渡しの量は<b>速さとエネルギー</b>だ。壁に当たるときの速さが、はね返りのあとの着地点とエネルギーの行き先を決める。</p>
+<svg class="fig" data-scene="scene-projDragWall-base" data-show="" role="img" aria-label="玉の軌道。打ち出して壁ではね返り、出発点よりうしろの x=−12 m に着地する"></svg>
+<script type="application/json" id="scene-projDragWall-base">{"angDeg":45,"eRest":0.8,"g":10,"kKgPerM":0.01,"mKg":0.5,"phase":"base","type":"projDragWall","v0Ms":20,"wallXM":5.0}</script>
+<p><a href="#step1">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step1">
+<h2>① 壁に当たるまで：0.38 s、高さ 4.3 m、速さ 15 m/s</h2>
+<p>初速度の成分は、v0x = v0y = 20 × cos45° = 14 m/s だ。空気抵抗がなければ壁まで 5.0/14 = 0.35 s だが、抵抗で速さが落ちるので、壁に着くのは 0.38 s、高さは 4.3 m になる（数値計算）。このとき vx = 12 m/s、vy = 8.8 m/s で、速さは √(12² + 8.8²) = 15 m/s だ。運動エネルギーは ½ × 0.50 × 15² = 58 J になる。はじめの 100 J のうち、運動エネルギーは 58 J、位置エネルギーは 22 J になっている。残りは空気抵抗の仕事で、くわしくはステップ③で追う。</p>
+<svg class="fig" data-scene="scene-projDragWall-wall" data-show="vx,vy,v" role="img" aria-label="壁に当たる瞬間の速度の分解。横 12 m/s、縦 8.8 m/s、速さ 15 m/s"></svg>
+<script type="application/json" id="scene-projDragWall-wall">{"angDeg":45,"eRest":0.8,"g":10,"kKgPerM":0.01,"mKg":0.5,"phase":"wall","type":"projDragWall","v0Ms":20,"wallXM":5.0}</script>
+<label class="check"><input type="checkbox" id="comboProjDragWall-check-1"> 壁まで 0.38 s、高さ 4.3 m、速さ 15 m/s を求めた</label>
+<p><a href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<h2>② はね返って着地：x=−12 m、速さ 13 m/s</h2>
+<p>壁ではね返ると、横向きの速さは vx′ = −0.80 × 12 = −9.9 m/s になる（鉛直成分は 8.8 m/s のまま）。はね返ったあとの速さは √(9.9² + 8.8²) = 13 m/s、運動エネルギーは 44 J になる。壁での損失は 58 − 44 = 14 J だ。</p>
+<p>玉はまだ上がっている（vy = 8.8 m/s）。打ち出してから 1.2 s 後に最高点（高さ 7.7 m、x = −2.3 m）に達し、そこから落ちて、打ち出してから 2.5 s 後に着地する。はね返ってから 2.1 s で 17 m もどり、着地点は x = −12 m（出発点より 12 m うしろ！）になる。着地のとき vx = −6.5 m/s、vy = −11 m/s、速さは 13 m/s、運動エネルギーは 42.5 J（横 10.5 J + 縦 32.0 J）になる。着地の向きは水平から下向きに 60° だ。</p>
+<svg class="fig" data-scene="scene-projDragWall-land" data-show="vx,vy,v" role="img" aria-label="着地の速度の分解。横 6.5 m/s、縦 11 m/s、速さ 13 m/s"></svg>
+<script type="application/json" id="scene-projDragWall-land">{"angDeg":45,"eRest":0.8,"g":10,"kKgPerM":0.01,"mKg":0.5,"phase":"land","type":"projDragWall","v0Ms":20,"wallXM":5.0}</script>
+<label class="check"><input type="checkbox" id="comboProjDragWall-check-2"> 着地 x=−12 m、速さ 13 m/s を求めた</label>
+<p><a href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<h2>③ エネルギー：100 J の行き先</h2>
+<p>はじめの運動エネルギー 100 J の行き先を追う。壁での損失は 13.8 J、着地で失う縦の運動エネルギーは 32.0 J、空気抵抗の仕事は 43.7 J、着地のあとに残る横の運動エネルギーは 10.5 J だ。13.8 + 32.0 + 43.7 + 10.5 = 100 J とぴったり合う。</p>
+<p>抵抗の仕事 43.7 J のうち、壁までが 20.6 J、壁のあとが 23.1 J だ。着地の横の 10.5 J は、そのあと地面をすべれば摩擦熱になる（AQ のように）。</p>
+<svg class="fig" data-scene="scene-projDragWall-energy" data-show="" role="img" aria-label="運動エネルギーの流れ。はじめ 100 J、壁で 58 J、はね返り後 44 J、着地 42.5 J"></svg>
+<script type="application/json" id="scene-projDragWall-energy">{"angDeg":45,"eRest":0.8,"g":10,"kKgPerM":0.01,"mKg":0.5,"phase":"energy","type":"projDragWall","v0Ms":20,"wallXM":5.0}</script>
+<label class="check"><input type="checkbox" id="comboProjDragWall-check-3"> エネルギーの行き先 13.8 + 32.0 + 43.7 + 10.5 = 100 J を確かめた</label>
+<p><a href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<h2>④ 罠：壁は最高点ではない</h2>
+<p>罠：「壁に当たるのは最高点だ」——まちがい。AB や AQ では v0 = 10 m/s で壁が 5.0 m 先だったから、壁のところがちょうど最高点（vy = 0）だった。でもこの問題では v0 = 20 m/s なので、壁に当たるとき vy = 8.8 m/s でまだ上がっている。最高点（7.7 m）には、はね返ったあとに達する。</p>
+<p>罠：「空気抵抗を無視しても、壁での速さは 15 m/s くらい」——まちがい。抵抗がなければ壁まで 0.35 s、高さ 4.4 m、vy = 11 m/s、速さは 18 m/s になる。抵抗があると 15 m/s まで落ちる。着地も、抵抗なしなら x = −23 m、速さ 18 m/s になる。</p>
+<p>罠：「着地は出発点より前にある」——まちがい。はね返った玉は出発点を通り過ぎて、x = −12 m に着地する。壁がなければ 26 m 先に着地していた。</p>
+<svg class="fig" data-scene="scene-projDragWall-trap" data-show="" role="img" aria-label="速さの比べ。抵抗ありは壁で 15 m/s、着地で 13 m/s。抵抗なしはどちらも 18 m/s"></svg>
+<script type="application/json" id="scene-projDragWall-trap">{"angDeg":45,"eRest":0.8,"g":10,"kKgPerM":0.01,"mKg":0.5,"phase":"trap","type":"projDragWall","v0Ms":20,"wallXM":5.0}</script>
+<label class="check"><input type="checkbox" id="comboProjDragWall-check-4"> 壁は最高点ではないこと、抵抗なしの値を区別できた</label>
+<p><a href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<h2>⑤ 変えたら：e・m で着地点が変わる</h2>
+<p>e = 1.0（弾性衝突）なら、壁での損失は 0 になり、はね返ったあとの速さは 15 m/s のまま。着地は x = −16 m、速さ 14 m/s、運動エネルギー 46 J になる。抵抗の仕事は 100 − 46 = 54 J だ。</p>
+<p>m = 1.0 kg なら、重さが 2 倍で抵抗の効きが弱くなる。壁に当たるのは 0.37 s、高さ 4.4 m、速さ 16 m/s、運動エネルギー 135 J。着地は x = −16 m、速さ 15 m/s、運動エネルギー 111 J になる。終端速度は 32 m/s だ。</p>
+<p>抵抗がなければ、壁での速さは 18 m/s、着地は x = −23 m、速さ 18 m/s になる（ステップ④）。</p>
+<svg class="fig" data-scene="scene-projDragWall-vary" data-show="" role="img" aria-label="着地点の比べ。もと −12 m、e=1.0 で −16 m、m=1.0 kg で −16 m、抵抗なしで −23 m"></svg>
+<script type="application/json" id="scene-projDragWall-vary">{"angDeg":45,"eRest":0.8,"g":10,"kKgPerM":0.01,"mKg":0.5,"phase":"vary","type":"projDragWall","v0Ms":20,"wallXM":5.0}</script>
+<label class="check"><input type="checkbox" id="comboProjDragWall-check-5"> e・m を変えたときの着地点を求めた</label>
+</div>
+
+<div class="donebox" id="donebox">
+<p><b>まとめ（答え）</b></p>
+<p>(1) 壁まで 0.38 s、高さ 4.3 m、速さ 15 m/s。(2) 着地 x=−12 m、速さ 13 m/s、運動エネルギー 42.5 J。(3) エネルギー 100 J = 壁 13.8 J + 着地 32.0 J + 抵抗 43.7 J + 横の 10.5 J。(4) 壁は最高点ではない（最高点ははね返ったあとの 7.7 m）。</p>
+<p>もとになった単体モデル：斜方投射は<a href="projectile.html">投げ上げの動きを見る</a>、空気抵抗は<a href="proj-drag.html">組み合わせ問題AU：斜方投射＋2乗の空気抵抗＋エネルギー</a>、壁との衝突は<a href="proj-wall.html">組み合わせ問題AB：斜方投射＋壁との衝突</a>、壁＋摩擦は<a href="proj-wall-fric.html">組み合わせ問題AQ：斜方投射＋壁＋床の摩擦</a>で確かめられる。</p>
+<p id="done-msg"></p>
+<p><a href="photo-doppler-circle.html">次：組み合わせ問題BD：光電効果＋ドップラー効果＋磁場の円運動 →</a></p>
+</div>
+
+<p class="nav"><a href="../../index.html">← トップへ</a></p>
+</main>
+<a class="toplink" href="#">↑ TOP</a>
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+const doneKey = 'comboProjDragWallDone';
+const checkIds = ['comboProjDragWall-check-1','comboProjDragWall-check-2','comboProjDragWall-check-3','comboProjDragWall-check-4','comboProjDragWall-check-5'];
+const doneMsg = document.getElementById('done-msg');
+function allChecked() { return checkIds.every(id => document.getElementById(id).checked); }
+function refresh() {
+  if (allChecked()) {
+    doneMsg.textContent = '完了！';
+    loadProgress().then(p => { p[doneKey] = true; return saveProgress(p); }).catch(() => {});
+  } else {
+    doneMsg.textContent = '';
+  }
+}
+checkIds.forEach(id => document.getElementById(id).addEventListener('change', refresh));
+renderAllFigures();
+loadProgress().then(p => { if (p[doneKey]) { doneMsg.textContent = '完了済み ✓'; } }).catch(() => {});
+</script>
+</body>
+</html>
