@@ -4959,6 +4959,26 @@ function sceneFor(type, thetaDeg, mgPx, fPx, data) {
       forces: selectorCircleForces(data),
     };
   }
+  if (type === 'fallLoopCap') {
+    const d = fallLoopCapDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      mKg: data.mKg, bT: data.bT, loopLM: data.loopLM, loopHM: data.loopHM, capF: data.capF, dInsideM: data.dInsideM, resOhm: data.resOhm, g: data.g || 10,
+      derived: d,
+      center: { x: 200, y: 150 }, centerDot: false,
+      forces: fallLoopCapForces(data),
+    };
+  }
+  if (type === 'genTransformer') {
+    const d = genTransformerDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      genEffV: data.genEffV, loadV: data.loadV, loadP: data.loadP, lineR: data.lineR, ratioUp: data.ratioUp,
+      derived: d,
+      center: { x: 200, y: 150 }, centerDot: false,
+      forces: genTransformerForces(data),
+    };
+  }
   if (type === 'slopePulley') {
     return {
       type, phase: (data && data.phase) || 'connected',
@@ -6786,6 +6806,110 @@ function validateScene(scene) {
     if (Math.abs(d.vV4 - 2 * d.vP) > 1e-9) return ['V 4 倍の速さが 2 倍と一致しません'];
     if (Math.abs(d.rV4 - 2 * d.rP) > 1e-9) return ['V 4 倍の半径が 2 倍と一致しません'];
     if (Math.abs(d.eV4 - d.vV4 * d.bT) > 1e-9) return ['V 4 倍の選別の電場が一致しません'];
+  }
+  if (scene.type === 'fallLoopCap') {
+    const d = scene.derived;
+    // コンデンサーが「重さ」になる：m_extra = B²L²C、m_eff = m + B²L²C、a = mg/m_eff。
+    if (Math.abs(d.mExtraKg - d.bT * d.bT * d.loopLM * d.loopLM * d.capF) > 1e-12) return ['コンデンサーの重さが B²L²C と一致しません'];
+    if (Math.abs(d.mEffKg - (d.mKg + d.mExtraKg)) > 1e-12) return ['実効質量が m + B²L²C と一致しません'];
+    if (Math.abs(d.aMs2 - (d.mKg * d.g) / d.mEffKg) > 1e-9) return ['入るときの加速度が mg/(m + B²L²C) と一致しません'];
+    // 入りきったとき：v² = 2ah、t = v/a、ε = BLv、Q = CV、U = ½CV²、KE = ½mv²。
+    if (Math.abs(d.v1Ms - Math.sqrt(2 * d.aMs2 * d.loopHM)) > 1e-9) return ['入りきったときの速さが √(2ah) と一致しません'];
+    if (Math.abs(d.t1S - d.v1Ms / d.aMs2) > 1e-9) return ['入るまでの時間が v/a と一致しません'];
+    if (Math.abs(d.eps1V - d.bT * d.loopLM * d.v1Ms) > 1e-9) return ['起電力が BLv と一致しません'];
+    if (Math.abs(d.q1C - d.capF * d.eps1V) > 1e-12) return ['電気量が CV と一致しません'];
+    if (Math.abs(d.u1J - 0.5 * d.capF * d.eps1V * d.eps1V) > 1e-12) return ['コンデンサーのエネルギーが ½CV² と一致しません'];
+    if (Math.abs(d.ke1J - 0.5 * d.mKg * d.v1Ms * d.v1Ms) > 1e-12) return ['運動エネルギーが ½mv² と一致しません'];
+    if (Math.abs(d.wGravJ - d.mKg * d.g * d.loopHM) > 1e-9) return ['重力の仕事が mgh と一致しません'];
+    if (Math.abs(d.wGravJ - (d.ke1J + d.u1J)) > 1e-9) return ['エネルギーが 重力の仕事 = KE + コンデンサー と一致しません'];
+    // 磁気の力と電流：F = B²L²C·a、i = CBL·a、F = BLi。
+    if (Math.abs(d.fMagN - d.mExtraKg * d.aMs2) > 1e-9) return ['磁気の力が B²L²C·a と一致しません'];
+    if (Math.abs(d.i1A - d.capF * d.bT * d.loopLM * d.aMs2) > 1e-12) return ['電流が CBL·a と一致しません'];
+    if (Math.abs(d.fMagN - d.bT * d.loopLM * d.i1A) > 1e-9) return ['磁気の力が BLi と一致しません'];
+    if (!(d.fMagN < d.mgN)) return ['磁気の力が重力より小さくなっていません'];
+    if (!(d.aMs2 < d.g)) return ['入るときの加速度が g より小さくなっていません'];
+    // 磁場の中：自由落下。v² = v1² + 2gh、KE の増え方が mgh と一致する。
+    if (Math.abs(d.v2Ms - Math.sqrt(d.v1Ms * d.v1Ms + 2 * d.g * scene.dInsideM)) > 1e-9) return ['磁場の中の速さが一致しません'];
+    if (Math.abs(d.t2S - (d.v2Ms - d.v1Ms) / d.g) > 1e-9) return ['磁場の中の時間が一致しません'];
+    if (Math.abs(d.ke2J - d.ke1J - d.mKg * d.g * scene.dInsideM) > 1e-9) return ['磁場の中の運動エネルギーの増え方が mgh と一致しません'];
+    // 罠：自由落下なら v = √(2gh) = 3.2 m/s、コンデンサーがあると 2.2 m/s。
+    if (Math.abs(d.vFreeMs - Math.sqrt(2 * d.g * d.loopHM)) > 1e-9) return ['自由落下の速さが √(2gh) と一致しません'];
+    if (!(d.v1Ms < d.vFreeMs)) return ['コンデンサーありの速さが自由落下より小さくなっていません'];
+    if (Math.abs(d.epsFreeV - d.bT * d.loopLM * d.vFreeMs) > 1e-9) return ['自由落下の起電力が BLv と一致しません'];
+    // 抵抗の場合（組み合わせR）：終端速度 vt = mgR/(B²L²)。
+    if (Math.abs(d.vtResMs - (d.mgN * scene.resOhm) / (d.bT * d.bT * d.loopLM * d.loopLM)) > 1e-9) return ['抵抗の終端速度が mgR/(B²L²) と一致しません'];
+    // 変えたら：同じ計算でエネルギー保存が成り立つ。
+    for (const v of [d.varyC4, d.varyB1, d.varyM2]) {
+      if (Math.abs(v.u1J + v.ke1J - v.wGravJ) > 1e-9) return ['変えたらのエネルギーが一致しません'];
+      if (Math.abs(v.v1Ms - Math.sqrt(2 * v.aMs2 * d.loopHM)) > 1e-9) return ['変えたらの速さが √(2ah) と一致しません'];
+    }
+    if (!(d.varyC4.aMs2 < d.aMs2)) return ['C=0.40 F の加速度がもとより小さくなっていません'];
+    if (!(d.varyB1.aMs2 > d.aMs2)) return ['B=1.0 T の加速度がもとより大きくなっていません'];
+    if (!(d.varyM2.aMs2 > d.aMs2)) return ['m=0.20 kg の加速度がもとより大きくなっていません'];
+    // v-t 曲線：(0,0) → (t1,v1) → (t1+t2,v2)。入るときの傾きは a、磁場の中の傾きは g。
+    if (Math.abs(d.vtCurve[0][0]) > 1e-12 || Math.abs(d.vtCurve[0][1]) > 1e-12) return ['v-t 曲線のはじめが (0,0) と一致しません'];
+    if (Math.abs(d.vtCurve[1][0] - d.t1S) > 1e-12 || Math.abs(d.vtCurve[1][1] - d.v1Ms) > 1e-12) return ['v-t 曲線の折れ点が一致しません'];
+    if (Math.abs(d.vtCurve[2][0] - (d.t1S + d.t2S)) > 1e-12 || Math.abs(d.vtCurve[2][1] - d.v2Ms) > 1e-12) return ['v-t 曲線の終わりが一致しません'];
+    // 図の矢印の長さが縮尺どおりか（20 px/N）。
+    if (byId.gravity && Math.abs(Math.hypot(byId.gravity.vector[0], byId.gravity.vector[1]) - d.mgN * 20) > 0.5) return ['重力の矢印が 20 px/N と一致しません'];
+    if (byId.magForce && Math.abs(Math.hypot(byId.magForce.vector[0], byId.magForce.vector[1]) - d.fMagN * 20) > 0.5) return ['磁気の力の矢印が 20 px/N と一致しません'];
+  }
+  if (scene.type === 'genTransformer') {
+    const d = scene.derived;
+    // 負荷：I = P/V。
+    if (Math.abs(d.iLoadA - d.loadP / d.loadV) > 1e-9) return ['負荷の電流が P/V と一致しません'];
+    // 変圧器なし：損失は I²R、発電機は 負荷 + 損失、電圧降下は IR。
+    if (Math.abs(d.lossNoW - d.iNoA * d.iNoA * d.lineR) > 1e-9) return ['変圧器なしの損失が I²R と一致しません'];
+    if (Math.abs(d.pGenNoW - (d.loadP + d.lossNoW)) > 1e-9) return ['変圧器なしの発電機の電力が一致しません'];
+    if (Math.abs(d.dropNoV - d.iNoA * d.lineR) > 1e-9) return ['変圧器なしの電圧降下が IR と一致しません'];
+    // 昇圧：V は ratio 倍、I は 1/ratio 倍、損失は 1/ratio² 倍。
+    if (Math.abs(d.vLineV - d.genEffV * d.ratio) > 1e-9) return ['送電電圧が 発電機×昇圧比 と一致しません'];
+    if (Math.abs(d.iLineA - d.iLoadA / d.ratio) > 1e-9) return ['送電電流が 負荷÷昇圧比 と一致しません'];
+    if (Math.abs(d.lossW - d.iLineA * d.iLineA * d.lineR) > 1e-9) return ['送電損失が I²R と一致しません'];
+    if (Math.abs(d.lossW - d.lossNoW / (d.ratio * d.ratio)) > 1e-9) return ['送電損失が 変圧器なしの 1/ratio² と一致しません'];
+    if (Math.abs(d.pGenW - (d.loadP + d.lossW)) > 1e-9) return ['発電機の電力が 負荷 + 損失 と一致しません'];
+    if (Math.abs(d.dropV - d.iLineA * d.lineR) > 1e-9) return ['送電線の電圧降下が IR と一致しません'];
+    // 降圧：電圧降下を引いてから 1/ratio 倍、電流は ratio 倍。
+    if (Math.abs(d.vBeforeDownV - (d.vLineV - d.dropV)) > 1e-9) return ['降圧の前の電圧が一致しません'];
+    if (Math.abs(d.vLoadV - d.vBeforeDownV / d.ratio) > 1e-9) return ['降圧後の電圧が一致しません'];
+    if (Math.abs(d.iLoadAfterA - d.iLineA * d.ratio) > 1e-9) return ['降圧後の電流が一致しません'];
+    if (Math.abs(d.pLoadAfterW - d.vLoadV * d.iLoadAfterA) > 1e-9) return ['降圧後の電力が VI と一致しません'];
+    if (!(d.vLoadV > 0.99 * d.loadV)) return ['降圧後の電圧が負荷の電圧より小さすぎます'];
+    // 損失は電圧の 2 乗に反比例：V が 2 倍なら損失は 1/4。
+    for (const s of d.lossVsV) {
+      if (Math.abs(s.iA - d.loadP / s.vV) > 1e-9) return ['送電電流が P/V と一致しません'];
+      if (Math.abs(s.lossW - s.iA * s.iA * d.lineR) > 1e-9) return ['送電損失が I²R と一致しません'];
+    }
+    if (Math.abs(d.lossVsV[1].lossW - d.lossVsV[0].lossW / 4) > 1e-9) return ['電圧 2 倍の損失が 1/4 と一致しません'];
+    if (Math.abs(d.lossVsV[3].lossW - d.lossVsV[0].lossW / 100) > 1e-9) return ['電圧 10 倍の損失が 1/100 と一致しません'];
+    // 変えたら：同じ計算で損失が求まる。昇圧比が大きいほど損失は小さい。
+    for (const v of [d.varyR5, d.varyR20, d.varyLine100, d.varyP200]) {
+      if (Math.abs(v.lossW - v.iLineA * v.iLineA * v.lineR) > 1e-9) return ['変えたらの損失が I²R と一致しません'];
+      if (Math.abs(v.pGenW - (v.loadP + v.lossW)) > 1e-9) return ['変えたらの発電機の電力が一致しません'];
+    }
+    if (!(d.varyR5.lossW > d.lossW)) return ['昇圧 ×5 の損失が ×10 より大きくなっていません'];
+    if (!(d.varyR20.lossW < d.lossW)) return ['昇圧 ×20 の損失が ×10 より小さくなっていません'];
+    // 変えたらの「変圧器なし」は直列回路で解く：I = 発電機電圧/(送電線 + 負荷抵抗)。
+    for (const n of [d.noLine100, d.noP200]) {
+      if (Math.abs(n.loadR - (d.loadV * d.loadV) / n.loadP) > 1e-9) return ['変えたらの負荷抵抗が V²/P と一致しません'];
+      if (Math.abs(n.totalR - (n.lineR + n.loadR)) > 1e-9) return ['変えたらの回路全体の抵抗が一致しません'];
+      if (Math.abs(n.iA - d.genEffV / n.totalR) > 1e-9) return ['変えたらの変圧器なしの電流が一致しません'];
+      if (Math.abs(n.dropV - n.iA * n.lineR) > 1e-9) return ['変えたらの変圧器なしの電圧降下が一致しません'];
+      if (Math.abs(n.vLoadV - n.iA * n.loadR) > 1e-9) return ['変えたらの変圧器なしの負荷の電圧が一致しません'];
+      if (Math.abs(n.pLoadW - n.vLoadV * n.iA) > 1e-9) return ['変えたらの変圧器なしの負荷の電力が一致しません'];
+      if (Math.abs(n.lossW - n.iA * n.iA * n.lineR) > 1e-9) return ['変えたらの変圧器なしの損失が一致しません'];
+      if (Math.abs(n.pGenW - (n.pLoadW + n.lossW)) > 1e-9) return ['変えたらの変圧器なしの発電機の電力が一致しません'];
+    }
+    // 送電線 100 Ω：変圧器なしでは負荷に 25 W しか届かず、損失も 25 W（半分）。
+    if (Math.abs(d.noLine100.iA - 0.50) > 1e-9) return ['送電線 100 Ω の変圧器なしの電流が 0.50 A と一致しません'];
+    if (Math.abs(d.noLine100.vLoadV - 50) > 1e-9) return ['送電線 100 Ω の変圧器なしの負荷の電圧が 50 V と一致しません'];
+    if (Math.abs(d.noLine100.pLoadW - 25) > 1e-9) return ['送電線 100 Ω の変圧器なしの負荷の電力が 25 W と一致しません'];
+    if (Math.abs(d.noLine100.lossW - 25) > 1e-9) return ['送電線 100 Ω の変圧器なしの損失が 25 W と一致しません'];
+    if (!(d.varyLine100.lossW < d.noLine100.lossW)) return ['送電線 100 Ω でも昇圧すれば損失が小さくなっていません'];
+    // 負荷 200 W：変圧器なしでは電流 約 1.4 A、損失 約 41 W、負荷には 約 102 W しか届かない。
+    if (Math.abs(d.noP200.iA - 100 / 70) > 1e-9) return ['負荷 200 W の変圧器なしの電流が一致しません'];
+    if (Math.abs(d.noP200.lossW - 2000 / 49) > 1e-9) return ['負荷 200 W の変圧器なしの損失が一致しません'];
+    if (Math.abs(d.noP200.pLoadW - 5000 / 49) > 1e-9) return ['負荷 200 W の変圧器なしの負荷の電力が一致しません'];
   }
   if (scene.type === 'charged-circle') {
     const d = scene.derived;
@@ -11870,6 +11994,216 @@ function drawBase(svg, scene) {
       note(274, 'qV = 1.6×10⁻¹⁶ J、v ≈ 4.4×10⁵ m/s');
       note(292, '重水素は v ≈ 3.1×10⁵ m/s（1/√2 倍）');
     }
+  } else if (scene.type === 'fallLoopCap') {
+    const d = scene.derived;
+    const phase = scene.phase;
+    const tH = el('text', { x: 40, y: 36, fill: '#333' });
+    tH.textContent = phase === 'enter' ? '磁場に入るとき：加速度は 5.0 m/s² のまま'
+      : phase === 'energy' ? 'エネルギー：0.50 J = 0.25 J + 0.25 J'
+      : phase === 'inside' ? '磁場の中：自由落下する'
+      : phase === 'trap' ? '罠：自由落下 3.2 m/s、抵抗は終端速度'
+      : phase === 'vary' ? '変えたら：C・B・m で加速度が変わる'
+      : '落下するコイル＋コンデンサー';
+    svg.appendChild(tH);
+    const note = (y, text) => { const t = el('text', { x: 60, y, fill: '#333' }); t.textContent = text; svg.appendChild(t); };
+    const barRows = (rows) => {
+      rows.forEach((r, i) => {
+        const y = 75 + i * 45;
+        const tN = el('text', { x: 60, y: y - 8 }); tN.textContent = r.name; svg.appendChild(tN);
+        svg.appendChild(el('rect', { x: 140, y, width: Math.max(r.w, 5), height: 18, fill: r.color, stroke: '#333', 'stroke-width': 1 }));
+        const tV = el('text', { x: 140 + Math.max(r.w, 5) + 8, y: y + 15 }); tV.textContent = r.val; svg.appendChild(tV);
+      });
+    };
+    // 磁場の領域：x=120〜280、y=120〜240。× 印は左右の端だけに置く（中央の帯は力のラベル用に空ける）。
+    const drawField = () => {
+      svg.appendChild(el('rect', { x: 120, y: 120, width: 160, height: 120, fill: '#f5f5f5', stroke: '#333', 'stroke-width': 2 }));
+      for (const cx of [132, 268]) {
+        for (const cy of [140, 170, 200]) {
+          svg.appendChild(el('line', { x1: cx - 4, y1: cy - 4, x2: cx + 4, y2: cy + 4, stroke: '#999', 'stroke-width': 1.5 }));
+          svg.appendChild(el('line', { x1: cx - 4, y1: cy + 4, x2: cx + 4, y2: cy - 4, stroke: '#999', 'stroke-width': 1.5 }));
+        }
+      }
+    };
+    // コイル（60×60 px、白く塗って後ろの × 印を隠す）。右の辺にコンデンサーを描く。
+    const drawLoop = (topY) => {
+      const loopX = 170, loopW = 60, botY = topY + 60;
+      svg.appendChild(el('rect', { x: loopX, y: topY, width: loopW, height: 60, fill: '#fff', stroke: '#333', 'stroke-width': 2 }));
+      // コンデンサー：右の辺の真ん中を切って、2 本の平行線を描く。
+      svg.appendChild(el('rect', { x: 227, y: topY + 22, width: 6, height: 16, fill: '#fff' }));
+      svg.appendChild(el('line', { x1: 222, y1: topY + 24, x2: 238, y2: topY + 24, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 222, y1: topY + 36, x2: 238, y2: topY + 36, stroke: '#333', 'stroke-width': 2 }));
+      const tC = el('text', { x: 300, y: topY + 34 }); tC.textContent = 'C=0.10 F'; svg.appendChild(tC);
+      return botY;
+    };
+    if (phase === 'base') {
+      drawField();
+      drawLoop(d.loopTopY);
+      note(256, 'コイルを磁場の上から静かに落とす');
+      note(274, 'コイルの質量 0.10 kg、重力 1.0 N');
+      note(292, '× は紙の裏向きの磁場 B=2.0 T');
+    } else if (phase === 'enter') {
+      drawField();
+      drawLoop(d.loopTopY);
+      note(256, '起電力 ε = BLv = 2.2 V');
+      note(274, '電流 I = 0.50 A、磁気の力 0.50 N');
+      note(292, '加速度は 5.0 m/s² のまま');
+    } else if (phase === 'energy') {
+      // エネルギーの棒グラフ（300 px/J）。
+      barRows([
+        { name: '重力の仕事 0.50 J', w: d.wGravJ * 300, val: '0.50 J', color: '#ffd24d' },
+        { name: '運動エネルギー 0.25 J', w: d.ke1J * 300, val: '0.25 J', color: '#cfe3ff' },
+        { name: 'コンデンサー 0.25 J', w: d.u1J * 300, val: '0.25 J', color: '#b3e6b3' },
+      ]);
+      note(256, '重力の仕事 0.50 J');
+      note(274, 'KE 0.25 J + コンデンサー 0.25 J');
+      note(292, 'エネルギーはぴったり合う');
+    } else if (phase === 'inside') {
+      // v-t グラフ：t 軸 0〜0.90 s、v 軸 0〜6.0 m/s。t=0.45 s で傾きが変わる。
+      const xOf = (tS) => 60 + (tS / 0.90) * 280;
+      const yOf = (vMs) => 240 - (vMs / 6.0) * 180;
+      svg.appendChild(el('line', { x1: 60, y1: 240, x2: 340, y2: 240, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: 60, y1: 60, x2: 60, y2: 240, stroke: '#333', 'stroke-width': 1.5 }));
+      // 入りきったところの破線（目盛りラベルと重ならないよう、y=210 で止める）。
+      svg.appendChild(el('line', { x1: xOf(d.t1S), y1: yOf(d.v1Ms), x2: xOf(d.t1S), y2: 210, stroke: '#888', 'stroke-width': 1, 'stroke-dasharray': '4 3' }));
+      svg.appendChild(el('line', { x1: xOf(d.vtCurve[0][0]), y1: yOf(d.vtCurve[0][1]), x2: xOf(d.vtCurve[1][0]), y2: yOf(d.vtCurve[1][1]), stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: xOf(d.vtCurve[1][0]), y1: yOf(d.vtCurve[1][1]), x2: xOf(d.vtCurve[2][0]), y2: yOf(d.vtCurve[2][1]), stroke: '#b00', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx: xOf(d.t1S), cy: yOf(d.v1Ms), r: 4, fill: '#b00', stroke: '#333', 'stroke-width': 1 }));
+      const tV1 = el('text', { x: 205, y: 195 }); tV1.textContent = 'v=2.2 m/s'; svg.appendChild(tV1);
+      const tV2 = el('text', { x: 310, y: 55, 'text-anchor': 'end', fill: '#b00' }); tV2.textContent = 'v=5.9 m/s'; svg.appendChild(tV2);
+      const tT1 = el('text', { x: xOf(d.t1S), y: 232, fill: '#555', 'text-anchor': 'middle' }); tT1.textContent = '0.45 s'; svg.appendChild(tT1);
+      const tT2 = el('text', { x: xOf(d.t1S + d.t2S), y: 232, fill: '#555', 'text-anchor': 'middle' }); tT2.textContent = '0.82 s'; svg.appendChild(tT2);
+      const tX = el('text', { x: 346, y: 244 }); tX.textContent = 't'; svg.appendChild(tX);
+      const tY = el('text', { x: 48, y: 56 }); tY.textContent = 'v'; svg.appendChild(tY);
+      note(256, '入るとき a=5.0 m/s²（傾きがゆるい）');
+      note(274, '磁場の中 a=10 m/s²（傾きが急）');
+      note(292, '0.45 s で入りきる、0.82 s で 5.9 m/s');
+    } else if (phase === 'trap') {
+      // 入りきったときの速さの比べ（35 px/(m/s)）。
+      barRows([
+        { name: '自由落下', w: d.vFreeMs * 35, val: '3.2 m/s', color: '#ddd' },
+        { name: 'コンデンサー', w: d.v1Ms * 35, val: '2.2 m/s', color: '#b3e6b3' },
+        { name: '抵抗（終端速度）', w: d.vtResMs * 35, val: '5.0 m/s', color: '#cfe3ff' },
+      ]);
+      note(256, '自由落下なら 3.2 m/s になる');
+      note(274, '抵抗なら終端速度 5.0 m/s になる');
+      note(292, 'コンデンサーでは終端速度はない');
+    } else if (phase === 'vary') {
+      // 加速度の比べ（20 px/(m/s²)）。
+      barRows([
+        { name: 'C=0.10 F', w: d.aMs2 * 20, val: '5.0 m/s²', color: '#ffd24d' },
+        { name: 'C=0.40 F', w: d.varyC4.aMs2 * 20, val: '2.0 m/s²', color: '#cfe3ff' },
+        { name: 'B=1.0 T', w: d.varyB1.aMs2 * 20, val: '8.0 m/s²', color: '#b3e6b3' },
+        { name: 'm=0.20 kg', w: d.varyM2.aMs2 * 20, val: '6.7 m/s²', color: '#ffb3b3' },
+      ]);
+      note(256, 'C=0.40 F なら a=2.0 m/s²');
+      note(274, 'B=1.0 T なら a=8.0 m/s²');
+      note(292, 'm=0.20 kg なら a=6.7 m/s²');
+    }
+  } else if (scene.type === 'genTransformer') {
+    const d = scene.derived;
+    const phase = scene.phase;
+    const tH = el('text', { x: 40, y: 36, fill: '#333' });
+    tH.textContent = phase === 'stepup' ? '昇圧：100 V → 1000 V、電流は 1/10'
+      : phase === 'loss' ? '送電損失：変圧器なし 20 W、昇圧 0.20 W'
+      : phase === 'stepdown' ? '降圧：998 V → 約 100 V、電流は 10 倍'
+      : phase === 'trap' ? '罠：電圧 2 倍で損失は 1/4 になる'
+      : phase === 'vary' ? '変えたら：昇圧比と送電線の抵抗'
+      : '発電機＋変圧器＋送電：100 W を送る';
+    svg.appendChild(tH);
+    const note = (y, text) => { const t = el('text', { x: 60, y, fill: '#333' }); t.textContent = text; svg.appendChild(t); };
+    const barRows = (rows) => {
+      rows.forEach((r, i) => {
+        const y = 75 + i * 45;
+        const tN = el('text', { x: 60, y: y - 8 }); tN.textContent = r.name; svg.appendChild(tN);
+        svg.appendChild(el('rect', { x: 140, y, width: Math.max(r.w, 5), height: 18, fill: r.color, stroke: '#333', 'stroke-width': 1 }));
+        const tV = el('text', { x: 140 + Math.max(r.w, 5) + 8, y: y + 15 }); tV.textContent = r.val; svg.appendChild(tV);
+      });
+    };
+    if (phase === 'base') {
+      // 送電の流れ：発電機 → 昇圧 → 送電線 → 降圧 → 負荷。
+      const boxes = [
+        { x: 38, label: '発電機', sub: '100 V' },
+        { x: 105, label: '昇圧', sub: '×10' },
+        { x: 172, label: '送電線', sub: '1000 V' },
+        { x: 239, label: '降圧', sub: '÷10' },
+        { x: 306, label: '負荷', sub: '100 W' },
+      ];
+      boxes.forEach((b, i) => {
+        svg.appendChild(el('rect', { x: b.x, y: 130, width: 55, height: 40, fill: '#eef', stroke: '#333', 'stroke-width': 2 }));
+        const tL = el('text', { x: b.x + 27, y: 155, 'text-anchor': 'middle' }); tL.textContent = b.label; svg.appendChild(tL);
+        const tS = el('text', { x: b.x + 27, y: 195, 'text-anchor': 'middle', fill: '#555' }); tS.textContent = b.sub; svg.appendChild(tS);
+        if (i < boxes.length - 1) {
+          svg.appendChild(el('line', { x1: b.x + 55, y1: 150, x2: b.x + 67, y2: 150, stroke: '#333', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+        }
+      });
+      note(256, '発電機 100 V → 昇圧 ×10 → 1000 V で送る');
+      note(274, '送電線 20 Ω → 降圧 ÷10 → 負荷 100 W');
+      note(292, '損失は 0.20 W だけ（なしなら 20 W）');
+    } else if (phase === 'stepup') {
+      // 発電機（円）と昇圧変圧器（箱）。
+      svg.appendChild(el('circle', { cx: 75, cy: 150, r: 22, fill: '#fff', stroke: '#333', 'stroke-width': 2 }));
+      const tG = el('text', { x: 75, y: 190, 'text-anchor': 'middle' }); tG.textContent = '発電機'; svg.appendChild(tG);
+      svg.appendChild(el('line', { x1: 97, y1: 150, x2: 155, y2: 150, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('rect', { x: 155, y: 115, width: 70, height: 70, fill: '#eef', stroke: '#333', 'stroke-width': 2 }));
+      const tT = el('text', { x: 190, y: 145, 'text-anchor': 'middle' }); tT.textContent = '変圧器'; svg.appendChild(tT);
+      const tR = el('text', { x: 190, y: 165, 'text-anchor': 'middle' }); tR.textContent = '1:10'; svg.appendChild(tR);
+      svg.appendChild(el('line', { x1: 225, y1: 150, x2: 320, y2: 150, stroke: '#333', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+      const tV1 = el('text', { x: 115, y: 105, 'text-anchor': 'middle' }); tV1.textContent = 'V1=100 V'; svg.appendChild(tV1);
+      const tI1 = el('text', { x: 115, y: 210, 'text-anchor': 'middle' }); tI1.textContent = 'I1=1.0 A'; svg.appendChild(tI1);
+      const tV2 = el('text', { x: 265, y: 105, 'text-anchor': 'middle' }); tV2.textContent = 'V2=1000 V'; svg.appendChild(tV2);
+      const tI2 = el('text', { x: 265, y: 210, 'text-anchor': 'middle' }); tI2.textContent = 'I2=0.10 A'; svg.appendChild(tI2);
+      note(256, 'V2/V1 = N2/N1 = 10');
+      note(274, 'I2/I1 = N1/N2 = 1/10');
+      note(292, '電力は保存：100 W → 100 W');
+    } else if (phase === 'loss') {
+      // 送電損失の棒グラフ（8 px/W）。
+      barRows([
+        { name: '変圧器なし 20 W', w: d.lossNoW * 8, val: '20 W', color: '#ffb3b3' },
+        { name: '昇圧 ×5 0.80 W', w: d.varyR5.lossW * 8, val: '0.80 W', color: '#cfe3ff' },
+        { name: '昇圧 ×10 0.20 W', w: d.lossW * 8, val: '0.20 W', color: '#b3e6b3' },
+      ]);
+      note(256, '損失は I²R、電流 1/10 なら損失 1/100');
+      note(274, '発電機は 100.2 W 出せばよい');
+      note(292, 'なしなら 120 W 出さなければならない');
+    } else if (phase === 'stepdown') {
+      svg.appendChild(el('line', { x1: 60, y1: 150, x2: 155, y2: 150, stroke: '#333', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+      const tV3 = el('text', { x: 105, y: 120, 'text-anchor': 'middle' }); tV3.textContent = '998 V'; svg.appendChild(tV3);
+      const tI3 = el('text', { x: 105, y: 190, 'text-anchor': 'middle' }); tI3.textContent = '0.10 A'; svg.appendChild(tI3);
+      svg.appendChild(el('rect', { x: 155, y: 115, width: 70, height: 70, fill: '#eef', stroke: '#333', 'stroke-width': 2 }));
+      const tT = el('text', { x: 190, y: 145, 'text-anchor': 'middle' }); tT.textContent = '変圧器'; svg.appendChild(tT);
+      const tR = el('text', { x: 190, y: 165, 'text-anchor': 'middle' }); tR.textContent = '10:1'; svg.appendChild(tR);
+      svg.appendChild(el('line', { x1: 225, y1: 150, x2: 280, y2: 150, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('rect', { x: 280, y: 130, width: 60, height: 40, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      const tL = el('text', { x: 310, y: 148, 'text-anchor': 'middle' }); tL.textContent = '負荷'; svg.appendChild(tL);
+      const tO = el('text', { x: 310, y: 165, 'text-anchor': 'middle' }); tO.textContent = '100 Ω'; svg.appendChild(tO);
+      const tV4 = el('text', { x: 310, y: 120, 'text-anchor': 'middle' }); tV4.textContent = '100 V'; svg.appendChild(tV4);
+      const tI4 = el('text', { x: 310, y: 195, 'text-anchor': 'middle' }); tI4.textContent = '1.0 A'; svg.appendChild(tI4);
+      note(256, 'V4 = 998/10 ≈ 100 V');
+      note(274, 'I4 = 0.10×10 = 1.0 A');
+      note(292, '負荷の電力は 100 W のまま');
+    } else if (phase === 'trap') {
+      // 送電電圧と損失の棒グラフ（8 px/W）。
+      barRows([
+        { name: '100 V 20 W', w: d.lossVsV[0].lossW * 8, val: '20 W', color: '#ffb3b3' },
+        { name: '200 V 5.0 W', w: d.lossVsV[1].lossW * 8, val: '5.0 W', color: '#ffd24d' },
+        { name: '500 V 0.80 W', w: d.lossVsV[2].lossW * 8, val: '0.80 W', color: '#cfe3ff' },
+        { name: '1000 V 0.20 W', w: d.lossVsV[3].lossW * 8, val: '0.20 W', color: '#b3e6b3' },
+      ]);
+      note(256, '電圧 2 倍で損失は 1/4 になる');
+      note(274, '電圧 10 倍で損失は 1/100 になる');
+      note(292, '昇圧しても送る電力は 100 W のまま');
+    } else if (phase === 'vary') {
+      // 送電電流の棒グラフ（150 px/A）。
+      barRows([
+        { name: '変圧器なし 1.0 A', w: d.iNoA * 150, val: '1.0 A', color: '#ffb3b3' },
+        { name: '昇圧 ×5 0.20 A', w: d.varyR5.iLineA * 150, val: '0.20 A', color: '#ffd24d' },
+        { name: '昇圧 ×10 0.10 A', w: d.iLineA * 150, val: '0.10 A', color: '#cfe3ff' },
+        { name: '昇圧 ×20 0.050 A', w: d.varyR20.iLineA * 150, val: '0.050 A', color: '#b3e6b3' },
+      ]);
+      note(256, '損失：×5→0.80、×10→0.20、×20→0.050 W');
+      note(274, '送電線 100 Ω でも ×10 なら 1.0 W');
+      note(292, '変圧器なしなら負荷には 25 W しか届かない');
+    }
   } else if (scene.type === 'capacitor') {
     const topY = 110, dPx = scene.dPx;
     // 2枚の極板（水平）。上板が +、下板が −。
@@ -13398,4 +13732,167 @@ function selectorCircleForces(data) {
   return []; // deflect・graph・trap：力の矢印はない（軌道と棒グラフ）。
 }
 
-if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, capSpringGravDerived, capSpringGravForces, gasSpringCycleDerived, gasSpringCycleForces, slopeSpringDerived, slopeSpringForces, fallLoopDerived, fallLoopForces, beltSpringDerived, beltSpringForces, massSpecDerived, massSpecForces, coilHallDerived, coilHallForces, platformChargeDerived, platformChargeForces, pendulumCollideDerived, pendulumCollideForces, photoCapDerived, photoCapForces, orbitTransferDerived, orbitTransferForces, cyclotronDerived, cyclotronForces, slopeSpringFricDerived, slopeSpringFricForces, projWallDerived, projWallForces, railSpringDampDerived, railSpringDampForces, pendulumSpringDerived, pendulumSpringForces, gasPistonOscDerived, gasPistonOscForces, photoCircleDerived, photoCircleForces, earthTunnelDerived, earthTunnelForces, heaterGasDerived, heaterGasForces, specPhotoCircleDerived, specPhotoCircleForces, ottoCycleDerived, ottoCycleForces, generatorACDerived, generatorACForces, explodeProjectileDerived, explodeProjectileForces, slopePulleySpringDerived, slopePulleySpringForces, cathodeRayDerived, cathodeRayForces, conicalPendulumDerived, conicalPendulumForces, rcChargeDerived, rcChargeForces, projWallFricDerived, projWallFricForces, rlcChargeDerived, rlcChargeForces, photoCapCircleDerived, photoCapCircleForces, acRlcDerived, acRlcForces, projDragIntegrate, projDragDerived, projDragForces, pendulumSpringFricDerived, pendulumSpringFricForces, slopePulleyFricDerived, slopePulleyFricForces, selectorCircleDerived, selectorCircleForces, sceneFor, validateScene, renderFigure };
+// ---- 組み合わせAY：落下するコイル＋コンデンサー＋エネルギー ----
+// 組み合わせR（落下するコイル・磁気ブレーキ）では回路に抵抗があったが、
+// ここではコンデンサーだけをつなぐ。コイルが磁場に入るとき、誘導起電力は
+// ε = BLv、電流は i = C·dε/dt = CBL·a になる。磁気の力は F = BLi = B²L²C·a
+// で、加速度に比例するので、コンデンサーは「重さ B²L²C が増えた」のと同じになる。
+// 入るときの加速度は a = mg/(m + B²L²C) で一定になる。エネルギーは熱にはならず、
+// コンデンサーに ½CV² としてたまる。磁場の中に完全に入ると磁束は変わらないので
+// 起電力は 0 になり、コイルは自由落下する。
+// 具体値（検算済み）：m=0.10 kg、B=2.0 T、L=0.50 m、コイルの高さ 0.50 m、
+//   C=0.10 F、g=10。B²L²C = 0.10 kg、実効質量 0.20 kg、a = 5.0 m/s²。
+//   入りきったとき v = 2.2 m/s、t = 0.45 s、ε = 2.2 V、Q = 0.22 C、
+//   U = 0.25 J、KE = 0.25 J、重力の仕事 0.50 J = 0.25 + 0.25 J。
+//   磁気の力 0.50 N、電流 0.50 A、dε/dt = 5.0 V/s。
+//   磁場の中を 1.5 m 自由落下すると v = 5.9 m/s、t = 0.37 s。
+// 罠：コンデンサーを無視すると自由落下 a = 10 m/s²、v = 3.2 m/s になる。
+//   抵抗の場合（R）は終端速度 5.0 m/s になるが、コンデンサーでは終端速度はない。
+function fallLoopCapDerived(data) {
+  const g = data.g || 10;
+  const mKg = data.mKg, bT = data.bT, loopLM = data.loopLM, loopHM = data.loopHM, capF = data.capF;
+  const mgN = mKg * g;
+  const mExtraKg = bT * bT * loopLM * loopLM * capF; // B²L²C（コンデンサーが「重さ」になる）
+  const mEffKg = mKg + mExtraKg;
+  const aMs2 = mgN / mEffKg; // 入るときの一定の加速度
+  const v1Ms = Math.sqrt(2 * aMs2 * loopHM);
+  const t1S = v1Ms / aMs2;
+  const eps1V = bT * loopLM * v1Ms;
+  const q1C = capF * eps1V;
+  const u1J = 0.5 * capF * eps1V * eps1V;
+  const ke1J = 0.5 * mKg * v1Ms * v1Ms;
+  const wGravJ = mgN * loopHM;
+  const fMagN = mExtraKg * aMs2; // B²L²C·a（入りきったときの磁気の力）
+  const i1A = capF * bT * loopLM * aMs2; // i = C·dε/dt = CBL·a
+  const dEpsDt = bT * loopLM * aMs2;
+  // 磁場の中：自由落下（dInsideM だけ落ちる）。
+  const v2Ms = Math.sqrt(v1Ms * v1Ms + 2 * g * data.dInsideM);
+  const t2S = (v2Ms - v1Ms) / g;
+  const ke2J = 0.5 * mKg * v2Ms * v2Ms;
+  // 罠：コンデンサーを無視した自由落下。
+  const vFreeMs = Math.sqrt(2 * g * loopHM);
+  const epsFreeV = bT * loopLM * vFreeMs;
+  // 抵抗の場合（組み合わせR）：終端速度 vt = mgR/(B²L²)。
+  const vtResMs = (mgN * data.resOhm) / (bT * bT * loopLM * loopLM);
+  // 変えたら：C=0.40 F、B=1.0 T、m=0.20 kg（同じ計算）。
+  const calc = (mm, bb, cc) => {
+    const me = bb * bb * loopLM * loopLM * cc;
+    const aa = (mm * g) / (mm + me);
+    const vv = Math.sqrt(2 * aa * loopHM);
+    const ee = bb * loopLM * vv;
+    return { mExtraKg: me, mEffKg: mm + me, aMs2: aa, v1Ms: vv, eps1V: ee, q1C: cc * ee, u1J: 0.5 * cc * ee * ee, ke1J: 0.5 * mm * vv * vv, wGravJ: mm * g * loopHM };
+  };
+  const varyC4 = calc(mKg, bT, 0.40);
+  const varyB1 = calc(mKg, 1.0, capF);
+  const varyM2 = calc(0.20, bT, capF);
+  // v-t 曲線：入るときは a=5.0、磁場の中は a=10（t1=0.45 s で折れる）。
+  const vtCurve = [[0, 0], [t1S, v1Ms], [t1S + t2S, v2Ms]];
+  // 図の配置：磁場は x=120〜280、y=120〜240。コイルは 60×60 px（0.50 m）。
+  // 場面ごとのコイルの上端 y：base 50（磁場の上）、enter 90（半分入る）。
+  const loopTopY = (data.phase === 'enter' ? 90 : 50);
+  return {
+    g, mKg, bT, loopLM, loopHM, capF, mgN, mExtraKg, mEffKg, aMs2, v1Ms, t1S,
+    eps1V, q1C, u1J, ke1J, wGravJ, fMagN, i1A, dEpsDt, v2Ms, t2S, ke2J,
+    vFreeMs, epsFreeV, vtResMs, varyC4, varyB1, varyM2, vtCurve,
+    loopTopY, loopBottomY: loopTopY + 60,
+  };
+}
+
+function fallLoopCapForces(data) {
+  const d = fallLoopCapDerived(data);
+  const fScale = 20; // px/N（重力 1.0 N は 20 px、磁気の力 0.50 N は 10 px）
+  const cx = 200;
+  if (data.phase === 'base') {
+    return [
+      // ラベルは矢印の先端の左下の空きに置く。右に置くと磁場の上辺（y=120）や
+      // × 印（x=268）と重なるため（「重力 1.0 N」は fallLoop の「重力 mg」より長い）。
+      { id: 'gravity', short: '重力 1.0 N', color: 'red', vector: [0, d.mgN * fScale], dashed: false, labelDx: -60, labelDy: 20, from: { x: cx, y: d.loopBottomY } },
+    ];
+  }
+  if (data.phase === 'enter') {
+    return [
+      { id: 'gravity', short: '重力 1.0 N', color: 'red', vector: [0, d.mgN * fScale], dashed: false, labelDx: -60, labelDy: 20, from: { x: cx, y: d.loopBottomY } },
+      { id: 'magForce', short: '磁気の力 0.50 N', color: 'blue', vector: [0, -d.fMagN * fScale], dashed: false, labelDx: 8, labelDy: -6, from: { x: cx, y: d.loopTopY } },
+    ];
+  }
+  return []; // energy・inside・trap・vary：力の矢印はない（棒グラフと v-t グラフ）。
+}
+
+// ---- 組み合わせAZ：発電機＋変圧器＋送電＋電力損失 ----
+// AK の回転コイル発電機が実効値 100 V、50 Hz の交流を出す。負荷（町）は
+// 100 V で 100 W を使う（電流 1.0 A）。送電線の抵抗は 20 Ω。
+// 変圧器は理想的（電力は保存、V1/V2 = N1/N2、I2/I1 = N1/N2）。
+// 送電損失は I²R なので、電圧を n 倍にすると電流は 1/n 倍、損失は 1/n² 倍になる。
+// 具体値（検算済み）：変圧器なしなら送電電流 1.0 A、損失 20 W、発電機は 120 W、
+//   電圧降下 20 V、効率 83%。昇圧 ×10 なら送電電圧 1000 V、電流 0.10 A、
+//   損失 0.20 W、発電機は 100.2 W、電圧降下 2.0 V、効率 99.8%。
+//   降圧のあと 998 V → 約 100 V、電流 1.0 A、負荷の電力 100 W。
+// 罠：昇圧しても送る電力は 100 W のまま（増えない）。電圧 2 倍で損失は半分ではなく 1/4。
+// 変えたら：昇圧 ×5 なら損失 0.80 W、×20 なら 0.050 W。送電線 100 Ω なら
+//   変圧器なしは直列回路で解く（負荷 100 Ω と直列、I = 0.50 A、負荷 25 W、損失 25 W）。
+//   負荷 200 W（50 Ω）なら変圧器なしは I ≈ 1.4 A、負荷 約 102 W、損失 約 41 W。
+//   簡易式 I = P/V は電圧降下を無視するので、降下が大きい「変えたら」には使えない。
+function genTransformerDerived(data) {
+  const genEffV = data.genEffV, loadV = data.loadV, loadP = data.loadP, lineR = data.lineR;
+  const ratio = data.ratioUp; // 昇圧比（1:10 なら 10）
+  const iLoadA = loadP / loadV;
+  // 変圧器なし：送電電流は負荷の電流そのもの。
+  const iNoA = iLoadA;
+  const lossNoW = iNoA * iNoA * lineR;
+  const pGenNoW = loadP + lossNoW;
+  const dropNoV = iNoA * lineR;
+  const effNoPct = (loadP / pGenNoW) * 100;
+  // 昇圧 ×ratio：送電電圧は ratio 倍、電流は 1/ratio 倍、損失は 1/ratio² 倍。
+  const vLineV = genEffV * ratio;
+  const iLineA = iLoadA / ratio;
+  const lossW = iLineA * iLineA * lineR;
+  const pGenW = loadP + lossW;
+  const dropV = iLineA * lineR;
+  const effPct = (loadP / pGenW) * 100;
+  // 降圧：送電線の電圧降下を引いてから 1/ratio 倍。
+  const vBeforeDownV = vLineV - dropV;
+  const vLoadV = vBeforeDownV / ratio;
+  const iLoadAfterA = iLineA * ratio;
+  const pLoadAfterW = vLoadV * iLoadAfterA;
+  // 送電電圧と損失の関係（損失 ∝ 1/V²）：100 V、200 V、500 V、1000 V。
+  const lossVsV = [100, 200, 500, 1000].map((v) => {
+    const i = loadP / v;
+    return { vV: v, iA: i, lossW: i * i * lineR };
+  });
+  // 変えたら：昇圧 ×5、×20、送電線 100 Ω、負荷 200 W。
+  const calc = (rr, rl, pp) => {
+    const il = (pp / loadV) / rr;
+    const ls = il * il * rl;
+    return { ratio: rr, lineR: rl, loadP: pp, vLineV: genEffV * rr, iLineA: il, lossW: ls, pGenW: pp + ls };
+  };
+  const varyR5 = calc(5, lineR, loadP);
+  const varyR20 = calc(20, lineR, loadP);
+  const varyLine100 = calc(ratio, 100, loadP);
+  const varyP200 = calc(ratio, lineR, 200);
+  // 変圧器なしの「変えたら」は直列回路で解く（負荷は抵抗 R = V²/P）。
+  // 簡易式 I = P/V は電圧降下を無視するので、降下が大きい場合は使えない。
+  const calcNo = (rl, pp) => {
+    const loadR = (loadV * loadV) / pp;
+    const totalR = rl + loadR;
+    const iA = genEffV / totalR;
+    const dropV = iA * rl;
+    const vLoadV = iA * loadR;
+    const pLoadW = vLoadV * iA;
+    const lossW = iA * iA * rl;
+    const pGenW = genEffV * iA;
+    return { lineR: rl, loadP: pp, loadR, totalR, iA, dropV, vLoadV, pLoadW, lossW, pGenW, effPct: (pLoadW / pGenW) * 100 };
+  };
+  // 送電線 100 Ω、負荷 100 W（100 Ω）：I = 0.50 A、負荷 50 V・25 W、損失 25 W。
+  const noLine100 = calcNo(100, loadP);
+  // 負荷 200 W（50 Ω）、送電線 20 Ω：I ≈ 1.4 A、負荷 約 71 V・約 102 W、損失 約 41 W。
+  const noP200 = calcNo(lineR, 200);
+  return {
+    genEffV, loadV, loadP, lineR, ratio, iLoadA,
+    iNoA, lossNoW, pGenNoW, dropNoV, effNoPct,
+    vLineV, iLineA, lossW, pGenW, dropV, effPct, vBeforeDownV, vLoadV, iLoadAfterA, pLoadAfterW,
+    lossVsV, varyR5, varyR20, varyLine100, varyP200, noLine100, noP200,
+  };
+}
+function genTransformerForces(data) { return []; }
+
+if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, capSpringGravDerived, capSpringGravForces, gasSpringCycleDerived, gasSpringCycleForces, slopeSpringDerived, slopeSpringForces, fallLoopDerived, fallLoopForces, beltSpringDerived, beltSpringForces, massSpecDerived, massSpecForces, coilHallDerived, coilHallForces, platformChargeDerived, platformChargeForces, pendulumCollideDerived, pendulumCollideForces, photoCapDerived, photoCapForces, orbitTransferDerived, orbitTransferForces, cyclotronDerived, cyclotronForces, slopeSpringFricDerived, slopeSpringFricForces, projWallDerived, projWallForces, railSpringDampDerived, railSpringDampForces, pendulumSpringDerived, pendulumSpringForces, gasPistonOscDerived, gasPistonOscForces, photoCircleDerived, photoCircleForces, earthTunnelDerived, earthTunnelForces, heaterGasDerived, heaterGasForces, specPhotoCircleDerived, specPhotoCircleForces, ottoCycleDerived, ottoCycleForces, generatorACDerived, generatorACForces, explodeProjectileDerived, explodeProjectileForces, slopePulleySpringDerived, slopePulleySpringForces, cathodeRayDerived, cathodeRayForces, conicalPendulumDerived, conicalPendulumForces, rcChargeDerived, rcChargeForces, projWallFricDerived, projWallFricForces, rlcChargeDerived, rlcChargeForces, photoCapCircleDerived, photoCapCircleForces, acRlcDerived, acRlcForces, projDragIntegrate, projDragDerived, projDragForces, pendulumSpringFricDerived, pendulumSpringFricForces, slopePulleyFricDerived, slopePulleyFricForces, selectorCircleDerived, selectorCircleForces, fallLoopCapDerived, fallLoopCapForces, genTransformerDerived, genTransformerForces, sceneFor, validateScene, renderFigure };
