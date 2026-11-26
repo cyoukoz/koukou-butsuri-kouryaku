@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせCT：振り子＋弾性衝突＋ばね＋摩擦＋ドップラー＋開管の共鳴（頂点で共鳴）｜高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.7; max-width: 760px; margin: 0 auto; padding: 16px; color: #222; }
+  h1 { font-size: 24px; }
+  h2 { font-size: 20px; margin-top: 40px; }
+  .step h2 { font-size: 18px; }
+  .nav { margin-bottom: 16px; }
+  .fig { display: block; margin: 16px auto; max-width: 100%; height: auto; }
+  .step-check { display: block; margin: 8px 0; }
+  .done-box { border: 2px solid #333; padding: 12px; margin-top: 24px; }
+  .next { margin-top: 24px; }
+  .top-link { position: fixed; right: 16px; bottom: 16px; background: #fff; border: 1px solid #333; padding: 8px 12px; }
+  .slice { background: #f5f5f5; padding: 12px; }
+</style>
+</head>
+<body>
+<p class="nav"><a href="../../index.html">← トップへ</a> ｜ <a href="slope-spring-fric-turn-res-pipe.html">← 組み合わせ問題CS：斜面上のばね振り子＋摩擦＋ドップラー＋開管の共鳴</a></p>
+<h1>組み合わせCT：振り子＋弾性衝突＋ばね＋摩擦＋ドップラー＋開管の共鳴（頂点で共鳴）</h1>
+
+<h2>問題</h2>
+<p>長さ 1.0 m の糸に質量 1.0 kg の玉をつけ、玉を 0.80 m の高さまで持ち上げて静かに放す。玉には音さ（f0 = 425 Hz）がついている。最下点で玉は静止した質量 1.0 kg のブロックと弾性衝突し、ブロックは水平な床の上のばね（k = 100 N/m）に当たる。ブロックと床の動摩擦係数は μ = 0.20 である。最下点の横には、開管（長さ 0.40 m）が置いてある。音速は 340 m/s、重力加速度は g = 10 m/s² とする。振り子の振れは大きいので、周期は単振動の近似ではなく、厳密な値を使う。</p>
+<p>（1）振り子：最下点の速さと音、周期を求めよ。（2）弾性衝突とばね：ブロックの速さと最大の縮みを求めよ。（3）頂点と共鳴。（4）罠と変えたら。</p>
+<p>この問題は、<a href="pendulum-doppler-spring.html">組み合わせ問題BK：振り子＋弾性衝突＋ばね＋摩擦＋ドップラー</a>と<a href="doppler-resonance.html">組み合わせ問題BE：ドップラー効果＋開管の共鳴</a>を組み合わせた問題です。橋渡しになる量は「速さ」です。単体モデルは<a href="shm.html">第11問・単振動</a>、<a href="doppler.html">第18問・ドップラー効果</a>、<a href="standing-wave.html">第14問・定在波</a>です。</p>
+
+<h2>この問題の切れ目（スライス）</h2>
+<div class="slice">
+<ol>
+<li>① 振り子：0.80 m から落ち、最下点で 4.0 m/s、音は 430 Hz</li>
+<li>② 弾性衝突とばね：ブロック 4.0 m/s、最大の縮み 0.38 m</li>
+<li>③ 頂点と共鳴：頂点の音 425 Hz が管の f1 とちょうど一致</li>
+<li>④ 罠：最下点の 430 Hz とはね返りの 421 Hz は共鳴しない</li>
+<li>⑤ 変えたら：L・f0・閉管・μ・k で共鳴は変わるか</li>
+</ol>
+</div>
+
+<svg class="fig" data-scene="scene-pendulumApexDopplerResPipe-base" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="流れ。振り子が最下点で 4.0 m/s、頂点の音は 425 Hz で管の f1 と一致して共鳴する。最下点の音は 430 Hz で管と合わない"></svg>
+<script type="application/json" id="scene-pendulumApexDopplerResPipe-base">{"type":"pendulumApexDopplerResPipe","phase":"base","mKg":1,"blockKg":1,"lenM":1,"hM":0.8,"kNperM":100,"muKin":0.2,"f0Hz":425,"vSoundMs":340,"pipeLM":0.40,"g":10}</script>
+
+<div class="step" id="step1">
+<h2>① 振り子：最下点で 4.0 m/s、音は 430 Hz、周期は 2.2 s</h2>
+<p>cosθ = (L − h)/L = 0.20、θ ≈ 78.5° になる。最下点の速さは v = √(2gh) = √(2 × 10 × 0.80) = 4.0 m/s、運動エネルギーは 8.0 J になる。張力は T = mg + mv²/L = 10 + 16 = 26 N になる。</p>
+<p>周期：振れが大きいので、単振動の周期 2π√(L/g) ≈ 2.0 s は使えない。厳密な周期は T = 4√(L/g)·K(sin(θ/2)) ≈ 2.2 s、最下点までの時間は T/4 ≈ 0.56 s になる。単振動の近似だと 0.50 s になり、約 13% ずれる。</p>
+<p>ドップラー効果：玉が観測者に向かうので、f′ = f0·V/(V − v) になる。最下点では f′ = 425 × 340/(340 − 4.0) = 430 Hz になる。放す位置から最下点まで、速さが増えるにつれて音は 425 Hz から 430 Hz へ上がる。0.25 s では約 428 Hz になる。うなりは、音さの 425 Hz との差で、最大で 5.1 Hz になる。</p>
+<svg class="fig" data-scene="scene-pendulumApexDopplerResPipe-swing" data-show="velocity" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="振り子。放す位置は θ=78.5°、最下点で速さ 4.0 m/s、観測者に向かう。最下点の音は 430 Hz"></svg>
+<script type="application/json" id="scene-pendulumApexDopplerResPipe-swing">{"type":"pendulumApexDopplerResPipe","phase":"swing","mKg":1,"blockKg":1,"lenM":1,"hM":0.8,"kNperM":100,"muKin":0.2,"f0Hz":425,"vSoundMs":340,"pipeLM":0.40,"g":10}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ① 最下点の速さ 4.0 m/s と音 430 Hz、周期 2.2 s を求めた</label>
+<p class="next"><a href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<h2>② 弾性衝突とばね：ブロック 4.0 m/s、最大の縮み 0.38 m</h2>
+<p>弾性衝突（等しい質量）：速さが入れ替わる。玉は止まり（音は 425 Hz に戻る）、ブロックが 4.0 m/s で動く。運動量 4.0 kg·m/s、運動エネルギー 8.0 J は保存する。</p>
+<p>ばねの角振動数は ω = √(k/M) = 10 rad/s になる。縮むとき、摩擦は左向きにはたらくので、つり合いのずれは x_eq1 = −f/k = −0.020 m になる。最大の縮みは x_max = −0.020 + √[0.020² + (4.0/10)²] ≈ 0.38 m になる。ばねの力は k·x_max = 38 N になる。圧縮にかかる時間は 0.15 s だ。</p>
+<p>戻るとき、摩擦は右向きにはたらくので、つり合いのずれは +0.020 m に変わる。押し返しの速さは v_return = ω√[(x_max − 0.020)² − 0.020²] ≈ 3.6 m/s になる。戻りに 0.16 s かかる。摩擦熱は 1.5 J、押し返しの運動エネルギーは 6.5 J になる。</p>
+<svg class="fig" data-scene="scene-pendulumApexDopplerResPipe-collide" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="弾性衝突。衝突前は玉 4.0 m/s、衝突後はブロック 4.0 m/s、玉は止まる"></svg>
+<script type="application/json" id="scene-pendulumApexDopplerResPipe-collide">{"type":"pendulumApexDopplerResPipe","phase":"collide","mKg":1,"blockKg":1,"lenM":1,"hM":0.8,"kNperM":100,"muKin":0.2,"f0Hz":425,"vSoundMs":340,"pipeLM":0.40,"g":10}</script>
+<svg class="fig" data-scene="scene-pendulumApexDopplerResPipe-spring" data-show="spring" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="ばね＋摩擦。最大の縮み 0.38 m、ばねの力 38 N、戻りの速さ 3.6 m/s"></svg>
+<script type="application/json" id="scene-pendulumApexDopplerResPipe-spring">{"type":"pendulumApexDopplerResPipe","phase":"spring","mKg":1,"blockKg":1,"lenM":1,"hM":0.8,"kNperM":100,"muKin":0.2,"f0Hz":425,"vSoundMs":340,"pipeLM":0.40,"g":10}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ② 衝突で玉が止まり、最大の縮み 0.38 m を求めた</label>
+<p class="next"><a href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<h2>③ 頂点と共鳴：頂点の音 425 Hz が管の f1 とちょうど一致</h2>
+<p>最初の衝突：最下点で玉はブロックと弾性衝突する。衝突する直前、玉は 4.0 m/s で観測者に向かっているので、音は f′ = 425 × 340/(340 − 4.0) = 430 Hz に聞こえる。衝突のあと玉は止まり、音は 425 Hz に戻る。ブロックが戻って再衝突するとき、玉は 3.6 m/s をもらって左へ振り上がる。上がる高さは h2 = v²/2g = 3.6²/20 ≈ 0.65 m、振り上がりの角度は約 69°、上がる時間は約 0.55 s になる。玉は観測者から遠ざかるので、音は f′ = 425 × 340/(340 + 3.6) ≈ 421 Hz に聞こえる。頂点では玉が止まるので、音は 425 Hz に戻る。</p>
+<p>共鳴：開管の振動数は f_n = n·v/(2L) = n × 340/(2 × 0.40) になる。f1 = 425 Hz、f2 = 850 Hz、f3 = 1275 Hz だ。頂点の音 425 Hz は、音源そのものの振動数 425 Hz と管の f1 = 425 Hz がちょうど一致するので、共鳴する。玉が止まっているときは音が 425 Hz のままなので、衝突のあいだ（玉が止まっているとき）も 425 Hz で、やはり共鳴する。共鳴するのは、玉が止まっているときだけだ。最下点の 430 Hz や、はね返りの 421 Hz は合わない。</p>
+<svg class="fig" data-scene="scene-pendulumApexDopplerResPipe-return" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="再衝突。ブロックは止まり、玉は 3.6 m/s でもらって 0.65 m まで上がり、頂点では音は 425 Hz"></svg>
+<script type="application/json" id="scene-pendulumApexDopplerResPipe-return">{"type":"pendulumApexDopplerResPipe","phase":"return","mKg":1,"blockKg":1,"lenM":1,"hM":0.8,"kNperM":100,"muKin":0.2,"f0Hz":425,"vSoundMs":340,"pipeLM":0.40,"g":10}</script>
+<svg class="fig" data-scene="scene-pendulumApexDopplerResPipe-doppler" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="音の高さの時間変化。はじめ 425 Hz、最下点 430 Hz、衝突のあいだ 425 Hz、再衝突 421 Hz、頂点で 425 Hz"></svg>
+<script type="application/json" id="scene-pendulumApexDopplerResPipe-doppler">{"type":"pendulumApexDopplerResPipe","phase":"doppler","mKg":1,"blockKg":1,"lenM":1,"hM":0.8,"kNperM":100,"muKin":0.2,"f0Hz":425,"vSoundMs":340,"pipeLM":0.40,"g":10}</script>
+<svg class="fig" data-scene="scene-pendulumApexDopplerResPipe-resonate" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="開管の基本振動。両端が腹、中央が節、f1=425 Hz、頂点の 425 Hz と一致する"></svg>
+<script type="application/json" id="scene-pendulumApexDopplerResPipe-resonate">{"type":"pendulumApexDopplerResPipe","phase":"resonate","mKg":1,"blockKg":1,"lenM":1,"hM":0.8,"kNperM":100,"muKin":0.2,"f0Hz":425,"vSoundMs":340,"pipeLM":0.40,"g":10}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ③ 頂点の音 425 Hz が f1 と一致すること、最下点 430 Hz・はね返り 421 Hz は合わないことを確かめた</label>
+<p class="next"><a href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<h2>④ 罠：最下点の 430 Hz は共鳴しない、玉が止まっているときだけ共鳴する</h2>
+<p>罠：「音源の 425 Hz は共鳴しない」——まちがい。玉が動いているときはドップラーで音がずれるが、玉が止まっているとき（衝突のあいだ・頂点）は音は 425 Hz のままで、管の f1 = 425 Hz とちょうど一致して共鳴する。</p>
+<p>罠：「いちばん速い最下点の 430 Hz が共鳴する」——まちがい。最下点の音は 430 Hz で、管の f1 = 425 Hz とは 5 Hz 離れていて合わない。速いからといって共鳴するとは限らない。</p>
+<p>罠：「はね返りの 421 Hz が共鳴する」——まちがい。はね返りの速さ 3.6 m/s は最下点の 4.0 m/s と近いが、音は 421 Hz で、管の f1 = 425 Hz とは 4 Hz 離れていて合わない。速さが近いからといって共鳴するとは限らない。</p>
+<p>罠：「くっつく衝突なら 428 Hz で共鳴する」——まちがい。くっつくと玉とブロックは 2.0 m/s でいっしょに動き、音は 428 Hz になる。425 Hz の f1 とは 3 Hz 離れていて、共鳴しない。ばねの最大の縮みも 0.25 m になる。</p>
+<p>罠：「1段の計算で押し返し 4.0 m/s、上がる高さ 0.80 m」——まちがい。1段の計算だと押し返しは当たった速さと同じ 4.0 m/s、上がる高さは 0.80 m になるが、摩擦の向きの反転を入れると正しくは 3.6 m/s、0.65 m だ。摩擦なしだと 0.40 m になる。</p>
+<svg class="fig" data-scene="scene-pendulumApexDopplerResPipe-trap" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="音の高さの比べ。頂点 425 Hz、最下点 430 Hz、はね返り 421 Hz、くっつく衝突 428 Hz"></svg>
+<script type="application/json" id="scene-pendulumApexDopplerResPipe-trap">{"type":"pendulumApexDopplerResPipe","phase":"trap","mKg":1,"blockKg":1,"lenM":1,"hM":0.8,"kNperM":100,"muKin":0.2,"f0Hz":425,"vSoundMs":340,"pipeLM":0.40,"g":10}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ④ 罠を 5 つ確かめた</label>
+<p class="next"><a href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<h2>⑤ 変えたら：h・L・f0・閉管・μ・k で共鳴が変わる</h2>
+<p>h = 0.20 m なら、最下点で 2.0 m/s、音は 428 Hz になり、管の f1 = 425 Hz と合わず、共鳴しない。はね返りの音も 423 Hz で合わない。ばねの最大の縮みは 0.18 m、ばねの力 18 N、押し返し 1.6 m/s、上がる高さ 0.13 m になる。ただし、頂点の音は 425 Hz のままで、管の f1 とちょうど一致して、やはり共鳴する。</p>
+<p>L = 0.80 m なら、f1 = 213 Hz、f2 = 425 Hz になる。頂点の音 425 Hz は f2 と一致して、やはり共鳴する。L = 0.20 m なら、f1 = 850 Hz になり、頂点の音 425 Hz は合わず、共鳴しない。</p>
+<p>f0 = 440 Hz なら、頂点の音は 440 Hz、最下点の音は 445 Hz、はね返りの音は 435 Hz になり、管の 425 Hz と合わず、共鳴しない。</p>
+<p>閉管なら、f_n = (2n − 1)v/4L で、213・638・1063 Hz になる。頂点の 425 Hz はどれとも合わず、共鳴しない。</p>
+<p>μ = 0.40 なら、最大の縮み 0.36 m、ばねの力 36 N、押し返し 3.2 m/s、摩擦熱 2.9 J、上がる高さ 0.51 m になる。最下点の音は 430 Hz、はね返りの音は 421 Hz のままで合わないが、頂点の音は 425 Hz のままで、管の f1 とやはり一致して、共鳴する。</p>
+<p>k = 200 N/m なら、ω = 14 rad/s、最大の縮み 0.27 m、ばねの力 55 N、押し返し 3.7 m/s、摩擦熱 1.1 J、上がる高さ 0.69 m になる。最下点の音は 430 Hz、はね返りの音は 420 Hz で合わないが、頂点の音は 425 Hz のままで、やはり共鳴する。</p>
+<svg class="fig" data-scene="scene-pendulumApexDopplerResPipe-vary" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="変えたら。頂点 425 Hz、L=0.80 m の f2 は 425 Hz、f0=440 Hz は 445 Hz、閉管 f1 は 213 Hz"></svg>
+<script type="application/json" id="scene-pendulumApexDopplerResPipe-vary">{"type":"pendulumApexDopplerResPipe","phase":"vary","mKg":1,"blockKg":1,"lenM":1,"hM":0.8,"kNperM":100,"muKin":0.2,"f0Hz":425,"vSoundMs":340,"pipeLM":0.40,"g":10}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ⑤ h・L・f0・閉管・μ・k を変えたときの共鳴を求めた</label>
+</div>
+
+<div class="done-box" id="doneBox">
+<button id="doneBtn">完了にする</button> <span id="doneMsg"></span>
+<p>振り子（h = 0.80 m、最下点 4.0 m/s、周期 2.2 s）に弾性衝突とばね＋摩擦（最大の縮み 0.38 m、押し返し 3.6 m/s）を組み合わせ、ドップラー効果と開管の共鳴を足しました。頂点の音は 425 Hz で管の f1 とちょうど一致して共鳴します。玉が止まっているときだけ、音は音源そのものの 425 Hz になります。橋渡しになった量は「速さ」でした。</p>
+<p>もとになった単体モデル：振り子＋衝突＋ばね＋ドップラーは<a href="pendulum-doppler-spring.html">組み合わせ問題BK：振り子＋弾性衝突＋ばね＋摩擦＋ドップラー</a>、開管の共鳴は<a href="doppler-resonance.html">組み合わせ問題BE：ドップラー効果＋開管の共鳴</a>、振り子は<a href="shm.html">第11問：単振動・振り子</a>、ドップラー効果は<a href="doppler.html">第18問：ドップラー効果</a>で確かめられる。</p>
+</div>
+
+<p class="top-link"><a href="#">↑ TOP</a></p>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+renderAllFigures();
+(function () {
+  var KEY = 'comboPendulumApexDopplerResPipeDone';
+  var btn = document.getElementById('doneBtn');
+  var msg = document.getElementById('doneMsg');
+  var boxes = Array.prototype.slice.call(document.querySelectorAll('.step-done'));
+  function allChecked() { return boxes.length > 0 && boxes.every(function (b) { return b.checked; }); }
+  function refresh() {
+    loadProgress().then(function (p) {
+      if (p[KEY]) { msg.textContent = '完了済み ✓'; btn.disabled = true; }
+    });
+  }
+  btn.addEventListener('click', function () {
+    if (!allChecked()) { msg.textContent = 'まず 5 つのチェックを全部入れてください。'; return; }
+    loadProgress().then(function (p) {
+      p[KEY] = true;
+      return saveProgress(p);
+    }).then(function () { msg.textContent = '完了！'; btn.disabled = true; });
+  });
+  refresh();
+})();
+</script>
+</body>
+</html>
