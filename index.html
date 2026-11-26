@@ -432,6 +432,20 @@
 </div>
 
 <div class="card">
+  <h2>組み合わせ問題BA：斜方投射＋壁＋摩擦＋ばね</h2>
+  <p>質量 0.50 kg の玉を速さ 10 m/s、仰角 45° で打ち出す。5.0 m 先の壁ではね返り（反発係数 0.80）、着地は x=1.0 m、着地の速さは約 9.1 m/s。着地のあと、玉は動摩擦係数 0.20 の床を 4.0 m すべってばね（k=50 N/m）にぶつかり、最大 0.38 m 縮めて、3.6 m/s で押し返されて x=0.24 m で止まる。はじめの 25 J は、壁での損失 4.5 J、着地で失う 12.5 J、摩擦熱 8.0 J に分かれる。摩擦なしなら縮みは 0.40 m、k=100 N/m なら 0.27 m、反発係数 1.0 なら 0.60 m になる。橋渡し量は「エネルギー」。</p>
+  <p><a href="content/mechanics/proj-wall-spring.html">斜方投射＋壁＋摩擦＋ばねのドリルを開く →</a></p>
+  <p id="progress-combo-proj-wall-spring">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>組み合わせ問題BB：発電機＋変圧器＋整流＋コンデンサーの平滑化</h2>
+  <p>AZ と同じ発電機（実効値 100 V、50 Hz）の交流を、昇圧変圧器（1:2）で 200 V にし、全波整流器で整流し、コンデンサー C=500 μF で平滑化して、0.50 A の直流負荷に送る。発電機の最大値は 141 V、昇圧後は最大値 283 V になる。コンデンサーがなければ整流後の平均は 180 V だが、コンデンサーで平滑化するとリップル 10 V、直流 278 V、電力 140 W になる。リップルは ΔV=I/(2fC) で、コンデンサーを大きくしても直流電圧の上限は最大値 283 V だ。橋渡し量は「電圧・電力」。</p>
+  <p><a href="content/mechanics/gen-rect-smooth.html">発電機＋変圧器＋整流＋コンデンサーの平滑化のドリルを開く →</a></p>
+  <p id="progress-combo-gen-rect-smooth">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
   <h2>第7問：気体＋ピストン</h2>
   <p>シリンダーにピストンがのっている。ピストンの力のつり合いから気体の圧力を、状態方程式から体積と高さを求める。加熱するとピストンが上がる等圧変化で、仕事・内部エネルギー・熱を区別しよう。</p>
   <p><a href="content/mechanics/gas-piston.html">気体＋ピストンのドリルを開く →</a></p>
@@ -754,6 +768,10 @@
       p.comboFallLoopCapDone ? '進捗：組み合わせ問題AY・落下するコイル＋コンデンサー＋エネルギーを完了済み ✓' : '進捗：まだ組み合わせ問題AY・落下するコイル＋コンデンサー＋エネルギーは未完了';
     document.getElementById('progress-combo-gen-transformer').textContent =
       p.comboGenTransformerDone ? '進捗：組み合わせ問題AZ・発電機＋変圧器＋送電＋電力損失を完了済み ✓' : '進捗：まだ組み合わせ問題AZ・発電機＋変圧器＋送電＋電力損失は未完了';
+    document.getElementById('progress-combo-proj-wall-spring').textContent =
+      p.comboProjWallSpringDone ? '進捗：組み合わせ問題BA・斜方投射＋壁＋摩擦＋ばねを完了済み ✓' : '進捗：まだ組み合わせ問題BA・斜方投射＋壁＋摩擦＋ばねは未完了';
+    document.getElementById('progress-combo-gen-rect-smooth').textContent =
+      p.comboGenRectSmoothDone ? '進捗：組み合わせ問題BB・発電機＋変圧器＋整流＋コンデンサーの平滑化を完了済み ✓' : '進捗：まだ組み合わせ問題BB・発電機＋変圧器＋整流＋コンデンサーの平滑化は未完了';
     document.getElementById('progress-gas-piston').textContent =
       p.gasPistonDone ? '進捗：第7問・気体＋ピストンを完了済み ✓' : '進捗：まだ第7問・気体＋ピストンは未完了';
     document.getElementById('progress-young').textContent =
@@ -865,6 +883,8 @@
     document.getElementById('progress-combo-selector-circle').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-fall-loop-cap').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-gen-transformer').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-proj-wall-spring').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-gen-rect-smooth').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-gas-piston').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-young').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-capacitor').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
