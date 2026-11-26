@@ -5059,6 +5059,26 @@ function sceneFor(type, thetaDeg, mgPx, fPx, data) {
       forces: pendulumDopplerForces(data),
     };
   }
+  if (type === 'gasSoundPipe') {
+    const d = gasSoundPipeDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      gamma: data.gamma, rGas: data.rGas, molarKg: data.molarKg, t1K: data.t1K, t2K: data.t2K, pipeLM: data.pipeLM, fForkHz: data.fForkHz, vAirMs: data.vAirMs,
+      derived: d,
+      center: { x: 200, y: 150 }, centerDot: false,
+      forces: gasSoundPipeForces(data),
+    };
+  }
+  if (type === 'photoDopplerCap') {
+    const d = photoDopplerCapDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      lambdaNm: data.lambdaNm, phiEV: data.phiEV, beta: data.beta, bT: data.bT, eC: data.eC, capNF: data.capNF, currentUA: data.currentUA,
+      derived: d,
+      center: { x: 200, y: 150 }, centerDot: false,
+      forces: photoDopplerCapForces(data),
+    };
+  }
   if (type === 'slopePulley') {
     return {
       type, phase: (data && data.phase) || 'connected',
@@ -7400,6 +7420,100 @@ function validateScene(scene) {
     // 矢印の長さ：速度 20 px/(m/s)。
     if (scene.phase === 'swing') {
       if (byId.velocity && Math.abs(Math.hypot(byId.velocity.vector[0], byId.velocity.vector[1]) - d.vBottom * 20) > 0.5) return ['速度の矢印が 20 px/(m/s) と一致しません'];
+    }
+  }
+  if (scene.type === 'gasSoundPipe') {
+    const d = scene.derived;
+    // 音速：v = √(γRT/M)、600 K では √2 倍。
+    if (Math.abs(d.v1 - Math.sqrt((scene.gamma * scene.rGas * scene.t1K) / scene.molarKg)) > 1e-9) return ['300 K の音速が √(γRT/M) と一致しません'];
+    if (Math.abs(d.v2 - d.v1 * Math.sqrt(scene.t2K / scene.t1K)) > 1e-9) return ['600 K の音速が √2 倍と一致しません'];
+    if (Math.abs(d.v2 / d.v1 - Math.sqrt(2)) > 1e-9) return ['音速の比が √2 と一致しません'];
+    // 開管の振動数：fn = n·v/2L。
+    if (Math.abs(d.f1_300 - d.v1 / (2 * scene.pipeLM)) > 1e-9) return ['300 K の基本振動数が一致しません'];
+    if (Math.abs(d.f2_300 - 2 * d.f1_300) > 1e-9) return ['300 K の2倍振動数が一致しません'];
+    if (Math.abs(d.f3_300 - 3 * d.f1_300) > 1e-9) return ['300 K の3倍振動数が一致しません'];
+    if (Math.abs(d.f1_600 - d.v2 / (2 * scene.pipeLM)) > 1e-9) return ['600 K の基本振動数が一致しません'];
+    if (Math.abs(d.f2_600 - 2 * d.f1_600) > 1e-9) return ['600 K の2倍振動数が一致しません'];
+    if (Math.abs(d.f3_600 - 3 * d.f1_600) > 1e-9) return ['600 K の3倍振動数が一致しません'];
+    // 共鳴するのは、音さの振動数が管の振動数のどれかと一致するときだけ。
+    if (!d.match300) return ['300 K で音さが管の振動数と一致していません'];
+    if (d.match600) return ['600 K で音さが管の振動数と一致してしまっています'];
+    if (!(d.f1_600 > d.f1_300 && d.f2_600 > d.f2_300)) return ['熱すると振動数が上がっていません'];
+    // 罠：v ∝ T（直線）だと f1 = 1200 Hz になってしまう。
+    if (Math.abs(d.vLin - d.v1 * (scene.t2K / scene.t1K)) > 1e-9) return ['罠の音速が 2 倍と一致しません'];
+    if (Math.abs(d.f1Lin - d.vLin / (2 * scene.pipeLM)) > 1e-9) return ['罠の基本振動数が一致しません'];
+    if (!(d.f1Lin > d.f1_600)) return ['罠の基本振動数が正しい値より大きくなっていません'];
+    if (Math.abs(d.f1Lin - scene.fForkHz) > 2) return ['罠の基本振動数が音さの振動数とほぼ一致していません'];
+    // 変えたら：空気、閉管、1200 K。
+    if (Math.abs(d.f1Air - scene.vAirMs / (2 * scene.pipeLM)) > 1e-9) return ['空気の基本振動数が一致しません'];
+    if (Math.abs(d.f6Air - 6 * d.f1Air) > 1e-9) return ['空気の6倍振動数が一致しません'];
+    if (!d.matchAir) return ['空気で 1200 Hz が 6 倍振動数と一致していません'];
+    if (Math.abs(d.fc1 - d.v1 / (4 * scene.pipeLM)) > 1e-9) return ['閉管の基本振動数が一致しません'];
+    if (Math.abs(d.fc3 - 3 * d.fc1) > 1e-9) return ['閉管の3倍振動数が一致しません'];
+    if (Math.abs(d.fc5 - 5 * d.fc1) > 1e-9) return ['閉管の5倍振動数が一致しません'];
+    if (d.matchClosed) return ['閉管の振動数と 1200 Hz が一致してしまっています'];
+    if (Math.abs(d.vT1200 - d.v1 * Math.sqrt(1200 / scene.t1K)) > 1e-9) return ['1200 K の音速が一致しません'];
+    if (Math.abs(d.f1T1200 - d.vT1200 / (2 * scene.pipeLM)) > 1e-9) return ['1200 K の基本振動数が一致しません'];
+    if (!d.matchT1200) return ['1200 K で基本振動数が音さと一致していません'];
+  }
+  if (scene.type === 'photoDopplerCap') {
+    const d = scene.derived;
+    // ドップラー効果：λ′ = λ(1 − β)、光子のエネルギー E = hc/λ′。
+    if (Math.abs(d.lamShiftNm - scene.lambdaNm * (1 - scene.beta)) > 1e-12) return ['ドップラー効果の波長が λ(1−β) と一致しません'];
+    if (Math.abs(d.ePhEV - d.hc / d.lamShiftNm) > 1e-12) return ['光子のエネルギーが hc/λ′ と一致しません'];
+    if (Math.abs(d.kMaxEV - (d.ePhEV - scene.phiEV)) > 1e-12) return ['Kmax が E − φ と一致しません'];
+    if (Math.abs(d.vMaxMs - Math.sqrt((2 * d.kMaxEV * 1.602e-19) / 9.11e-31)) / d.vMaxMs > 1e-9) return ['最も速い電子の速さが √(2K/m) と一致しません'];
+    if (Math.abs(d.v0V - d.kMaxEV) > 1e-12) return ['阻止電圧が Kmax と一致しません'];
+    // 静止した光源の値（比べ用）。
+    if (Math.abs(d.ePh0EV - d.hc / scene.lambdaNm) > 1e-12) return ['静止の光子のエネルギーが一致しません'];
+    if (Math.abs(d.kMax0EV - (d.ePh0EV - scene.phiEV)) > 1e-12) return ['静止の Kmax が一致しません'];
+    if (Math.abs(d.r0M - (9.11e-31 * d.v0Ms) / (scene.eC * scene.bT)) > 1e-12) return ['静止の半径が mv/eB と一致しません'];
+    if (!(d.ePhEV > d.ePh0EV)) return ['近づく光子のエネルギーが静止より大きくなっていません'];
+    if (!(d.kMaxEV > d.kMax0EV)) return ['近づく Kmax が静止より大きくなっていません'];
+    // 磁場の円運動：r = mv/eB、T = 2πm/eB、F = evB。
+    if (Math.abs(d.rM - (9.11e-31 * d.vMaxMs) / (scene.eC * scene.bT)) > 1e-12) return ['円の半径が mv/eB と一致しません'];
+    if (Math.abs(d.periodS - (2 * Math.PI * 9.11e-31) / (scene.eC * scene.bT)) > 1e-12) return ['円運動の周期が 2πm/eB と一致しません'];
+    if (Math.abs(d.lorentzN - scene.eC * d.vMaxMs * scene.bT) > 1e-24) return ['ローレンツ力が evB と一致しません'];
+    if (Math.abs(d.thresholdNm - d.hc / scene.phiEV) > 1e-9) return ['限界波長が hc/φ と一致しません'];
+    // コンデンサーの充電：Q = CV0、U = ½CV0²、N = Q/e、t = Q/I。
+    if (Math.abs(d.qC - d.capF * d.v0V) > 1e-18) return ['コンデンサーの電荷が CV0 と一致しません'];
+    if (Math.abs(d.uJ - 0.5 * d.capF * d.v0V * d.v0V) > 1e-18) return ['コンデンサーのエネルギーが ½CV0² と一致しません'];
+    if (Math.abs(d.nElec - d.qC / scene.eC) > 1e-9) return ['電子の数が Q/e と一致しません'];
+    if (Math.abs(d.tChargeS - d.qC / d.iA) > 1e-12) return ['充電にかかる時間が Q/I と一致しません'];
+    if (Math.abs(d.q0C - d.capF * d.kMax0EV) > 1e-18) return ['静止の電荷が一致しません'];
+    if (Math.abs(d.u0J - 0.5 * d.capF * d.kMax0EV * d.kMax0EV) > 1e-18) return ['静止のエネルギーが一致しません'];
+    if (!(d.qC > d.q0C && d.uJ > d.u0J)) return ['近づくときの電荷・エネルギーが静止より大きくなっていません'];
+    if (!(d.tChargeS > d.t0ChargeS)) return ['近づくときの充電時間が静止より長くなっていません'];
+    // 遠ざかる光源：λ′ = λ(1 + β)。
+    if (Math.abs(d.lamRecNm - scene.lambdaNm * (1 + scene.beta)) > 1e-12) return ['遠ざかる光源の波長が λ(1+β) と一致しません'];
+    if (Math.abs(d.kMaxRecEV - (d.ePhRecEV - scene.phiEV)) > 1e-12) return ['遠ざかる Kmax が一致しません'];
+    if (Math.abs(d.rRecM - (9.11e-31 * d.vRecMs) / (scene.eC * scene.bT)) > 1e-12) return ['遠ざかる半径が一致しません'];
+    if (!(d.ePhRecEV < d.ePh0EV)) return ['遠ざかる光子のエネルギーが静止より小さくなっていません'];
+    if (!(d.rRecM < d.r0M && d.r0M < d.rM)) return ['半径の大小関係が一致しません'];
+    if (Math.abs(d.qRecC - d.capF * d.v0RecV) > 1e-18) return ['遠ざかる電荷が一致しません'];
+    if (Math.abs(d.uRecJ - 0.5 * d.capF * d.v0RecV * d.v0RecV) > 1e-18) return ['遠ざかるエネルギーが一致しません'];
+    if (!(d.qRecC < d.q0C && d.uRecJ < d.u0J)) return ['遠ざかる電荷・エネルギーが静止より小さくなっていません'];
+    // 限界波長になる速さ：λ(1 + β) = hc/φ。
+    if (Math.abs(d.betaStop - (d.thresholdNm / scene.lambdaNm - 1)) > 1e-12) return ['光電子が出なくなる速さが一致しません'];
+    if (!(d.betaStop > 0 && d.betaStop < 1)) return ['光電子が出なくなる速さが 0〜1 の範囲にありません'];
+    // 変えたら：λ=300 nm で近づく、B を 2 倍、C を 2 倍。
+    if (Math.abs(d.lam300Nm - 300 * (1 - scene.beta)) > 1e-12) return ['300 nm のドップラー波長が一致しません'];
+    if (Math.abs(d.kMax300EV - (d.ePh300EV - scene.phiEV)) > 1e-12) return ['300 nm の Kmax が一致しません'];
+    if (Math.abs(d.r300M - (9.11e-31 * d.v300Ms) / (scene.eC * scene.bT)) > 1e-12) return ['300 nm の半径が一致しません'];
+    if (!(d.r300M > d.rM)) return ['300 nm の半径が 400 nm より大きくなっていません'];
+    if (Math.abs(d.q300C - d.capF * d.v0300V) > 1e-18) return ['300 nm の電荷が一致しません'];
+    if (Math.abs(d.u300J - 0.5 * d.capF * d.v0300V * d.v0300V) > 1e-18) return ['300 nm のエネルギーが一致しません'];
+    if (Math.abs(d.rB2M - d.rM / 2) > 1e-12) return ['B を 2 倍にした半径が半分になっていません'];
+    if (Math.abs(d.periodB2S - d.periodS / 2) > 1e-12) return ['B を 2 倍にした周期が半分になっていません'];
+    if (Math.abs(d.lorentzB2N - 2 * d.lorentzN) > 1e-24) return ['B を 2 倍にしたローレンツ力が 2 倍になっていません'];
+    if (Math.abs(d.qC20 - 2 * d.qC) > 1e-18) return ['C を 2 倍にした電荷が 2 倍になっていません'];
+    if (Math.abs(d.uC20 - 2 * d.uJ) > 1e-18) return ['C を 2 倍にしたエネルギーが 2 倍になっていません'];
+    // 矢印の長さ：速度 30 px、ローレンツ力 30 px。ローレンツ力は速度と直角。
+    if (byId.velocity && Math.abs(Math.hypot(byId.velocity.vector[0], byId.velocity.vector[1]) - 30) > 0.5) return ['速度の矢印が 30 px になっていません'];
+    if (byId.lorentz && Math.abs(Math.hypot(byId.lorentz.vector[0], byId.lorentz.vector[1]) - 30) > 0.5) return ['ローレンツ力の矢印が 30 px になっていません'];
+    if (byId.velocity && byId.lorentz) {
+      const dot = byId.velocity.vector[0] * byId.lorentz.vector[0] + byId.velocity.vector[1] * byId.lorentz.vector[1];
+      if (Math.abs(dot) > 0.5) return ['ローレンツ力が速度と直角になっていません'];
     }
   }
   if (scene.type === 'charged-circle') {
@@ -13621,6 +13735,198 @@ function drawBase(svg, scene) {
       note(274, 'M=2.0 kg なら −0.9 Hz（439.1 Hz）');
       note(292, '音の高さを決めるのは速さと向き');
     }
+  } else if (scene.type === 'gasSoundPipe') {
+    const d = scene.derived;
+    const phase = scene.phase;
+    const tH = el('text', { x: 40, y: 36, fill: '#333' });
+    tH.textContent = phase === 'harmonics' ? '300 K：f1=600 Hz、f2=1200 Hz'
+      : phase === 'hot' ? '600 K：f1=850 Hz、f2=1700 Hz'
+      : phase === 'resonate' ? '600 K で共鳴するのは 850 Hz'
+      : phase === 'trap' ? '罠：音速は T に比例しない'
+      : phase === 'vary' ? '変えたら：空気・閉管・1200 K'
+      : '気体＋音速＋開管の共鳴';
+    svg.appendChild(tH);
+    const note = (y, text) => { const t = el('text', { x: 60, y, fill: '#333' }); t.textContent = text; svg.appendChild(t); };
+    const barRows = (rows) => {
+      rows.forEach((r, i) => {
+        const y = 75 + i * 45;
+        const tN = el('text', { x: 60, y: y - 8 }); tN.textContent = r.name; svg.appendChild(tN);
+        svg.appendChild(el('rect', { x: 140, y, width: Math.max(r.w, 5), height: 18, fill: r.color, stroke: '#333', 'stroke-width': 1 }));
+        const tV = el('text', { x: 140 + Math.max(r.w, 5) + 8, y: y + 15 }); tV.textContent = r.val; svg.appendChild(tV);
+      });
+    };
+    if (phase === 'base') {
+      // 流れ：気体 → 音速 → 開管 → 共鳴（BD・BE の base と同じ配置）。
+      const boxes = [
+        { x: 20, label: '気体', sub: '300 K' },
+        { x: 112, label: '音速', sub: '1020 m/s' },
+        { x: 204, label: '開管', sub: '0.85 m' },
+        { x: 296, label: '共鳴', sub: 'f2=1200 Hz' },
+      ];
+      boxes.forEach((b, i) => {
+        svg.appendChild(el('rect', { x: b.x, y: 130, width: 78, height: 40, fill: '#eef', stroke: '#333', 'stroke-width': 2 }));
+        const tL = el('text', { x: b.x + 39, y: 155, 'text-anchor': 'middle', 'font-size': 14 }); tL.textContent = b.label; svg.appendChild(tL);
+        const tS = el('text', { x: b.x + 39, y: 195, 'text-anchor': 'middle', fill: '#555', 'font-size': 14 }); tS.textContent = b.sub; svg.appendChild(tS);
+        if (i < boxes.length - 1) {
+          svg.appendChild(el('line', { x1: b.x + 78, y1: 150, x2: b.x + 92, y2: 150, stroke: '#333', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+        }
+      });
+      note(256, 'ヘリウム 300 K で音速は約 1020 m/s');
+      note(274, '開管の f2=1200 Hz と音さが一致する');
+      note(292, '600 K に熱すると音速は 1440 m/s');
+    } else if (phase === 'harmonics') {
+      // 300 K の振動数（0.1 px/Hz）。
+      barRows([
+        { name: 'f1', w: d.f1_300 * 0.1, val: '600 Hz', color: '#ffd24d' },
+        { name: 'f2', w: d.f2_300 * 0.1, val: '1200 Hz', color: '#cfe3ff' },
+        { name: 'f3', w: d.f3_300 * 0.1, val: '1800 Hz', color: '#b3e6b3' },
+      ]);
+      note(256, 'f1 = 1020/(2×0.85) = 600 Hz');
+      note(274, '1200 Hz の音さは f2 と一致する');
+      note(292, '音さの振動数が管の振動数と合う');
+    } else if (phase === 'hot') {
+      // 600 K の振動数（0.06 px/Hz）。
+      barRows([
+        { name: 'f1', w: d.f1_600 * 0.06, val: '850 Hz', color: '#ffd24d' },
+        { name: 'f2', w: d.f2_600 * 0.06, val: '1700 Hz', color: '#cfe3ff' },
+        { name: 'f3', w: d.f3_600 * 0.06, val: '2500 Hz', color: '#b3e6b3' },
+      ]);
+      note(256, '600 K で音速は 1020×√2 = 1440 m/s');
+      note(274, 'f1=850、f2=1700、f3=2500 Hz になる');
+      note(292, '1200 Hz はどの振動数とも合わない');
+    } else if (phase === 'resonate') {
+      // 600 K で共鳴する音さ（0.06 px/Hz）。
+      barRows([
+        { name: '850 Hz（f1）', w: 850 * 0.06, val: '共鳴する', color: '#b3e6b3' },
+        { name: '1200 Hz', w: 1200 * 0.06, val: '共鳴しない', color: '#ffb3b3' },
+        { name: '1700 Hz（f2）', w: 1700 * 0.06, val: '共鳴する', color: '#b3e6b3' },
+      ]);
+      note(256, '600 K では 850 Hz か 1700 Hz が共鳴');
+      note(274, '1200 Hz の音さはもう共鳴しない');
+      note(292, '共鳴するのは管の振動数と合う音だけ');
+    } else if (phase === 'trap') {
+      // 正しい値と、v ∝ T と思ったときの値（0.07 px/単位）。
+      barRows([
+        { name: '正しい f1', w: d.f1_600 * 0.07, val: '850 Hz', color: '#b3e6b3' },
+        { name: 'まちがいの f1', w: d.f1Lin * 0.07, val: '1200 Hz', color: '#ffb3b3' },
+        { name: '正しい音速', w: d.v2 * 0.07, val: '1440 m/s', color: '#cfe3ff' },
+        { name: 'まちがいの音速', w: d.vLin * 0.07, val: '2000 m/s', color: '#ffd24d' },
+      ]);
+      note(256, '音速は √T に比例する（T の平方根）');
+      note(274, 'T に比例すると v=2000 m/s になる');
+      note(292, 'f1=1200 Hz で共鳴すると思い込む');
+    } else if (phase === 'vary') {
+      // 空気・閉管・1200 K（0.1 px/Hz）。
+      barRows([
+        { name: '空気 f1', w: d.f1Air * 0.1, val: '200 Hz', color: '#cfe3ff' },
+        { name: '空気 f6', w: d.f6Air * 0.1, val: '1200 Hz', color: '#b3e6b3' },
+        { name: '閉管 f1', w: d.fc1 * 0.1, val: '300 Hz', color: '#ffd24d' },
+        { name: '1200 K f1', w: d.f1T1200 * 0.1, val: '1200 Hz', color: '#ffb3b3' },
+      ]);
+      note(256, '空気なら 1200 Hz は f6 と一致する');
+      note(274, '閉管は 300・900・1500 Hz で合わない');
+      note(292, '1200 K なら f1=1200 Hz で共鳴する');
+    }
+  } else if (scene.type === 'photoDopplerCap') {
+    const d = scene.derived;
+    const phase = scene.phase;
+    const tH = el('text', { x: 40, y: 36, fill: '#333' });
+    tH.textContent = phase === 'doppler' ? 'ドップラー効果：λ′ = 360 nm'
+      : phase === 'photo' ? '光電効果：Kmax = 1.4 eV、Q = 14 nC'
+      : phase === 'circle' ? '磁場中の円運動：r≈4.1 mm'
+      : phase === 'trap' ? '罠：明るさは V0 を変えない'
+      : phase === 'vary' ? '変えたら：遠ざかる・B・C・波長'
+      : '光電効果＋ドップラー＋円運動＋充電';
+    svg.appendChild(tH);
+    const note = (y, text) => { const t = el('text', { x: 60, y, fill: '#333' }); t.textContent = text; svg.appendChild(t); };
+    const barRows = (rows) => {
+      rows.forEach((r, i) => {
+        const y = 75 + i * 45;
+        const tN = el('text', { x: 60, y: y - 8 }); tN.textContent = r.name; svg.appendChild(tN);
+        svg.appendChild(el('rect', { x: 140, y, width: Math.max(r.w, 5), height: 18, fill: r.color, stroke: '#333', 'stroke-width': 1 }));
+        const tV = el('text', { x: 140 + Math.max(r.w, 5) + 8, y: y + 15 }); tV.textContent = r.val; svg.appendChild(tV);
+      });
+    };
+    if (phase === 'base') {
+      // 流れ：光源 → ドップラー → 光電効果 → コンデンサー（BD の base と同じ配置）。
+      const boxes = [
+        { x: 20, label: '光源', sub: '400 nm' },
+        { x: 112, label: 'ドップラー', sub: '360 nm' },
+        { x: 204, label: '光電効果', sub: '1.4 eV' },
+        { x: 296, label: 'コンデンサー', sub: '14 nC' },
+      ];
+      boxes.forEach((b, i) => {
+        svg.appendChild(el('rect', { x: b.x, y: 130, width: 78, height: 40, fill: '#eef', stroke: '#333', 'stroke-width': 2 }));
+        const tL = el('text', { x: b.x + 39, y: 155, 'text-anchor': 'middle', 'font-size': 14 }); tL.textContent = b.label; svg.appendChild(tL);
+        const tS = el('text', { x: b.x + 39, y: 195, 'text-anchor': 'middle', fill: '#555', 'font-size': 14 }); tS.textContent = b.sub; svg.appendChild(tS);
+        if (i < boxes.length - 1) {
+          svg.appendChild(el('line', { x1: b.x + 78, y1: 150, x2: b.x + 92, y2: 150, stroke: '#333', 'stroke-width': 2, 'marker-end': 'url(#fig-arrow)' }));
+        }
+      });
+      note(256, '光源が 0.10c で近づくと 360 nm になる');
+      note(274, '光子 3.4 eV、Kmax 1.4 eV、V0 1.4 V');
+      note(292, 'コンデンサーは 14 nC、10 nJ まで充電');
+    } else if (phase === 'doppler') {
+      // 波長の比べ（0.4 px/nm）。
+      barRows([
+        { name: '静止', w: d.lambdaNm * 0.4, val: '400 nm', color: '#ffd24d' },
+        { name: '近づく', w: d.lamShiftNm * 0.4, val: '360 nm', color: '#cfe3ff' },
+        { name: '遠ざかる', w: d.lamRecNm * 0.4, val: '440 nm', color: '#ffb3b3' },
+      ]);
+      note(256, '近づくと波長は 0.90 倍になる');
+      note(274, '光子のエネルギー 3.1 → 3.4 eV');
+      note(292, '遠ざかると 440 nm、2.8 eV');
+    } else if (phase === 'photo') {
+      // エネルギーの棒グラフ（50 px/eV）。
+      barRows([
+        { name: '光子 3.4 eV', w: d.ePhEV * 50, val: '3.4 eV', color: '#ffd24d' },
+        { name: '仕事関数 2.0 eV', w: scene.phiEV * 50, val: '2.0 eV', color: '#cfe3ff' },
+        { name: 'Kmax 1.4 eV', w: d.kMaxEV * 50, val: '1.4 eV', color: '#b3e6b3' },
+        { name: '阻止電圧 1.4 V', w: d.v0V * 50, val: '1.4 V', color: '#ffe8e8' },
+      ]);
+      note(256, 'Kmax = 3.4 − 2.0 = 1.4 eV');
+      note(274, 'Q = 10 nF×1.4 V = 14 nC、U = 10 nJ');
+      note(292, '光電流 1.0 μA なら 14 ms かかる');
+    } else if (phase === 'circle') {
+      // 磁場（×）と円軌道。中心 (260,170)、半径 40 px。BD の円運動と同じ配置。
+      for (const x of [100, 140, 180, 220, 260, 300, 340]) {
+        const tX = el('text', { x, y: 70, fill: '#888', 'font-size': 16 }); tX.textContent = '×'; svg.appendChild(tX);
+      }
+      for (const x of [100, 140, 340]) {
+        const tX = el('text', { x, y: 230, fill: '#888', 'font-size': 16 }); tX.textContent = '×'; svg.appendChild(tX);
+      }
+      const tB = el('text', { x: 300, y: 40, fill: '#555' }); tB.textContent = 'B=1.0 mT'; svg.appendChild(tB);
+      svg.appendChild(el('circle', { cx: d.circleCenter.x, cy: d.circleCenter.y, r: d.circleR, fill: 'none', stroke: '#b00', 'stroke-width': 2, 'stroke-dasharray': '5 4' }));
+      svg.appendChild(el('line', { x1: 260, y1: 170, x2: 300, y2: 170, stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      svg.appendChild(el('circle', { cx: d.electron.x, cy: d.electron.y, r: 8, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      const tR = el('text', { x: 305, y: 175, fill: '#555' }); tR.textContent = 'r≈4.1 mm'; svg.appendChild(tR);
+      const tC = el('text', { x: 240, y: 192, fill: '#555' }); tC.textContent = '中心'; svg.appendChild(tC);
+      note(256, 'ローレンツ力 F≈1.1×10⁻¹⁶ N');
+      note(274, '速さは変わらない（磁場は仕事をしない）');
+      note(292, '周期 T≈36 ns、1周で 28 MHz');
+    } else if (phase === 'trap') {
+      // Kmax の比べ（60 px/eV）。
+      barRows([
+        { name: '静止', w: d.kMax0EV * 60, val: '1.1 eV', color: '#cfe3ff' },
+        { name: '近づく', w: d.kMaxEV * 60, val: '1.4 eV', color: '#b3e6b3' },
+        { name: '明るい光（近づく）', w: d.kMaxEV * 60, val: '1.4 eV', color: '#ffd24d' },
+        { name: '遠ざかる', w: d.kMaxRecEV * 60, val: '0.82 eV', color: '#ffb3b3' },
+      ]);
+      note(256, '明るい光でも Kmax は 1.4 eV のまま');
+      note(274, 'コンデンサーの電圧は V0 をこえない');
+      note(292, 'ドップラーは光子のエネルギーを変える');
+    } else if (phase === 'vary') {
+      // 半径の棒グラフ（30 px/mm）。
+      barRows([
+        { name: '近づく', w: d.rM * 1000 * 30, val: '4.1 mm', color: '#b3e6b3' },
+        { name: '遠ざかる', w: d.rRecM * 1000 * 30, val: '3.1 mm', color: '#cfe3ff' },
+        { name: '300 nm', w: d.r300M * 1000 * 30, val: '5.4 mm', color: '#ffd24d' },
+        { name: 'B=2.0 mT', w: d.rB2M * 1000 * 30, val: '2.0 mm', color: '#ffb3b3' },
+      ]);
+      note(256, 'C=20 nF なら Q=29 nC、U=21 nJ');
+      note(274, 'V0 と r は変わらない（1.4 V、4.1 mm）');
+      note(292, '遠ざかると 0.82 V、8.2 nC、3.1 mm');
+    }
   } else if (scene.type === 'capacitor') {
     const topY = 110, dPx = scene.dPx;
     // 2枚の極板（水平）。上板が +、下板が −。
@@ -16030,4 +16336,151 @@ function pendulumDopplerForces(data) {
   return [];
 }
 
-if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, capSpringGravDerived, capSpringGravForces, gasSpringCycleDerived, gasSpringCycleForces, slopeSpringDerived, slopeSpringForces, fallLoopDerived, fallLoopForces, beltSpringDerived, beltSpringForces, massSpecDerived, massSpecForces, coilHallDerived, coilHallForces, platformChargeDerived, platformChargeForces, pendulumCollideDerived, pendulumCollideForces, photoCapDerived, photoCapForces, orbitTransferDerived, orbitTransferForces, cyclotronDerived, cyclotronForces, slopeSpringFricDerived, slopeSpringFricForces, projWallDerived, projWallForces, railSpringDampDerived, railSpringDampForces, pendulumSpringDerived, pendulumSpringForces, gasPistonOscDerived, gasPistonOscForces, photoCircleDerived, photoCircleForces, earthTunnelDerived, earthTunnelForces, heaterGasDerived, heaterGasForces, specPhotoCircleDerived, specPhotoCircleForces, ottoCycleDerived, ottoCycleForces, generatorACDerived, generatorACForces, explodeProjectileDerived, explodeProjectileForces, slopePulleySpringDerived, slopePulleySpringForces, cathodeRayDerived, cathodeRayForces, conicalPendulumDerived, conicalPendulumForces, rcChargeDerived, rcChargeForces, projWallFricDerived, projWallFricForces, rlcChargeDerived, rlcChargeForces, photoCapCircleDerived, photoCapCircleForces, acRlcDerived, acRlcForces, projDragIntegrate, projDragDerived, projDragForces, pendulumSpringFricDerived, pendulumSpringFricForces, slopePulleyFricDerived, slopePulleyFricForces, selectorCircleDerived, selectorCircleForces, fallLoopCapDerived, fallLoopCapForces, genTransformerDerived, genTransformerForces, projWallSpringDerived, projWallSpringForces, genRectSmoothDerived, genRectSmoothForces, projDragWallIntegrate, projDragWallDerived, projDragWallForces, photoDopplerCircleDerived, photoDopplerCircleForces, dopplerResonanceDerived, dopplerResonanceForces, fallDragSpringDerived, fallDragSpringForces, projDragWallSpringDerived, projDragWallSpringForces, pendulumDopplerDerived, pendulumDopplerForces, sceneFor, validateScene, renderFigure };
+// ---- 組み合わせBI：気体＋音速＋開管の共鳴 ----
+// 開管（L = 0.85 m）の中のヘリウムを 300 K から 600 K に熱する。
+// 音速 v = √(γRT/M) は √T に比例するので、600 K では √2 倍（1020 → 1440 m/s）。
+// 管の振動数 fn = n·v/2L も上がる：300 K では f2 = 1200 Hz と音さが一致して共鳴するが、
+// 600 K では f1 = 850 Hz、f2 = 1700 Hz になり、1200 Hz の音さは共鳴しなくなる。
+// 具体値（検算済み）：f1(300 K) = 600 Hz、f2 = 1200 Hz、f3 = 1800 Hz。
+// f1(600 K) = 850 Hz、f2 = 1700 Hz、f3 = 2500 Hz。
+// 罠：v ∝ T だと思うと v = 2000 m/s、f1 = 1200 Hz で「まだ共鳴する」——まちがい。
+// 変えたら：空気（340 m/s）なら f1 = 200 Hz で 1200 Hz は f6 と一致、閉管なら 300・900・1500 Hz、
+// 1200 K なら v = 2000 m/s、f1 = 1200 Hz でまた共鳴する。
+function gasSoundPipeDerived(data) {
+  const gamma = data.gamma || 5 / 3, R = data.rGas || 8.31, M = data.molarKg;
+  const T1 = data.t1K, T2 = data.t2K, L = data.pipeLM, fFork = data.fForkHz;
+  const v1 = Math.sqrt((gamma * R * T1) / M);
+  const v2 = v1 * Math.sqrt(T2 / T1);
+  const f1_300 = v1 / (2 * L), f2_300 = 2 * f1_300, f3_300 = 3 * f1_300;
+  const f1_600 = v2 / (2 * L), f2_600 = 2 * f1_600, f3_600 = 3 * f1_600;
+  // 罠：v ∝ T（直線）だと思ったときの値。
+  const vLin = v1 * (T2 / T1);
+  const f1Lin = vLin / (2 * L);
+  // 変えたら：空気、閉管、1200 K。
+  const vAir = data.vAirMs;
+  const f1Air = vAir / (2 * L), f6Air = 6 * f1Air;
+  const fc1 = v1 / (4 * L), fc3 = 3 * fc1, fc5 = 5 * fc1;
+  const vT1200 = v1 * Math.sqrt(1200 / T1);
+  const f1T1200 = vT1200 / (2 * L);
+  return {
+    gamma, R, M, T1, T2, L, fFork,
+    v1, v2, f1_300, f2_300, f3_300, f1_600, f2_600, f3_600,
+    vLin, f1Lin, vAir, f1Air, f6Air, fc1, fc3, fc5, vT1200, f1T1200,
+    match300: Math.abs(f2_300 - fFork) < 2,
+    match600: [f1_600, f2_600, f3_600].some((f) => Math.abs(f - fFork) < 2),
+    matchAir: Math.abs(f6Air - fFork) < 2,
+    matchClosed: [fc1, fc3, fc5].some((f) => Math.abs(f - fFork) < 2),
+    matchT1200: Math.abs(f1T1200 - fFork) < 2,
+  };
+}
+
+function gasSoundPipeForces(data) {
+  return [];
+}
+
+// ---- 組み合わせBJ：光電効果＋ドップラー＋磁場円運動＋コンデンサー充電 ----
+// BD（光電効果＋ドップラー＋円運動）にコンデンサーの充電を加えたもの。
+// ドップラーで光子のエネルギーが上がると Kmax が上がり、阻止電圧 V0 が上がるので、
+// コンデンサーの電荷 Q = CV0 とエネルギー U = ½CV0² も上がる。橋渡し量は電子のエネルギー。
+// 具体値（検算済み）：静止 3.1 eV・1.1 eV・1.1 V・11 nC・6.1 nJ・11 ms。
+// 近づく（0.10c）360 nm・3.4 eV・1.4 eV・1.4 V・14 nC・10 nJ・14 ms・r=4.1 mm。
+// 遠ざかる 440 nm・2.8 eV・0.82 eV・0.82 V・8.2 nC・3.3 nJ・3.1 mm。
+// 300 nm で近づく 270 nm・4.6 eV・2.6 eV・2.6 V・26 nC・34 nJ・5.4 mm。
+// B=2.0 mT → r=2.0 mm・T=18 ns、C=20 nF → Q=29 nC・U=21 nJ（V0 は変わらない）。
+function photoDopplerCapDerived(data) {
+  const hc = data.hcEvNm || 1240;
+  const eV = 1.602e-19, me = 9.11e-31;
+  const eC = data.eC || 1.602e-19, bT = data.bT, beta = data.beta;
+  const lambdaNm = data.lambdaNm, phiEV = data.phiEV;
+  const capF = (data.capNF || 10) * 1e-9;
+  const iA = (data.currentUA || 1.0) * 1e-6;
+  // 静止した光源の値（比べ用）。
+  const ePh0EV = hc / lambdaNm;
+  const kMax0EV = ePh0EV - phiEV;
+  const v0Ms = Math.sqrt((2 * kMax0EV * eV) / me);
+  const r0M = (me * v0Ms) / (eC * bT);
+  // 近づく光源：λ′ = λ(1 − β)、光子のエネルギーが増える。
+  const lamShiftNm = lambdaNm * (1 - beta);
+  const ePhEV = hc / lamShiftNm;
+  const kMaxEV = ePhEV - phiEV;
+  const vMaxMs = Math.sqrt((2 * kMaxEV * eV) / me);
+  const v0V = kMaxEV; // 阻止電圧（V）＝ Kmax（eV）の数値。
+  const rM = (me * vMaxMs) / (eC * bT);
+  const periodS = (2 * Math.PI * me) / (eC * bT);
+  const freqHz = 1 / periodS;
+  const lorentzN = eC * vMaxMs * bT;
+  const thresholdNm = hc / phiEV;
+  // コンデンサーの充電：Q = CV0、U = ½CV0²、N = Q/e、t = Q/I。
+  const qC = capF * v0V;
+  const uJ = 0.5 * capF * v0V * v0V;
+  const nElec = qC / eC;
+  const tChargeS = qC / iA;
+  const q0C = capF * kMax0EV;
+  const u0J = 0.5 * capF * kMax0EV * kMax0EV;
+  const n0Elec = q0C / eC;
+  const t0ChargeS = q0C / iA;
+  // 遠ざかる光源：λ′ = λ(1 + β)。
+  const lamRecNm = lambdaNm * (1 + beta);
+  const ePhRecEV = hc / lamRecNm;
+  const kMaxRecEV = ePhRecEV - phiEV;
+  const vRecMs = Math.sqrt((2 * kMaxRecEV * eV) / me);
+  const v0RecV = kMaxRecEV;
+  const rRecM = (me * vRecMs) / (eC * bT);
+  const qRecC = capF * v0RecV;
+  const uRecJ = 0.5 * capF * v0RecV * v0RecV;
+  const nRecElec = qRecC / eC;
+  const tRecChargeS = qRecC / iA;
+  // 限界波長になる速さ：λ(1 + β) = hc/φ。
+  const betaStop = thresholdNm / lambdaNm - 1;
+  // 変えたら：λ=300 nm で近づく。B を 2 倍。C を 2 倍。
+  const lam300Nm = 300 * (1 - beta);
+  const ePh300EV = hc / lam300Nm;
+  const kMax300EV = ePh300EV - phiEV;
+  const v300Ms = Math.sqrt((2 * kMax300EV * eV) / me);
+  const v0300V = kMax300EV;
+  const r300M = (me * v300Ms) / (eC * bT);
+  const q300C = capF * v0300V;
+  const u300J = 0.5 * capF * v0300V * v0300V;
+  const n300Elec = q300C / eC;
+  const t300ChargeS = q300C / iA;
+  const rB2M = rM / 2;
+  const periodB2S = periodS / 2;
+  const freqB2Hz = 1 / periodB2S;
+  const lorentzB2N = 2 * lorentzN;
+  const qC20 = 2 * capF * v0V;
+  const uC20 = 0.5 * (2 * capF) * v0V * v0V;
+  const tC20S = qC20 / iA;
+  return {
+    hc, ePh0EV, kMax0EV, v0Ms, r0M,
+    lamShiftNm, ePhEV, kMaxEV, vMaxMs, v0V, rM, periodS, freqHz, lorentzN, thresholdNm,
+    lamRecNm, ePhRecEV, kMaxRecEV, vRecMs, v0RecV, rRecM, betaStop,
+    lam300Nm, ePh300EV, kMax300EV, v300Ms, v0300V, r300M,
+    rB2M, periodB2S, freqB2Hz, lorentzB2N,
+    capF, iA,
+    qC, uJ, nElec, tChargeS, q0C, u0J, n0Elec, t0ChargeS,
+    qRecC, uRecJ, nRecElec, tRecChargeS,
+    q300C, u300J, n300Elec, t300ChargeS,
+    qC20, uC20, tC20S,
+    circleCenter: { x: 260, y: 170 }, circleR: 40,
+    electron: { x: 260, y: 130 },
+  };
+}
+
+function photoDopplerCapForces(data) {
+  const phase = (data && data.phase) || 'base';
+  if (phase !== 'circle') return [];
+  return [
+    {
+      id: 'velocity', short: 'v=7.1×10⁵ m/s', color: '#d35400',
+      from: { x: 260, y: 130 }, vector: [30, 0], dashed: true,
+      labelDx: -30, labelDy: -18,
+    },
+    {
+      id: 'lorentz', short: 'F≈1.1×10⁻¹⁶ N', color: '#b00',
+      from: { x: 260, y: 130 }, vector: [0, 30],
+      labelDx: -170, labelDy: 20,
+    },
+  ];
+}
+
+if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, capSpringGravDerived, capSpringGravForces, gasSpringCycleDerived, gasSpringCycleForces, slopeSpringDerived, slopeSpringForces, fallLoopDerived, fallLoopForces, beltSpringDerived, beltSpringForces, massSpecDerived, massSpecForces, coilHallDerived, coilHallForces, platformChargeDerived, platformChargeForces, pendulumCollideDerived, pendulumCollideForces, photoCapDerived, photoCapForces, orbitTransferDerived, orbitTransferForces, cyclotronDerived, cyclotronForces, slopeSpringFricDerived, slopeSpringFricForces, projWallDerived, projWallForces, railSpringDampDerived, railSpringDampForces, pendulumSpringDerived, pendulumSpringForces, gasPistonOscDerived, gasPistonOscForces, photoCircleDerived, photoCircleForces, earthTunnelDerived, earthTunnelForces, heaterGasDerived, heaterGasForces, specPhotoCircleDerived, specPhotoCircleForces, ottoCycleDerived, ottoCycleForces, generatorACDerived, generatorACForces, explodeProjectileDerived, explodeProjectileForces, slopePulleySpringDerived, slopePulleySpringForces, cathodeRayDerived, cathodeRayForces, conicalPendulumDerived, conicalPendulumForces, rcChargeDerived, rcChargeForces, projWallFricDerived, projWallFricForces, rlcChargeDerived, rlcChargeForces, photoCapCircleDerived, photoCapCircleForces, acRlcDerived, acRlcForces, projDragIntegrate, projDragDerived, projDragForces, pendulumSpringFricDerived, pendulumSpringFricForces, slopePulleyFricDerived, slopePulleyFricForces, selectorCircleDerived, selectorCircleForces, fallLoopCapDerived, fallLoopCapForces, genTransformerDerived, genTransformerForces, projWallSpringDerived, projWallSpringForces, genRectSmoothDerived, genRectSmoothForces, projDragWallIntegrate, projDragWallDerived, projDragWallForces, photoDopplerCircleDerived, photoDopplerCircleForces, dopplerResonanceDerived, dopplerResonanceForces, fallDragSpringDerived, fallDragSpringForces, projDragWallSpringDerived, projDragWallSpringForces, pendulumDopplerDerived, pendulumDopplerForces, gasSoundPipeDerived, gasSoundPipeForces, photoDopplerCapDerived, photoDopplerCapForces, sceneFor, validateScene, renderFigure };

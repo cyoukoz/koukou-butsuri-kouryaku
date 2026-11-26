@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題BI：気体＋音速＋開管の共鳴 — 高校物理攻略</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", sans-serif; margin: 0; background: #fff; color: #222; line-height: 1.8; }
+  main { max-width: 720px; margin: 0 auto; padding: 24px 18px 80px; }
+  h1 { font-size: 24px; line-height: 1.4; }
+  h2 { font-size: 20px; margin-top: 40px; }
+  .step { border-top: 1px solid #ddd; padding-top: 16px; margin-top: 32px; }
+  .step h2 { font-size: 18px; margin: 0 0 8px; }
+  .fig { width: 100%; max-width: 400px; height: auto; display: block; margin: 12px auto; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; font-size: 14px; }
+  th { background: #f2f2f2; }
+  .donebox { border: 2px solid #4a8; background: #f6fffa; padding: 14px; margin-top: 40px; }
+  .nav { margin-top: 32px; font-size: 14px; }
+  .toplink { position: fixed; right: 16px; bottom: 16px; background: #222; color: #fff; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 14px; }
+  label.check { display: block; margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+<p><a href="../../index.html">← トップへ</a> ｜ <a href="pendulum-doppler.html">← 組み合わせ問題BH：振り子＋弾性衝突＋ドップラー効果</a></p>
+<h1>組み合わせ問題BI：気体＋音速＋開管の共鳴</h1>
+<p>長さ L = 0.85 m の開管の中にヘリウムが入っている。ヘリウムの音速は 300 K で約 1020 m/s だ（v = √(γRT/M)、γ = 5/3、R = 8.31 J/(mol·K)、モル質量 4.0×10⁻³ kg/mol）。管の長さの変化は無視する。管の端に 1200 Hz の音さを近づける。空気の音速は 340 m/s とする。</p>
+<p>(1) 300 K での管の振動数 f1・f2・f3 と、1200 Hz の音さが共鳴するかどうかを求めよ。(2) 600 K に熱したときの音速と管の振動数を求めよ。1200 Hz の音さは共鳴するか。(3) 600 K で共鳴する音さの振動数を求めよ。(4) 罠と変えたら。</p>
+
+<div class="step" id="step0">
+<p><b>はじめに：どう切り分けるか</b></p>
+<table>
+<tr><th>場面</th><th>考えること</th><th>使うモデル</th></tr>
+<tr><td>気体</td><td>音速は温度で変わる</td><td>気体の状態・音速</td></tr>
+<tr><td>開管</td><td>振動数は音速で決まる</td><td>定常波・共鳴</td></tr>
+<tr><td>共鳴</td><td>音さと管の振動数が合うか</td><td>共鳴条件</td></tr>
+</table>
+<p>この問題の橋渡しの量は<b>温度（音速）</b>だ。温度が音速を決め、音速が管の振動数を決める。音さの振動数が管の振動数と合うときだけ共鳴する。</p>
+<svg class="fig" data-scene="scene-gasSoundPipe-base" data-show="" role="img" aria-label="流れ。ヘリウム 300 K で音速 1020 m/s、開管の f2=1200 Hz と音さが一致して共鳴"></svg>
+<script type="application/json" id="scene-gasSoundPipe-base">{"fForkHz":1200,"gamma":1.667,"molarKg":0.004,"phase":"base","pipeLM":0.85,"rGas":8.31,"t1K":300,"t2K":600,"type":"gasSoundPipe","vAirMs":340}</script>
+<p><a href="#step1">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step1">
+<h2>① 300 K：f1=600 Hz、f2=1200 Hz、音さと共鳴する</h2>
+<p>開管の振動数は fn = n·v/2L だ。300 K では v ≈ 1020 m/s なので、f1 = 1020/(2×0.85) = 600 Hz、f2 = 1200 Hz、f3 = 1800 Hz になる。1200 Hz の音さは f2 と一致するので、管は大きく鳴る（共鳴する）。開管では両端が腹、中央が節になる。</p>
+<svg class="fig" data-scene="scene-gasSoundPipe-harmonics" data-show="" role="img" aria-label="300 K の振動数。f1=600 Hz、f2=1200 Hz、f3=1800 Hz"></svg>
+<script type="application/json" id="scene-gasSoundPipe-harmonics">{"fForkHz":1200,"gamma":1.667,"molarKg":0.004,"phase":"harmonics","pipeLM":0.85,"rGas":8.31,"t1K":300,"t2K":600,"type":"gasSoundPipe","vAirMs":340}</script>
+<label class="check"><input type="checkbox" id="comboGasSoundPipe-check-1"> 300 K の f1・f2・f3 と、1200 Hz が共鳴することを求めた</label>
+<p><a href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<h2>② 600 K：音速は 1440 m/s、1200 Hz は共鳴しない</h2>
+<p>音速は v = √(γRT/M) なので、温度の平方根に比例する。600 K では v = 1020×√(600/300) = 1020×√2 ≈ 1440 m/s になる。管の振動数も上がって、f1 = 1440/1.7 ≈ 850 Hz、f2 ≈ 1700 Hz、f3 ≈ 2500 Hz になる。1200 Hz の音さはどの振動数とも合わず、共鳴しない。</p>
+<svg class="fig" data-scene="scene-gasSoundPipe-hot" data-show="" role="img" aria-label="600 K の振動数。音速 1440 m/s、f1=850 Hz、f2=1700 Hz、f3=2500 Hz"></svg>
+<script type="application/json" id="scene-gasSoundPipe-hot">{"fForkHz":1200,"gamma":1.667,"molarKg":0.004,"phase":"hot","pipeLM":0.85,"rGas":8.31,"t1K":300,"t2K":600,"type":"gasSoundPipe","vAirMs":340}</script>
+<label class="check"><input type="checkbox" id="comboGasSoundPipe-check-2"> 600 K の音速 1440 m/s と振動数を求めた</label>
+<p><a href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<h2>③ 600 K で共鳴する音さは 850 Hz か 1700 Hz</h2>
+<p>600 K で共鳴するのは、管の振動数と合う音さだけだ。850 Hz の音さは f1 と、1700 Hz の音さは f2 と一致して共鳴する。1200 Hz の音さは f1 と f2 のあいだにあって、共鳴しない。</p>
+<svg class="fig" data-scene="scene-gasSoundPipe-resonate" data-show="" role="img" aria-label="600 K で共鳴する音さ。850 Hz は f1、1700 Hz は f2 と一致、1200 Hz は共鳴しない"></svg>
+<script type="application/json" id="scene-gasSoundPipe-resonate">{"fForkHz":1200,"gamma":1.667,"molarKg":0.004,"phase":"resonate","pipeLM":0.85,"rGas":8.31,"t1K":300,"t2K":600,"type":"gasSoundPipe","vAirMs":340}</script>
+<label class="check"><input type="checkbox" id="comboGasSoundPipe-check-3"> 600 K で共鳴する音さが 850 Hz か 1700 Hz だと求めた</label>
+<p><a href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<h2>④ 罠：温度が 2 倍なら音速も 2 倍、ではない</h2>
+<p>罠：「温度が 2 倍（300 K → 600 K）なら、音速も 2 倍」——まちがい。v = √(γRT/M) の中の T は平方根の中にあるので、音速は √T に比例する。600 K では v ≈ 1440 m/s で、2000 m/s にはならない。T に比例すると思うと f1 = 2000/1.7 ≈ 1200 Hz になって「1200 Hz の音さはまだ共鳴する」と思い込むが、正しくは f1 ≈ 850 Hz で共鳴しない。</p>
+<svg class="fig" data-scene="scene-gasSoundPipe-trap" data-show="" role="img" aria-label="罠の比べ。正しい f1 は 850 Hz、T に比例すると 1200 Hz になってしまう"></svg>
+<script type="application/json" id="scene-gasSoundPipe-trap">{"fForkHz":1200,"gamma":1.667,"molarKg":0.004,"phase":"trap","pipeLM":0.85,"rGas":8.31,"t1K":300,"t2K":600,"type":"gasSoundPipe","vAirMs":340}</script>
+<label class="check"><input type="checkbox" id="comboGasSoundPipe-check-4"> 音速は √T に比例することを区別できた</label>
+<p><a href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<h2>⑤ 変えたら：空気・閉管・1200 K で共鳴が変わる</h2>
+<p>空気（340 m/s）なら f1 = 340/1.7 = 200 Hz、f6 = 1200 Hz なので、1200 Hz の音さは f6 と一致して共鳴する。閉管（ヘリウム、300 K）なら奇数倍だけ（f1 = 300 Hz、f3 = 900 Hz、f5 = 1500 Hz）で、1200 Hz は合わない。1200 K まで熱すると v = 1020×2 = 2000 m/s、f1 = 1200 Hz になって、1200 Hz の音さはまた共鳴する。</p>
+<svg class="fig" data-scene="scene-gasSoundPipe-vary" data-show="" role="img" aria-label="変えたら。空気なら f6=1200 Hz、閉管は 300・900・1500 Hz、1200 K なら f1=1200 Hz"></svg>
+<script type="application/json" id="scene-gasSoundPipe-vary">{"fForkHz":1200,"gamma":1.667,"molarKg":0.004,"phase":"vary","pipeLM":0.85,"rGas":8.31,"t1K":300,"t2K":600,"type":"gasSoundPipe","vAirMs":340}</script>
+<label class="check"><input type="checkbox" id="comboGasSoundPipe-check-5"> 空気・閉管・1200 K を変えたときの共鳴を求めた</label>
+</div>
+
+<div class="donebox" id="donebox">
+<p><b>まとめ（答え）</b></p>
+<p>(1) 300 K では f1=600、f2=1200、f3=1800 Hz、1200 Hz の音さは f2 と共鳴する。(2) 600 K では音速 1440 m/s、f1=850、f2=1700、f3=2500 Hz、1200 Hz は共鳴しない。(3) 600 K で共鳴するのは 850 Hz（f1）か 1700 Hz（f2）。(4) 音速は √T に比例する。T に比例すると f1=1200 Hz になってしまう。</p>
+<p>もとになった単体モデル：気体は<a href="gas-piston.html">第7問：気体＋ピストン</a>、定常波は<a href="standing-wave.html">第14問：定常波</a>、気体＋共鳴管は<a href="gas-resonance.html">組み合わせ問題M：気体＋共鳴管</a>、ドップラー＋共鳴は<a href="doppler-resonance.html">組み合わせ問題BE：音波＋ドップラー効果＋開管の共鳴</a>で確かめられる。</p>
+<p id="done-msg"></p>
+</div>
+
+<p class="nav"><a href="../../index.html">← トップへ</a></p>
+</main>
+<a class="toplink" href="#">↑ TOP</a>
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+const doneKey = 'comboGasSoundPipeDone';
+const checkIds = ['comboGasSoundPipe-check-1','comboGasSoundPipe-check-2','comboGasSoundPipe-check-3','comboGasSoundPipe-check-4','comboGasSoundPipe-check-5'];
+const doneMsg = document.getElementById('done-msg');
+function allChecked() { return checkIds.every(id => document.getElementById(id).checked); }
+function refresh() {
+  if (allChecked()) {
+    doneMsg.textContent = '完了！';
+    loadProgress().then(p => { p[doneKey] = true; return saveProgress(p); }).catch(() => {});
+  } else {
+    doneMsg.textContent = '';
+  }
+}
+checkIds.forEach(id => document.getElementById(id).addEventListener('change', refresh));
+renderAllFigures();
+loadProgress().then(p => { if (p[doneKey]) { doneMsg.textContent = '完了済み ✓'; } }).catch(() => {});
+</script>
+</body>
+</html>
