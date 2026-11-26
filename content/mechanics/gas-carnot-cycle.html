@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題BN：気体＋ピストン＋ばね＋カルノー効率 — 高校物理攻略</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", sans-serif; margin: 0; background: #fff; color: #222; line-height: 1.8; }
+  main { max-width: 720px; margin: 0 auto; padding: 24px 18px 80px; }
+  h1 { font-size: 24px; line-height: 1.4; }
+  h2 { font-size: 20px; margin-top: 40px; }
+  .step { border-top: 1px solid #ddd; padding-top: 16px; margin-top: 32px; }
+  .step h2 { font-size: 18px; margin: 0 0 8px; }
+  .fig { width: 100%; max-width: 400px; height: auto; display: block; margin: 12px auto; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; font-size: 14px; }
+  th { background: #f2f2f2; }
+  .donebox { border: 2px solid #4a8; background: #f6fffa; padding: 14px; margin-top: 40px; }
+  .nav { margin-top: 32px; font-size: 14px; }
+  .toplink { position: fixed; right: 16px; bottom: 16px; background: #222; color: #fff; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 14px; }
+  label.check { display: block; margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+<p><a href="../../index.html">← トップへ</a> ｜ <a href="slope-pulley-doppler.html">← 組み合わせ問題BM：斜面＋滑車＋ばね＋摩擦＋ドップラー効果</a></p>
+<h1>組み合わせ問題BN：気体＋ピストン＋ばね＋カルノー効率</h1>
+<p>断面積 S = 0.010 m² のシリンダーに、質量 10 kg のピストンが入っている。ピストンの上にはばね（k = 1000 N/m）が自然長のままつながっている。シリンダーの中にはヘリウム（単原子分子気体）が入っている。はじめ状態Aでは、ピストンの高さ h = 0.20 m、圧力 p = 1.10×10⁵ Pa、温度 T = 300 K である。大気圧は p0 = 1.0×10⁵ Pa、重力加速度は g = 10 m/s²、nR = 0.733 J/K とする。</p>
+<p>この気体を次のサイクルで動かす。A→B：加熱してピストンを h = 0.30 m まで上げる。B→C：ピストンを固定して冷却し、温度を 300 K まで下げる。C→A：温度を 300 K に保ったままピストンを h = 0.20 m まで押し戻す。(1) 各状態の圧力・温度と、A→B の仕事・内部エネルギーの変化・吸熱を求めよ。(2) サイクル全体の正味の仕事と効率を求め、同じ温度のあいだのカルノー効率と比べよ。(3) A→B の仕事の内訳を求めよ。(4) 罠と変えたら。</p>
+
+<div class="step" id="step0">
+<p><b>はじめに：どう切り分けるか</b></p>
+<table>
+<tr><th>場面</th><th>考えること</th><th>使うモデル</th></tr>
+<tr><td>A→B 加熱</td><td>仕事・内部エネルギー・吸熱</td><td>熱力学第一法則</td></tr>
+<tr><td>B→C 固定して冷却</td><td>圧力の変化</td><td>状態方程式</td></tr>
+<tr><td>C→A 等温圧縮</td><td>仕事</td><td>等温変化</td></tr>
+<tr><td>効率</td><td>正味の仕事/吸熱</td><td>カルノー効率</td></tr>
+</table>
+<p>この問題の橋渡しの量は<b>仕事と熱</b>だ。各過程の仕事と熱を足し合わせると正味の仕事と効率が出て、カルノー効率と比べることができる。</p>
+<svg class="fig" data-scene="scene-gasCarnotCycle-base" data-show="" role="img" aria-label="流れ。気体とピストンとばねでサイクルを回し、カルノー効率と比べる"></svg>
+<script type="application/json" id="scene-gasCarnotCycle-base">{"areaM2":0.01,"g":10,"hBM":0.3,"hNatM":0.2,"kNm":1000,"p0Pa":100000,"phase":"base","pistonKg":10,"rGas":0.733,"tAK":300,"type":"gasCarnotCycle"}</script>
+<p><a href="#step1">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step1">
+<h2>① p–V 図：A→B は W = 115 J、ΔU = 210 J、Q = 325 J</h2>
+<p>状態Aでは、ピストンの力のつり合いから p_A = p0 + mg/S = 1.0×10⁵ + 100/0.010 = 1.10×10⁵ Pa、体積は V_A = S h = 2.0 L、温度は 300 K だ。状態Bでは、ばねが 0.10 m 縮むので、p_B = p0 + mg/S + k(h_B − h_nat)/S = 1.20×10⁵ Pa、V_B = 3.0 L、温度は T_B = p_B V_B/nR ≈ 491 K になる。</p>
+<p>A→B の仕事は p–V 図の面積で、W_AB = (1.10 + 1.20)/2 × 10⁵ × 1.0×10⁻³ = 115 J になる。内部エネルギーの変化は ΔU_AB = (3/2)nR(T_B − T_A) = 1.5 × 0.733 × 191 ≈ 210 J で、吸熱は Q_AB = ΔU_AB + W_AB = 325 J になる。</p>
+<p>B→C では体積が変わらないので W_BC = 0、温度が 300 K まで下がるので ΔU_BC = −210 J、Q_BC = −210 J になる。圧力は p_C = nR × 300/V_B ≈ 0.733×10⁵ Pa になる。C→A では温度が 300 K のままなので ΔU_CA = 0、仕事は W_CA = nRT ln(V_A/V_B) = 0.733 × 300 × ln(2.0/3.0) ≈ −89 J になる。</p>
+<svg class="fig" data-scene="scene-gasCarnotCycle-pv" data-show="" role="img" aria-label="p–V 図。A(2.0 L, 1.10×10⁵ Pa)、B(3.0 L, 1.20×10⁵ Pa)、C(3.0 L, 0.733×10⁵ Pa)、囲まれた面積が正味の仕事 25.8 J"></svg>
+<script type="application/json" id="scene-gasCarnotCycle-pv">{"areaM2":0.01,"g":10,"hBM":0.3,"hNatM":0.2,"kNm":1000,"p0Pa":100000,"phase":"pv","pistonKg":10,"rGas":0.733,"tAK":300,"type":"gasCarnotCycle"}</script>
+<label class="check"><input type="checkbox" id="comboGasCarnotCycle-check-1"> A→B の仕事 115 J、内部エネルギーの変化 210 J、吸熱 325 J を求めた</label>
+<p><a href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<h2>② カルノー効率との比べ：効率 7.9%、カルノー 39%</h2>
+<p>正味の仕事は W_net = 115 + 0 − 89.2 = 25.8 J、効率は η = W_net/Q_AB = 25.8/325 ≈ 7.9% になる。同じ 300 K と 491 K のあいだのカルノー効率は η_C = 1 − 300/491 ≈ 39% で、このサイクルの効率はカルノー効率の 1/5 ほどしかない。カルノーサイクルなら同じ 325 J の熱から 325 × 0.39 ≈ 127 J の仕事が得られる。</p>
+<p>なぜこんなに低いのか。カルノーサイクルはすべての熱を高温 491 K で吸うが、このサイクルは 300 K から 491 K まで温度が上がりながら熱を吸う。低い温度で吸った熱は、それだけ仕事に変えにくい。B→C で 210 J の熱を出し、C→A でも 89 J の熱を出している。</p>
+<svg class="fig" data-scene="scene-gasCarnotCycle-carnot" data-show="" role="img" aria-label="効率の比べ。このサイクル 7.9%、カルノー効率 39%"></svg>
+<script type="application/json" id="scene-gasCarnotCycle-carnot">{"areaM2":0.01,"g":10,"hBM":0.3,"hNatM":0.2,"kNm":1000,"p0Pa":100000,"phase":"carnot","pistonKg":10,"rGas":0.733,"tAK":300,"type":"gasCarnotCycle"}</script>
+<label class="check"><input type="checkbox" id="comboGasCarnotCycle-check-2"> 効率 7.9% とカルノー効率 39% を比べられた</label>
+<p><a href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<h2>③ A→B の仕事の内訳：大気 100 J、重力 10 J、ばね 5.0 J</h2>
+<p>A→B の仕事 115 J の内訳は、大気の仕事 p0ΔV = 1.0×10⁵ × 1.0×10⁻³ = 100 J、重力の位置エネルギーの増加 mgΔh = 100 × 0.10 = 10 J、ばねのエネルギーの増加 ½k(Δh)² = 0.5 × 1000 × 0.10² = 5.0 J で、100 + 10 + 5.0 = 115 J と合う。</p>
+<p>ばねの 5.0 J は C→A でピストンが下がるときに返されるので、1 サイクルでは 0 になる。ばねはエネルギーをためて返すだけで、熱として捨てられるのではない。</p>
+<svg class="fig" data-scene="scene-gasCarnotCycle-work" data-show="" role="img" aria-label="A→B の仕事の内訳。大気の仕事 100 J、重力の仕事 10 J、ばねの仕事 5.0 J"></svg>
+<script type="application/json" id="scene-gasCarnotCycle-work">{"areaM2":0.01,"g":10,"hBM":0.3,"hNatM":0.2,"kNm":1000,"p0Pa":100000,"phase":"work","pistonKg":10,"rGas":0.733,"tAK":300,"type":"gasCarnotCycle"}</script>
+<label class="check"><input type="checkbox" id="comboGasCarnotCycle-check-3"> A→B の仕事の内訳 100 J・10 J・5.0 J を求めた</label>
+<p><a href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<h2>④ 罠：正味の熱で割ると 100% になる、ばねのエネルギーは捨てた熱ではない</h2>
+<p>罠：「効率は正味の仕事を正味の熱で割る」——まちがい。正味の熱は 325 − 210 − 89.2 = 25.8 J で、これで割ると 100% になってしまう。効率の分母は「吸った熱」325 J で、出した熱は引かない。Q_in = 325 J、Q_out ≈ 299 J、W_net = 25.8 J だ。</p>
+<p>罠：「ばねの 5.0 J は捨てられた熱だ」——まちがい。ばねのエネルギーは 1 サイクルで元に戻るので、捨てられた熱ではない。A→B で 5.0 J たまり、C→A で 5.0 J 返される。捨てられるのは B→C の 210 J と C→A の 89 J の熱だ。</p>
+<p>罠：「このサイクルの効率はカルノー効率を超えられる」——まちがい。どんなサイクルも、同じ 2 つの温度のあいだではカルノー効率を超えられない。7.9% は 39% よりずっと低い。</p>
+<svg class="fig" data-scene="scene-gasCarnotCycle-trap" data-show="" role="img" aria-label="効率の罠の比べ。正しい効率 7.9%、カルノー効率 39%、罠の正味の熱で割ると 100%"></svg>
+<script type="application/json" id="scene-gasCarnotCycle-trap">{"areaM2":0.01,"g":10,"hBM":0.3,"hNatM":0.2,"kNm":1000,"p0Pa":100000,"phase":"trap","pistonKg":10,"rGas":0.733,"tAK":300,"type":"gasCarnotCycle"}</script>
+<label class="check"><input type="checkbox" id="comboGasCarnotCycle-check-4"> 効率の分母は吸った熱で、ばねのエネルギーは捨てた熱ではないと区別できた</label>
+<p><a href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<h2>⑤ 変えたら：k・h_B で効率が変わる</h2>
+<p>k = 2000 N/m なら、p_B = 1.30×10⁵ Pa、T_B ≈ 532 K になる。A→B では W_AB = 120 J、ΔU_AB = 255 J、Q_AB = 375 J、B→C では ΔU_BC = −255 J、C→A では W_CA = −89.2 J で、正味の仕事は 30.8 J、効率は 8.2% になる。カルノー効率は 44% で、やはり効率は低いまま。</p>
+<p>h_B = 0.40 m まで上げると、p_B = 1.30×10⁵ Pa、T_B ≈ 709 K、p_C ≈ 0.55×10⁵ Pa になる。A→B では W_AB = 240 J、ΔU_AB = 450 J、Q_AB = 690 J、B→C では ΔU_BC = −450 J、C→A では W_CA ≈ −152 J で、正味の仕事は 88 J、効率は 13% になる。カルノー効率は 58% になる。温度差が大きいほど効率は上がるが、カルノー効率には届かない。</p>
+<svg class="fig" data-scene="scene-gasCarnotCycle-vary" data-show="" role="img" aria-label="効率の比べ。もと 7.9%、k=2000 8.2%、hB=0.40 m 13%"></svg>
+<script type="application/json" id="scene-gasCarnotCycle-vary">{"areaM2":0.01,"g":10,"hBM":0.3,"hNatM":0.2,"kNm":1000,"p0Pa":100000,"phase":"vary","pistonKg":10,"rGas":0.733,"tAK":300,"type":"gasCarnotCycle"}</script>
+<label class="check"><input type="checkbox" id="comboGasCarnotCycle-check-5"> k・h_B を変えたときの効率を求めた</label>
+</div>
+
+<div class="donebox" id="donebox">
+<p><b>まとめ（答え）</b></p>
+<p>(1) A→B：W = 115 J、ΔU = 210 J、Q = 325 J。B→C：W = 0、ΔU = −210 J、Q = −210 J。C→A：W ≈ −89 J、ΔU = 0。(2) 正味の仕事 25.8 J、効率 7.9%、カルノー効率 39%、カルノーなら 127 J。(3) A→B の仕事の内訳は大気 100 J、重力 10 J、ばね 5.0 J。(4) 効率の分母は吸った熱。ばねのエネルギーは 1 サイクルで元に戻る。</p>
+<p>もとになった単体モデル：気体＋ピストン＋ばねのサイクルは<a href="gas-spring-cycle.html">組み合わせ問題P：気体＋ピストン＋ばね＋サイクル</a>、気体＋ピストンは<a href="gas-piston.html">第7問：気体＋ピストン</a>、熱サイクルは<a href="heat-cycle.html">第16問：熱サイクル</a>、オットーサイクルは<a href="otto-cycle.html">組み合わせ問題AJ：オットーサイクル</a>、気体の断熱振動は<a href="gas-piston-osc.html">組み合わせ問題AE：気体＋ピストン＋断熱振動</a>で確かめられる。</p>
+<p id="done-msg"></p>
+</div>
+
+<p class="nav"><a href="../../index.html">← トップへ</a></p>
+</main>
+<a class="toplink" href="#">↑ TOP</a>
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+const doneKey = 'comboGasCarnotCycleDone';
+const checkIds = ['comboGasCarnotCycle-check-1','comboGasCarnotCycle-check-2','comboGasCarnotCycle-check-3','comboGasCarnotCycle-check-4','comboGasCarnotCycle-check-5'];
+const doneMsg = document.getElementById('done-msg');
+function allChecked() { return checkIds.every(id => document.getElementById(id).checked); }
+function refresh() {
+  if (allChecked()) {
+    doneMsg.textContent = '完了！';
+    loadProgress().then(p => { p[doneKey] = true; return saveProgress(p); }).catch(() => {});
+  } else {
+    doneMsg.textContent = '';
+  }
+}
+checkIds.forEach(id => document.getElementById(id).addEventListener('change', refresh));
+renderAllFigures();
+loadProgress().then(p => { if (p[doneKey]) { doneMsg.textContent = '完了済み ✓'; } }).catch(() => {});
+</script>
+</body>
+</html>
