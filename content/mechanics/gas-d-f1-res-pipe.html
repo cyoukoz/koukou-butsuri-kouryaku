@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題CP：気体＋カルノーサイクル＋ドップラー＋開管の共鳴（D で f1 と共鳴） | 高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.8; max-width: 760px; margin: 0 auto; padding: 16px; color: #222; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 18px; margin-top: 40px; }
+  .top-link { position: fixed; right: 16px; bottom: 16px; background: #fff; border: 1px solid #999; border-radius: 6px; padding: 6px 10px; text-decoration: none; }
+  .step { border: 1px solid #ccc; border-radius: 8px; padding: 12px 16px; margin: 24px 0; }
+  .step h2 { margin-top: 0; }
+  .step table { border-collapse: collapse; margin: 8px 0; }
+  .step th, .step td { border: 1px solid #999; padding: 4px 8px; text-align: left; }
+  .fig { max-width: 400px; width: 100%; display: block; margin: 12px auto; }
+  .next { margin-top: 16px; }
+  .done-box { border: 2px solid #2a7; background: #efe; padding: 16px; margin-top: 48px; }
+  .done-box.done { background: #cfc; }
+  label.step-check { display: block; margin-top: 16px; font-weight: bold; }
+  .nav { margin: 24px 0; }
+  label { display: block; margin: 8px 0; }
+</style>
+</head>
+<body>
+<p class="nav"><a href="../../index.html">← トップへ戻る</a></p>
+<p class="nav"><a href="proj-drag-wall-spring-res-pipe.html">← 前の問題：組み合わせ問題CO・斜方投射＋空気抵抗＋壁＋摩擦＋ばね＋ドップラー＋開管の共鳴</a></p>
+<h1>組み合わせ問題CP：気体＋カルノーサイクル＋ドップラー＋開管の共鳴（D で f1 と共鳴）</h1>
+<p>この問題は、カルノーサイクルにドップラー効果と開管の共鳴を足したものだ。サイクルが回ると、気体の温度が変わる。温度が変わると、管の中の音速が変わる。音速が変わると、管の共鳴する振動数と、ピストンの音のドップラー効果の両方が変わる。温度と速さが橋渡しをする問題だ。BV では A、BZ では B の f1、CF では C、CL では B の f2 が共鳴したが、この問題では D の f1 が共鳴する。</p>
+<p>シリンダーの中にヘリウム（単原子分子気体、γ = 5/3、モル質量 4.0×10⁻³ kg/mol）が入っている。ピストンの上には 1031 Hz の音源がのっている。観測者はピストンの真上にいて、音を聞いている。気体を次のカルノーサイクルで動かす。A（V = 2.0 L、T = 600 K）→B（V = 6.0 L、T = 600 K）：等温膨張。B→C（V = 17.0 L、T = 300 K）：断熱膨張。C→D（V = 5.7 L、T = 300 K）：等温圧縮。D→A：断熱圧縮。nR = 1.0 J/K、R = 8.31 J/(mol・K) とする。シリンダーのそばに、長さ 0.50 m の開管がある。音速は v = √(γRT/M) で求める。各状態の直後のピストンの速さは、A では 34 m/s（上がる）、B では 28 m/s（上がる）、C では 42 m/s（下がる）、D では 12 m/s（下がる）とする。ドップラー効果はその瞬間の速さで決まるので、サイクル全体にかかる時間は関係ない。</p>
+<p>（1）p–V 図とサイクルの仕事・効率を求め、カルノー効率と比べよ。（2）各状態での音速と管の振動数を求めよ。（3）ピストンが動くときの音の高さを求め、共鳴するかどうかを確かめよ。（4）罠と変えたら。</p>
+<p>この問題のもとのモデル：<a href="gas-carnot-cycle.html">組み合わせ問題BN・気体＋ピストン＋ばね＋カルノー効率</a>、<a href="gas-sound-pipe.html">組み合わせ問題BI・気体＋音速＋開管の共鳴</a>、<a href="gas-cycle-res-pipe.html">組み合わせ問題BR・気体＋ピストン＋ばね＋音速＋開管の共鳴</a>、<a href="gas-cycle-doppler-res-pipe.html">組み合わせ問題BV・気体＋ピストン＋ばね＋音速＋ドップラー＋開管の共鳴</a>、<a href="gas-carnot-doppler-res-pipe.html">組み合わせ問題BZ・気体＋ピストン＋ばね＋カルノー効率＋ドップラー＋開管の共鳴</a>、<a href="gas-b-f2-res-pipe.html">組み合わせ問題CL・気体＋ピストン＋ばね＋カルノー効率＋ドップラー＋開管の共鳴（B で f2 と共鳴）</a>、<a href="gas-spring-cycle.html">組み合わせ問題P・気体＋ピストン＋ばね＋サイクル</a>、<a href="doppler.html">Q18・ドップラー効果</a>、<a href="standing-wave.html">Q14・定常波</a></p>
+
+<div class="step" id="step0">
+<h2>はじめに：この問題の切れ目</h2>
+<table>
+<tr><th>切れ目</th><th>何をするか</th><th>使うモデル</th></tr>
+<tr><td>サイクル</td><td>仕事と効率、カルノー効率との比べ</td><td>カルノーサイクル</td></tr>
+<tr><td>音速</td><td>温度で音速が決まる</td><td>気体の音速</td></tr>
+<tr><td>ドップラー</td><td>ピストンの動きで音が変わる</td><td>ドップラー効果</td></tr>
+<tr><td>共鳴管</td><td>音と管の振動数の一致</td><td>開管の共鳴</td></tr>
+</table>
+<p>この問題の橋渡しの量は温度と速さだ。状態 A・B・C・D の温度が管の中の音速を決め、音速とピストンの速さがドップラー音を決める。温度が変われば、共鳴するかどうかも変わる。BV では A で、BZ では B の f1 で、CF では C で、CL では B の f2 で共鳴したが、この問題では D の f1 が共鳴する。D は最も冷たい点で、断熱圧縮 D→A の始点であり、ピストンの速さも最も小さい。</p>
+<svg class="fig" data-scene="scene-gasDF1ResPipe-base" data-show="" role="img" aria-label="気体、カルノーサイクル、ドップラー、共鳴の流れの図"></svg>
+<script type="application/json" id="scene-gasDF1ResPipe-base">{"fSrcHz":1031,"g":10,"gamma":1.6666666666666667,"molarKg":0.004,"nRJperK":1.0,"phase":"base","pipeLM":0.5,"rGas":8.31,"tCK":300,"tHK":600,"type":"gasDF1ResPipe","vAL":2.0,"vBL":6.0,"vsA":34,"vsB":28,"vsC":42,"vsD":12}</script>
+<p class="next"><a href="#step1">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step1">
+<h2>① サイクル：p–V 図と正味の仕事、カルノー効率との比べ</h2>
+<p>まず、気体のサイクルを p–V 図で確認する。状態 A では、p<sub>A</sub> = nRT/V = 1.0×600/2.0×10⁻³ = 3.00×10⁵ Pa、V<sub>A</sub> = 2.0 L になる。状態 B では、T = 600 K のまま V = 6.0 L になるので p<sub>B</sub> = 1.00×10⁵ Pa になる。B→C は断熱膨張で、V<sub>C</sub> = 6.0×(600/300)<sup>3/2</sup> = 17.0 L、T<sub>C</sub> = 300 K、p<sub>C</sub> = 0.18×10⁵ Pa になる。C→D は等温圧縮で、V<sub>D</sub> = 2.0×(600/300)<sup>3/2</sup> = 5.7 L、T<sub>D</sub> = 300 K、p<sub>D</sub> = 0.53×10⁵ Pa になる。D→A は断熱圧縮で、A に戻る。</p>
+<p>A→B では、仕事は W<sub>AB</sub> = nRT ln(V<sub>B</sub>/V<sub>A</sub>) = nRT ln 3 ≈ 660 J、内部エネルギーの変化は ΔU<sub>AB</sub> = 0、吸熱は Q<sub>AB</sub> = 660 J になる。B→C では Q<sub>BC</sub> = 0、W<sub>BC</sub> = 450 J、ΔU<sub>BC</sub> = −450 J になる。C→D では、W<sub>CD</sub> = nRT ln(V<sub>D</sub>/V<sub>C</sub>) = nRT ln(1/3) ≈ −330 J、ΔU<sub>CD</sub> = 0、Q<sub>CD</sub> = −330 J になる。D→A では Q<sub>DA</sub> = 0、W<sub>DA</sub> = −450 J、ΔU<sub>DA</sub> = 450 J になる。</p>
+<p>正味の仕事は、p–V 図に囲まれた面積で、W<sub>net</sub> = 660 + 450 − 330 − 450 = 330 J になる。効率は η = W<sub>net</sub>/Q<sub>AB</sub> = 330/660 = 50% になる。同じ 300 K と 600 K のあいだのカルノー効率は η<sub>C</sub> = 1 − 300/600 = 50% で、このサイクルはカルノーサイクルだから、効率はカルノー効率と等しい。厳密な値は、W<sub>AB</sub> = 659.17 J、W<sub>CD</sub> = −329.58 J、正味の仕事は 329.59 J、吸熱は 659.17 J だ。</p>
+<svg class="fig" data-scene="scene-gasDF1ResPipe-pv" data-show="" role="img" aria-label="気体のカルノーサイクルのp-V図。囲まれた面積が正味の仕事 330 J。温度はA・B 600 K、C・D 300 K。"></svg>
+<script type="application/json" id="scene-gasDF1ResPipe-pv">{"fSrcHz":1031,"g":10,"gamma":1.6666666666666667,"molarKg":0.004,"nRJperK":1.0,"phase":"pv","pipeLM":0.5,"rGas":8.31,"tCK":300,"tHK":600,"type":"gasDF1ResPipe","vAL":2.0,"vBL":6.0,"vsA":34,"vsB":28,"vsC":42,"vsD":12}</script>
+<svg class="fig" data-scene="scene-gasDF1ResPipe-carnot" data-show="" role="img" aria-label="効率の比べ。このサイクル 50%、カルノー効率 50%。"></svg>
+<script type="application/json" id="scene-gasDF1ResPipe-carnot">{"fSrcHz":1031,"g":10,"gamma":1.6666666666666667,"molarKg":0.004,"nRJperK":1.0,"phase":"carnot","pipeLM":0.5,"rGas":8.31,"tCK":300,"tHK":600,"type":"gasDF1ResPipe","vAL":2.0,"vBL":6.0,"vsA":34,"vsB":28,"vsC":42,"vsD":12}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> 正味の仕事 330 J、効率 50%、カルノー効率 50% を確認した</label>
+<p class="next"><a href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<h2>② 音速と管の振動数：温度が決める</h2>
+<p>気体の中の音速は v = √(γRT/M) だ。温度 T が上がると、音速は √T に比例して大きくなる。</p>
+<p>状態 C・D（300 K）では、v = √(1.667×8.31×300/0.004) = 1020 m/s になる。開管の振動数は f<sub>n</sub> = nv/(2L) で、L = 0.50 m だから f<sub>1</sub> = 1019 Hz、f<sub>2</sub> = 2038 Hz、f<sub>3</sub> = 3058 Hz になる。厳密な値は、音速が 1019.19 m/s、f<sub>1</sub> = 1019.19 Hz、f<sub>2</sub> = 2038.38 Hz、f<sub>3</sub> = 3057.57 Hz だ。</p>
+<p>状態 A・B（600 K）では、v = 1020×√(600/300) = 1440 m/s になる。開管の振動数は f<sub>1</sub> = 1441 Hz、f<sub>2</sub> = 2883 Hz、f<sub>3</sub> = 4324 Hz になる。厳密な値は、音速が 1441.35 m/s、f<sub>1</sub> = 1441.35 Hz、f<sub>2</sub> = 2882.71 Hz、f<sub>3</sub> = 4324.06 Hz だ。</p>
+<p>ピストンの上の音源の振動数は 1031 Hz だ。音源そのものは、管の振動数（300 K では 1019・2038・3058 Hz、600 K では 1441・2883・4324 Hz）と一致しない。音源が止まっているときは、共鳴は起こらない。</p>
+<svg class="fig" data-scene="scene-gasDF1ResPipe-sound" data-show="" role="img" aria-label="管のf1と音源の振動数の比べ。300 K では音速 1020 m/s、f1=1019 Hz。600 K では音速 1440 m/s、f1=1441 Hz。音源 1031 Hz は管の振動数と合わない。"></svg>
+<script type="application/json" id="scene-gasDF1ResPipe-sound">{"fSrcHz":1031,"g":10,"gamma":1.6666666666666667,"molarKg":0.004,"nRJperK":1.0,"phase":"sound","pipeLM":0.5,"rGas":8.31,"tCK":300,"tHK":600,"type":"gasDF1ResPipe","vAL":2.0,"vBL":6.0,"vsA":34,"vsB":28,"vsC":42,"vsD":12}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> 300 K で音速 1020 m/s・f1=1019 Hz、600 K で音速 1440 m/s・f1=1441 Hz を確認した</label>
+<p class="next"><a href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<h2>③ ドップラーと共鳴：A・B・C では共鳴しないが、D の f1 で共鳴する</h2>
+<p>ピストンが観測者に近づくとき、聞こえる音は f′ = f<sub>0</sub>·V/(V − v<sub>s</sub>) になる。遠ざかるときは f′ = f<sub>0</sub>·V/(V + v<sub>s</sub>) になる。音速 V は、そのときの気体の温度のものを使わなければならない。</p>
+<p>A の直後（600 K、34 m/s で上がる）では、音は f′ = 1031×1441/(1441 − 34) = 1056 Hz になる。厳密な値は 1055.91 Hz で、管の振動数（1441・2883・4324 Hz）とは一致しない。だから、A では共鳴しない。</p>
+<p>B の直後（600 K、28 m/s で上がる）では、音は f′ = 1031×1441/(1441 − 28) = 1051 Hz になる。厳密な値は 1051.43 Hz で、管の振動数とは一致しない。だから、B でも共鳴しない。</p>
+<p>C の直後（300 K、42 m/s で下がる）では、音は遠ざかるので f′ = 1031×1019/(1019 + 42) = 990 Hz になる。厳密な値は 990.19 Hz で、管の振動数（1019・2038・3058 Hz）とは一致しない。だから、C でも共鳴しない。</p>
+<p>D の直後（300 K、12 m/s で下がる）では、音は f′ = 1031×1019/(1019 + 12) = 1019 Hz になる。厳密な値は 1019.00 Hz で、管の f<sub>1</sub>（厳密には 1019.19 Hz）と有効数字 3 けたで一致する。どちらも 1019 Hz になるので、D では共鳴する。同じ音源でも、温度と速さが変わると、共鳴するかどうかが変わる。D は最も冷たい点で、ピストンの速さも最も小さい。速さが小さいからこそ、ドップラー音は音源の 1031 Hz に近く、管の f<sub>1</sub> = 1019 Hz と一致する。</p>
+<p>音源が止まっているときは、音は 1031 Hz のままで、どの状態でも管の振動数と合わない。</p>
+<svg class="fig" data-scene="scene-gasDF1ResPipe-doppler" data-show="" role="img" aria-label="ドップラー音と管の振動数の比べ。A では 1056 Hz、B では 1051 Hz、C では 990 Hz で合わない。D では 1019 Hz が f1 と一致して共鳴。音速はその状態の温度で計算する。"></svg>
+<script type="application/json" id="scene-gasDF1ResPipe-doppler">{"fSrcHz":1031,"g":10,"gamma":1.6666666666666667,"molarKg":0.004,"nRJperK":1.0,"phase":"doppler","pipeLM":0.5,"rGas":8.31,"tCK":300,"tHK":600,"type":"gasDF1ResPipe","vAL":2.0,"vBL":6.0,"vsA":34,"vsB":28,"vsC":42,"vsD":12}</script>
+<svg class="fig" data-scene="scene-gasDF1ResPipe-resonate" data-show="" role="img" aria-label="開管のf1の定常波。開管 L=0.50 m、f1=1019 Hz、両端が腹・中央が節。D のドップラー音と一致して共鳴。A のドップラー音 1056 Hz は合わない。"></svg>
+<script type="application/json" id="scene-gasDF1ResPipe-resonate">{"fSrcHz":1031,"g":10,"gamma":1.6666666666666667,"molarKg":0.004,"nRJperK":1.0,"phase":"resonate","pipeLM":0.5,"rGas":8.31,"tCK":300,"tHK":600,"type":"gasDF1ResPipe","vAL":2.0,"vBL":6.0,"vsA":34,"vsB":28,"vsC":42,"vsD":12}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> D のドップラー音 1019 Hz は f1 と一致して共鳴し、A・B・C の音は合わないことを確認した</label>
+<p class="next"><a href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<h2>④ 罠：温度を無視すると、共鳴を見逃す</h2>
+<p>罠 1：「音源そのものが共鳴する」——まちがい。1031 Hz は管の振動数（300 K では 1019・2038・3058 Hz、600 K では 1441・2883・4324 Hz）と一致しない。f<sub>1</sub> = 1019 Hz とは 12 Hz しか離れていないが、有効数字 3 けたでは 1031 Hz と 1019 Hz で、一致しない。</p>
+<p>罠 2：「いちばん速いピストンの音が共鳴する」——まちがい。ピストンが最も速いのは C の 42 m/s だが、その音は 990 Hz で、管の f<sub>1</sub> = 1019 Hz とは 29 Hz 離れていて合わない。速いからといって共鳴するとは限らない。いちばん高い音も A の 1056 Hz で、管とは合わない。</p>
+<p>罠 3：「D の音を 600 K の音速で計算する」——まちがい。600 K の音速 1441 m/s を使うと、f′ = 1031×1441/(1441 + 12) = 1022 Hz になり、管の f<sub>1</sub>（1019 Hz）と有効数字 3 けたで一致しないので「D では共鳴しない」と思ってしまう。D の音速は 300 K で計算して 1019 m/s、ドップラー音は 1019 Hz で、管の f<sub>1</sub> = 1019 Hz と一致して共鳴する。音速は、その状態の温度で計算しなければならない。</p>
+<p>罠 4：「音速は温度に比例する」——まちがい。v ∝ T だと思うと、600 K の音速は 1019×600/300 = 2040 m/s、f<sub>1</sub> = 2038 Hz、ドップラー音は 1031×2038/(2038 − 34) = 1048 Hz になる。正しくは v ∝ √T で、音速は 1441 m/s、f<sub>1</sub> = 1441 Hz、ドップラー音は 1056 Hz だ。</p>
+<p>罠 5：「断熱過程の仕事は熱だ」——まちがい。B→C の仕事 450 J と D→A の仕事 −450 J は、熱の出入りではない。断熱過程では Q = 0 で、仕事は内部エネルギーの変化になる。B→C では ΔU = −450 J、D→A では ΔU = +450 J だ。吸った熱は A→B の 660 J だけで、効率の分母は 660 J だ。</p>
+<svg class="fig" data-scene="scene-gasDF1ResPipe-trap" data-show="" role="img" aria-label="D のドップラー音の比べ。D の音速は 300 K で計算する。600 K のまま使うと 1022 Hz に見える。v ∝ T はまちがい、v ∝ √T。"></svg>
+<script type="application/json" id="scene-gasDF1ResPipe-trap">{"fSrcHz":1031,"g":10,"gamma":1.6666666666666667,"molarKg":0.004,"nRJperK":1.0,"phase":"trap","pipeLM":0.5,"rGas":8.31,"tCK":300,"tHK":600,"type":"gasDF1ResPipe","vAL":2.0,"vBL":6.0,"vsA":34,"vsB":28,"vsC":42,"vsD":12}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> D の音は 300 K の音速で計算して 1019 Hz になること、断熱過程の仕事は熱ではないことを確認した</label>
+<p class="next"><a href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<h2>⑤ 変えたら：管・音源・気体・体積比を変えると？</h2>
+<p>L = 1.00 m なら、300 K では f<sub>1</sub> = 510 Hz、f<sub>2</sub> = 1019 Hz になるので、D の音 1019 Hz は f<sub>2</sub> と一致して、やはり共鳴する。600 K では f<sub>1</sub> = 721 Hz、f<sub>2</sub> = 1441 Hz になり、A の音 1056 Hz は合わない。L = 0.25 m なら、300 K では f<sub>1</sub> = 2038 Hz、600 K では f<sub>1</sub> = 2883 Hz になり、どの音も合わないので、共鳴しない。</p>
+<p>音源を 900 Hz の音さに変えると、A ではドップラー音は 922 Hz、B では 918 Hz、C では 864 Hz、D では 890 Hz になり、管の振動数とは合わない。止まっているときは 900 Hz のままで、どの状態でも共鳴しない。</p>
+<p>気体を水素（2 原子分子気体、γ = 7/5、モル質量 2.0×10⁻³ kg/mol）に変えると、音速は 300 K で 1320 m/s、600 K で 1870 m/s になる。管の振動数は 300 K で f<sub>1</sub> = 1321 Hz、600 K で f<sub>1</sub> = 1868 Hz になる。ドップラー音は A で 1050 Hz、B で 1047 Hz、C で 999 Hz、D で 1022 Hz になり、管の振動数とは合わないので、共鳴しない。断熱膨張の体積は V<sub>C</sub> = 33.9 L、V<sub>D</sub> = 11.3 L と大きくなるが、正味の仕事は 330 J、効率は 50% のままで変わらない。カルノーサイクルだから、γ を変えても効率は変わらない。</p>
+<p>等温膨張の体積比を 2 倍（V<sub>B</sub> = 4.0 L）にすると、W<sub>AB</sub> = 416 J、正味の仕事は 208 J になるが、効率は 50% のまま変わらない。温度とピストンの速さは変わらないので、D の音 1019 Hz は f<sub>1</sub> と一致して、やはり共鳴する。</p>
+<p>閉管の振動数は奇数倍だけで、300 K では 510・1529・2548 Hz、600 K では 721・2162・3603 Hz になり、どのドップラー音とも一致しない。</p>
+<svg class="fig" data-scene="scene-gasDF1ResPipe-vary" data-show="" role="img" aria-label="変えたらの D の音。L=1.00 m は f2=1019 Hz で共鳴。f0=900 Hz は 890 Hz で合わない。γ=7/5 は 1022 Hz で合わない。"></svg>
+<script type="application/json" id="scene-gasDF1ResPipe-vary">{"fSrcHz":1031,"g":10,"gamma":1.6666666666666667,"molarKg":0.004,"nRJperK":1.0,"phase":"vary","pipeLM":0.5,"rGas":8.31,"tCK":300,"tHK":600,"type":"gasDF1ResPipe","vAL":2.0,"vBL":6.0,"vsA":34,"vsB":28,"vsC":42,"vsD":12}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> 変えたら（L・音源・γ・体積比）の共鳴の有無を確認した</label>
+<p class="next"><a href="#done">まとめへ ↓</a></p>
+</div>
+
+<div class="done-box" id="doneBox">
+<h2>まとめ：この問題でおさえること</h2>
+<p>（1）正味の仕事 330 J、効率 50%、カルノー効率 50%。（2）300 K：音速 1020 m/s、f<sub>1</sub> = 1019、f<sub>2</sub> = 2038、f<sub>3</sub> = 3058 Hz。600 K：音速 1440 m/s、f<sub>1</sub> = 1441、f<sub>2</sub> = 2883、f<sub>3</sub> = 4324 Hz。（3）A の 1056 Hz・B の 1051 Hz・C の 990 Hz は管とは合わないが、D の 1019 Hz は管の f<sub>1</sub> と一致して共鳴する。（4）ドップラー音の音速は、その状態の温度で計算する。v ∝ √T。断熱過程の仕事は熱ではない。</p>
+<p><button id="doneBtn">完了にする</button> <span id="doneMsg"></span></p>
+</div>
+
+<p class="nav"><a href="../../index.html">← トップへ戻る</a></p>
+<a class="top-link" href="#">↑ TOP</a>
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  const doneKey = 'comboGasDF1ResPipeDone';
+  const doneBtn = document.getElementById('doneBtn');
+  const doneMsg = document.getElementById('doneMsg');
+  const doneBox = document.getElementById('doneBox');
+  function refreshDone(msg) {
+    loadProgress().then((p) => {
+      if (p && p[doneKey]) { doneBox.classList.add('done'); doneMsg.textContent = '完了済み ✓'; }
+      else if (msg) { doneMsg.textContent = msg; }
+    });
+  }
+  doneBtn.addEventListener('click', () => {
+    loadProgress().then((p) => {
+      p = p || {};
+      p[doneKey] = true;
+      return saveProgress(p);
+    }).then(() => refreshDone('完了！'));
+  });
+  refreshDone();
+</script>
+</body>
+</html>
