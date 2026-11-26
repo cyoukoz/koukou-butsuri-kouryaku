@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせCJ：斜面＋滑車＋ばね＋摩擦＋ドップラー＋開管の共鳴｜高校物理攻略</title>
+<style>
+  body { font-family: system-ui, sans-serif; line-height: 1.8; max-width: 760px; margin: 0 auto; padding: 16px; color: #222; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 18px; margin-top: 40px; }
+  .step h2 { font-size: 18px; }
+  .step { border-top: 2px solid #888; padding-top: 8px; margin-top: 48px; }
+  .fig { width: 100%; max-width: 400px; height: auto; display: block; margin: 16px auto; border: 1px solid #ccc; }
+  .nav { margin: 16px 0; font-size: 14px; }
+  .nav a { color: #06c; }
+  .done-box { border: 2px solid #2a7; background: #efe; padding: 16px; margin-top: 48px; }
+  .done-box.done { background: #cfc; }
+  .top-link { position: fixed; right: 16px; bottom: 16px; background: #fff; border: 1px solid #888; padding: 8px 12px; border-radius: 4px; }
+  .top-link a { color: #06c; text-decoration: none; }
+  label.step-check { display: block; margin-top: 16px; font-weight: bold; }
+  .next-link { margin-top: 24px; }
+  .slice-map { background: #f5f5f5; padding: 12px 16px; border-radius: 6px; }
+  .slice-map li { margin: 4px 0; }
+</style>
+</head>
+<body>
+<div class="nav"><a href="../../index.html">← トップへ</a> ｜ <a href="proj-drag-wall-land-res-pipe.html">← 前の問題：CI 斜方投射＋空気抵抗＋壁＋摩擦＋ばね＋ドップラー＋開管の共鳴</a></div>
+<h1>組み合わせCJ：斜面＋滑車＋ばね＋摩擦＋ドップラー＋開管の共鳴</h1>
+<p>問題：図のように、質量 m1 = 2.0 kg の小球が傾き θ = 30° のなめらかな斜面の上にあり、軽い糸で質量 m2 = 1.0 kg のおもりとつながれている。糸は斜面の上端の軽い滑車を通り、おもりは鉛直に下がっている。おもりの下には、ばね定数 k = 120 N/m のばねがついており、ばねの下端は床に固定されている。m1 と斜面の間の動摩擦係数は μ = 0.10 とする。重力加速度は g = 10 m/s² とする。</p>
+<p>はじめ、おもりはばねが自然長の位置で静止している。この状態から m1 を斜面の下向きに 0.10 m だけ引いて静かに放す。m2 には振動数 f0 = 2002 Hz の音源がついており、音速は 340 m/s とする。観測者は m2 の真上の台にいて、音を聞いている。観測者の台のそばには、長さ L = 0.085 m の開管（両端が開いた管）が置かれている。</p>
+<p>この問題は、単体モデルの組み合わせです。BM「斜面＋滑車＋ばね＋摩擦＋ドップラー」と BE「ドップラー＋開管の共鳴」を組み合わせた問題です。BU では最初の中心の音が共鳴し、CB では折り返し点の音が共鳴しましたが、この問題では 2 番目の中心の音が共鳴します。橋渡しになる量は「速さ」です。</p>
+<p>単体モデルのページ：<a href="slope-pulley-doppler.html">BM 斜面＋滑車＋ばね＋摩擦＋ドップラー</a> ｜ <a href="doppler-resonance.html">BE ドップラー＋開管の共鳴</a> ｜ <a href="slope-pulley-fric.html">AW 斜面＋滑車＋ばね＋摩擦</a> ｜ <a href="doppler.html">Q18 ドップラー効果</a> ｜ <a href="shm.html">Q11 単振動</a></p>
+<ol class="slice-map">
+<li>① つり合い：m1 g sinθ = m2 g = 10 N、ばねは自然長</li>
+<li>② 単振動：振幅は半周期ごとに 0.029 m 減る</li>
+<li>③ ドップラーと共鳴：2 番目の中心の音が管の f1 と一致する</li>
+<li>④ 罠：音源の 2002 Hz は共鳴しない</li>
+<li>⑤ 変えたら：L・f0・閉管・μ・k で共鳴は変わるか</li>
+</ol>
+
+<svg class="fig" data-scene="scene-slopePulleySecondCentreResPipe-base" data-show="" role="img" aria-label="流れ：斜面、滑車、ばね、音源、開管"></svg>
+<script type="application/json" id="scene-slopePulleySecondCentreResPipe-base">{"type":"slopePulleySecondCentreResPipe","phase":"base","m1Kg":2.0,"m2Kg":1.0,"kNperM":120,"thetaDeg":30,"ampM":0.10,"mu":0.10,"f0Hz":2002,"vSoundMs":340,"pipeLM":0.085,"g":10}</script>
+
+<div class="step" id="step1">
+<h2>① つり合い：m1 g sinθ = m2 g = 10 N、ばねは自然長</h2>
+<p>まず、放す前のつり合いを調べます。m1 にはたらく斜面に沿った重力の成分は、m1 g sinθ = 2.0 × 10 × sin30° = 10 N です。m2 の重力は m2 g = 1.0 × 10 = 10 N です。2 つが等しいので、糸の張力は 10 N でつり合います。このとき、ばねには力がかかっていないので、ばねは自然長のままです。</p>
+<p>斜面に垂直な方向では、m1 に垂直抗力 N = m1 g cosθ = 2.0 × 10 × 0.87 = 17 N がはたらきます。摩擦力は、つり合いの状態では向きが決まりません。動き出してから、動きを妨げる向きにはたらきます。</p>
+<p>図の m2 の右上の赤い点が音源です。観測者は m2 の真上の台にいて、音を聞いています。音源が止まっているとき、観測者に聞こえる音は f0 = 2002 Hz そのものです。</p>
+<svg class="fig" data-scene="scene-slopePulleySecondCentreResPipe-equilibrium" data-show="" role="img" aria-label="つり合いの図：張力 10 N、重力 20 N、垂直抗力 17 N"></svg>
+<script type="application/json" id="scene-slopePulleySecondCentreResPipe-equilibrium">{"type":"slopePulleySecondCentreResPipe","phase":"equilibrium","m1Kg":2.0,"m2Kg":1.0,"kNperM":120,"thetaDeg":30,"ampM":0.10,"mu":0.10,"f0Hz":2002,"vSoundMs":340,"pipeLM":0.085,"g":10}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ①が分かった：つり合いは m1 g sinθ = m2 g = 10 N、ばねは自然長</label>
+<p class="next-link"><a href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<h2>② 単振動：振幅は半周期ごとに 0.029 m 減る</h2>
+<p>m1 を 0.10 m 引いて放すと、2 つの物体は 1 つの単振動をします。質量の合計は M = m1 + m2 = 3.0 kg なので、角振動数は ω = √(k/M) = √(120/3.0) = 6.3 rad/s、周期は T = 2π/ω = 0.99 s、半周期は 0.50 s です。</p>
+<p>摩擦があるので、つり合いの位置は半周期ごとにずれます。摩擦力は f = μN = 0.10 × 17 = 1.7 N で、つり合いの位置のずれは f/k = 1.7/120 = 0.014 m です。振幅は半周期ごとに 2f/k = 0.029 m ずつ減ります。折り返し点は 0.10 m → −0.071 m → 0.042 m → −0.013 m と移り、3 半周期（1.5 s）で止まります。</p>
+<p>中心を通るときの速さは、半周期ごとに 0.54 m/s、0.36 m/s、0.18 m/s と小さくなります。はじめのエネルギーは (1/2)kA² = 0.60 J で、摩擦熱 0.59 J と最後のばねのエネルギー 0.011 J になります。すべった距離は 0.34 m です。</p>
+<svg class="fig" data-scene="scene-slopePulleySecondCentreResPipe-oscillate" data-show="" role="img" aria-label="x-t グラフ：半周期ごとに折れ点がずれ、1.5 s で止まる"></svg>
+<script type="application/json" id="scene-slopePulleySecondCentreResPipe-oscillate">{"type":"slopePulleySecondCentreResPipe","phase":"oscillate","m1Kg":2.0,"m2Kg":1.0,"kNperM":120,"thetaDeg":30,"ampM":0.10,"mu":0.10,"f0Hz":2002,"vSoundMs":340,"pipeLM":0.085,"g":10}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ②が分かった：ω=6.3 rad/s、T=0.99 s、振幅は半周期ごとに 0.029 m 減る</label>
+<p class="next-link"><a href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<h2>③ ドップラーと共鳴：2 番目の中心の音が管の f1 と一致する</h2>
+<p>音源は m2 と一緒に上下に動きます。音源が観測者に近づくとき、聞こえる音は高くなります。ドップラー効果の式 f′ = f0 × V/(V − vs)（近づくとき）を使います。音速は V = 340 m/s です。</p>
+<p>最初の半周期では、中心を通るときの速さは 0.54 m/s なので、音は f′ = 2002 × 340/(340 − 0.54) = 2005 Hz になります。2 番目の中心では 2000 Hz、3 番目の中心では 2003 Hz です。折り返し点では音源が一瞬止まるので、音は 2002 Hz のままです。うなりの最大は 3.2 Hz です。時刻ごとの音の高さは、0.25 s で 2005 Hz、0.50 s で 2002 Hz、0.75 s で 2000 Hz、1.0 s で 2002 Hz、1.25 s で 2003 Hz、止まったとき 2002 Hz です。</p>
+<p>観測者の台のそばには、長さ L = 0.085 m の開管があります。開管の振動数は f_n = n·V/(2L) で、f1 = 340/(2 × 0.085) = 2000 Hz、f2 = 4000 Hz、f3 = 6000 Hz です。2 番目の中心の音は、厳密には 1999.89 Hz で、管の f1 = 2000.00 Hz とは 0.11 Hz しか離れておらず、有効数字 3 けたでは 2000 Hz となり、管の f1 と一致します。だから、2 番目の中心を通る瞬間だけ、管が共鳴します。最初の中心の音は 2005.19 Hz、3 番目の中心の音は 2003.04 Hz で、どちらも管の振動数と一致しないので共鳴しません。</p>
+<p>共鳴するのは、中心を通る一瞬だけです。音源が止まっている折り返し点では、音は 2002 Hz のままで、管とは共鳴しません。</p>
+<svg class="fig" data-scene="scene-slopePulleySecondCentreResPipe-doppler" data-show="" role="img" aria-label="f'(t) グラフ：最大 2005 Hz、最小 2000 Hz、管の f1 2000 Hz の破線"></svg>
+<script type="application/json" id="scene-slopePulleySecondCentreResPipe-doppler">{"type":"slopePulleySecondCentreResPipe","phase":"doppler","m1Kg":2.0,"m2Kg":1.0,"kNperM":120,"thetaDeg":30,"ampM":0.10,"mu":0.10,"f0Hz":2002,"vSoundMs":340,"pipeLM":0.085,"g":10}</script>
+<svg class="fig" data-scene="scene-slopePulleySecondCentreResPipe-resonate" data-show="" role="img" aria-label="開管の共鳴：両端が腹、中央が節、f1=2000 Hz"></svg>
+<script type="application/json" id="scene-slopePulleySecondCentreResPipe-resonate">{"type":"slopePulleySecondCentreResPipe","phase":"resonate","m1Kg":2.0,"m2Kg":1.0,"kNperM":120,"thetaDeg":30,"ampM":0.10,"mu":0.10,"f0Hz":2002,"vSoundMs":340,"pipeLM":0.085,"g":10}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ③が分かった：2 番目の中心の音は 2000 Hz で管の f1 と一致して共鳴する</label>
+<p class="next-link"><a href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<h2>④ 罠：音源の 2002 Hz は共鳴しない</h2>
+<p>罠が 3 つあります。1 つ目は、音源そのものの振動数 2002 Hz は、管のどの振動数とも一致しないことです。管の振動数は 2000 Hz、4000 Hz、6000 Hz で、2002 Hz はどれとも合いません。音源が止まっているときに聞こえる音は共鳴しません。</p>
+<p>2 つ目は、共鳴するのは 2 番目の中心の一瞬だけだということです。最初の中心の音は 2005 Hz、3 番目の中心の音は 2003 Hz で、どちらも管の f1 = 2000 Hz とは一致しません。3 つ目は、最初の中心が一番速いからといって、共鳴するとは限らないことです。最初の中心の速さは 0.54 m/s で一番速いのですが、音は 2005 Hz で、管の f1 = 2000 Hz とは 5 Hz も離れています。</p>
+<p>摩擦がなかったらどうなるでしょうか。摩擦がなければ、振幅は 0.10 m のままで、中心の速さはずっと 0.63 m/s です。中心の音は近づくとき 2005.73 Hz、遠ざかるとき 1998.28 Hz になり、有効数字 3 けたでは 2006 Hz と 1998 Hz で、管の f1 = 2000 Hz とは一致しません。摩擦があるからこそ、2 番目の中心の音が 1999.89 Hz（有効数字 3 けたでは 2000 Hz）になって共鳴するのです。</p>
+<svg class="fig" data-scene="scene-slopePulleySecondCentreResPipe-trap" data-show="" role="img" aria-label="音の高さの比べ：最初の中心 2005 Hz、折り返し点 2002 Hz、2 番目の中心 2000 Hz、3 番目の中心 2003 Hz"></svg>
+<script type="application/json" id="scene-slopePulleySecondCentreResPipe-trap">{"type":"slopePulleySecondCentreResPipe","phase":"trap","m1Kg":2.0,"m2Kg":1.0,"kNperM":120,"thetaDeg":30,"ampM":0.10,"mu":0.10,"f0Hz":2002,"vSoundMs":340,"pipeLM":0.085,"g":10}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ④が分かった：2002 Hz は共鳴しない、共鳴するのは 2 番目の中心の一瞬だけ</label>
+<p class="next-link"><a href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<h2>⑤ 変えたら：L・f0・閉管・μ・k で共鳴は変わるか</h2>
+<p>管の長さを L = 0.17 m にすると、f1 = 1000 Hz、f2 = 2000 Hz になります。2 番目の中心の音 2000 Hz は f2 と一致するので、やはり共鳴します。管の長さを L = 0.0425 m にすると、f1 = 4000 Hz になり、2 番目の中心の音とは一致しないので共鳴しません。</p>
+<p>音源の振動数を f0 = 1900 Hz にすると、中心の音は 1903 Hz、1898 Hz、1901 Hz になり、管の振動数とは一致しないので共鳴しません。閉管（片端が閉じた管）にすると、振動数は 1000 Hz、3000 Hz、5000 Hz になり、2 番目の中心の音 2000 Hz とは一致しないので共鳴しません。</p>
+<p>摩擦係数を μ = 0.20 にすると、つり合いの位置のずれは 0.029 m になり、折り返し点は 0.10 m → −0.042 m → −0.015 m と移って 2 半周期（1.0 s）で止まります。中心の音は 2005 Hz（厳密には 2004.65 Hz）と 2002 Hz（厳密には 2001.50 Hz）になり、どちらも管の f1 = 2000 Hz とは一致しないので共鳴しません。ばね定数を k = 200 N/m にすると、ω = 8.2 rad/s、T = 0.77 s になり、6 半周期（2.3 s）つづきます。中心の音は 2006 Hz、1998 Hz、2005 Hz、2000 Hz、2003 Hz、2002 Hz で、4 番目の中心の音は厳密には 2000.11 Hz になって、管の f1 と一致して共鳴します。</p>
+<svg class="fig" data-scene="scene-slopePulleySecondCentreResPipe-vary" data-show="" role="img" aria-label="共鳴の比べ：2 番目の中心 2000 Hz、L=0.17 m の f2 2000 Hz、f0=1900 Hz の 1898 Hz、閉管の f1 1000 Hz"></svg>
+<script type="application/json" id="scene-slopePulleySecondCentreResPipe-vary">{"type":"slopePulleySecondCentreResPipe","phase":"vary","m1Kg":2.0,"m2Kg":1.0,"kNperM":120,"thetaDeg":30,"ampM":0.10,"mu":0.10,"f0Hz":2002,"vSoundMs":340,"pipeLM":0.085,"g":10}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ⑤が分かった：L=0.17 m なら f2 で共鳴、f0=1900 Hz・閉管・μ=0.20 なら共鳴しない、k=200 なら 4 番目の中心で共鳴する</label>
+</div>
+
+<div class="done-box" id="doneBox">
+<p><strong>まとめ</strong></p>
+<p>斜面＋滑車＋ばね＋摩擦の単振動（ω=6.3 rad/s、T=0.99 s、振幅は半周期ごとに 0.029 m 減る）に、ドップラー効果と開管の共鳴を組み合わせました。中心の音は 2005 Hz、2000 Hz、2003 Hz で、2 番目の中心だけが管の f1 = 2000 Hz と一致して共鳴します。音源そのものの 2002 Hz は共鳴しません。折り返し点の音も 2002 Hz で共鳴しません。橋渡しになった量は「速さ」でした。</p>
+<p><button id="doneBtn">完了にする</button> <span id="doneMsg"></span></p>
+</div>
+
+<div class="top-link"><a href="#">↑ TOP</a></div>
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  const doneKey = 'comboSlopePulleySecondCentreResPipeDone';
+  const doneBtn = document.getElementById('doneBtn');
+  const doneMsg = document.getElementById('doneMsg');
+  const doneBox = document.getElementById('doneBox');
+  function refreshDone(msg) {
+    loadProgress().then((p) => {
+      if (p && p[doneKey]) { doneBox.classList.add('done'); doneMsg.textContent = '完了済み ✓'; }
+      else if (msg) { doneMsg.textContent = msg; }
+    });
+  }
+  doneBtn.addEventListener('click', () => {
+    loadProgress().then((p) => {
+      p = p || {};
+      p[doneKey] = true;
+      return saveProgress(p);
+    }).then(() => refreshDone('完了！'));
+  });
+  refreshDone();
+</script>
+</body>
+</html>
