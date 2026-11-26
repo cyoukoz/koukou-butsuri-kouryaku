@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせCU：円錐振り子＋ドップラー＋開管の共鳴（近づく最大で共鳴）</title>
+<style>
+body { font-family: sans-serif; max-width: 720px; margin: 0 auto; padding: 16px; line-height: 1.7; }
+h1 { font-size: 1.4em; }
+h2 { font-size: 1.15em; margin-top: 2em; }
+.step { border-top: 1px solid #ccc; padding-top: 8px; margin-top: 32px; }
+.step-check { display: block; margin: 12px 0; }
+.done-box { border: 2px solid #333; padding: 12px; margin-top: 32px; }
+.next { margin-top: 16px; }
+.top-link { margin-top: 32px; }
+.fig { display: block; margin: 12px 0; max-width: 100%; height: auto; }
+.fig text { font-size: 14px; fill: #333; }
+</style>
+</head>
+<body>
+<h1>組み合わせCU：円錐振り子＋ドップラー＋開管の共鳴（近づく最大で共鳴）</h1>
+<p>質量 m = 1.0 kg の玉を、長さ L = 1.0 m の糸でつるし、半径 r = 0.60 m の水平な円を描くように回します。糸が鉛直方向となす角は θ = 37°（sin θ = 0.60、cos θ = 0.80）、支点から円の面までの鉛直距離は 0.80 m、重力加速度は g = 10 m/s² とします。玉には振動数 f0 = 397.5 Hz の音源がついていて、観測者は円の面と同じ高さで十分に遠いところにいます。音速は V = 340 m/s です。長さ L = 0.425 m の開管がそばに置いてあります。</p>
+<p>この問題では、（1）円錐振り子の速さと周期を求め、（2）観測者に向かう半径方向の速さを調べ、（3）ドップラー効果で聞こえる音の高さと開管の共鳴を調べ、（4）まちがいやすい点と、条件を変えたらどうなるかを考えます。</p>
+<p>土台になっている問題：<a href="conical-pendulum.html">AO・円錐振り子</a>、<a href="doppler-resonance.html">BE・ドップラー＋開管の共鳴</a>、<a href="doppler.html">第18問・ドップラー効果</a>、<a href="standing-wave.html">第14問・定常波</a>、<a href="shm.html">第11問・単振動・振り子</a></p>
+
+<h2>解き方の地図</h2>
+<ul>
+<li>① 円錐振り子：速さ 2.1 m/s、周期 1.78 s、張力 12.5 N</li>
+<li>② 半径方向の速さ：近づく最大 2.1 m/s、横の点では 0</li>
+<li>③ ドップラーと共鳴：近づく最大の音 400 Hz が管の f1 と有効数字3けたで一致して共鳴する</li>
+<li>④ 罠：音源の 397.5 Hz・遠ざかる最大の 395 Hz は共鳴しない</li>
+<li>⑤ 変えたら：L・f0・閉管・r・糸の長さで共鳴は変わるか</li>
+</ul>
+<svg class="fig" data-scene="scene-conicalDopplerResPipe-base" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="円錐振り子に音源と管を足す。橋渡し量は速度（半径方向）。"></svg>
+<script type="application/json" id="scene-conicalDopplerResPipe-base">{"type":"conicalDopplerResPipe","phase":"base","mKg":1,"lM":1.0,"thetaDeg":37,"pivotHM":2.0,"g":10,"f0Hz":397.5,"vSoundMs":340,"pipeLM":0.425}</script>
+
+<div class="step" id="step1">
+<h2>① 円錐振り子：速さと周期</h2>
+<p>玉にはたらく力は、重力 mg = 1.0 × 10 = 10 N（下向き）と糸の張力 T です。玉は水平面で等速円運動をしているので、鉛直方向の力はつり合い、水平方向の力が向心力になります。</p>
+<p>張力の鉛直成分は T cos θ = mg なので、T = 10/0.80 = 12.5 N です。張力の水平成分は T sin θ = 12.5 × 0.60 = 7.5 N で、これが向心力 mv²/r になります。v² = 7.5 × 0.60/1.0 = 4.5 より、速さは v = 2.1 m/s（もっとくわしく計算すると 2.13 m/s）です。</p>
+<p>角振動数は ω = v/r = 2.1/0.60 = 3.5 rad/s です。周期は T = 2π√(L cos θ/g) = 2π√(1.0 × 0.80/10) = 2π√0.080 = 1.78 s とも求められます。玉の高さは、支点から円の面まで 0.80 m なので、支点が地面から 2.0 m の高さなら玉は地面から 1.2 m の高さにあります。</p>
+<svg class="fig" data-scene="scene-conicalDopplerResPipe-circle" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="張力の分解。張力 12.5 N の鉛直成分 10 N が重力とつり合い、水平成分 7.5 N が向心力になる。"></svg>
+<script type="application/json" id="scene-conicalDopplerResPipe-circle">{"type":"conicalDopplerResPipe","phase":"circle","mKg":1,"lM":1.0,"thetaDeg":37,"pivotHM":2.0,"g":10,"f0Hz":397.5,"vSoundMs":340,"pipeLM":0.425}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ① 速さ 2.1 m/s、周期 1.78 s、張力 12.5 N を張力の分解で確かめた</label>
+ <p class="next"><a href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<h2>② 半径方向の速さ</h2>
+<p>観測者は円の面と同じ高さで十分に遠いところにいるので、音の高さを決めるのは、玉の速さそのものではなく、観測者に向かう方向の速さ、つまり半径方向の速さです。玉が観測者にいちばん近い点を通るとき、玉は観測者に向かって真っすぐ進み、半径方向の速さは +2.1 m/s（近づく最大）になります。</p>
+<p>玉が観測者からいちばん遠い点を通るとき、玉は観測者から真っすぐ遠ざかり、半径方向の速さは −2.1 m/s（遠ざかる最大）になります。玉が横の点を通るとき、玉は観測者から見て横向きに進むので、半径方向の速さは 0 になります。</p>
+<p>時刻 t での半径方向の速さは、v·cos(ωt) = 2.1·cos(3.5t) m/s と書けます。玉の速さはつねに 2.1 m/s で一定なのに、半径方向の速さは +2.1 → 0 → −2.1 → 0 → +2.1 m/s と、1周のあいだに変わります。近づく最大は 1周に 1回だけおとずれます。</p>
+<svg class="fig" data-scene="scene-conicalDopplerResPipe-radial" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="上から見た円運動。下の点では観測者に近づき 400 Hz、上の点では遠ざかり 395 Hz、横の点では 397.5 Hz。"></svg>
+<script type="application/json" id="scene-conicalDopplerResPipe-radial">{"type":"conicalDopplerResPipe","phase":"radial","mKg":1,"lM":1.0,"thetaDeg":37,"pivotHM":2.0,"g":10,"f0Hz":397.5,"vSoundMs":340,"pipeLM":0.425}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ② 半径方向の速さが +2.1 → 0 → −2.1 → 0 m/s と変わることを確かめた</label>
+ <p class="next"><a href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<h2>③ ドップラーと共鳴</h2>
+<p>音源が速さ v_r で観測者に近づくとき、聞こえる音は f′ = f0 × V/(V − v_r) です。近づく最大のとき v_r = 2.13 m/s なので、f′ = 397.5 × 340/(340 − 2.13) = 400.01 Hz → 400 Hz です。遠ざかる最大のとき v_r = −2.13 m/s なので、f′ = 397.5 × 340/(340 + 2.13) = 395.03 Hz → 395 Hz です。横の点では v_r = 0 なので、音は 397.5 Hz のままです。</p>
+<p>1周のあいだの音の高さは、t = 0 s（近づく最大）で 400.01 Hz、t = 0.44 s（横の点）で 397.5 Hz、t = 0.89 s（遠ざかる最大）で 395.03 Hz、t = 1.33 s（横の点）で 397.5 Hz、t = 1.78 s（近づく最大）で 400.01 Hz と変わります。1周に 1回だけ、音は 400 Hz になります。</p>
+<p>一方、開管の振動数は f1 = 340/(2 × 0.425) = 400 Hz、f2 = 800 Hz、f3 = 1200 Hz です。</p>
+<p>近づく最大の音 400.01 Hz は、管の f1 = 400.00 Hz と有効数字3けたで 400 Hz に一致します。厳密な値は 0.01 Hz だけちがうので「ちょうど一致」とは言えませんが、3けたの有効数字では同じ 400 Hz です。だから玉が観測者にいちばん近づく瞬間、1周に 1回だけ管が共鳴して大きく鳴ります。</p>
+<p>動かない 397.5 Hz の音源と比べると、近づく最大の音とのうなりは 400.01 − 397.5 = 2.5 Hz で最大になります（厳密には 2.51 Hz）。</p>
+<svg class="fig" data-scene="scene-conicalDopplerResPipe-doppler" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="音の高さ f'(t)：1周のあいだに 400 Hz から 395 Hz まで変わり、近づく最大のときだけ管の f1=400 Hz に一致する。"></svg>
+<script type="application/json" id="scene-conicalDopplerResPipe-doppler">{"type":"conicalDopplerResPipe","phase":"doppler","mKg":1,"lM":1.0,"thetaDeg":37,"pivotHM":2.0,"g":10,"f0Hz":397.5,"vSoundMs":340,"pipeLM":0.425}</script>
+<svg class="fig" data-scene="scene-conicalDopplerResPipe-resonate" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="開管 L=0.425 m の f1=400 Hz の定在波。近づく最大の音 400 Hz が f1 と有効数字3けたで一致して共鳴する。"></svg>
+<script type="application/json" id="scene-conicalDopplerResPipe-resonate">{"type":"conicalDopplerResPipe","phase":"resonate","mKg":1,"lM":1.0,"thetaDeg":37,"pivotHM":2.0,"g":10,"f0Hz":397.5,"vSoundMs":340,"pipeLM":0.425}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ③ 近づく最大の音 400 Hz だけが管の f1 と有効数字3けたで一致して共鳴することを確かめた</label>
+ <p class="next"><a href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<h2>④ 罠</h2>
+<p>罠1：「音源そのものの 397.5 Hz が共鳴する」——まちがい。397.5 Hz は管の f1 = 400 Hz と 2.5 Hz はなれているので共鳴しません。音源の音が共鳴するわけではありません。</p>
+<p>罠2：「遠ざかる最大の 395 Hz が共鳴する」——まちがい。395.03 Hz は f1 = 400 Hz と 5 Hz はなれているので共鳴しません。速さの大きさは近づく最大と同じ 2.1 m/s なのに、音はちがいます。</p>
+<p>罠3：「玉の速さは一定だから音も一定」——まちがい。玉の速さはつねに 2.1 m/s で一定ですが、音は 395 Hz から 400 Hz のあいだで変わります。音を変えるのは速さそのものではなく、観測者に向かう半径方向の速さだからです。</p>
+<p>罠4：符号をまちがえて f′ = f0 × V/(V + v) を使うと、近づく最大の音が 397.5 × 340/(340 + 2.13) = 395.03 Hz になって、共鳴しないとまちがえます。近づくときは分母が V − v、遠ざかるときは V + v です。</p>
+<p>罠5：「平均の音が共鳴する」——まちがい。最大の音と最小の音の平均は (400.01 + 395.03)/2 = 397.52 Hz ≈ 397.5 Hz で、f1 = 400 Hz とは一致しないので共鳴しません。共鳴するのは、近づく最大の瞬間の音だけです。</p>
+<svg class="fig" data-scene="scene-conicalDopplerResPipe-trap" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="罠：音源の 397.5 Hz、遠ざかる最大の 395 Hz、符号まちがえの 395 Hz はどれも共鳴しない。共鳴するのは近づく最大の 400 Hz だけ。"></svg>
+<script type="application/json" id="scene-conicalDopplerResPipe-trap">{"type":"conicalDopplerResPipe","phase":"trap","mKg":1,"lM":1.0,"thetaDeg":37,"pivotHM":2.0,"g":10,"f0Hz":397.5,"vSoundMs":340,"pipeLM":0.425}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ④ 音源の音・遠ざかる最大の音・符号まちがえの音は共鳴しないことを確かめた</label>
+ <p class="next"><a href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<h2>⑤ 変えたら</h2>
+<p>L = 0.85 m にすると、f1 = 340/(2 × 0.85) = 200 Hz、f2 = 400 Hz、f3 = 600 Hz、f4 = 800 Hz になります。近づく最大の音 400 Hz は f2 と一致するので、やはり共鳴します。L = 0.17 m にすると f1 = 1000 Hz、f2 = 2000 Hz、f3 = 3000 Hz になり、近づく最大の音とは一致しないので共鳴しません。</p>
+<p>f0 = 440 Hz にすると、近づく最大の音は 440 × 340/(340 − 2.13) = 443 Hz、遠ざかる最大の音は 440 × 340/(340 + 2.13) = 437 Hz になり、管の振動数とは一致しないので共鳴しません。管を閉管（片端が閉じた管）にすると、振動数は 200 Hz、600 Hz、1000 Hz になり、近づく最大の音 400 Hz とは一致しないので共鳴しません。</p>
+<p>r = 0.80 m にすると（L = 1.0 m のまま）、sin θ = 0.80、cos θ = 0.60、tan θ = 4/3、θ ≈ 53° になります。速さは v = √(0.80 × 10 × 4/3) = 3.3 m/s、角振動数は ω = √(10/0.60) = 4.1 rad/s、周期は T = 1.54 s、張力は 10/0.60 = 16.7 N です。近づく最大の音は 397.5 × 340/(340 − 3.27) = 401 Hz、遠ざかる最大の音は 394 Hz になり、管の f1 = 400 Hz とは一致しないので共鳴しません。401 Hz は f1 と 1 Hz しかちがわないのに、一致しないので共鳴しません。</p>
+<p>L = 0.50 m にすると（θ = 37° のまま）、半径は r = 0.50 × 0.60 = 0.30 m、速さは v = √(0.30 × 10 × 0.75) = 1.5 m/s、角振動数は ω = √(10/(0.50 × 0.80)) = 5.0 rad/s、周期は T = 1.26 s です。張力は 12.5 N のまま変わりません。近づく最大の音は 399 Hz、遠ざかる最大の音は 396 Hz になり、管の f1 = 400 Hz とは一致しないので共鳴しません。</p>
+<svg class="fig" data-scene="scene-conicalDopplerResPipe-vary" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="変えたら：L=0.85 m なら f2=400 Hz で共鳴。f0=440 Hz なら 443 Hz、r=0.80 m なら 401 Hz、L=0.50 m なら 399 Hz で共鳴しない。"></svg>
+<script type="application/json" id="scene-conicalDopplerResPipe-vary">{"type":"conicalDopplerResPipe","phase":"vary","mKg":1,"lM":1.0,"thetaDeg":37,"pivotHM":2.0,"g":10,"f0Hz":397.5,"vSoundMs":340,"pipeLM":0.425}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ⑤ L=0.85 m なら共鳴し、f0=440 Hz・閉管・r=0.80 m・L=0.50 m なら共鳴しないことを確かめた</label>
+</div>
+
+<div class="done-box" id="doneBox">
+<button id="doneBtn">完了にする</button> <span id="doneMsg"></span>
+<p>円錐振り子（速さ 2.1 m/s、周期 1.78 s、張力 12.5 N）に、ドップラー効果と開管の共鳴を組み合わせました。玉の速さは一定ですが、観測者に向かう半径方向の速さは +2.1 → 0 → −2.1 → 0 m/s と変わります。近づく最大の音は 400.01 Hz で、管の f1 = 400.00 Hz と有効数字3けたで 400 Hz に一致して、1周に 1回だけ共鳴します。音源の 397.5 Hz、遠ざかる最大の 395 Hz、平均の音 397.5 Hz は共鳴しません。橋渡しになった量は「速度（半径方向）」でした。</p>
+</div>
+
+<p class="top-link"><a href="#">↑ TOP</a></p>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+renderAllFigures();
+(function () {
+  var KEY = 'comboConicalDopplerResPipeDone';
+  var btn = document.getElementById('doneBtn');
+  var msg = document.getElementById('doneMsg');
+  var boxes = Array.prototype.slice.call(document.querySelectorAll('.step-done'));
+  function allChecked() { return boxes.length > 0 && boxes.every(function (b) { return b.checked; }); }
+  function refresh() {
+    loadProgress().then(function (p) {
+      if (p[KEY]) { msg.textContent = '完了済み ✓'; btn.disabled = true; }
+    });
+  }
+  btn.addEventListener('click', function () {
+    if (!allChecked()) { msg.textContent = 'まず 5 つのチェックを全部入れてください。'; return; }
+    loadProgress().then(function (p) {
+      p[KEY] = true;
+      return saveProgress(p);
+    }).then(function () { msg.textContent = '完了！'; btn.disabled = true; });
+  });
+  refresh();
+})();
+</script>
+</body>
+</html>
