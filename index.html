@@ -724,6 +724,20 @@
   <p><a href="content/mechanics/loop-top-doppler-res-pipe.html">ループ・ザ・ループ＋ばね＋摩擦＋ドップラー＋開管の共鳴のドリルを開く →</a></p>
   <p id="progress-combo-loop-top-doppler-res-pipe">進捗：読み込み中…</p>
 </div>
+<div class="card">
+  <h2>組み合わせ問題CS：斜面上のばね振り子＋摩擦＋ドップラー＋開管の共鳴（折り返し点で共鳴）</h2>
+  <p>BY の振動子（μ = 0.25、つり合い位置の中心 0.060 m、5 半周期 1.57 s で止まる）に、音源 f0 = 800 Hz と管 L = 0.425 m（f1 = 400、f2 = 800、f3 = 1200 Hz）を組み合わせた問題。共鳴するのは折り返し点の音 800 Hz で、管の f2 とちょうど一致する。中心の音 796・803・798・801 Hz はどれも合わない。BY では 2 回目、CG では 1 回目、CN では 4 回目、CQ では 3 回目の中心が共鳴した。橋渡し量は「速さ」。</p>
+  <p><a href="content/mechanics/slope-spring-fric-turn-res-pipe.html">斜面上のばね振り子＋摩擦＋ドップラー＋開管の共鳴のドリルを開く →</a></p>
+  <p id="progress-combo-slope-spring-fric-turn-res-pipe">進捗：読み込み中…</p>
+</div>
+<div class="card">
+  <h2>組み合わせ問題CT：振り子＋弾性衝突＋ばね＋摩擦＋ドップラー＋開管の共鳴（頂点で共鳴）</h2>
+  <p>CE の振り子＋弾性衝突＋ばね＋摩擦（最下点 4.0 m/s、最大の縮み 0.38 m、押し返し 3.6 m/s、上がる高さ 0.65 m）に、音源 f0 = 425 Hz と管 L = 0.40 m（f1 = 425、f2 = 850、f3 = 1275 Hz）を組み合わせた問題。共鳴するのは頂点の音 425 Hz で、音源そのものの振動数と管の f1 がちょうど一致する。玉が止まっているとき（衝突のあいだ・頂点）だけ共鳴し、最下点の 430 Hz・はね返りの 421 Hz は合わない。CE でははね返り、CM では最初の衝突が共鳴した。橋渡し量は「速さ」。</p>
+  <p><a href="content/mechanics/pendulum-apex-doppler-res-pipe.html">振り子＋弾性衝突＋ばね＋摩擦＋ドップラー＋開管の共鳴のドリルを開く →</a></p>
+  <p id="progress-combo-pendulum-apex-doppler-res-pipe">進捗：読み込み中…</p>
+</div>
+
+
 
 <div class="card">
   <h2>第7問：気体＋ピストン</h2>
@@ -1136,6 +1150,10 @@
       p.comboSlopeSpringFricThirdCentreResPipeDone ? '進捗：組み合わせ問題CQ・斜面上のばね振り子＋摩擦＋ドップラー＋開管の共鳴を完了済み ✓' : '進捗：まだ組み合わせ問題CQ・斜面上のばね振り子＋摩擦＋ドップラー＋開管の共鳴は未完了';
     document.getElementById('progress-combo-loop-top-doppler-res-pipe').textContent =
       p.comboLoopTopDopplerResPipeDone ? '進捗：組み合わせ問題CR・ループ・ザ・ループ＋ばね＋摩擦＋ドップラー＋開管の共鳴を完了済み ✓' : '進捗：まだ組み合わせ問題CR・ループ・ザ・ループ＋ばね＋摩擦＋ドップラー＋開管の共鳴は未完了';
+    document.getElementById('progress-combo-slope-spring-fric-turn-res-pipe').textContent =
+      p.comboSlopeSpringFricTurnResPipeDone ? '進捗：組み合わせ問題CS・斜面上のばね振り子＋摩擦＋ドップラー＋開管の共鳴を完了済み ✓' : '進捗：まだ組み合わせ問題CS・斜面上のばね振り子＋摩擦＋ドップラー＋開管の共鳴は未完了';
+    document.getElementById('progress-combo-pendulum-apex-doppler-res-pipe').textContent =
+      p.comboPendulumApexDopplerResPipeDone ? '進捗：組み合わせ問題CT・振り子＋弾性衝突＋ばね＋摩擦＋ドップラー＋開管の共鳴を完了済み ✓' : '進捗：まだ組み合わせ問題CT・振り子＋弾性衝突＋ばね＋摩擦＋ドップラー＋開管の共鳴は未完了';
     document.getElementById('progress-gas-piston').textContent =
       p.gasPistonDone ? '進捗：第7問・気体＋ピストンを完了済み ✓' : '進捗：まだ第7問・気体＋ピストンは未完了';
     document.getElementById('progress-young').textContent =
@@ -1291,6 +1309,8 @@
     document.getElementById('progress-combo-gas-d-f1-res-pipe').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-slope-spring-fric-third-centre-res-pipe').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-loop-top-doppler-res-pipe').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-slope-spring-fric-turn-res-pipe').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-pendulum-apex-doppler-res-pipe').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-gas-piston').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-young').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-capacitor').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
