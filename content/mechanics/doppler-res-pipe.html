@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題BP：ドップラー効果＋開管の共鳴＋気体の音速 — 高校物理攻略</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", sans-serif; margin: 0; background: #fff; color: #222; line-height: 1.8; }
+  main { max-width: 720px; margin: 0 auto; padding: 24px 18px 80px; }
+  h1 { font-size: 24px; line-height: 1.4; }
+  h2 { font-size: 20px; margin-top: 40px; }
+  .step { border-top: 1px solid #ddd; padding-top: 16px; margin-top: 32px; }
+  .step h2 { font-size: 18px; margin: 0 0 8px; }
+  .fig { width: 100%; max-width: 400px; height: auto; display: block; margin: 12px auto; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; font-size: 14px; }
+  th { background: #f2f2f2; }
+  .donebox { border: 2px solid #4a8; background: #f6fffa; padding: 14px; margin-top: 40px; }
+  .nav { margin-top: 32px; font-size: 14px; }
+  .toplink { position: fixed; right: 16px; bottom: 16px; background: #222; color: #fff; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 14px; }
+  label.check { display: block; margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+<p><a href="../../index.html">← トップへ</a> ｜ <a href="fall-drag-doppler.html">← 組み合わせ問題BO：空気抵抗で落下＋ばね＋摩擦＋ドップラー効果</a></p>
+<h1>組み合わせ問題BP：ドップラー効果＋開管の共鳴＋気体の音速</h1>
+<p>長さ L = 0.85 m の開管があり、中の空気は 300 K で、音速は 340 m/s である。この管に向かって、900 Hz の音さ（おんさ）をのせた台車が 34 m/s で近づいている。音さの振動数は、台車が止まっているときの値である。音速は 340 m/s とする。</p>
+<p>(1) 開管の振動数を求め、音さが静止したままでは共鳴しないことを確かめよ。(2) 近づくときの音の高さを求め、共鳴するかどうかを確かめよ。(3) 管を 600 K に熱したとき、共鳴するかどうかを確かめよ。(4) 罠と変えたら。</p>
+
+<div class="step" id="step0">
+<p><b>はじめに：どう切り分けるか</b></p>
+<table>
+<tr><th>場面</th><th>考えること</th><th>使うモデル</th></tr>
+<tr><td>開管の振動数</td><td>f_n = n·v/(2L)</td><td>気柱の共鳴</td></tr>
+<tr><td>ドップラー効果</td><td>近づくと音が高くなる</td><td>ドップラー効果</td></tr>
+<tr><td>気体の音速</td><td>音速は √T に比例</td><td>気体の状態方程式</td></tr>
+<tr><td>共鳴</td><td>音の高さと管の振動数が一致する</td><td>共鳴</td></tr>
+</table>
+<p>この問題の橋渡しの量は<b>振動数</b>だ。音さの振動数はドップラーで変わり、管の振動数は気体の温度で変わる。2つが一致すると共鳴する。</p>
+<svg class="fig" data-scene="scene-dopplerResPipe-base" data-show="" role="img" aria-label="流れ。900 Hz の音さが近づいて 1000 Hz になり、開管の f5 と一致する。600 K では共鳴しない"></svg>
+<script type="application/json" id="scene-dopplerResPipe-base">{"fForkHz":900,"phase":"base","pipeLM":0.85,"t1K":300,"t2K":600,"type":"dopplerResPipe","vSoundMs":340,"vsMs":34}</script>
+<p><a href="#step1">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step1">
+<h2>① 開管の振動数：f1=200 Hz、f5=1000 Hz、音さの 900 Hz は合わない</h2>
+<p>開管の振動数は f_n = n·v/(2L) だ。v = 340 m/s、L = 0.85 m なので、f1 = 340/(2 × 0.85) = 200 Hz になる。f2 = 400 Hz、f3 = 600 Hz、f4 = 800 Hz、f5 = 1000 Hz、f6 = 1200 Hz だ。</p>
+<p>音さの 900 Hz は、f4 = 800 Hz と f5 = 1000 Hz のあいだで、どの振動数とも一致しない。台車が止まったままでは、音さの音は管と共鳴しない。</p>
+<svg class="fig" data-scene="scene-dopplerResPipe-harmonics" data-show="" role="img" aria-label="開管の定常波。f5=1000 Hz、両端が腹、中央に節がある。音さの 900 Hz は f4 と f5 のあいだ"></svg>
+<script type="application/json" id="scene-dopplerResPipe-harmonics">{"fForkHz":900,"phase":"harmonics","pipeLM":0.85,"t1K":300,"t2K":600,"type":"dopplerResPipe","vSoundMs":340,"vsMs":34}</script>
+<label class="check"><input type="checkbox" id="comboDopplerResPipe-check-1"> 開管の振動数を求め、900 Hz が合わないことを確かめた</label>
+<p><a href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<h2>② 近づく音さ：1000 Hz、f5 と一致して共鳴する</h2>
+<p>音源が観測者に近づくとき、観測される音は f′ = f0·V/(V − vs) になる。f0 = 900 Hz、vs = 34 m/s なので、f′ = 900 × 340/(340 − 34) = 900 × 340/306 = 1000 Hz になる。ちょうど f5 = 1000 Hz と一致するので、管は大きく鳴る（共鳴する）。</p>
+<p>波長は λ′ = V/f′ = 340/1000 = 0.34 m になる。静止しているときの波長 0.38 m の 0.90 倍だ。台車が遠ざかると、f′ = 900 × 340/(340 + 34) ≈ 818 Hz になり、どの振動数とも一致しないので共鳴しない。</p>
+<svg class="fig" data-scene="scene-dopplerResPipe-doppler" data-show="" role="img" aria-label="音さが 34 m/s で近づく。波面は前方がせまく、観測される音は 1000 Hz"></svg>
+<script type="application/json" id="scene-dopplerResPipe-doppler">{"fForkHz":900,"phase":"doppler","pipeLM":0.85,"t1K":300,"t2K":600,"type":"dopplerResPipe","vSoundMs":340,"vsMs":34}</script>
+<label class="check"><input type="checkbox" id="comboDopplerResPipe-check-2"> 近づく音が 1000 Hz で f5 と一致することを求めた</label>
+<p><a href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<h2>③ 管を 600 K に熱す：音速 481 m/s、1000 Hz は合わなくなる</h2>
+<p>気体の音速は、絶対温度の平方根に比例する。v = √(γRT/M) なので、温度が 2 倍になると音速は √2 倍になる。600 K では v = 340 × √(600/300) = 340 × √2 ≈ 481 m/s になる。</p>
+<p>管の振動数も変わる。f1 = 481/(2 × 0.85) ≈ 283 Hz になり、f2 = 566 Hz、f3 = 849 Hz、f4 = 1131 Hz、f5 = 1414 Hz、f6 = 1697 Hz になる。近づく音さの 1000 Hz は、f3 = 849 Hz と f4 = 1131 Hz のあいだで、共鳴しなくなる。</p>
+<p>600 K で共鳴させるには、f3 = 849 Hz に合う音さが要る。近づくとき 849 Hz になる音さは、f0 = 849 × (481 − 34)/481 ≈ 789 Hz だ。</p>
+<svg class="fig" data-scene="scene-dopplerResPipe-hot" data-show="" role="img" aria-label="600 K の開管の振動数。f1=283 Hz、f3=849 Hz、f4=1131 Hz、1000 Hz は合わない"></svg>
+<script type="application/json" id="scene-dopplerResPipe-hot">{"fForkHz":900,"phase":"hot","pipeLM":0.85,"t1K":300,"t2K":600,"type":"dopplerResPipe","vSoundMs":340,"vsMs":34}</script>
+<label class="check"><input type="checkbox" id="comboDopplerResPipe-check-3"> 600 K の音速 481 m/s と振動数を求め、共鳴しないことを確かめた</label>
+<p><a href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<h2>④ 罠：音さの 900 Hz は共鳴しない／閉管では共鳴する</h2>
+<p>罠：「音さの 900 Hz が管と共鳴する」——まちがい。共鳴するのは、ドップラーで変わった 1000 Hz だ。音源の振動数（900 Hz）と観測される音の高さ（1000 Hz）を取り違えない。音さが静止したままでは、900 Hz はどの振動数とも一致しない。</p>
+<p>罠：「管を熱すると共鳴しやすくなる」——まちがい。熱すると音速が上がり、管の振動数は上がる。1000 Hz は f3 と f4 のあいだに入ってしまい、共鳴しなくなる。温度を変えると共鳴の条件も変わる。</p>
+<p>罠：「閉管でも同じ」——まちがい。閉管（L = 0.85 m）では f_n = (2n−1)v/4L = (2n−1) × 100 Hz で、f5 = 900 Hz になる。音さの 900 Hz は、閉管では静止したまま共鳴する。近づいた 1000 Hz は 100 Hz の偶数倍で、閉管の振動数にはないので共鳴しない。開管と閉管で振動数の並びがちがう。</p>
+<svg class="fig" data-scene="scene-dopplerResPipe-trap" data-show="" role="img" aria-label="罠。静止 900 Hz、近づく 1000 Hz、遠ざかる 818 Hz、600 K の f3 は 849 Hz"></svg>
+<script type="application/json" id="scene-dopplerResPipe-trap">{"fForkHz":900,"phase":"trap","pipeLM":0.85,"t1K":300,"t2K":600,"type":"dopplerResPipe","vSoundMs":340,"vsMs":34}</script>
+<label class="check"><input type="checkbox" id="comboDopplerResPipe-check-4"> 罠を 3 つ確かめた</label>
+<p><a href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<h2>⑤ 変えたら：L・vs で共鳴するかどうかが変わる</h2>
+<p>L = 1.70 m の開管なら、f1 = 100 Hz になり、f10 = 1000 Hz になる。近づく音さの 1000 Hz は f10 と一致して共鳴する。管が長くなると振動数が細かくなるので、1000 Hz に合う次数が増える。</p>
+<p>vs = 85 m/s で近づくと、f′ = 900 × 340/(340 − 85) = 1200 Hz になる。f6 = 1200 Hz と一致して共鳴する。vs = 17 m/s なら、f′ = 900 × 340/(340 − 17) ≈ 947 Hz になり、どの振動数とも一致しないので共鳴しない。</p>
+<svg class="fig" data-scene="scene-dopplerResPipe-vary" data-show="" role="img" aria-label="変えたら。L=1.70 m は f10=1000 Hz、vs=85 m/s は 1200 Hz、vs=17 m/s は 947 Hz"></svg>
+<script type="application/json" id="scene-dopplerResPipe-vary">{"fForkHz":900,"phase":"vary","pipeLM":0.85,"t1K":300,"t2K":600,"type":"dopplerResPipe","vSoundMs":340,"vsMs":34}</script>
+<label class="check"><input type="checkbox" id="comboDopplerResPipe-check-5"> L・vs を変えたときの共鳴を求めた</label>
+</div>
+
+<div class="donebox" id="donebox">
+<p><b>まとめ（答え）</b></p>
+<p>(1) 開管は 200・400・600・800・1000・1200 Hz、900 Hz は合わない。(2) 近づくと 1000 Hz で f5 と一致して共鳴する。遠ざかると 818 Hz で共鳴しない。(3) 600 K では音速 481 m/s、f1=283 Hz、1000 Hz は合わない。(4) 音さの 900 Hz そのものは共鳴しない。閉管では 900 Hz が f5 と一致する。</p>
+<p>もとになった単体モデル：音＋ドップラー＋共鳴管は<a href="doppler-resonance.html">組み合わせ問題BE：音＋ドップラー効果＋開管の共鳴</a>、気体＋音速＋共鳴管は<a href="gas-sound-pipe.html">組み合わせ問題BI：気体＋音速＋開管の共鳴</a>、気柱の共鳴は<a href="standing-wave.html">第14問：定常波</a>、ドップラー効果は<a href="doppler.html">第18問：ドップラー効果</a>、気体の状態方程式は<a href="gas-piston.html">第7問：気体＋ピストン</a>で確かめられる。</p>
+<p id="done-msg"></p>
+</div>
+
+<p class="nav"><a href="../../index.html">← トップへ</a></p>
+</main>
+<a class="toplink" href="#">↑ TOP</a>
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+const doneKey = 'comboDopplerResPipeDone';
+const checkIds = ['comboDopplerResPipe-check-1','comboDopplerResPipe-check-2','comboDopplerResPipe-check-3','comboDopplerResPipe-check-4','comboDopplerResPipe-check-5'];
+const doneMsg = document.getElementById('done-msg');
+function allChecked() { return checkIds.every(id => document.getElementById(id).checked); }
+function refresh() {
+  if (allChecked()) {
+    doneMsg.textContent = '完了！';
+    loadProgress().then(p => { p[doneKey] = true; return saveProgress(p); }).catch(() => {});
+  } else {
+    doneMsg.textContent = '';
+  }
+}
+checkIds.forEach(id => document.getElementById(id).addEventListener('change', refresh));
+renderAllFigures();
+loadProgress().then(p => { if (p[doneKey]) { doneMsg.textContent = '完了済み ✓'; } }).catch(() => {});
+</script>
+</body>
+</html>

@@ -530,6 +530,20 @@
 </div>
 
 <div class="card">
+  <h2>組み合わせ問題BO：空気抵抗で落下＋ばね＋摩擦＋ドップラー効果</h2>
+  <p>2乗の空気抵抗で落ちる玉（BF）に音源をつけ、地面の観測者が音の高さを聞く。着地の直前は 450 Hz、はね返りの直後は 432 Hz になり、うなりは最大 9.5 Hz になる。ばねは 0.48 m 縮み、6.5 m/s で押し返す。橋渡し量は「速さ」。</p>
+  <p><a href="content/mechanics/fall-drag-doppler.html">空気抵抗で落下＋ばね＋摩擦＋ドップラー効果のドリルを開く →</a></p>
+  <p id="progress-combo-fall-drag-doppler">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>組み合わせ問題BP：ドップラー効果＋開管の共鳴＋気体の音速</h2>
+  <p>900 Hz の音さをのせた台車が 34 m/s で開管に近づくと、音は 1000 Hz になり、管の f5 と一致して共鳴する。管を 600 K に熱すと音速は 481 m/s になり、1000 Hz は合わなくなる。橋渡し量は「振動数」。</p>
+  <p><a href="content/mechanics/doppler-res-pipe.html">ドップラー効果＋開管の共鳴＋気体の音速のドリルを開く →</a></p>
+  <p id="progress-combo-doppler-res-pipe">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
   <h2>第7問：気体＋ピストン</h2>
   <p>シリンダーにピストンがのっている。ピストンの力のつり合いから気体の圧力を、状態方程式から体積と高さを求める。加熱するとピストンが上がる等圧変化で、仕事・内部エネルギー・熱を区別しよう。</p>
   <p><a href="content/mechanics/gas-piston.html">気体＋ピストンのドリルを開く →</a></p>
@@ -880,6 +894,10 @@
       p.comboSlopePulleyDopplerDone ? '進捗：組み合わせ問題BM・斜面＋滑車＋ばね＋摩擦＋ドップラー効果を完了済み ✓' : '進捗：まだ組み合わせ問題BM・斜面＋滑車＋ばね＋摩擦＋ドップラー効果は未完了';
     document.getElementById('progress-combo-gas-carnot-cycle').textContent =
       p.comboGasCarnotCycleDone ? '進捗：組み合わせ問題BN・気体＋ピストン＋ばね＋カルノー効率を完了済み ✓' : '進捗：まだ組み合わせ問題BN・気体＋ピストン＋ばね＋カルノー効率は未完了';
+    document.getElementById('progress-combo-fall-drag-doppler').textContent =
+      p.comboFallDragDopplerDone ? '進捗：組み合わせ問題BO・空気抵抗で落下＋ばね＋摩擦＋ドップラー効果を完了済み ✓' : '進捗：まだ組み合わせ問題BO・空気抵抗で落下＋ばね＋摩擦＋ドップラー効果は未完了';
+    document.getElementById('progress-combo-doppler-res-pipe').textContent =
+      p.comboDopplerResPipeDone ? '進捗：組み合わせ問題BP・ドップラー効果＋開管の共鳴＋気体の音速を完了済み ✓' : '進捗：まだ組み合わせ問題BP・ドップラー効果＋開管の共鳴＋気体の音速は未完了';
     document.getElementById('progress-gas-piston').textContent =
       p.gasPistonDone ? '進捗：第7問・気体＋ピストンを完了済み ✓' : '進捗：まだ第7問・気体＋ピストンは未完了';
     document.getElementById('progress-young').textContent =
@@ -1005,6 +1023,8 @@
     document.getElementById('progress-combo-gen-rect-rc').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-slope-pulley-doppler').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-gas-carnot-cycle').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-fall-drag-doppler').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-doppler-res-pipe').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-gas-piston').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-young').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-capacitor').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
