@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題CD：動く音叉＋ドップラー効果＋開管の共鳴＋気体の音速｜高校物理攻略</title>
+<style>
+  body { font-family: system-ui, sans-serif; line-height: 1.8; max-width: 760px; margin: 0 auto; padding: 16px; color: #222; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 18px; margin-top: 40px; }
+  .step h2 { font-size: 18px; }
+  .step { border-top: 2px solid #888; padding-top: 8px; margin-top: 48px; }
+  .fig { width: 100%; max-width: 400px; height: auto; display: block; margin: 16px auto; border: 1px solid #ccc; }
+  .nav { margin: 16px 0; font-size: 14px; }
+  .nav a { color: #06c; }
+  .done-box { border: 2px solid #2a7; background: #efe; padding: 16px; margin-top: 48px; }
+  .done-box.done { background: #cfc; }
+  .top-link { position: fixed; right: 16px; bottom: 16px; background: #fff; border: 1px solid #888; padding: 8px 12px; border-radius: 4px; }
+  .top-link a { color: #06c; text-decoration: none; }
+  label.step-check { display: block; margin-top: 16px; font-weight: bold; }
+  .next-link { margin-top: 24px; }
+  .slice-map { background: #f5f5f5; padding: 12px 16px; border-radius: 6px; }
+  .slice-map li { margin: 4px 0; }
+</style>
+</head>
+<body>
+<div class="nav"><a href="../../index.html">← トップへ</a> ｜ <a href="fall-loop-cap-enter-res-pipe.html">← 前の問題：CC 落下するコイル＋コンデンサー＋ばね＋摩擦＋ドップラー＋開管の共鳴</a></div>
+<h1>組み合わせ問題CD：動く音叉＋ドップラー効果＋開管の共鳴＋気体の音速</h1>
+<p>問題：長さ L = 0.50 m の開管があり、中の空気は 300 K で、音速は 340 m/s である。この管に向かって、640 Hz の音さ（おんさ）をのせた台車が 20 m/s で近づいている。音さの振動数は、台車が止まっているときの値である。音速は 340 m/s とする。</p>
+<p>(1) 開管の振動数を求め、音さが静止したままでは共鳴しないことを確かめよ。(2) 近づくときの音の高さを求め、共鳴するかどうかを確かめよ。(3) 管を 600 K に熱したとき、共鳴するかどうかを確かめよ。(4) 罠と変えたら。</p>
+<p>この問題は、単体モデルの組み合わせです。BE「ドップラー＋開管の共鳴」と BI「気体＋音速＋開管の共鳴」を組み合わせた問題です。橋渡しになる量は「温度」（音速）と「速さ」（ドップラー）です。</p>
+<p>単体モデルのページ：<a href="doppler-resonance.html">BE ドップラー＋開管の共鳴</a> ｜ <a href="gas-sound-pipe.html">BI 気体＋音速＋開管の共鳴</a> ｜ <a href="standing-wave.html">第14問：定常波</a> ｜ <a href="doppler.html">第18問：ドップラー効果</a> ｜ <a href="gas-piston.html">第7問：気体＋ピストン</a></p>
+<ol class="slice-map">
+<li>① 開管の振動数：f1=340 Hz、f2=680 Hz、640 Hz は合わない</li>
+<li>② 近づく音さ：680 Hz、f2 とちょうど一致して共鳴する</li>
+<li>③ 管を 600 K に熱す：音速 481 m/s、668 Hz は合わない</li>
+<li>④ 罠：音さの 640 Hz は共鳴しない、300 K の音速ではだまされる</li>
+<li>⑤ 変えたら：L・vs・f0 で共鳴は変わるか</li>
+</ol>
+
+<svg class="fig" data-scene="scene-forkDopplerResPipe-base" data-show="" role="img" aria-label="流れ：640 Hz の音さが近づいて 680 Hz になり、開管の f2 と一致する。600 K では共鳴しない"></svg>
+<script type="application/json" id="scene-forkDopplerResPipe-base">{"type":"forkDopplerResPipe","phase":"base","fForkHz":640,"pipeLM":0.5,"t1K":300,"t2K":600,"vSoundMs":340,"vsMs":20}</script>
+
+<div class="step" id="step1">
+<h2>① 開管の振動数：f1=340 Hz、f2=680 Hz、音さの 640 Hz は合わない</h2>
+<p>開管の振動数は f_n = n·v/(2L) だ。v = 340 m/s、L = 0.50 m なので、f1 = 340/(2 × 0.50) = 340 Hz になる。f2 = 680 Hz、f3 = 1020 Hz、f4 = 1360 Hz、f5 = 1700 Hz、f6 = 2040 Hz だ。</p>
+<p>音さの 640 Hz は、f1 = 340 Hz と f2 = 680 Hz のあいだで、どの振動数とも一致しない。台車が止まったままでは、音さの音は管と共鳴しない。</p>
+<svg class="fig" data-scene="scene-forkDopplerResPipe-harmonics" data-show="" role="img" aria-label="開管の定常波。f2=680 Hz、両端が腹、中央に節がある。音さの 640 Hz は f1 と f2 のあいだ"></svg>
+<script type="application/json" id="scene-forkDopplerResPipe-harmonics">{"type":"forkDopplerResPipe","phase":"harmonics","fForkHz":640,"pipeLM":0.5,"t1K":300,"t2K":600,"vSoundMs":340,"vsMs":20}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ①が分かった：開管の振動数を求め、640 Hz が合わないことを確かめた</label>
+<p class="next-link"><a href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<h2>② 近づく音さ：680 Hz、f2 とちょうど一致して共鳴する</h2>
+<p>音源が観測者に近づくとき、観測される音は f′ = f0·V/(V − vs) になる。f0 = 640 Hz、vs = 20 m/s なので、f′ = 640 × 340/(340 − 20) = 640 × 340/320 = 680 Hz になる。ちょうど f2 = 680 Hz と一致するので、管は大きく鳴る（共鳴する）。</p>
+<p>波長は λ′ = V/f′ = 340/680 = 0.50 m になる。静止しているときの波長 0.53 m の 0.94 倍だ。台車が遠ざかると、f′ = 640 × 340/(340 + 20) ≈ 604 Hz になり、どの振動数とも一致しないので共鳴しない。</p>
+<svg class="fig" data-scene="scene-forkDopplerResPipe-doppler" data-show="" role="img" aria-label="音さが 20 m/s で近づく。波面は前方がせまく、観測される音は 680 Hz"></svg>
+<script type="application/json" id="scene-forkDopplerResPipe-doppler">{"type":"forkDopplerResPipe","phase":"doppler","fForkHz":640,"pipeLM":0.5,"t1K":300,"t2K":600,"vSoundMs":340,"vsMs":20}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ②が分かった：近づく音が 680 Hz で f2 と一致することを求めた</label>
+<p class="next-link"><a href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<h2>③ 管を 600 K に熱す：音速 481 m/s、668 Hz は合わなくなる</h2>
+<p>気体の音速は、絶対温度の平方根に比例する。v = √(γRT/M) なので、温度が 2 倍になると音速は √2 倍になる。600 K では v = 340 × √(600/300) = 340 × √2 ≈ 481 m/s（厳密には 480.8 m/s）になる。</p>
+<p>管の振動数も変わる。f1 = 481/(2 × 0.50) = 481 Hz になり、f2 = 962 Hz、f3 = 1443 Hz になる。近づく音さの音は、f′ = 640 × 481/(481 − 20) ≈ 668 Hz（厳密には 667.8 Hz）になり、f1 = 481 Hz と f2 = 962 Hz のあいだで、共鳴しなくなる。</p>
+<p>600 K で共鳴させるには、f2 = 962 Hz に合う音さが要る。近づくとき 962 Hz になる音さは、f0 = 962 × (481 − 20)/481 ≈ 922 Hz（厳密には 921.7 Hz）だ。f1 = 481 Hz に合う音さは 461 Hz だ。</p>
+<svg class="fig" data-scene="scene-forkDopplerResPipe-hot" data-show="" role="img" aria-label="600 K の開管の振動数。f1=481 Hz、f2=962 Hz、f3=1443 Hz、668 Hz は合わない"></svg>
+<script type="application/json" id="scene-forkDopplerResPipe-hot">{"type":"forkDopplerResPipe","phase":"hot","fForkHz":640,"pipeLM":0.5,"t1K":300,"t2K":600,"vSoundMs":340,"vsMs":20}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ③が分かった：600 K の音速 481 m/s と振動数を求め、共鳴しないことを確かめた</label>
+<p class="next-link"><a href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<h2>④ 罠：音さの 640 Hz は共鳴しない／300 K の音速ではだまされる</h2>
+<p>罠：「音さの 640 Hz が管と共鳴する」——まちがい。共鳴するのは、ドップラーで変わった 680 Hz だ。音源の振動数（640 Hz）と観測される音の高さ（680 Hz）を取り違えない。音さが静止したままでは、640 Hz はどの振動数とも一致しない。</p>
+<p>罠：「600 K でも 680 Hz のまま共鳴する」——まちがい。300 K の音速 340 m/s で計算すると、近づく音は 640 × 340/(340 − 20) = 680 Hz になって、見かけ上 f2 と一致する。でも 600 K では音速が 481 m/s になり、管の f2 は 962 Hz になる。本当の近づく音は 668 Hz で、f1 と f2 のあいだに入ってしまい、共鳴しない。温度が変わったら、音速も管の振動数も変わる。</p>
+<p>罠：「音速は温度に比例する」——まちがい。v ∝ T だと思うと、600 K の音速は 340 × 2 = 680 m/s、f1 = 680 Hz、f2 = 1360 Hz になり、ドップラー音は 640 × 680/(680 − 20) ≈ 659 Hz になる。正しくは v ∝ √T で、音速は 481 m/s、f1 = 481 Hz、ドップラー音は 668 Hz だ。</p>
+<p>罠：「閉管でも同じ」——まちがい。閉管（L = 0.50 m）では f_n = (2n−1)v/4L = (2n−1) × 170 Hz で、170 Hz、510 Hz、850 Hz、1190 Hz、1530 Hz になる。音さの 640 Hz も、近づいた 680 Hz も、どの振動数とも一致しないので共鳴しない。開管と閉管で振動数の並びがちがう。</p>
+<svg class="fig" data-scene="scene-forkDopplerResPipe-trap" data-show="" role="img" aria-label="罠。静止 640 Hz、近づく 680 Hz、遠ざかる 604 Hz、600 K の f2 は 962 Hz"></svg>
+<script type="application/json" id="scene-forkDopplerResPipe-trap">{"type":"forkDopplerResPipe","phase":"trap","fForkHz":640,"pipeLM":0.5,"t1K":300,"t2K":600,"vSoundMs":340,"vsMs":20}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ④が分かった：罠を 4 つ確かめた</label>
+<p class="next-link"><a href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<h2>⑤ 変えたら：L・vs・f0 で共鳴するかどうかが変わる</h2>
+<p>L = 1.00 m の開管なら、f1 = 170 Hz になり、f4 = 680 Hz になる。近づく音さの 680 Hz は f4 と一致して共鳴する。管が長くなると振動数が細かくなるので、680 Hz に合う次数が増える。L = 0.25 m の開管なら、f1 = 680 Hz になり、近づく音さの 680 Hz は f1 と一致して共鳴する。</p>
+<p>vs = 40 m/s で近づくと、f′ = 640 × 340/(340 − 40) ≈ 725 Hz になる。f2 = 680 Hz と f3 = 1020 Hz のあいだで、共鳴しない。vs = 10 m/s なら、f′ = 640 × 340/(340 − 10) ≈ 659 Hz になり、やはり共鳴しない。</p>
+<p>音さの振動数を f0 = 600 Hz にすると、近づく音は 600 × 340/(340 − 20) ≈ 638 Hz になり、共鳴しない。f0 = 700 Hz なら、近づく音は 700 × 340/(340 − 20) ≈ 744 Hz になり、やはり共鳴しない。</p>
+<svg class="fig" data-scene="scene-forkDopplerResPipe-vary" data-show="" role="img" aria-label="変えたら。L=1.00 m は f4=680 Hz、vs=40 m/s は 725 Hz、vs=10 m/s は 659 Hz"></svg>
+<script type="application/json" id="scene-forkDopplerResPipe-vary">{"type":"forkDopplerResPipe","phase":"vary","fForkHz":640,"pipeLM":0.5,"t1K":300,"t2K":600,"vSoundMs":340,"vsMs":20}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ⑤が分かった：L・vs・f0 を変えたときの共鳴を求めた</label>
+</div>
+
+<div class="done-box" id="doneBox">
+<p><strong>まとめ</strong></p>
+<p>動く音叉＋ドップラー効果＋開管の共鳴＋気体の音速を組み合わせました。開管（L = 0.50 m）は 340・680・1020・1360・1700・2040 Hz で、音さの 640 Hz は合わない。近づくと 680 Hz になって f2 とちょうど一致して共鳴する。遠ざかると 604 Hz で共鳴しない。管を 600 K に熱すると音速は 481 m/s（厳密には 480.8 m/s）になり、f1 = 481 Hz、f2 = 962 Hz になって、近づく音 668 Hz（厳密には 667.8 Hz）は合わなくなる。600 K で共鳴する音さは 922 Hz（厳密には 921.7 Hz）だ。音さの 640 Hz そのものは共鳴しない。300 K の音速で 600 K を計算すると 680 Hz になって見かけ上合うが、600 K の管の f2 は 962 Hz だ。橋渡しになった量は「温度」と「速さ」でした。</p>
+<p><button id="doneBtn">完了にする</button> <span id="doneMsg"></span></p>
+</div>
+
+<div class="top-link"><a href="#">↑ TOP</a></div>
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+  renderAllFigures();
+  const doneKey = 'comboForkDopplerResPipeDone';
+  const doneBtn = document.getElementById('doneBtn');
+  const doneMsg = document.getElementById('doneMsg');
+  const doneBox = document.getElementById('doneBox');
+  function refreshDone(msg) {
+    loadProgress().then((p) => {
+      if (p && p[doneKey]) { doneBox.classList.add('done'); doneMsg.textContent = '完了済み ✓'; }
+      else if (msg) { doneMsg.textContent = msg; }
+    });
+  }
+  doneBtn.addEventListener('click', () => {
+    loadProgress().then((p) => {
+      p = p || {};
+      p[doneKey] = true;
+      return saveProgress(p);
+    }).then(() => refreshDone('完了！'));
+  });
+  refreshDone();
+</script>
+</body>
+</html>
