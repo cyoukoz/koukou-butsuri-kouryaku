@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題BK：振り子＋弾性衝突＋ばね＋摩擦＋ドップラー効果 — 高校物理攻略</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", sans-serif; margin: 0; background: #fff; color: #222; line-height: 1.8; }
+  main { max-width: 720px; margin: 0 auto; padding: 24px 18px 80px; }
+  h1 { font-size: 24px; line-height: 1.4; }
+  h2 { font-size: 20px; margin-top: 40px; }
+  .step { border-top: 1px solid #ddd; padding-top: 16px; margin-top: 32px; }
+  .step h2 { font-size: 18px; margin: 0 0 8px; }
+  .fig { width: 100%; max-width: 400px; height: auto; display: block; margin: 12px auto; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; font-size: 14px; }
+  th { background: #f2f2f2; }
+  .donebox { border: 2px solid #4a8; background: #f6fffa; padding: 14px; margin-top: 40px; }
+  .nav { margin-top: 32px; font-size: 14px; }
+  .toplink { position: fixed; right: 16px; bottom: 16px; background: #222; color: #fff; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 14px; }
+  label.check { display: block; margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+<p><a href="../../index.html">← トップへ</a> ｜ <a href="photo-doppler-cap.html">← 組み合わせ問題BJ：光電効果＋ドップラー＋磁場円運動＋コンデンサー充電</a></p>
+<h1>組み合わせ問題BK：振り子＋弾性衝突＋ばね＋摩擦＋ドップラー効果</h1>
+<p>長さ L = 1.0 m の振り子の玉（m = 1.0 kg）に、小さな音源（f = 440 Hz）をつける。玉を高さ h = 0.20 m のところから静かに放す。最下点には、同じ質量のブロック（M = 1.0 kg）が静かに置いてある。玉とブロックは弾性衝突する。ブロックはばね（k = 100 N/m）に向かってすべり、動摩擦係数 μ = 0.20 の床をすべる。音速は 340 m/s、重力加速度は g = 10 m/s² とする。</p>
+<p>(1) 最下点での玉の速さと、観測される音の高さを求めよ。(2) 衝突のあとの玉とブロックの速さと、音の高さを求めよ。(3) ばねの最大の縮みと、戻ってきたブロックとの再衝突のあとの玉の高さと音の高さを求めよ。(4) 罠と変えたら。</p>
+
+<div class="step" id="step0">
+<p><b>はじめに：どう切り分けるか</b></p>
+<table>
+<tr><th>場面</th><th>考えること</th><th>使うモデル</th></tr>
+<tr><td>振り子</td><td>最下点の速さ</td><td>単振動・エネルギー</td></tr>
+<tr><td>ドップラー効果</td><td>速さで音の高さが変わる</td><td>ドップラー効果</td></tr>
+<tr><td>弾性衝突</td><td>速さの入れ替わり</td><td>運動量・エネルギー保存</td></tr>
+<tr><td>ばね＋摩擦</td><td>縮みと戻りの速さ</td><td>単振動・摩擦</td></tr>
+</table>
+<p>この問題の橋渡しの量は<b>速さ</b>だ。振り子の速さが音の高さを決め、衝突で速さが変わると音の高さも変わり、ばねに戻ってきた速さが再衝突のあとの玉の高さと音の高さを決める。</p>
+<svg class="fig" data-scene="scene-pendulumDopplerSpring-base" data-show="" role="img" aria-label="流れ。振り子が最下点で 2.0 m/s、ドップラーで 442.6 Hz、衝突で玉は止まり 440 Hz、ばねは 0.18 m 縮む"></svg>
+<script type="application/json" id="scene-pendulumDopplerSpring-base">{"blockKg":1.0,"f0Hz":440,"g":10,"hM":0.2,"kNperM":100,"lenM":1.0,"mKg":1.0,"muKin":0.2,"phase":"base","type":"pendulumDopplerSpring","vSoundMs":340}</script>
+<p><a href="#step1">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step1">
+<h2>① 振り子：最下点で 2.0 m/s、音は 442.6 Hz に聞こえる</h2>
+<p>放す位置の振れ角は、cosθ = (1.0 − 0.20)/1.0 = 0.80 なので、θ ≈ 36.9° だ。最下点の速さは、エネルギー保存から v = √(2gh) = √(2 × 10 × 0.20) = 2.0 m/s、運動エネルギーは 2.0 J になる。周期は T = 2π√(L/g) ≈ 2.0 s、放してから最下点までは T/4 ≈ 0.50 s かかる。</p>
+<p>最下点では玉が観測者に向かって 2.0 m/s で進むので、聞こえる音の高さは f′ = 440 × 340/(340 − 2.0) = 442.6 Hz になる。音源が近づくと音は高くなる。折り返し点では速さが 0 なので音は 440 Hz そのまま、反対向きの最下点では遠ざかるので 437.4 Hz になる。最下点での張力は T = mg + mv²/L = 10 + 4 = 14 N だ。</p>
+<svg class="fig" data-scene="scene-pendulumDopplerSpring-swing" data-show="velocity" role="img" aria-label="振り子。放す位置は θ=36.9°、最下点で速さ 2.0 m/s、観測者に向かう"></svg>
+<script type="application/json" id="scene-pendulumDopplerSpring-swing">{"blockKg":1.0,"f0Hz":440,"g":10,"hM":0.2,"kNperM":100,"lenM":1.0,"mKg":1.0,"muKin":0.2,"phase":"swing","type":"pendulumDopplerSpring","vSoundMs":340}</script>
+<label class="check"><input type="checkbox" id="comboPendulumDopplerSpring-check-1"> 最下点の速さ 2.0 m/s、音 442.6 Hz を求めた</label>
+<p><a href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<h2>② 弾性衝突：玉は止まり、ブロックが 2.0 m/s で動き出す</h2>
+<p>等しい質量の弾性衝突では、速さが入れ替わる。衝突の直前、玉は 2.0 m/s、ブロックは 0。衝突の直後、玉は 0、ブロックは 2.0 m/s になる。運動量は 2.0 kg·m/s、運動エネルギーは 2.0 J で、どちらも保存されている。</p>
+<p>玉が止まるので、音は 440 Hz に戻る。ブロックには音源がついていないので、ブロックの速さは音の高さに影響しない。</p>
+<svg class="fig" data-scene="scene-pendulumDopplerSpring-collide" data-show="" role="img" aria-label="弾性衝突。衝突前は玉 2.0 m/s、衝突後はブロック 2.0 m/s、玉は止まる"></svg>
+<script type="application/json" id="scene-pendulumDopplerSpring-collide">{"blockKg":1.0,"f0Hz":440,"g":10,"hM":0.2,"kNperM":100,"lenM":1.0,"mKg":1.0,"muKin":0.2,"phase":"collide","type":"pendulumDopplerSpring","vSoundMs":340}</script>
+<label class="check"><input type="checkbox" id="comboPendulumDopplerSpring-check-2"> 衝突で玉は止まり、ブロックが 2.0 m/s になることを求めた</label>
+<p><a href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<h2>③ ばね＋摩擦：0.18 m 縮み、戻り 1.6 m/s、再衝突で玉は 0.13 m まで上がる</h2>
+<p>ブロックはばねに 2.0 m/s で当たる。摩擦は f = μMg = 2.0 N だ。圧縮のあいだ摩擦は左向きで、つり合いの位置は x* = −f/k = −0.020 m にずれる。角振動数は ω = √(k/M) = 10 rad/s で、最大の縮みは x_max = −0.020 + √(0.020² + (2.0/10)²) = 0.18 m、ばねの力は 18 N、圧縮にかかる時間は 0.15 s になる。摩擦がなければ 0.20 m になる。</p>
+<p>戻りのあいだ摩擦は右向きで、つり合いの位置は +0.020 m にずれる。戻るときの速さは 1.6 m/s（往復 0.32 s）、摩擦熱は 0.72 J、戻りの運動エネルギーは 1.28 J（≒1.3 J）で、1.28 J + 0.72 J = 2.0 J と合う。ブロックは戻って玉と再び弾性衝突し、玉は 1.6 m/s をもらって左へ振り上がる。高さは h = v²/2g = 0.13 m になる。玉は観測者から遠ざかるので、音は f′ = 440 × 340/(340 + 1.6) = 438 Hz に聞こえる。</p>
+<svg class="fig" data-scene="scene-pendulumDopplerSpring-spring" data-show="spring" role="img" aria-label="ばね＋摩擦。最大の縮み 0.18 m、ばねの力 18 N、戻りの速さ 1.6 m/s"></svg>
+<script type="application/json" id="scene-pendulumDopplerSpring-spring">{"blockKg":1.0,"f0Hz":440,"g":10,"hM":0.2,"kNperM":100,"lenM":1.0,"mKg":1.0,"muKin":0.2,"phase":"spring","type":"pendulumDopplerSpring","vSoundMs":340}</script>
+<svg class="fig" data-scene="scene-pendulumDopplerSpring-return" data-show="" role="img" aria-label="再衝突。ブロックは止まり、玉は 1.6 m/s でもらって 0.13 m まで上がり、音は 438 Hz"></svg>
+<script type="application/json" id="scene-pendulumDopplerSpring-return">{"blockKg":1.0,"f0Hz":440,"g":10,"hM":0.2,"kNperM":100,"lenM":1.0,"mKg":1.0,"muKin":0.2,"phase":"return","type":"pendulumDopplerSpring","vSoundMs":340}</script>
+<label class="check"><input type="checkbox" id="comboPendulumDopplerSpring-check-3"> ばねの縮み 0.18 m、戻り 1.6 m/s、再衝突で 0.13 m・438 Hz を求めた</label>
+<p><a href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<h2>④ 罠：摩擦の向きの反転を無視すると 0.20 m、折り返し点が一番高いのではない</h2>
+<p>罠：「圧縮と戻りを 1 つの式で解く」——まちがい。摩擦の向きは圧縮のあいだ左向き、戻りのあいだ右向きで、つり合いの位置が −0.020 m から +0.020 m に変わる。向きの反転を無視すると、最大の縮みは 0.20 m、戻りの速さは 2.0 m/s になってしまう。2 段階に分けて解くと、0.18 m と 1.6 m/s になる。</p>
+<p>罠：「音がいちばん高く聞こえるのは、玉がもっとも高いところ（折り返し点）」——まちがい。折り返し点では速さが 0 なので、音は 440 Hz そのまま。いちばん高いのは最下点で、442.6 Hz になる。音の高さを決めるのは高さではなく速さだ。</p>
+<p>罠：「玉とブロックがくっつく衝突なら、ばねの縮みは 0.18 m のまま」——まちがい。くっつくと速さは 1.0 m/s、音は 441.3 Hz になり、運動エネルギーは 2.0 J から 1.0 J に減る。質量が 2.0 kg になってばねに入るので、最大の縮みは 0.11 m になる。</p>
+<svg class="fig" data-scene="scene-pendulumDopplerSpring-trap" data-show="" role="img" aria-label="最大の縮みの比べ。弾性 0.18 m、摩擦なし 0.20 m、くっつく衝突 0.11 m、μ=0.40 0.16 m"></svg>
+<script type="application/json" id="scene-pendulumDopplerSpring-trap">{"blockKg":1.0,"f0Hz":440,"g":10,"hM":0.2,"kNperM":100,"lenM":1.0,"mKg":1.0,"muKin":0.2,"phase":"trap","type":"pendulumDopplerSpring","vSoundMs":340}</script>
+<label class="check"><input type="checkbox" id="comboPendulumDopplerSpring-check-4"> 摩擦の向きの反転と、音を決めるのは速さだと区別できた</label>
+<p><a href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<h2>⑤ 変えたら：h・M・μ で縮みと戻りが変わる</h2>
+<p>h = 0.45 m から放すと、最下点の速さは √(2 × 10 × 0.45) = 3.0 m/s、音は f′ = 440 × 340/(340 − 3.0) = 443.9 Hz になる（θ ≈ 56.6°）。ブロックも 3.0 m/s でばねに入り、最大の縮みは 0.28 m、ばねの力は 28 N、戻りの速さは 2.6 m/s、再衝突のあとの玉は 0.34 m まで上がる。</p>
+<p>ブロックが M = 2.0 kg なら、玉は −0.67 m/s ではね返り、音は f′ = 440 × 340/(340 + 0.67) = 439.1 Hz になる。観測者から遠ざかるので、440 Hz より低く聞こえる。ブロックは 1.3 m/s でばねに入り、最大の縮みは 0.15 m、ばねの力は 15 N、戻りの速さは 0.74 m/s になる。</p>
+<p>μ = 0.40 なら、摩擦は 4.0 N になり、最大の縮みは 0.16 m、ばねの力は 16 N、戻りの速さは 1.2 m/s、再衝突のあとの玉は 0.069 m までしか上がらない。</p>
+<svg class="fig" data-scene="scene-pendulumDopplerSpring-vary" data-show="" role="img" aria-label="最大の縮みの比べ。もと 0.18 m、h=0.45 m 0.28 m、M=2.0 kg 0.15 m、μ=0.40 0.16 m"></svg>
+<script type="application/json" id="scene-pendulumDopplerSpring-vary">{"blockKg":1.0,"f0Hz":440,"g":10,"hM":0.2,"kNperM":100,"lenM":1.0,"mKg":1.0,"muKin":0.2,"phase":"vary","type":"pendulumDopplerSpring","vSoundMs":340}</script>
+<label class="check"><input type="checkbox" id="comboPendulumDopplerSpring-check-5"> h・M・μ を変えたときの縮みと戻りを求めた</label>
+</div>
+
+<div class="donebox" id="donebox">
+<p><b>まとめ（答え）</b></p>
+<p>(1) 最下点の速さ 2.0 m/s、音は 442.6 Hz（折り返し点 440 Hz、反対向き 437.4 Hz）。(2) 衝突で玉は止まり（440 Hz）、ブロックが 2.0 m/s。(3) ばねの最大の縮み 0.18 m、戻り 1.6 m/s、再衝突で玉は 0.13 m まで上がり、音は 438 Hz。(4) 音の高さを決めるのは速さ。摩擦の向きは圧縮と戻りで反転する。</p>
+<p>もとになった単体モデル：振り子は<a href="shm.html">第11問：単振動・振り子</a>、弾性衝突は<a href="collision.html">第12問：衝突・運動量保存</a>、ドップラー効果は<a href="doppler.html">第18問：ドップラー効果</a>、振り子＋衝突は<a href="pendulum-collide.html">組み合わせ問題W：振り子＋弾性衝突＋摩擦</a>、振り子＋衝突＋ばね＋摩擦は<a href="pendulum-spring-fric.html">組み合わせ問題AV：振り子＋弾性衝突＋ばね＋摩擦</a>、振り子＋衝突＋ドップラーは<a href="pendulum-doppler.html">組み合わせ問題BH：振り子＋弾性衝突＋ドップラー効果</a>、音源のドップラーは<a href="doppler-shm.html">組み合わせ問題I：ドップラー効果＋単振動</a>で確かめられる。</p>
+<p id="done-msg"></p>
+</div>
+
+<p class="nav"><a href="../../index.html">← トップへ</a></p>
+</main>
+<a class="toplink" href="#">↑ TOP</a>
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+const doneKey = 'comboPendulumDopplerSpringDone';
+const checkIds = ['comboPendulumDopplerSpring-check-1','comboPendulumDopplerSpring-check-2','comboPendulumDopplerSpring-check-3','comboPendulumDopplerSpring-check-4','comboPendulumDopplerSpring-check-5'];
+const doneMsg = document.getElementById('done-msg');
+function allChecked() { return checkIds.every(id => document.getElementById(id).checked); }
+function refresh() {
+  if (allChecked()) {
+    doneMsg.textContent = '完了！';
+    loadProgress().then(p => { p[doneKey] = true; return saveProgress(p); }).catch(() => {});
+  } else {
+    doneMsg.textContent = '';
+  }
+}
+checkIds.forEach(id => document.getElementById(id).addEventListener('change', refresh));
+renderAllFigures();
+loadProgress().then(p => { if (p[doneKey]) { doneMsg.textContent = '完了済み ✓'; } }).catch(() => {});
+</script>
+</body>
+</html>

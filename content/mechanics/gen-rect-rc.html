@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題BL：発電機＋変圧器＋整流＋平滑化＋RC充電 — 高校物理攻略</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", sans-serif; margin: 0; background: #fff; color: #222; line-height: 1.8; }
+  main { max-width: 720px; margin: 0 auto; padding: 24px 18px 80px; }
+  h1 { font-size: 24px; line-height: 1.4; }
+  h2 { font-size: 20px; margin-top: 40px; }
+  .step { border-top: 1px solid #ddd; padding-top: 16px; margin-top: 32px; }
+  .step h2 { font-size: 18px; margin: 0 0 8px; }
+  .fig { width: 100%; max-width: 400px; height: auto; display: block; margin: 12px auto; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; font-size: 14px; }
+  th { background: #f2f2f2; }
+  .donebox { border: 2px solid #4a8; background: #f6fffa; padding: 14px; margin-top: 40px; }
+  .nav { margin-top: 32px; font-size: 14px; }
+  .toplink { position: fixed; right: 16px; bottom: 16px; background: #222; color: #fff; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 14px; }
+  label.check { display: block; margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+<p><a href="../../index.html">← トップへ</a> ｜ <a href="pendulum-doppler-spring.html">← 組み合わせ問題BK：振り子＋弾性衝突＋ばね＋摩擦＋ドップラー効果</a></p>
+<h1>組み合わせ問題BL：発電機＋変圧器＋整流＋平滑化＋RC充電</h1>
+<p>発電機（コイル 100 回、B = 0.50 T、断面積 0.010 m²）が 50 Hz で回転している。変圧器で電圧を 2 倍に上げ、全波整流してコンデンサー（C = 500 μF）で平滑化し、直流にする。負荷にはほぼ一定の電流 0.50 A が流れる。その直流電源で、負荷抵抗と同じ抵抗（R = 620 Ω）とコンデンサー（C2 = 100 μF）の RC 回路を充電する。変圧器は理想的（電力が保存される）とし、ダイオードの電圧降下は無視する。平滑化した直流電圧は、RC 回路の充電ではほぼ一定（309 V）として扱う。</p>
+<p>(1) 発電機の最大電圧と実効電圧、変圧器の二次側の電圧を求めよ。(2) 全波整流の平均電圧と、平滑化した直流電圧を求めよ。(3) RC 回路の充電の時間変化と、最後にたまるエネルギーとジュール熱を求めよ。(4) 罠と変えたら。</p>
+
+<div class="step" id="step0">
+<p><b>はじめに：どう切り分けるか</b></p>
+<table>
+<tr><th>場面</th><th>考えること</th><th>使うモデル</th></tr>
+<tr><td>発電機</td><td>回転するコイルの起電力</td><td>電磁誘導</td></tr>
+<tr><td>変圧器</td><td>電圧を 2 倍に</td><td>変圧器</td></tr>
+<tr><td>整流＋平滑化</td><td>交流を直流に</td><td>整流・平滑化</td></tr>
+<tr><td>RC充電</td><td>直流でコンデンサーを充電</td><td>RC回路</td></tr>
+</table>
+<p>この問題の橋渡しの量は<b>電圧</b>だ。発電機の交流 111 V が変圧で 222 V になり、整流と平滑化で直流 309 V になり、その直流が RC 回路の充電を決める。</p>
+<svg class="fig" data-scene="scene-genRectRc-base" data-show="" role="img" aria-label="流れ。発電機 111 V、変圧で 222 V、整流の平均 200 V、平滑化で直流 309 V、RC の時定数 62 ms"></svg>
+<script type="application/json" id="scene-genRectRc-base">{"areaM2":0.01,"bT":0.5,"capF":0.0005,"freqHz":50,"loadIA":0.5,"nTurns":100,"phase":"base","ratioUp":2,"rcCapF":0.0001,"type":"genRectRc"}</script>
+<p><a href="#step1">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step1">
+<h2>① 発電機＋変圧器：最大 157 V、実効 111 V、二次側は 314 V</h2>
+<p>発電機の磁束の最大値は Φ_max = NBS = 100 × 0.50 × 0.010 = 0.50 Wb、角振動数は ω = 2π × 50 = 314 rad/s になる。起電力の最大値は ε_max = Φ_max ω = 0.50 × 314 = 157 V、実効値は ε_eff = 157/√2 = 111 V、周期は T = 0.020 s になる。</p>
+<p>変圧器で電圧を 2 倍に上げるので、二次側の実効電圧は 222 V、最大値は 314 V になる。変圧器は理想的なので電力は保存され、負荷に 155 W を送るには一次電流は 1.4 A 必要になる。発電機を回す平均トルクは 155/314 = 0.49 N·m だ。</p>
+<svg class="fig" data-scene="scene-genRectRc-gen" data-show="" role="img" aria-label="交流の波形。一次側は最大 157 V、二次側は最大 314 V"></svg>
+<script type="application/json" id="scene-genRectRc-gen">{"areaM2":0.01,"bT":0.5,"capF":0.0005,"freqHz":50,"loadIA":0.5,"nTurns":100,"phase":"gen","ratioUp":2,"rcCapF":0.0001,"type":"genRectRc"}</script>
+<label class="check"><input type="checkbox" id="comboGenRectRc-check-1"> 発電機 157 V・111 V、二次側 314 V・222 V を求めた</label>
+<p><a href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<h2>② 整流：平均は 200 V、平滑化で直流は 309 V になる</h2>
+<p>全波整流では交流の負の部分をひっくり返すので、電圧の平均値は (2/π) × 314 = 200 V になる。最大値 314 V ではない。</p>
+<p>平滑化のコンデンサー（C = 500 μF）をつなぐと、ピークの間隔 10 ms ごとに電荷 ΔQ = 0.50 × 0.010 = 0.0050 C が負荷に流れる。リップルは ΔV = ΔQ/C = 0.0050/0.0005 = 10 V になる。直流電圧はピークからリップルの半分だけ下がった Vdc = 314 − 5 = 309 V になる。負荷の電力は P = 309 × 0.50 = 155 W、負荷抵抗は R = 309/0.50 = 620 Ω だ。</p>
+<svg class="fig" data-scene="scene-genRectRc-rect" data-show="" role="img" aria-label="全波整流の波形。最大 314 V、平均 200 V"></svg>
+<script type="application/json" id="scene-genRectRc-rect">{"areaM2":0.01,"bT":0.5,"capF":0.0005,"freqHz":50,"loadIA":0.5,"nTurns":100,"phase":"rect","ratioUp":2,"rcCapF":0.0001,"type":"genRectRc"}</script>
+<label class="check"><input type="checkbox" id="comboGenRectRc-check-2"> 整流の平均 200 V、直流 309 V を求めた</label>
+<p><a href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<h2>③ 平滑化＋RC充電：τ = 62 ms、最後は 4.8 J たまり、4.8 J が熱になる</h2>
+<p>平滑化した直流（309 V）で RC 回路を充電する。負荷抵抗がそのまま RC 回路の抵抗になる。時定数は τ = RC = 620 × 100×10⁻⁶ = 62 ms、初めの電流は I0 = 309/620 = 0.50 A になる。</p>
+<p>コンデンサーの電圧は V = 309(1 − e^(−t/τ)) で増える。t = τ = 62 ms では Vc = 195 V、I = 0.18 A、たまった電荷は Q = CV = 20 mC、エネルギーは U = 1.9 J になる。t = 3τ = 0.19 s では Vc = 294 V、I = 0.025 A、Q = 29 mC、U = 4.3 J になる。最後は Q = 31 mC、U = 4.8 J で、電源の仕事は 9.6 J なので、ジュール熱は 4.8 J になる。電源の仕事の半分がコンデンサーにたまり、残りの半分が熱になる。</p>
+<svg class="fig" data-scene="scene-genRectRc-smooth" data-show="" role="img" aria-label="平滑化した直流の波形。ピーク 314 V、谷 304 V、直流 309 V"></svg>
+<script type="application/json" id="scene-genRectRc-smooth">{"areaM2":0.01,"bT":0.5,"capF":0.0005,"freqHz":50,"loadIA":0.5,"nTurns":100,"phase":"smooth","ratioUp":2,"rcCapF":0.0001,"type":"genRectRc"}</script>
+<svg class="fig" data-scene="scene-genRectRc-rc" data-show="" role="img" aria-label="RC充電のグラフ。τ=62 ms で 195 V、3τ で 294 V、最後は 309 V"></svg>
+<script type="application/json" id="scene-genRectRc-rc">{"areaM2":0.01,"bT":0.5,"capF":0.0005,"freqHz":50,"loadIA":0.5,"nTurns":100,"phase":"rc","ratioUp":2,"rcCapF":0.0001,"type":"genRectRc"}</script>
+<label class="check"><input type="checkbox" id="comboGenRectRc-check-3"> τ = 62 ms、τ での 195 V・20 mC、最後の 4.8 J を求めた</label>
+<p><a href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<h2>④ 罠：直流は最大値ではない、C を大きくしても平均は上がらない</h2>
+<p>罠：「平滑化した直流は最大値 314 V」——まちがい。直流は 309 V になる。リップルの 10 V だけ下がっている。直流が 314 V になるのは、負荷電流が 0（リップル 0）のときだけだ。</p>
+<p>罠：「平滑化の C を大きくすれば平均電圧 200 V が上がる」——まちがい。平均は (2/π) × 314 = 200 V のままで変わらない。C = 2000 μF にすると、リップルは 2.5 V になり、直流は 313 V になる。平均は変わらないのに、直流が 4 V しか上がらない。C を大きくするとリップルが小さくなるのであって、平均が上がるのではない。</p>
+<p>罠：「電源の仕事はすべてコンデンサーにたまる」——まちがい。電源の仕事 9.6 J のうち、コンデンサーにたまるのは 4.8 J、残りの 4.8 J はジュール熱になる。電源の仕事の半分が熱になるのは、抵抗の大きさによらない。</p>
+<svg class="fig" data-scene="scene-genRectRc-trap" data-show="" role="img" aria-label="電圧の比べ。最大値 314 V、平均 200 V、直流 309 V"></svg>
+<script type="application/json" id="scene-genRectRc-trap">{"areaM2":0.01,"bT":0.5,"capF":0.0005,"freqHz":50,"loadIA":0.5,"nTurns":100,"phase":"trap","ratioUp":2,"rcCapF":0.0001,"type":"genRectRc"}</script>
+<label class="check"><input type="checkbox" id="comboGenRectRc-check-4"> 直流は最大値ではないことと、C を大きくしても平均は変わらないと区別できた</label>
+<p><a href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<h2>⑤ 変えたら：C・I・半波・f で直流と充電が変わる</h2>
+<p>C = 2000 μF なら、リップルは 2.5 V、直流は 313 V になる。I = 1.0 A なら、リップルは 20 V、直流は 304 V になる。半波整流なら、ピークの間隔は 20 ms になり、リップルは 20 V、直流は 304 V になる。</p>
+<p>RC 側の C2 = 200 μF なら、τ = 620 × 200×10⁻⁶ = 0.12 s になり、最後の電荷は Q = 62 mC、エネルギーは U = 9.6 J になる。R = 310 Ω なら、τ = 310 × 100×10⁻⁶ = 31 ms、初めの電流は I0 = 1.0 A になる。最後の電荷とエネルギーは変わらない。</p>
+<p>f = 60 Hz なら、発電機から計算し直す。ε_max = 188 V、二次側の最大値は 377 V、リップルは 8.3 V、直流は 373 V、電力は 186 W、負荷抵抗は 750 Ω、τ = 75 ms、最後の電荷は 37 mC、エネルギーは 7.0 J になる。</p>
+<svg class="fig" data-scene="scene-genRectRc-vary" data-show="" role="img" aria-label="直流電圧の比べ。もと 309 V、C=2000 μF 313 V、I=1.0 A 304 V、f=60 Hz 373 V"></svg>
+<script type="application/json" id="scene-genRectRc-vary">{"areaM2":0.01,"bT":0.5,"capF":0.0005,"freqHz":50,"loadIA":0.5,"nTurns":100,"phase":"vary","ratioUp":2,"rcCapF":0.0001,"type":"genRectRc"}</script>
+<label class="check"><input type="checkbox" id="comboGenRectRc-check-5"> C・I・半波・f を変えたときの直流と充電を求めた</label>
+</div>
+
+<div class="donebox" id="donebox">
+<p><b>まとめ（答え）</b></p>
+<p>(1) 発電機：最大 157 V、実効 111 V、二次側は 314 V・222 V、一次電流 1.4 A。(2) 整流の平均 200 V、直流 309 V、電力 155 W、負荷抵抗 620 Ω。(3) τ = 62 ms、τ で 195 V・0.18 A・20 mC・1.9 J、3τ で 294 V・29 mC・4.3 J、最後は 31 mC・4.8 J、電源の仕事 9.6 J、ジュール熱 4.8 J。(4) 直流は最大値ではなく、C を大きくしても平均は上がらない。</p>
+<p>もとになった単体モデル：発電機は<a href="generator.html">組み合わせ問題AK：回転コイル発電機</a>、変圧器は<a href="generator-transformer.html">組み合わせ問題AZ：発電機＋変圧器＋送電＋電力損失</a>、整流＋平滑化は<a href="gen-rect-smooth.html">組み合わせ問題BB：発電機＋変圧器＋整流＋平滑化</a>、RC充電は<a href="rc-charge.html">組み合わせ問題AP：RC充電＋エネルギー</a>、コンデンサーは<a href="capacitor.html">第9問：コンデンサー</a>、過渡現象は<a href="transient.html">第30問：過渡現象</a>で確かめられる。</p>
+<p id="done-msg"></p>
+</div>
+
+<p class="nav"><a href="../../index.html">← トップへ</a></p>
+</main>
+<a class="toplink" href="#">↑ TOP</a>
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+const doneKey = 'comboGenRectRcDone';
+const checkIds = ['comboGenRectRc-check-1','comboGenRectRc-check-2','comboGenRectRc-check-3','comboGenRectRc-check-4','comboGenRectRc-check-5'];
+const doneMsg = document.getElementById('done-msg');
+function allChecked() { return checkIds.every(id => document.getElementById(id).checked); }
+function refresh() {
+  if (allChecked()) {
+    doneMsg.textContent = '完了！';
+    loadProgress().then(p => { p[doneKey] = true; return saveProgress(p); }).catch(() => {});
+  } else {
+    doneMsg.textContent = '';
+  }
+}
+checkIds.forEach(id => document.getElementById(id).addEventListener('change', refresh));
+renderAllFigures();
+loadProgress().then(p => { if (p[doneKey]) { doneMsg.textContent = '完了済み ✓'; } }).catch(() => {});
+</script>
+</body>
+</html>
