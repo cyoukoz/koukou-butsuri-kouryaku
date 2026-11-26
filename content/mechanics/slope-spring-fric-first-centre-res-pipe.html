@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせCG：斜面上のばね振り子＋摩擦＋ドップラー＋開管の共鳴（1 回目の中心で共鳴）｜高校物理攻略</title>
+<style>
+  body { font-family: sans-serif; line-height: 1.7; max-width: 760px; margin: 0 auto; padding: 16px; color: #222; }
+  h1 { font-size: 24px; }
+  h2 { font-size: 20px; margin-top: 40px; }
+  .step h2 { font-size: 18px; }
+  .nav { margin-bottom: 16px; }
+  .fig { display: block; margin: 16px auto; max-width: 100%; height: auto; }
+  .step-check { display: block; margin: 8px 0; }
+  .done-box { border: 2px solid #333; padding: 12px; margin-top: 24px; }
+  .next { margin-top: 24px; }
+  .top-link { position: fixed; right: 16px; bottom: 16px; background: #fff; border: 1px solid #333; padding: 8px 12px; }
+  .slice { background: #f5f5f5; padding: 12px; }
+</style>
+</head>
+<body>
+<p class="nav"><a href="../../index.html">← トップへ</a></p>
+<h1>組み合わせCG：斜面上のばね振り子＋摩擦＋ドップラー＋開管の共鳴（1 回目の中心で共鳴）</h1>
+
+<h2>問題</h2>
+<p>傾き θ = 37°（sin θ = 0.60、cos θ = 0.80）の斜面の上に、ばね定数 k = 100 N/m のばねが斜面に沿って固定されている。ばねの下端に質量 m = 1.0 kg の小物体をつけた。斜面と小物体のあいだの動摩擦係数は μ = 0.40 で、最大静止摩擦力も同じ大きさとする。重力加速度は g = 10 m/s² とする。</p>
+<p>小物体をつり合い位置の中心から斜面に沿って 0.20 m 伸ばして静かに放す。小物体には振動数 f0 = 488 Hz の音源がのっている。観測者は斜面の下にいて、音を聞く。斜面のそばには、長さ L = 0.35 m の開管（両端が開いた管）が置かれている。音速は V = 340 m/s とする。</p>
+<p>（1）つり合い位置と振動を求めよ。（2）つり合い位置の中心を通るときの速さを求めよ。（3）観測者の聞く音の高さを求め、管が共鳴するかどうかを確かめよ。（4）罠と「変えたら」を考えよ。</p>
+<p>この問題は、<a href="slope-spring-fric.html">AA「斜面上のばね振り子＋摩擦」</a>と<a href="doppler-resonance.html">BE「ドップラー＋開管の共鳴」</a>を組み合わせた問題です。橋渡しになる量は「速さ」です。単体モデルは<a href="shm.html">第11問・単振動</a>、<a href="doppler.html">第18問・ドップラー効果</a>、<a href="standing-wave.html">第14問・定在波</a>、<a href="slope-energy.html">組み合わせK・斜面＋摩擦＋エネルギー</a>です。</p>
+
+<h2>この問題の切れ目（スライス）</h2>
+<div class="slice">
+<ol>
+<li>① つり合いと振動：つり合い位置の中心は 0.060 m、振幅は半周期ごとに 0.064 m 減る</li>
+<li>② 中心の速さ：1.6、0.99、0.24 m/s（エネルギーで求める）</li>
+<li>③ ドップラーと共鳴：1 回目の中心の音 486 Hz が管の f1 と一致して共鳴する</li>
+<li>④ 罠：音源の 488 Hz は共鳴しない</li>
+<li>⑤ 変えたら：L・f0・閉管・μ で共鳴は変わるか</li>
+</ol>
+</div>
+
+<svg class="fig" data-scene="scene-slopeSpringFricFirstCentreResPipe-base" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="AA の振動に音源と管を足す。橋渡し量は速度。"></svg>
+<script type="application/json" id="scene-slopeSpringFricFirstCentreResPipe-base">{"type":"slopeSpringFricFirstCentreResPipe","phase":"base","thetaDeg":37,"sinTheta":0.6,"cosTheta":0.8,"mKg":1,"kNperM":100,"mu":0.4,"g":10,"amp0M":0.2,"f0Hz":488,"vSoundMs":340,"pipeLM":0.35}</script>
+
+<div class="step" id="step1">
+<h2>① つり合いと振動</h2>
+<p>重力の斜面成分は mg sin θ = 1.0 × 10 × 0.60 = 6.0 N、垂直抗力は mg cos θ = 1.0 × 10 × 0.80 = 8.0 N、摩擦力は μmg cos θ = 0.40 × 8.0 = 3.2 N です。</p>
+<p>つり合い位置は幅があります。ばねの力が 2.8〜9.2 N のあいだなら、摩擦力（最大 3.2 N）が差を埋めて止まることができるからです。伸びにすると 0.028〜0.092 m、中心は 0.060 m です。中心ではばねの力 6.0 N = 重力の斜面成分 6.0 N で、摩擦力は 0 です。</p>
+<p>放してからは、つり合い位置の中心を基準に、ω = √(k/m) = √(100/1.0) = 10 rad/s、T = 2π/ω ≈ 0.63 s、T/2 ≈ 0.31 s の単振動をします。振幅は半周期ごとに 2f/k = 0.064 m ずつ減ります。</p>
+<p>振幅：0.20 → 0.14 → 0.072 → 0.008 m。3 半周期、0.94 s で止まります。動いた距離は 0.20 + 2 × (0.136 + 0.072) + 0.008 = 0.62 m、摩擦で熱になったエネルギーは 3.2 × 0.624 = 2.0 J（厳密には 1.9968 J）で、はじめのエネルギー ½kA² = ½ × 100 × 0.20² = 2.0 J とほぼ一致します。残りの 0.0032 J は、玉が止まった位置（中心から 0.008 m）のばねのエネルギー ½ × 100 × 0.008² = 0.0032 J です。</p>
+<svg class="fig" data-scene="scene-slopeSpringFricFirstCentreResPipe-oscillate" data-show="gravity,normal,spring,decompSin,decompCos" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="つり合い位置での力。重力 10 N を分解すると斜面成分 6.0 N と垂直成分 8.0 N になり、ばねの力 6.0 N と垂直抗力 8.0 N がそれぞれつり合う。観測者は斜面の下にいる。"></svg>
+<script type="application/json" id="scene-slopeSpringFricFirstCentreResPipe-oscillate">{"type":"slopeSpringFricFirstCentreResPipe","phase":"oscillate","thetaDeg":37,"sinTheta":0.6,"cosTheta":0.8,"mKg":1,"kNperM":100,"mu":0.4,"g":10,"amp0M":0.2,"f0Hz":488,"vSoundMs":340,"pipeLM":0.35}</script>
+<svg class="fig" data-scene="scene-slopeSpringFricFirstCentreResPipe-decay" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="振幅は半周期ごとに 0.064 m ずつ減り、0.20 m から 0.14 m、0.072 m、0.008 m となって 0.94 s で止まる。"></svg>
+<script type="application/json" id="scene-slopeSpringFricFirstCentreResPipe-decay">{"type":"slopeSpringFricFirstCentreResPipe","phase":"decay","thetaDeg":37,"sinTheta":0.6,"cosTheta":0.8,"mKg":1,"kNperM":100,"mu":0.4,"g":10,"amp0M":0.2,"f0Hz":488,"vSoundMs":340,"pipeLM":0.35}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ① つり合い位置の中心 0.060 m と、振幅が半周期ごとに 0.064 m 減ることを確かめた</label>
+ <p class="next"><a href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<h2>② 中心の速さ</h2>
+<p>つり合い位置の中心を通るときの速さは、エネルギーで求めます。はじめの位置（振幅 A）から中心までのあいだに摩擦がする仕事は f × A です。</p>
+<p>1 回目の中心：½mv² = ½ × 100 × 0.20² − 3.2 × 0.20 = 2.00 − 0.64 = 1.36 J → v = 1.6 m/s。</p>
+<p>2 回目の中心：½mv² = ½ × 100 × 0.136² − 3.2 × 0.136 = 0.92 − 0.44 = 0.49 J → v = 0.99 m/s。</p>
+<p>3 回目の中心：½mv² = ½ × 100 × 0.072² − 3.2 × 0.072 = 0.26 − 0.23 = 0.029 J → v = 0.24 m/s。</p>
+<p>振幅が 0.008 m になったところで、玉はつり合い位置の幅（中心から ±0.032 m）のなかに入るので、摩擦力で止まります。4 回目の中心を通ることはなく、速さは 0 m/s です。中心のエネルギーは 1.36 → 0.49 → 0.029 → 0 J と減っていきます。速さが小さくなるのは、摩擦でエネルギーが減るからです。</p>
+<svg class="fig" data-scene="scene-slopeSpringFricFirstCentreResPipe-speeds" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="中心の速さは 1.6 m/s、0.99 m/s、0.24 m/s と回るごとに小さくなり、最後は 0 m/s で止まる。"></svg>
+<script type="application/json" id="scene-slopeSpringFricFirstCentreResPipe-speeds">{"type":"slopeSpringFricFirstCentreResPipe","phase":"speeds","thetaDeg":37,"sinTheta":0.6,"cosTheta":0.8,"mKg":1,"kNperM":100,"mu":0.4,"g":10,"amp0M":0.2,"f0Hz":488,"vSoundMs":340,"pipeLM":0.35}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ② 中心の速さ 1.6、0.99、0.24 m/s をエネルギーで確かめた</label>
+ <p class="next"><a href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<h2>③ ドップラーと共鳴</h2>
+<p>玉が斜面を下るときは観測者に近づくので音は高くなり、上るときは遠ざかるので音は低くなります。近づくとき f′ = f0 × V/(V − v)、遠ざかるとき f′ = f0 × V/(V + v) です。折り返し点では玉が止まるので音は 488 Hz のままです。</p>
+<p>中心を通るときの音は、1 回目 486 Hz、2 回目 489 Hz、3 回目 488 Hz、止まるとき 488 Hz です。</p>
+<p>1 回目の中心は、玉が上るとき（観測者から遠ざかるとき）に速さ 1.6 m/s（厳密には 1.65 m/s）で通るので、音は f′ = 488 × 340/(340 + 1.65) = 486 Hz です。一方、開管の振動数は f1 = 340/(2 × 0.35) = 486 Hz、f2 = 971 Hz、f3 = 1457 Hz です。</p>
+<p>1 回目の中心の音は厳密には 485.64 Hz で、管の f1 は厳密には 485.71 Hz です。有効数字3けたではどちらも 486 Hz となり、一致します。だから 1 回目の中心を通る瞬間だけ、管が共鳴して大きく鳴ります。2 回目の 489 Hz、3 回目の 488 Hz は管の振動数と一致しないので共鳴しません。</p>
+<p>動かない 488 Hz の音源と比べると、1 回目の中心の音とのうなりは 488 − 486 = 2.4 Hz で最大になります。</p>
+<svg class="fig" data-scene="scene-slopeSpringFricFirstCentreResPipe-doppler" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="音の高さ f'(t)：折り返し点では 488 Hz、中心では 486 Hz、489 Hz、488 Hz となり、1 回目の中心だけ管の f1=486 Hz に達する。"></svg>
+<script type="application/json" id="scene-slopeSpringFricFirstCentreResPipe-doppler">{"type":"slopeSpringFricFirstCentreResPipe","phase":"doppler","thetaDeg":37,"sinTheta":0.6,"cosTheta":0.8,"mKg":1,"kNperM":100,"mu":0.4,"g":10,"amp0M":0.2,"f0Hz":488,"vSoundMs":340,"pipeLM":0.35}</script>
+<svg class="fig" data-scene="scene-slopeSpringFricFirstCentreResPipe-resonate" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="開管 L=0.35 m の f1=486 Hz の定在波。1 回目の中心の音 486 Hz が f1 と一致して共鳴する。"></svg>
+<script type="application/json" id="scene-slopeSpringFricFirstCentreResPipe-resonate">{"type":"slopeSpringFricFirstCentreResPipe","phase":"resonate","thetaDeg":37,"sinTheta":0.6,"cosTheta":0.8,"mKg":1,"kNperM":100,"mu":0.4,"g":10,"amp0M":0.2,"f0Hz":488,"vSoundMs":340,"pipeLM":0.35}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ③ 1 回目の中心の音 486 Hz だけが管の f1 と一致して共鳴することを確かめた</label>
+ <p class="next"><a href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<h2>④ 罠</h2>
+<p>罠1：音源そのものの 488 Hz は、管の振動数（486、971、1457 Hz）のどれとも一致しないので共鳴しません。音源の振動数がそのまま管に入るわけではありません。</p>
+<p>罠2：一番速い中心で共鳴するとは限りません。BY では一番速い 1 回目の中心（1.8 m/s、495 Hz）は共鳴せず、2 回目の中心が共鳴しました。CG では 1 回目の中心が一番速く、たまたま共鳴しますが、それは速さ 1.65 m/s の音が有効数字3けたで 486 Hz になるからで、「速い＝共鳴」ではありません。共鳴するかどうかは、音の高さが管の振動数と一致するかどうかで決まります。</p>
+<p>罠3：摩擦がなかったら、中心の速さはつねに ωA0 = 10 × 0.20 = 2.0 m/s で、音は近づくとき 488 × 340/(340 − 2.0) = 491 Hz、遠ざかるとき 488 × 340/(340 + 2.0) = 485 Hz になり、どちらも管の f1 = 486 Hz とは一致しません。遠ざかる音の 485 Hz は f1 の 1 Hz 下で、もうすこしで共鳴しそうに見えますが、共鳴しません。摩擦があるからこそ、1 回目の中心の音が 486 Hz になって共鳴するのです。</p>
+<svg class="fig" data-scene="scene-slopeSpringFricFirstCentreResPipe-trap" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="罠：音源の 488 Hz は合わない。共鳴するのは 1 回目の中心の 486 Hz だけ。摩擦なしなら 491 Hz で合わない。"></svg>
+<script type="application/json" id="scene-slopeSpringFricFirstCentreResPipe-trap">{"type":"slopeSpringFricFirstCentreResPipe","phase":"trap","thetaDeg":37,"sinTheta":0.6,"cosTheta":0.8,"mKg":1,"kNperM":100,"mu":0.4,"g":10,"amp0M":0.2,"f0Hz":488,"vSoundMs":340,"pipeLM":0.35}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ④ 音源の 488 Hz は共鳴しないことと、摩擦なしなら 491 Hz で合わないことを確かめた</label>
+ <p class="next"><a href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<h2>⑤ 変えたら</h2>
+<p>L = 0.70 m にすると、f1 = 340/(2 × 0.70) = 243 Hz、f2 = 486 Hz になります。1 回目の中心の音 486 Hz は f2 と一致するので、やはり共鳴します。L = 0.175 m にすると f1 = 971 Hz になり、1 回目の中心の音とは一致しないので共鳴しません。</p>
+<p>f0 = 440 Hz にすると、1 回目の中心の音は 438 Hz、2 回目は 441 Hz、3 回目は 440 Hz になり、管の振動数とは一致しないので共鳴しません。管を閉管（片端が閉じた管）にすると、振動数は 243 Hz、729 Hz、1214 Hz になり、1 回目の中心の音 486 Hz とは一致しないので共鳴しません。</p>
+<p>μ = 0.25 にすると、摩擦力は 0.25 × 8.0 = 2.0 N、振幅は半周期ごとに 2 × 2.0/100 = 0.040 m ずつ減ります（0.20 → 0.16 → 0.12 → 0.08 → 0.04 → 0 m）。5 半周期、1.57 s で止まります。中心の速さは 1.8、1.4、0.98、0.57 m/s、中心の音は 485 Hz、490 Hz、487 Hz、489 Hz になり、管の振動数とは一致しないので共鳴しません（BY の設定です）。</p>
+<svg class="fig" data-scene="scene-slopeSpringFricFirstCentreResPipe-vary" data-show="" width="400" height="320" viewBox="0 0 400 320" role="img" aria-label="変えたら：L=0.70 m なら f2=486 Hz で共鳴。f0=440 Hz なら 438 Hz、閉管なら 243 Hz で共鳴しない。"></svg>
+<script type="application/json" id="scene-slopeSpringFricFirstCentreResPipe-vary">{"type":"slopeSpringFricFirstCentreResPipe","phase":"vary","thetaDeg":37,"sinTheta":0.6,"cosTheta":0.8,"mKg":1,"kNperM":100,"mu":0.4,"g":10,"amp0M":0.2,"f0Hz":488,"vSoundMs":340,"pipeLM":0.35}</script>
+<label class="step-check"><input type="checkbox" class="step-done"> ⑤ L=0.70 m なら共鳴し、f0=440 Hz・閉管・μ=0.25 なら共鳴しないことを確かめた</label>
+</div>
+
+<div class="done-box" id="doneBox">
+<button id="doneBtn">完了にする</button> <span id="doneMsg"></span>
+<p>斜面上のばね振り子＋摩擦（μ = 0.40、つり合い位置の中心 0.060 m、振幅は半周期ごとに 0.064 m 減る、3 半周期 0.94 s で止まる）に、ドップラー効果と開管の共鳴を組み合わせました。中心の音は 486 Hz、489 Hz、488 Hz、488 Hz で、1 回目の中心だけが管の f1 = 486 Hz（厳密には 485.64 Hz と 485.71 Hz）と一致して共鳴します。音源そのものの 488 Hz は共鳴しません。橋渡しになった量は「速さ」でした。</p>
+</div>
+
+<p class="top-link"><a href="#">↑ TOP</a></p>
+
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+renderAllFigures();
+(function () {
+  var KEY = 'comboSlopeSpringFricFirstCentreResPipeDone';
+  var btn = document.getElementById('doneBtn');
+  var msg = document.getElementById('doneMsg');
+  var boxes = Array.prototype.slice.call(document.querySelectorAll('.step-done'));
+  function allChecked() { return boxes.length > 0 && boxes.every(function (b) { return b.checked; }); }
+  function refresh() {
+    loadProgress().then(function (p) {
+      if (p[KEY]) { msg.textContent = '完了済み ✓'; btn.disabled = true; }
+    });
+  }
+  btn.addEventListener('click', function () {
+    if (!allChecked()) { msg.textContent = 'まず 5 つのチェックを全部入れてください。'; return; }
+    loadProgress().then(function (p) {
+      p[KEY] = true;
+      return saveProgress(p);
+    }).then(function () { msg.textContent = '完了！'; btn.disabled = true; });
+  });
+  refresh();
+})();
+</script>
+</body>
+</html>
