@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題BQ：落下するコイル＋コンデンサー＋ばね＋摩擦 — 高校物理攻略</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", sans-serif; margin: 0; background: #fff; color: #222; line-height: 1.8; }
+  main { max-width: 720px; margin: 0 auto; padding: 24px 18px 80px; }
+  h1 { font-size: 24px; line-height: 1.4; }
+  h2 { font-size: 20px; margin-top: 40px; }
+  .step { border-top: 1px solid #ddd; padding-top: 16px; margin-top: 32px; }
+  .step h2 { font-size: 18px; margin: 0 0 8px; }
+  .fig { width: 100%; max-width: 400px; height: auto; display: block; margin: 12px auto; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; font-size: 14px; }
+  th { background: #f2f2f2; }
+  .donebox { border: 2px solid #4a8; background: #f6fffa; padding: 14px; margin-top: 40px; }
+  .nav { margin-top: 32px; font-size: 14px; }
+  .toplink { position: fixed; right: 16px; bottom: 16px; background: #222; color: #fff; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 14px; }
+  label.check { display: block; margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+<p><a href="../../index.html">← トップへ</a> ｜ <a href="doppler-res-pipe.html">← 組み合わせ問題BP：ドップラー効果＋開管の共鳴＋気体の音速</a></p>
+<h1>組み合わせ問題BQ：落下するコイル＋コンデンサー＋ばね＋摩擦</h1>
+<p>質量 0.10 kg のコイル（1辺 0.50 m の正方形、高さ 0.50 m）を、紙の裏向きの一様な磁場（B = 2.0 T）の上から静かに落とす。コイルにはコンデンサー（C = 0.10 F）がつながっている。コイルが磁場に入りきったあと、磁場の中を 1.5 m 落ちて、下のばね（k = 50 N/m）に当たる。ばねに当たっているあいだ、コイルには動摩擦力 0.50 N がはたらく。磁場は十分に広く、コイルがばねに当たるときも、はね返りの頂点でも、コイル全体が磁場の中にある。したがって、ばねに当たってからは、コイルを貫く磁束は変わらず、起電力は生じない。重力加速度は g = 10 m/s² とする。</p>
+<p>(1) 磁場に入るとき：加速度と、入りきったときの速さ・起電力・電気量・エネルギーを求めよ。(2) エネルギーと磁場の中：重力の仕事の行き先と、ばねに当たるときの速さを求めよ。(3) ばね：最大の縮みと押し返しの速さ、はね返りの高さを求めよ。(4) 罠と変えたら。</p>
+
+<div class="step" id="step0">
+<p><b>はじめに：どう切り分けるか</b></p>
+<table>
+<tr><th>場面</th><th>考えること</th><th>使うモデル</th></tr>
+<tr><td>磁場に入る</td><td>一定の加速度 5.0 m/s²</td><td>コンデンサーは「重さ」になる</td></tr>
+<tr><td>磁場の中</td><td>自由落下、速さ 5.9 m/s</td><td>自由落下</td></tr>
+<tr><td>ばね</td><td>2段の計算で縮みと押し返し</td><td>単振動＋摩擦</td></tr>
+<tr><td>エネルギー</td><td>摩擦熱とはね返り</td><td>エネルギー保存</td></tr>
+</table>
+<p>この問題の橋渡しの量は<b>速さとエネルギー</b>だ。磁場に入るときの速さが起電力と電気量を決め、ばねに当たるときの速さが縮みを決める。速さが変われば、たまるエネルギーも縮みも変わる。</p>
+<svg class="fig" data-scene="scene-fallLoopCapSpring-base" data-show="gravity" role="img" aria-label="磁場の上からコイルを落とす図。重力 1.0 N"></svg>
+<script type="application/json" id="scene-fallLoopCapSpring-base">{"bT":2.0,"capF":0.1,"dInsideM":1.5,"fricN":0.5,"g":10,"kSpring":50,"loopHM":0.5,"loopLM":0.5,"mKg":0.1,"phase":"base","resOhm":5.0,"type":"fallLoopCapSpring"}</script>
+<p><a href="#step1">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step1">
+<h2>① 磁場に入るとき：加速度は 5.0 m/s² のまま</h2>
+<p>コイルが磁場に入ると、起電力 ε = BLv が生じてコンデンサーに電気がたまる。電気がたまる速さは速さに比例するので、磁気の力は加速度に比例する。つまり、コンデンサーは「重さ」としてふるまう。余分な重さは m_extra = B²L²C = 2.0² × 0.50² × 0.10 = 0.10 kg になる。実効質量は m_eff = 0.10 + 0.10 = 0.20 kg になり、加速度は a = mg/m_eff = 1.0/0.20 = 5.0 m/s² で一定になる。重力 1.0 N のうち、磁気の力 0.50 N が上向きにはたらく。</p>
+<p>入りきったときの速さは v1 = √(2ah) = √(2 × 5.0 × 0.50) ≈ 2.2 m/s、入るまでの時間は t1 = v1/a ≈ 0.45 s になる。起電力は ε = BLv = 2.0 × 0.50 × 2.2 ≈ 2.2 V、電気量は Q = CV ≈ 0.22 C、コンデンサーのエネルギーは U = ½CV² ≈ 0.25 J、運動エネルギーは KE = ½mv² ≈ 0.25 J になる。電流は I = CBL·a = 0.50 A になる。</p>
+<svg class="fig" data-scene="scene-fallLoopCapSpring-enter" data-show="gravity,magForce" role="img" aria-label="磁場に入るときの力の図。重力 1.0 N 下向き、磁気の力 0.50 N 上向き"></svg>
+<script type="application/json" id="scene-fallLoopCapSpring-enter">{"bT":2.0,"capF":0.1,"dInsideM":1.5,"fricN":0.5,"g":10,"kSpring":50,"loopHM":0.5,"loopLM":0.5,"mKg":0.1,"phase":"enter","resOhm":5.0,"type":"fallLoopCapSpring"}</script>
+<label class="check"><input type="checkbox" id="comboFallLoopCapSpring-check-1"> 加速度 5.0 m/s² と入りきったときの速さ 2.2 m/s、起電力 2.2 V を求めた</label>
+<p><a href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<h2>② エネルギーと磁場の中：0.50 J = 0.25 J + 0.25 J、ばねに当たるとき 5.9 m/s</h2>
+<p>入りきるまでに重力がした仕事は mgh = 1.0 × 0.50 = 0.50 J だ。このうち、半分の 0.25 J が運動エネルギーになり、残りの半分 0.25 J がコンデンサーにたまる。抵抗がある場合とちがって、熱にはならない。エネルギーはぴったり合う。</p>
+<p>コイルが磁場に入りきると、コイルを貫く磁束は変わらなくなるので、起電力は 0 になり、磁気の力も 0 になる。だから、磁場の中では自由落下する。ばねに当たるときの速さは v2 = √(v1² + 2g × 1.5) = √(5.0 + 30) ≈ 5.9 m/s、磁場の中を落ちる時間は t2 = (5.9 − 2.2)/10 ≈ 0.37 s になる。運動エネルギーは ½mv2² = 1.75 J になる。落としはじめてからばねに当たるまで 0.82 s かかる。</p>
+<svg class="fig" data-scene="scene-fallLoopCapSpring-energy" data-show="" role="img" aria-label="エネルギーの棒グラフ。重力の仕事 0.50 J、運動エネルギー 0.25 J、コンデンサー 0.25 J"></svg>
+<script type="application/json" id="scene-fallLoopCapSpring-energy">{"bT":2.0,"capF":0.1,"dInsideM":1.5,"fricN":0.5,"g":10,"kSpring":50,"loopHM":0.5,"loopLM":0.5,"mKg":0.1,"phase":"energy","resOhm":5.0,"type":"fallLoopCapSpring"}</script>
+<svg class="fig" data-scene="scene-fallLoopCapSpring-inside" data-show="" role="img" aria-label="速さと時間のグラフ。0.45 s までは傾き 5.0、そのあとは傾き 10 で速くなる"></svg>
+<script type="application/json" id="scene-fallLoopCapSpring-inside">{"bT":2.0,"capF":0.1,"dInsideM":1.5,"fricN":0.5,"g":10,"kSpring":50,"loopHM":0.5,"loopLM":0.5,"mKg":0.1,"phase":"inside","resOhm":5.0,"type":"fallLoopCapSpring"}</script>
+<label class="check"><input type="checkbox" id="comboFallLoopCapSpring-check-2"> エネルギーの行き先と、ばねに当たるときの速さ 5.9 m/s を求めた</label>
+<p><a href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<h2>③ ばね：最大の縮み 0.27 m、ばねの力 14 N、押し返し 5.4 m/s</h2>
+<p>ばねの角振動数は ω = √(k/m) = √(50/0.10) ≈ 22 rad/s になる。縮むとき、摩擦は上向きにはたらくので、つり合いのずれは x_eq1 = (mg − f)/k = (1.0 − 0.50)/50 = 0.010 m になる。最大の縮みは x_max = x_eq1 + √[x_eq1² + (v/ω)²] ≈ 0.27 m になる。ばねの力は k·x_max = 50 × 0.27 ≈ 14 N になる。圧縮にかかる時間は 0.072 s だ。</p>
+<p>戻るとき、摩擦は下向きにはたらくので、つり合いのずれは x_eq2 = (mg + f)/k = 0.030 m に変わる。押し返しの速さは v_return = ω√[(x_max − x_eq2)² − x_eq2²] = 22 × √(0.245² − 0.030²) ≈ 5.4 m/s になる。戻りに 0.076 s かかる。摩擦熱は 0.27 J、押し返しの運動エネルギーは 1.5 J になる。はね返りの高さは 1.5 m になる。落としはじめてからはね返りの頂点まで 1.5 s かかる。</p>
+<p>エネルギーの確かめ：当たるときの運動エネルギー 1.75 J に、重力の仕事 0.27 J を足し、摩擦の仕事 0.14 J を引くと 1.9 J になり、ばねのエネルギー ½k·x_max² ≈ 1.9 J と一致する。はね返りの頂点でもコイル全体が磁場の中にあるので、ばねのあいだに起電力は生じない。</p>
+<svg class="fig" data-scene="scene-fallLoopCapSpring-spring" data-show="springForce" role="img" aria-label="ばねを縮める。自然長から 0.27 m 縮み、ばねの力 14 N、押し返すと 5.4 m/s"></svg>
+<script type="application/json" id="scene-fallLoopCapSpring-spring">{"bT":2.0,"capF":0.1,"dInsideM":1.5,"fricN":0.5,"g":10,"kSpring":50,"loopHM":0.5,"loopLM":0.5,"mKg":0.1,"phase":"spring","resOhm":5.0,"type":"fallLoopCapSpring"}</script>
+<label class="check"><input type="checkbox" id="comboFallLoopCapSpring-check-3"> 最大の縮み 0.27 m と押し返し 5.4 m/s を求めた</label>
+<p><a href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<h2>④ 罠：抵抗なら終端速度、1段の計算だと 5.9 m/s</h2>
+<p>罠：「抵抗がつながっていたら、終端速度 5.0 m/s で落ちる」——コンデンサーでは終端速度はない。抵抗の場合の終端速度は v_t = mgR/(B²L²) = 5.0 m/s だが、コンデンサーでは加速度は 5.0 m/s² のまま一定で、速さはどんどん増える。コンデンサーは「重さ」になるだけで、ブレーキの速さに上限はない。</p>
+<p>罠：「自由落下なら 3.2 m/s」——コンデンサーがあると 2.2 m/s になる。自由落下の速さ √(2gh) = 3.2 m/s より遅い。コンデンサーにエネルギーを取られる分、遅くなる。</p>
+<p>罠：「ばねの押し返しは、当たった速さと同じ 5.9 m/s」——まちがい。1段の計算（つり合いのずれを縮むときの 0.010 m のままにする）だと 5.9 m/s になるが、戻るとき摩擦の向きが変わるので、つり合いのずれは 0.030 m になる。正しくは 5.4 m/s だ。</p>
+<p>罠：「摩擦がなければ 0.27 m」——まちがい。摩擦なしだと 0.29 m になる。重力を無視すると 0.25 m になる。どちらも 0.27 m ではない。</p>
+<svg class="fig" data-scene="scene-fallLoopCapSpring-trap" data-show="" role="img" aria-label="速さの比べ。自由落下 3.2 m/s、コンデンサー 2.2 m/s、1段の押し返し 5.9 m/s、正しい押し返し 5.4 m/s"></svg>
+<script type="application/json" id="scene-fallLoopCapSpring-trap">{"bT":2.0,"capF":0.1,"dInsideM":1.5,"fricN":0.5,"g":10,"kSpring":50,"loopHM":0.5,"loopLM":0.5,"mKg":0.1,"phase":"trap","resOhm":5.0,"type":"fallLoopCapSpring"}</script>
+<label class="check"><input type="checkbox" id="comboFallLoopCapSpring-check-4"> 罠を 4 つ確かめた</label>
+<p><a href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<h2>⑤ 変えたら：C・B・k・f で縮みが変わる</h2>
+<p>C = 0.40 F なら、余分な重さは 0.40 kg、実効質量 0.50 kg、加速度 2.0 m/s² になる。入りきり 1.4 m/s、起電力 1.4 V、電気量 0.57 C、コンデンサーのエネルギー 0.40 J になる。ばねに当たるとき 5.7 m/s、最大の縮み 0.26 m、ばねの力 13 N、押し返し 5.2 m/s、摩擦熱 0.26 J、はね返り 1.3 m になる。</p>
+<p>B = 1.0 T なら、余分な重さは 0.025 kg、実効質量 0.125 kg、加速度 8.0 m/s² になる。入りきり 2.8 m/s、起電力 1.4 V、電気量 0.14 C、コンデンサーのエネルギー 0.10 J になる。ばねに当たるとき 6.2 m/s、最大の縮み 0.29 m、ばねの力 14 N、押し返し 5.7 m/s、摩擦熱 0.29 J、はね返り 1.6 m になる。</p>
+<p>k = 100 N/m なら、最大の縮み 0.19 m、ばねの力 19 N、押し返し 5.6 m/s、摩擦熱 0.19 J、はね返り 1.6 m になる。f = 1.0 N なら、最大の縮み 0.26 m、ばねの力 13 N、押し返し 4.9 m/s、摩擦熱 0.53 J、はね返り 1.2 m になる。</p>
+<svg class="fig" data-scene="scene-fallLoopCapSpring-vary" data-show="" role="img" aria-label="変えたら。もと 0.27 m、C=0.40 F は 0.26 m、B=1.0 T は 0.29 m、k=100 は 0.19 m"></svg>
+<script type="application/json" id="scene-fallLoopCapSpring-vary">{"bT":2.0,"capF":0.1,"dInsideM":1.5,"fricN":0.5,"g":10,"kSpring":50,"loopHM":0.5,"loopLM":0.5,"mKg":0.1,"phase":"vary","resOhm":5.0,"type":"fallLoopCapSpring"}</script>
+<label class="check"><input type="checkbox" id="comboFallLoopCapSpring-check-5"> C・B・k・f を変えたときの縮みと押し返しを求めた</label>
+</div>
+
+<div class="donebox" id="donebox">
+<p><b>まとめ（答え）</b></p>
+<p>(1) 加速度 5.0 m/s²、入りきり 2.2 m/s・0.45 s、ε = 2.2 V、Q = 0.22 C、U = 0.25 J、KE = 0.25 J。(2) 磁場の中は自由落下、ばねに当たるとき 5.9 m/s・0.37 s、KE = 1.75 J。(3) 最大の縮み 0.27 m、ばねの力 14 N、押し返し 5.4 m/s、はね返り 1.5 m、合計 1.5 s。(4) 1段の計算は 5.9 m/s で間違い。</p>
+<p>もとになった単体モデル：落下するコイル＋コンデンサーは<a href="fall-loop-cap.html">組み合わせ問題AY：落下するコイル＋コンデンサー＋エネルギー</a>、ばね＋摩擦は<a href="fall-drag-spring.html">組み合わせ問題BF：空気抵抗で落下＋ばね＋摩擦</a>、落下するコイル＋抵抗は<a href="fall-loop.html">組み合わせ問題R：落下するコイル・磁気ブレーキ</a>、ばねは<a href="spring.html">第5問：ばね</a>で確かめられる。</p>
+<p id="done-msg"></p>
+</div>
+
+<p class="nav"><a href="../../index.html">← トップへ</a> ｜ <a href="gas-cycle-res-pipe.html">組み合わせ問題BR：気体＋ピストン＋ばね＋音速＋共鳴管 →</a></p>
+</main>
+<a class="toplink" href="#">↑ TOP</a>
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+const doneKey = 'comboFallLoopCapSpringDone';
+const checkIds = ['comboFallLoopCapSpring-check-1','comboFallLoopCapSpring-check-2','comboFallLoopCapSpring-check-3','comboFallLoopCapSpring-check-4','comboFallLoopCapSpring-check-5'];
+const doneMsg = document.getElementById('done-msg');
+function allChecked() { return checkIds.every(id => document.getElementById(id).checked); }
+function refresh() {
+  if (allChecked()) {
+    doneMsg.textContent = '完了！';
+    loadProgress().then(p => { p[doneKey] = true; return saveProgress(p); }).catch(() => {});
+  } else {
+    doneMsg.textContent = '';
+  }
+}
+checkIds.forEach(id => document.getElementById(id).addEventListener('change', refresh));
+renderAllFigures();
+loadProgress().then(p => { if (p[doneKey]) { doneMsg.textContent = '完了済み ✓'; } }).catch(() => {});
+</script>
+</body>
+</html>
