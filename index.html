@@ -458,6 +458,20 @@
   <p><a href="content/mechanics/photo-doppler-circle.html">光電効果＋ドップラー効果＋磁場の円運動のドリルを開く →</a></p>
   <p id="progress-combo-photo-doppler-circle">進捗：読み込み中…</p>
 </div>
+<div class="card">
+  <h2>組み合わせ問題BE：音波＋ドップラー効果＋開管の共鳴</h2>
+  <p>振動数 450 Hz のサイレンを鳴らした車が、長さ 0.34 m の開管に向かって速さ 34 m/s で近づく。ドップラー効果で管口に届く音は 500 Hz になり、開管の基本振動数 f1 = 500 Hz と一致して大きく共鳴する。遠ざかると 409 Hz になり、管の振動数とは合わず共鳴しない。L = 0.68 m なら f2 = 500 Hz で共鳴し、900 Hz のサイレンなら 1000 Hz で f2 と共鳴する。橋渡し量は「振動数」。</p>
+  <p><a href="content/mechanics/doppler-resonance.html">音波＋ドップラー効果＋開管の共鳴のドリルを開く →</a></p>
+  <p id="progress-combo-doppler-resonance">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>組み合わせ問題BF：空気抵抗で落下＋ばね＋摩擦</h2>
+  <p>質量 0.20 kg の玉を高さ 3.0 m から静かに落とす。空気抵抗 F = kv²（k = 0.010 kg/m）で、着地は 7.2 m/s、運動エネルギー 5.2 J になる。地面のばね（k = 50 N/m）はガイドの中にあり、1.0 N の動摩擦力がはたらく。最大の縮みは 0.48 m、ばねの力は 24 N、押し返しは 6.5 m/s、摩擦熱は 0.95 J、はね返りは 1.9 m になる。摩擦の向きが変わるので、つり合い位置は 0.020 m から 0.060 m にずれる（2 段の計算）。橋渡し量は「エネルギー」。</p>
+  <p><a href="content/mechanics/fall-drag-spring.html">空気抵抗で落下＋ばね＋摩擦のドリルを開く →</a></p>
+  <p id="progress-combo-fall-drag-spring">進捗：読み込み中…</p>
+</div>
+
 
 <div class="card">
   <h2>第7問：気体＋ピストン</h2>
@@ -790,6 +804,10 @@
       p.comboProjDragWallDone ? '進捗：組み合わせ問題BC・斜方投射＋空気抵抗＋壁＋エネルギーを完了済み ✓' : '進捗：まだ組み合わせ問題BC・斜方投射＋空気抵抗＋壁＋エネルギーは未完了';
     document.getElementById('progress-combo-photo-doppler-circle').textContent =
       p.comboPhotoDopplerCircleDone ? '進捗：組み合わせ問題BD・光電効果＋ドップラー効果＋磁場の円運動を完了済み ✓' : '進捗：まだ組み合わせ問題BD・光電効果＋ドップラー効果＋磁場の円運動は未完了';
+    document.getElementById('progress-combo-doppler-resonance').textContent =
+      p.comboDopplerResonanceDone ? '進捗：組み合わせ問題BE・音波＋ドップラー効果＋開管の共鳴を完了済み ✓' : '進捗：まだ組み合わせ問題BE・音波＋ドップラー効果＋開管の共鳴は未完了';
+    document.getElementById('progress-combo-fall-drag-spring').textContent =
+      p.comboFallDragSpringDone ? '進捗：組み合わせ問題BF・空気抵抗で落下＋ばね＋摩擦を完了済み ✓' : '進捗：まだ組み合わせ問題BF・空気抵抗で落下＋ばね＋摩擦は未完了';
     document.getElementById('progress-gas-piston').textContent =
       p.gasPistonDone ? '進捗：第7問・気体＋ピストンを完了済み ✓' : '進捗：まだ第7問・気体＋ピストンは未完了';
     document.getElementById('progress-young').textContent =
@@ -905,6 +923,8 @@
     document.getElementById('progress-combo-gen-rect-smooth').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-proj-drag-wall').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-photo-doppler-circle').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-doppler-resonance').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-fall-drag-spring').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-gas-piston').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-young').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-capacitor').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
