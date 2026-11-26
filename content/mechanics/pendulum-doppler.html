@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題BH：振り子＋弾性衝突＋ドップラー効果 — 高校物理攻略</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", sans-serif; margin: 0; background: #fff; color: #222; line-height: 1.8; }
+  main { max-width: 720px; margin: 0 auto; padding: 24px 18px 80px; }
+  h1 { font-size: 24px; line-height: 1.4; }
+  h2 { font-size: 20px; margin-top: 40px; }
+  .step { border-top: 1px solid #ddd; padding-top: 16px; margin-top: 32px; }
+  .step h2 { font-size: 18px; margin: 0 0 8px; }
+  .fig { width: 100%; max-width: 400px; height: auto; display: block; margin: 12px auto; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; font-size: 14px; }
+  th { background: #f2f2f2; }
+  .donebox { border: 2px solid #4a8; background: #f6fffa; padding: 14px; margin-top: 40px; }
+  .nav { margin-top: 32px; font-size: 14px; }
+  .toplink { position: fixed; right: 16px; bottom: 16px; background: #222; color: #fff; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 14px; }
+  label.check { display: block; margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+<p><a href="../../index.html">← トップへ</a> ｜ <a href="proj-drag-wall-spring.html">← 組み合わせ問題BG：斜方投射＋空気抵抗＋壁＋摩擦＋ばね</a></p>
+<h1>組み合わせ問題BH：振り子＋弾性衝突＋ドップラー効果</h1>
+<p>長さ L = 1.0 m の振り子の玉（m = 1.0 kg）に、小さな音源（f = 440 Hz）をつける。玉を高さ h = 0.20 m のところから静かに放す。最下点には、同じ質量のブロック（M = 1.0 kg）が静かに置いてある。玉とブロックは弾性衝突する。ブロックは動摩擦係数 μ = 0.20 の床をすべる。音速は 340 m/s、重力加速度は g = 10 m/s² とする。</p>
+<p>(1) 最下点での玉の速さと、観測される音の高さを求めよ。(2) 玉の速さが変わるとき、音の高さはどう変わるか。(3) 衝突のあとの玉とブロックの速さと、音の高さを求めよ。(4) 罠と変えたら。</p>
+
+<div class="step" id="step0">
+<p><b>はじめに：どう切り分けるか</b></p>
+<table>
+<tr><th>場面</th><th>考えること</th><th>使うモデル</th></tr>
+<tr><td>振り子</td><td>最下点の速さ</td><td>単振動・エネルギー</td></tr>
+<tr><td>ドップラー効果</td><td>速さで音の高さが変わる</td><td>ドップラー効果</td></tr>
+<tr><td>弾性衝突</td><td>速さの入れ替わり</td><td>運動量・エネルギー保存</td></tr>
+</table>
+<p>この問題の橋渡しの量は<b>速さ</b>だ。振り子の速さが音の高さを決め、衝突で速さが変わると音の高さも変わる。</p>
+<svg class="fig" data-scene="scene-pendulumDoppler-base" data-show="" role="img" aria-label="流れ。振り子が最下点で 2.0 m/s、ドップラーで 442.6 Hz、衝突で玉は止まり 440 Hz"></svg>
+<script type="application/json" id="scene-pendulumDoppler-base">{"blockKg":1.0,"f0Hz":440,"g":10,"hM":0.2,"lenM":1.0,"mKg":1.0,"muKin":0.2,"phase":"base","type":"pendulumDoppler","vSoundMs":340}</script>
+<p><a href="#step1">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step1">
+<h2>① 振り子：最下点で 2.0 m/s、音は 442.6 Hz に聞こえる</h2>
+<p>放す位置の振れ角は、cosθ = (1.0 − 0.20)/1.0 = 0.80 なので、θ ≈ 36.9° だ。最下点の速さは、エネルギー保存から v = √(2gh) = √(2 × 10 × 0.20) = 2.0 m/s、運動エネルギーは 2.0 J になる。周期は T = 2π√(L/g) ≈ 2.0 s、放してから最下点までは T/4 ≈ 0.50 s かかる。</p>
+<p>最下点では玉が観測者に向かって 2.0 m/s で進むので、聞こえる音の高さは f′ = 440 × 340/(340 − 2.0) = 442.6 Hz になる。音源が近づくと音は高くなる。最下点での張力は T = mg + mv²/L = 10 + 4 = 14 N だ。</p>
+<svg class="fig" data-scene="scene-pendulumDoppler-swing" data-show="velocity" role="img" aria-label="振り子。放す位置は θ=36.9°、最下点で速さ 2.0 m/s、観測者に向かう"></svg>
+<script type="application/json" id="scene-pendulumDoppler-swing">{"blockKg":1.0,"f0Hz":440,"g":10,"hM":0.2,"lenM":1.0,"mKg":1.0,"muKin":0.2,"phase":"swing","type":"pendulumDoppler","vSoundMs":340}</script>
+<label class="check"><input type="checkbox" id="comboPendulumDoppler-check-1"> 最下点の速さ 2.0 m/s、音 442.6 Hz を求めた</label>
+<p><a href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<h2>② ドップラー効果：速さで音の高さが変わる</h2>
+<p>玉の速さは振れとともに変わるので、聞こえる音の高さも変わる。折り返し点では速さが 0 なので、音は 440 Hz そのままに聞こえる。最下点を反対向きに通るとき（観測者から遠ざかるとき）は、f′ = 440 × 340/(340 + 2.0) = 437.4 Hz になる。</p>
+<p>440 Hz の音源と比べると、うなりは最大で 442.6 − 440 = 2.6 Hz になる。1 周期（約 2.0 s）のあいだに、音の高さは 440 → 442.6 → 440 → 437.4 → 440 Hz と変わる。</p>
+<svg class="fig" data-scene="scene-pendulumDoppler-doppler" data-show="" role="img" aria-label="聞こえる音の高さの変化。0.50 s で 442.6 Hz、1.5 s で 437.4 Hz"></svg>
+<script type="application/json" id="scene-pendulumDoppler-doppler">{"blockKg":1.0,"f0Hz":440,"g":10,"hM":0.2,"lenM":1.0,"mKg":1.0,"muKin":0.2,"phase":"doppler","type":"pendulumDoppler","vSoundMs":340}</script>
+<label class="check"><input type="checkbox" id="comboPendulumDoppler-check-2"> 442.6 Hz・440 Hz・437.4 Hz の変化を求めた</label>
+<p><a href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<h2>③ 弾性衝突：玉は止まり、ブロックが 2.0 m/s で動き出す</h2>
+<p>等しい質量の弾性衝突では、速さが入れ替わる。衝突の直前、玉は 2.0 m/s、ブロックは 0。衝突の直後、玉は 0、ブロックは 2.0 m/s になる。運動量は 2.0 kg·m/s、運動エネルギーは 2.0 J で、どちらも保存されている。</p>
+<p>玉が止まるので、音は 440 Hz に戻る。ブロックには音源がついていないので、ブロックの速さは音の高さに影響しない。ブロックは摩擦 2.0 N で減速し、1.0 s 後に 1.0 m すべって止まる。摩擦熱は 2.0 J だ。</p>
+<svg class="fig" data-scene="scene-pendulumDoppler-collide" data-show="" role="img" aria-label="弾性衝突。衝突前は玉 2.0 m/s、衝突後はブロック 2.0 m/s、玉は止まる"></svg>
+<script type="application/json" id="scene-pendulumDoppler-collide">{"blockKg":1.0,"f0Hz":440,"g":10,"hM":0.2,"lenM":1.0,"mKg":1.0,"muKin":0.2,"phase":"collide","type":"pendulumDoppler","vSoundMs":340}</script>
+<label class="check"><input type="checkbox" id="comboPendulumDoppler-check-3"> 衝突で玉は止まり、ブロックが 2.0 m/s になることを求めた</label>
+<p><a href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<h2>④ 罠：いちばん高いのは最下点、衝突が直接音を変えるのではない</h2>
+<p>罠：「音がいちばん高く聞こえるのは、玉がもっとも高いところ（折り返し点）」——まちがい。折り返し点では速さが 0 なので、音は 440 Hz そのまま。いちばん高いのは最下点で、442.6 Hz になる。音の高さを決めるのは高さではなく速さだ。</p>
+<p>罠：「衝突が音の高さを直接変える」——まちがい。衝突が変えるのは速さで、速さが変わるから音の高さが変わる。玉が止まれば音は 440 Hz に戻る。ブロックの速さは、音源が玉についているかぎり音の高さに影響しない。</p>
+<p>罠：「玉とブロックがくっつく衝突なら、音は 442.6 Hz のまま」——まちがい。くっつくと速さは 1.0 m/s になり、音は 441.3 Hz になる。運動エネルギーも 2.0 J から 1.0 J に減り、ブロックと一緒に 0.25 m すべって止まる。</p>
+<svg class="fig" data-scene="scene-pendulumDoppler-trap" data-show="" role="img" aria-label="速さの比べ。最下点 2.0 m/s、折り返し点 0、衝突後の玉 0、くっつく衝突 1.0 m/s"></svg>
+<script type="application/json" id="scene-pendulumDoppler-trap">{"blockKg":1.0,"f0Hz":440,"g":10,"hM":0.2,"lenM":1.0,"mKg":1.0,"muKin":0.2,"phase":"trap","type":"pendulumDoppler","vSoundMs":340}</script>
+<label class="check"><input type="checkbox" id="comboPendulumDoppler-check-4"> 最下点がいちばん高く、衝突は速さを通して音を変えることを区別できた</label>
+<p><a href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<h2>⑤ 変えたら：h・M・観測者の位置で音が変わる</h2>
+<p>h = 0.45 m から放すと、最下点の速さは √(2 × 10 × 0.45) = 3.0 m/s、音は f′ = 440 × 340/(340 − 3.0) = 443.9 Hz になる（θ ≈ 56.6°）。高く放すほど速くなり、音も高くなる。</p>
+<p>ブロックが M = 2.0 kg なら、玉は −0.67 m/s ではね返り、音は f′ = 440 × 340/(340 + 0.67) = 439.1 Hz になる。観測者から遠ざかるので、440 Hz より低く聞こえる。ブロックは 1.3 m/s で 0.44 m すべる。</p>
+<p>観測者が反対側にいると、最下点では玉が遠ざかるので、音は 437.4 Hz に聞こえる。同じ速さでも、近づくか遠ざかるかで音の高さは変わる。</p>
+<svg class="fig" data-scene="scene-pendulumDoppler-vary" data-show="" role="img" aria-label="音の高さの変化の比べ。もと +2.6 Hz、h=0.45 m で +3.9 Hz、M=2.0 kg で −0.9 Hz、反対側で −2.6 Hz"></svg>
+<script type="application/json" id="scene-pendulumDoppler-vary">{"blockKg":1.0,"f0Hz":440,"g":10,"hM":0.2,"lenM":1.0,"mKg":1.0,"muKin":0.2,"phase":"vary","type":"pendulumDoppler","vSoundMs":340}</script>
+<label class="check"><input type="checkbox" id="comboPendulumDoppler-check-5"> h・M・観測者の位置を変えたときの音を求めた</label>
+</div>
+
+<div class="donebox" id="donebox">
+<p><b>まとめ（答え）</b></p>
+<p>(1) 最下点の速さ 2.0 m/s、音は 442.6 Hz。(2) 折り返し点では 440 Hz、反対向きの最下点では 437.4 Hz、うなりは最大 2.6 Hz。(3) 衝突で玉は止まり（440 Hz）、ブロックが 2.0 m/s で 1.0 m すべる。(4) 音の高さを決めるのは速さ。衝突は速さを変えることで音を変える。</p>
+<p>もとになった単体モデル：振り子は<a href="shm.html">第11問：単振動・振り子</a>、弾性衝突は<a href="collision.html">第12問：衝突・運動量保存</a>、振り子＋衝突は<a href="pendulum-collide.html">組み合わせ問題W：振り子＋弾性衝突＋摩擦</a>、ドップラー効果は<a href="doppler.html">第18問：ドップラー効果</a>、音源のドップラーは<a href="doppler-shm.html">組み合わせ問題I：ドップラー効果＋単振動</a>、振り子＋衝突＋ばねは<a href="pendulum-spring-fric.html">組み合わせ問題AV：振り子＋弾性衝突＋ばね＋摩擦</a>で確かめられる。</p>
+<p id="done-msg"></p>
+</div>
+
+<p class="nav"><a href="../../index.html">← トップへ</a></p>
+</main>
+<a class="toplink" href="#">↑ TOP</a>
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+const doneKey = 'comboPendulumDopplerDone';
+const checkIds = ['comboPendulumDoppler-check-1','comboPendulumDoppler-check-2','comboPendulumDoppler-check-3','comboPendulumDoppler-check-4','comboPendulumDoppler-check-5'];
+const doneMsg = document.getElementById('done-msg');
+function allChecked() { return checkIds.every(id => document.getElementById(id).checked); }
+function refresh() {
+  if (allChecked()) {
+    doneMsg.textContent = '完了！';
+    loadProgress().then(p => { p[doneKey] = true; return saveProgress(p); }).catch(() => {});
+  } else {
+    doneMsg.textContent = '';
+  }
+}
+checkIds.forEach(id => document.getElementById(id).addEventListener('change', refresh));
+renderAllFigures();
+loadProgress().then(p => { if (p[doneKey]) { doneMsg.textContent = '完了済み ✓'; } }).catch(() => {});
+</script>
+</body>
+</html>

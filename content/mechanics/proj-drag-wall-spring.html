@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>組み合わせ問題BG：斜方投射＋空気抵抗＋壁＋摩擦＋ばね — 高校物理攻略</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", sans-serif; margin: 0; background: #fff; color: #222; line-height: 1.8; }
+  main { max-width: 720px; margin: 0 auto; padding: 24px 18px 80px; }
+  h1 { font-size: 24px; line-height: 1.4; }
+  h2 { font-size: 20px; margin-top: 40px; }
+  .step { border-top: 1px solid #ddd; padding-top: 16px; margin-top: 32px; }
+  .step h2 { font-size: 18px; margin: 0 0 8px; }
+  .fig { width: 100%; max-width: 400px; height: auto; display: block; margin: 12px auto; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; font-size: 14px; }
+  th { background: #f2f2f2; }
+  .donebox { border: 2px solid #4a8; background: #f6fffa; padding: 14px; margin-top: 40px; }
+  .nav { margin-top: 32px; font-size: 14px; }
+  .toplink { position: fixed; right: 16px; bottom: 16px; background: #222; color: #fff; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 14px; }
+  label.check { display: block; margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+<p><a href="../../index.html">← トップへ</a> ｜ <a href="proj-drag-wall.html">← 組み合わせ問題BC：斜方投射＋空気抵抗＋壁＋エネルギー</a></p>
+<h1>組み合わせ問題BG：斜方投射＋空気抵抗＋壁＋摩擦＋ばね</h1>
+<p>質量 m = 0.50 kg の玉を、速さ v0 = 20 m/s、仰角 45° で打ち出す。空気抵抗は速さの 2 乗に比例し、F = kv²（k = 0.010 kg/m）とする。5.0 m 先に壁があり、玉は壁ではね返る（反発係数 e = 0.80）。着地したあと、玉は動摩擦係数 μ = 0.20 の床をすべり、x = −16 m にあるばね（k = 50 N/m）に当たる。重力加速度は g = 10 m/s² とする。</p>
+<p>(1) 玉が壁に当たるまでの時間と高さと速さを求めよ。(2) 着地点と着地の速さ、ばねに当たるときの速さを求めよ。(3) ばねの最大の縮みと押し返しの速さ、止まる位置を求めよ。(4) 罠と変えたら。</p>
+
+<div class="step" id="step0">
+<p><b>はじめに：どう切り分けるか</b></p>
+<table>
+<tr><th>場面</th><th>考えること</th><th>使うモデル</th></tr>
+<tr><td>壁に当たるまで</td><td>斜方投射＋空気抵抗</td><td>斜方投射・抵抗</td></tr>
+<tr><td>はね返って着地</td><td>反発＋落下</td><td>衝突・等加速度運動</td></tr>
+<tr><td>すべってばね</td><td>摩擦＋ばね</td><td>摩擦・単振動</td></tr>
+</table>
+<p>この問題の橋渡しの量は<b>速さとエネルギー</b>だ。壁に当たるときの速さが、着地点とばねの縮みを決める。</p>
+<svg class="fig" data-scene="scene-projDragWallSpring-base" data-show="" role="img" aria-label="玉の軌道。打ち出して壁ではね返り、x=−12 m に着地してすべり、ばねに当たって x=−10 m で止まる"></svg>
+<script type="application/json" id="scene-projDragWallSpring-base">{"angDeg":45,"eRest":0.8,"g":10,"kKgPerM":0.01,"mKg":0.5,"muKin":0.2,"phase":"base","springK":50,"springXM":-16,"type":"projDragWallSpring","v0Ms":20,"wallXM":5.0}</script>
+<p><a href="#step1">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step1">
+<h2>① 壁に当たるまで：0.38 s、高さ 4.3 m、速さ 15 m/s</h2>
+<p>初速度の成分は、v0x = v0y = 20 × cos45° = 14 m/s だ。空気抵抗がなければ壁まで 5.0/14 = 0.35 s だが、抵抗で速さが落ちるので、壁に着くのは 0.38 s、高さは 4.3 m になる（数値計算）。このとき vx = 12 m/s、vy = 8.8 m/s で、速さは √(12² + 8.8²) = 15 m/s だ。運動エネルギーは ½ × 0.50 × 15² = 58 J になる。はじめの 100 J のうち、運動エネルギーは 58 J、位置エネルギーは 22 J になっている。残りは空気抵抗の仕事で、くわしくはステップ③で追う。</p>
+<svg class="fig" data-scene="scene-projDragWallSpring-wall" data-show="vx,vy,v" role="img" aria-label="壁に当たる瞬間の速度の分解。横 12 m/s、縦 8.8 m/s、速さ 15 m/s"></svg>
+<script type="application/json" id="scene-projDragWallSpring-wall">{"angDeg":45,"eRest":0.8,"g":10,"kKgPerM":0.01,"mKg":0.5,"muKin":0.2,"phase":"wall","springK":50,"springXM":-16,"type":"projDragWallSpring","v0Ms":20,"wallXM":5.0}</script>
+<label class="check"><input type="checkbox" id="comboProjDragWallSpring-check-1"> 壁まで 0.38 s、高さ 4.3 m、速さ 15 m/s を求めた</label>
+<p><a href="#step2">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step2">
+<h2>② はね返って着地：x=−12 m、速さ 13 m/s、ばねに当たるのは 5.1 m/s</h2>
+<p>壁ではね返ると、横向きの速さは vx′ = −0.80 × 12 = −9.9 m/s になる（鉛直成分は 8.8 m/s のまま）。はね返ったあとの速さは √(9.9² + 8.8²) = 13 m/s、運動エネルギーは 44 J になる。壁での損失は 58 − 44 = 14 J だ。</p>
+<p>玉はまだ上がっている（vy = 8.8 m/s）。打ち出してから 1.2 s 後に最高点（高さ 7.7 m、x = −2.3 m）に達し、そこから落ちて、打ち出してから 2.5 s 後に着地する。はね返ってから 2.1 s で 17 m もどり、着地点は x = −12 m（出発点より 12 m うしろ！）になる。着地のとき vx = −6.5 m/s、vy = −11 m/s、速さは 13 m/s、運動エネルギーは 42.5 J（横 10.5 J + 縦 32.0 J）になる。着地の向きは水平から下向きに 60° だ。</p>
+<p>着地のあと、玉は横の速さ 6.5 m/s で床をすべる。摩擦は μmg = 1.0 N、減速は 2.0 m/s² だ。ばね（x = −16 m）まで 4.0 m すべるのに 0.69 s かかり、ばねに当たるときの速さは 5.1 m/s、運動エネルギーは 6.5 J になる。縦の 32.0 J は着地で失われた（地面にめり込まないから、縦の運動エネルギーは残らない）。</p>
+<svg class="fig" data-scene="scene-projDragWallSpring-land" data-show="vx,vy,v" role="img" aria-label="着地の速度の分解。横 6.5 m/s、縦 11 m/s、速さ 13 m/s"></svg>
+<script type="application/json" id="scene-projDragWallSpring-land">{"angDeg":45,"eRest":0.8,"g":10,"kKgPerM":0.01,"mKg":0.5,"muKin":0.2,"phase":"land","springK":50,"springXM":-16,"type":"projDragWallSpring","v0Ms":20,"wallXM":5.0}</script>
+<label class="check"><input type="checkbox" id="comboProjDragWallSpring-check-2"> 着地 x=−12 m、速さ 13 m/s、ばねに当たる速さ 5.1 m/s を求めた</label>
+<p><a href="#step3">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step3">
+<h2>③ ばね：最大 0.49 m、ばねの力 25 N、止まるのは x=−10 m</h2>
+<p>ばねにぶつかったあとの動きは、ばねの力と摩擦のつり合い位置のまわりでの単振動だ。角振動数は ω = √(k/m) = √(50/0.50) = 10 rad/s になる。</p>
+<p>縮むとき、摩擦は玉の動きと逆向き（右向き）にはたらくので、つり合い位置は x1 = −0.020 m にずれる。振幅は A1 = √(0.020² + (5.1/10)²) = 0.51 m、最大の縮みは x_max = 0.51 − 0.020 = 0.49 m、ばねの最大の力は 50 × 0.49 = 25 N だ。縮むまでにかかる時間は 0.15 s になる。</p>
+<p>押し返されるとき、摩擦の向きが変わるので、つり合い位置は +0.020 m にずれる（AV・BA・BF と同じ 2 段の計算）。押し返しの速さは 4.7 m/s になる。往復の摩擦熱は 2 × 1.0 × 0.49 = 0.98 J で、6.5 − 0.98 = 5.5 J = ½ × 0.50 × 4.7² と合う。押し返された玉は 5.5 m すべって、2.4 s 後に x = −10 m で止まる。打ち出してから止まるまで 5.8 s かかる。</p>
+<p>はじめの 100 J の行き先をまとめると、壁の損失 13.8 J、空気抵抗の仕事 43.7 J、着地で失う縦の運動エネルギー 32.0 J、摩擦熱 10.5 J だ。13.8 + 43.7 + 32.0 + 10.5 = 100 J とぴったり合う。摩擦熱 10.5 J のうち、ばねまでが 4.0 J、ばねの往復が 0.98 J、戻りすべりが 5.5 J だ。</p>
+<svg class="fig" data-scene="scene-projDragWallSpring-spring" data-show="springF" role="img" aria-label="ばねの最大の縮み。0.49 m 縮み、ばねの力 25 N"></svg>
+<script type="application/json" id="scene-projDragWallSpring-spring">{"angDeg":45,"eRest":0.8,"g":10,"kKgPerM":0.01,"mKg":0.5,"muKin":0.2,"phase":"spring","springK":50,"springXM":-16,"type":"projDragWallSpring","v0Ms":20,"wallXM":5.0}</script>
+<label class="check"><input type="checkbox" id="comboProjDragWallSpring-check-3"> 最大の縮み 0.49 m、ばねの力 25 N、止まる位置 x=−10 m を求めた</label>
+<p><a href="#step4">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step4">
+<h2>④ 罠：壁での損失だけが損失ではない</h2>
+<p>罠：「壁での損失 13.8 J がいちばん大きい」——まちがい。空気抵抗の仕事 43.7 J がいちばん大きい。壁・抵抗・着地・摩擦の 4 つを全部足すと、はじめの 100 J になる。壁だけ見ていては、エネルギーの行き先は追えない。</p>
+<p>罠：「空気抵抗を無視しても、ばねの縮みは 0.49 m くらい」——まちがい。抵抗なしなら壁では 18 m/s、着地は x = −23 m、速さ 18 m/s、横の運動エネルギーは 32 J になる。ばねの壁（x = −16 m）を 6.8 m の高さで飛び越えてしまうので、ばねには当たらない。そのまま 32 m すべって、x = −55 m で止まる。</p>
+<p>罠：「摩擦を無視しても、ばねの縮みは 0.49 m くらい」——まちがい。摩擦なしなら最大の縮みは 0.51 m、押し返しは 5.1 m/s になる。1 段の計算（つり合いのずれを考えない）でも、押し返しは 5.1 m/s になってしまう（正しくは 4.7 m/s）。</p>
+<svg class="fig" data-scene="scene-projDragWallSpring-trap" data-show="" role="img" aria-label="エネルギーの損失の比べ。壁 13.8 J、抵抗 43.7 J、着地 32.0 J、摩擦 10.5 J"></svg>
+<script type="application/json" id="scene-projDragWallSpring-trap">{"angDeg":45,"eRest":0.8,"g":10,"kKgPerM":0.01,"mKg":0.5,"muKin":0.2,"phase":"trap","springK":50,"springXM":-16,"type":"projDragWallSpring","v0Ms":20,"wallXM":5.0}</script>
+<label class="check"><input type="checkbox" id="comboProjDragWallSpring-check-4"> 壁・抵抗・着地・摩擦の 4 つの損失を区別できた</label>
+<p><a href="#step5">次へ ↓</a></p>
+</div>
+
+<div class="step" id="step5">
+<h2>⑤ 変えたら：e・k・μ で縮みが変わる</h2>
+<p>e = 1.0（弾性衝突）なら、壁での損失は 0 になり、着地は x = −15.5 m、速さ 14 m/s、運動エネルギー 46 J になる。ばねまで 0.50 m すべって 7.5 m/s で当たり、最大の縮みは 0.73 m、ばねの力は 37 N、押し返しは 7.1 m/s、戻って 12.6 m すべり、x = −3.4 m で止まる。抵抗の仕事は 54 J だ。</p>
+<p>k = 100 N/m なら、最大の縮みは 0.35 m、ばねの力は 35 N、押し返しは 4.8 m/s、戻って 5.8 m すべり、x = −10 m で止まる。ばねが硬いほど縮みは小さいが、力は大きくなる。</p>
+<p>μ = 0.40 なら、摩擦は 2.0 N になる。ばねに当たるのは 3.2 m/s、最大の縮みは 0.28 m、ばねの力は 14 N、押し返しは 2.4 m/s、戻って 0.71 m すべり、x = −15 m で止まる。</p>
+<svg class="fig" data-scene="scene-projDragWallSpring-vary" data-show="" role="img" aria-label="ばねの最大の縮みの比べ。もと 0.49 m、e=1.0 で 0.73 m、k=100 で 0.35 m、μ=0.40 で 0.28 m"></svg>
+<script type="application/json" id="scene-projDragWallSpring-vary">{"angDeg":45,"eRest":0.8,"g":10,"kKgPerM":0.01,"mKg":0.5,"muKin":0.2,"phase":"vary","springK":50,"springXM":-16,"type":"projDragWallSpring","v0Ms":20,"wallXM":5.0}</script>
+<label class="check"><input type="checkbox" id="comboProjDragWallSpring-check-5"> e・k・μ を変えたときの縮みを求めた</label>
+</div>
+
+<div class="donebox" id="donebox">
+<p><b>まとめ（答え）</b></p>
+<p>(1) 壁まで 0.38 s、高さ 4.3 m、速さ 15 m/s。(2) 着地 x=−12 m、速さ 13 m/s、ばねに当たるのは 5.1 m/s。(3) 最大の縮み 0.49 m、ばねの力 25 N、押し返し 4.7 m/s、止まるのは x=−10 m。(4) エネルギー 100 J = 壁 13.8 J + 抵抗 43.7 J + 着地 32.0 J + 摩擦 10.5 J。</p>
+<p>もとになった単体モデル：斜方投射は<a href="projectile.html">投げ上げの動きを見る</a>、空気抵抗は<a href="proj-drag.html">組み合わせ問題AU：斜方投射＋2乗の空気抵抗＋エネルギー</a>、壁との衝突は<a href="proj-wall.html">組み合わせ問題AB：斜方投射＋壁との衝突</a>、壁＋摩擦は<a href="proj-wall-fric.html">組み合わせ問題AQ：斜方投射＋壁＋床の摩擦</a>、壁＋ばねは<a href="proj-wall-spring.html">組み合わせ問題BA：斜方投射＋壁＋摩擦＋ばね</a>、空気抵抗＋壁は<a href="proj-drag-wall.html">組み合わせ問題BC：斜方投射＋空気抵抗＋壁＋エネルギー</a>で確かめられる。</p>
+<p id="done-msg"></p>
+<p><a href="pendulum-doppler.html">次：組み合わせ問題BH：振り子＋弾性衝突＋ドップラー効果 →</a></p>
+</div>
+
+<p class="nav"><a href="../../index.html">← トップへ</a></p>
+</main>
+<a class="toplink" href="#">↑ TOP</a>
+<script src="../../assets/js/idb.js"></script>
+<script src="../../assets/js/figure.js"></script>
+<script>
+const doneKey = 'comboProjDragWallSpringDone';
+const checkIds = ['comboProjDragWallSpring-check-1','comboProjDragWallSpring-check-2','comboProjDragWallSpring-check-3','comboProjDragWallSpring-check-4','comboProjDragWallSpring-check-5'];
+const doneMsg = document.getElementById('done-msg');
+function allChecked() { return checkIds.every(id => document.getElementById(id).checked); }
+function refresh() {
+  if (allChecked()) {
+    doneMsg.textContent = '完了！';
+    loadProgress().then(p => { p[doneKey] = true; return saveProgress(p); }).catch(() => {});
+  } else {
+    doneMsg.textContent = '';
+  }
+}
+checkIds.forEach(id => document.getElementById(id).addEventListener('change', refresh));
+renderAllFigures();
+loadProgress().then(p => { if (p[doneKey]) { doneMsg.textContent = '完了済み ✓'; } }).catch(() => {});
+</script>
+</body>
+</html>
