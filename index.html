@@ -748,6 +748,18 @@
   <p><a href="content/mechanics/conical-doppler-recede-res-pipe.html">円錐振り子＋ドップラー＋開管の共鳴のドリルを開く →</a></p>
   <p id="progress-combo-conical-doppler-recede-res-pipe">進捗：読み込み中…</p>
 </div>
+<div class="card">
+  <h2>組み合わせ問題CW：鉛直ばね振り子＋ドップラー＋開管の共鳴（下向きに通るとき共鳴）</h2>
+  <p>鉛直ばね振り子（つりあい 0.10 m 下、振幅 0.20 m、周期 0.63 s、速さの最大 2.0 m/s）に、音源 f0 = 397.5 Hz と管 L = 0.425 m（f1 = 400、f2 = 800、f3 = 1200 Hz）を組み合わせた問題。共鳴するのは下向きに通る音 400 Hz で、管の f1 と有効数字3けたで一致する（ちょうどではない）。音源そのものの 397.5 Hz・上向きに通る 395 Hz・折り返し点の 397.5 Hz は合わない。CU・CV の円錐振り子とはちがい、速さが変わる振動で、1周期に 1回だけ下向きに通るときに共鳴する。重力を無視すると振幅をまちがえる。橋渡し量は「速度（鉛直方向）」。</p>
+  <p><a href="content/mechanics/vert-spring-doppler-res-pipe.html">鉛直ばね振り子＋ドップラー＋開管の共鳴のドリルを開く →</a></p>
+  <p id="progress-combo-vert-spring-doppler-res-pipe">進捗：読み込み中…</p>
+</div>
+<div class="card">
+  <h2>組み合わせ問題CX：鉛直ばね振り子＋ドップラー＋開管の共鳴（上向きに通るとき共鳴）</h2>
+  <p>鉛直ばね振り子（つりあい 0.10 m 下、振幅 0.20 m、周期 0.63 s、速さの最大 2.0 m/s）に、音源 f0 = 402.5 Hz と管 L = 0.425 m（f1 = 400、f2 = 800、f3 = 1200 Hz）を組み合わせた問題。共鳴するのは上向きに通る音 400 Hz で、管の f1 と有効数字3けたで一致する（ちょうどではない）。音源そのものの 402.5 Hz・下向きに通る 405 Hz・折り返し点の 402.5 Hz は合わない。CW では下向きに通る音が共鳴したが、ここでは上向きに通る音が共鳴する。符号をまちがえると共鳴する瞬間をまちがえる。橋渡し量は「速度（鉛直方向）」。</p>
+  <p><a href="content/mechanics/vert-spring-recede-doppler-res-pipe.html">鉛直ばね振り子＋ドップラー＋開管の共鳴のドリルを開く →</a></p>
+  <p id="progress-combo-vert-spring-recede-doppler-res-pipe">進捗：読み込み中…</p>
+</div>
 
 
 
@@ -1170,6 +1182,10 @@
       p.comboConicalDopplerResPipeDone ? '進捗：組み合わせ問題CU・円錐振り子＋ドップラー＋開管の共鳴を完了済み ✓' : '進捗：まだ組み合わせ問題CU・円錐振り子＋ドップラー＋開管の共鳴は未完了';
     document.getElementById('progress-combo-conical-doppler-recede-res-pipe').textContent =
       p.comboConicalDopplerRecedeResPipeDone ? '進捗：組み合わせ問題CV・円錐振り子＋ドップラー＋開管の共鳴を完了済み ✓' : '進捗：まだ組み合わせ問題CV・円錐振り子＋ドップラー＋開管の共鳴は未完了';
+    document.getElementById('progress-combo-vert-spring-doppler-res-pipe').textContent =
+      p.comboVertSpringDopplerResPipeDone ? '進捗：組み合わせ問題CW・鉛直ばね振り子＋ドップラー＋開管の共鳴を完了済み ✓' : '進捗：まだ組み合わせ問題CW・鉛直ばね振り子＋ドップラー＋開管の共鳴は未完了';
+    document.getElementById('progress-combo-vert-spring-recede-doppler-res-pipe').textContent =
+      p.comboVertSpringRecedeDopplerResPipeDone ? '進捗：組み合わせ問題CX・鉛直ばね振り子＋ドップラー＋開管の共鳴を完了済み ✓' : '進捗：まだ組み合わせ問題CX・鉛直ばね振り子＋ドップラー＋開管の共鳴は未完了';
     document.getElementById('progress-gas-piston').textContent =
       p.gasPistonDone ? '進捗：第7問・気体＋ピストンを完了済み ✓' : '進捗：まだ第7問・気体＋ピストンは未完了';
     document.getElementById('progress-young').textContent =
@@ -1329,6 +1345,8 @@
     document.getElementById('progress-combo-pendulum-apex-doppler-res-pipe').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-conical-doppler-res-pipe').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-conical-doppler-recede-res-pipe').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-vert-spring-doppler-res-pipe').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-vert-spring-recede-doppler-res-pipe').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-gas-piston').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-young').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-capacitor').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
