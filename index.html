@@ -446,6 +446,20 @@
 </div>
 
 <div class="card">
+  <h2>組み合わせ問題BC：斜方投射＋空気抵抗＋壁＋エネルギー</h2>
+  <p>質量 0.50 kg の玉を速さ 20 m/s、仰角 45° で打ち出す。空気抵抗 F = kv²（k = 0.010 kg/m）で、5.0 m 先の壁ではね返る（反発係数 0.80）。壁に当たるのは 0.38 s、高さ 4.3 m、速さ 15 m/s で、壁は最高点ではない（vy = 8.8 m/s でまだ上がっている）。はね返ったあと最高点 7.7 m に達し、着地は出発点より 12 m うしろの x=−12 m、速さ 13 m/s。はじめの 100 J は、壁の損失 13.8 J、着地で失う 32.0 J、抵抗の仕事 43.7 J、横の 10.5 J に分かれる。抵抗なしなら壁では 18 m/s、着地は x=−23 m。橋渡し量は「速さ・エネルギー」。</p>
+  <p><a href="content/mechanics/proj-drag-wall.html">斜方投射＋空気抵抗＋壁＋エネルギーのドリルを開く →</a></p>
+  <p id="progress-combo-proj-drag-wall">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
+  <h2>組み合わせ問題BD：光電効果＋ドップラー効果＋磁場の円運動</h2>
+  <p>波長 400 nm の光を出す光源が 0.10c で金属板に近づく。ドップラー効果で波長は 360 nm、光子のエネルギーは 3.4 eV になり、Kmax = 1.4 eV、阻止電圧 1.4 V、電子の速さ 7.1×10⁵ m/s になる。磁場 B = 1.0 mT に入ると、電子は半径 4.1 mm、周期 36 ns の円運動をする。ドップラー効果は光子のエネルギーを変える（仕事関数 2.0 eV は変わらない）。遠ざかると 440 nm で Kmax = 0.82 eV、0.55c で遠ざかると光電子は出なくなる。橋渡し量は「光子のエネルギー・電子の速さ」。</p>
+  <p><a href="content/mechanics/photo-doppler-circle.html">光電効果＋ドップラー効果＋磁場の円運動のドリルを開く →</a></p>
+  <p id="progress-combo-photo-doppler-circle">進捗：読み込み中…</p>
+</div>
+
+<div class="card">
   <h2>第7問：気体＋ピストン</h2>
   <p>シリンダーにピストンがのっている。ピストンの力のつり合いから気体の圧力を、状態方程式から体積と高さを求める。加熱するとピストンが上がる等圧変化で、仕事・内部エネルギー・熱を区別しよう。</p>
   <p><a href="content/mechanics/gas-piston.html">気体＋ピストンのドリルを開く →</a></p>
@@ -772,6 +786,10 @@
       p.comboProjWallSpringDone ? '進捗：組み合わせ問題BA・斜方投射＋壁＋摩擦＋ばねを完了済み ✓' : '進捗：まだ組み合わせ問題BA・斜方投射＋壁＋摩擦＋ばねは未完了';
     document.getElementById('progress-combo-gen-rect-smooth').textContent =
       p.comboGenRectSmoothDone ? '進捗：組み合わせ問題BB・発電機＋変圧器＋整流＋コンデンサーの平滑化を完了済み ✓' : '進捗：まだ組み合わせ問題BB・発電機＋変圧器＋整流＋コンデンサーの平滑化は未完了';
+    document.getElementById('progress-combo-proj-drag-wall').textContent =
+      p.comboProjDragWallDone ? '進捗：組み合わせ問題BC・斜方投射＋空気抵抗＋壁＋エネルギーを完了済み ✓' : '進捗：まだ組み合わせ問題BC・斜方投射＋空気抵抗＋壁＋エネルギーは未完了';
+    document.getElementById('progress-combo-photo-doppler-circle').textContent =
+      p.comboPhotoDopplerCircleDone ? '進捗：組み合わせ問題BD・光電効果＋ドップラー効果＋磁場の円運動を完了済み ✓' : '進捗：まだ組み合わせ問題BD・光電効果＋ドップラー効果＋磁場の円運動は未完了';
     document.getElementById('progress-gas-piston').textContent =
       p.gasPistonDone ? '進捗：第7問・気体＋ピストンを完了済み ✓' : '進捗：まだ第7問・気体＋ピストンは未完了';
     document.getElementById('progress-young').textContent =
@@ -885,6 +903,8 @@
     document.getElementById('progress-combo-gen-transformer').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-proj-wall-spring').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-combo-gen-rect-smooth').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-proj-drag-wall').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
+    document.getElementById('progress-combo-photo-doppler-circle').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-gas-piston').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-young').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
     document.getElementById('progress-capacitor').textContent = '進捗：読み込めなかった（このブラウザでは IndexedDB が使えない可能性があります）';
