@@ -5099,6 +5099,29 @@ function sceneFor(type, thetaDeg, mgPx, fPx, data) {
       forces: genRectRcForces(data),
     };
   }
+  if (type === 'slopePulleyDoppler') {
+    const d = slopePulleyDopplerDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      m1Kg: data.m1Kg, m2Kg: data.m2Kg, kNperM: data.kNperM, thetaDeg: data.thetaDeg,
+      ampM: data.ampM, mu: data.mu, f0Hz: data.f0Hz, vSoundMs: data.vSoundMs, g: data.g || 10,
+      derived: d,
+      center: { x: 200, y: 150 }, centerDot: false,
+      forces: slopePulleyDopplerForces(data),
+    };
+  }
+  if (type === 'gasCarnotCycle') {
+    const d = gasCarnotCycleDerived(data);
+    return {
+      type, phase: (data && data.phase) || 'base',
+      p0Pa: data.p0Pa, areaM2: data.areaM2, pistonKg: data.pistonKg,
+      kNm: data.kNm, hNatM: data.hNatM, hBM: data.hBM,
+      rGas: data.rGas, tAK: data.tAK, g: data.g || 10,
+      derived: d,
+      center: { x: 200, y: 150 }, centerDot: false,
+      forces: gasCarnotCycleForces(data),
+    };
+  }
   if (type === 'slopePulley') {
     return {
       type, phase: (data && data.phase) || 'connected',
@@ -7635,6 +7658,87 @@ function validateScene(scene) {
     if (Math.abs(d.varyF60.genPeakV - d.phiMaxWb * 2 * Math.PI * 60) > 1e-9) return ['f=60 Hz の起電力の最大値が一致しません'];
     if (Math.abs(d.varyF60.vDcV - (d.varyF60.v2PeakV - d.varyF60.rippleV / 2)) > 1e-9) return ['f=60 Hz の直流電圧が一致しません'];
     if (!(d.varyF60.vDcV > d.vDcV)) return ['f=60 Hz の直流電圧が 50 Hz より高くなっていません'];
+  }
+  if (scene.type === 'slopePulleyDoppler') {
+    const d = scene.derived;
+    // AW の土台：つり合い・摩擦・単振動・折れ点・エネルギー。
+    if (Math.abs(d.f1N - d.m1 * d.g * d.sinT) > 1e-9) return ['斜面に沿った重力が m1 g sinθ と一致しません'];
+    if (Math.abs(d.n1N - d.m1 * d.g * d.cosT) > 1e-9) return ['垂直抗力が m1 g cosθ と一致しません'];
+    if (Math.abs(d.fricN - scene.mu * d.n1N) > 1e-9) return ['摩擦力が μN と一致しません'];
+    if (Math.abs(d.xShiftM - d.fricN / d.k) > 1e-9) return ['つり合いのずれが f/k と一致しません'];
+    if (Math.abs(d.dAmpM - (2 * d.fricN) / d.k) > 1e-9) return ['半周期ごとの振幅の減りが 2f/k と一致しません'];
+    if (Math.abs(d.omega - Math.sqrt(d.k / d.totalM)) > 1e-9) return ['角振動数が √(k/(m1+m2)) と一致しません'];
+    if (Math.abs(d.periodS - (2 * Math.PI) / d.omega) > 1e-9) return ['周期が 2π/ω と一致しません'];
+    if (Math.abs(d.energyJ - (d.heatJ + d.peFinalJ)) > 1e-6) return ['エネルギーが E = 摩擦熱 + 最後のばね と一致しません'];
+    for (let i = 0; i < d.turns.length - 1; i++) {
+      const eq = d.turns[i] > 0 ? d.xShiftM : -d.xShiftM;
+      if (Math.abs(d.turns[i + 1] - (2 * eq - d.turns[i])) > 1e-9) return ['折れ点が 2x* − x と一致しません'];
+    }
+    // ドップラー：偶数番目の半周期は上がる（近づく）、奇数番目は下がる（遠ざかる）。
+    for (let i = 0; i < d.fHalf.length; i++) {
+      const eq = d.turns[i] > 0 ? d.xShiftM : -d.xShiftM;
+      const v = d.omega * Math.abs(d.turns[i] - eq);
+      const expect = i % 2 === 0 ? (d.f0 * d.vSoundMs) / (d.vSoundMs - v) : (d.f0 * d.vSoundMs) / (d.vSoundMs + v);
+      if (Math.abs(d.fHalf[i] - expect) > 1e-9) return ['半周期の音の高さがドップラー効果と一致しません'];
+      if (Math.abs(d.vMaxList[i] - v) > 1e-9) return ['半周期ごとの最大の速さが一致しません'];
+    }
+    if (Math.abs(d.fMaxHz - Math.max(...d.fHalf)) > 1e-9) return ['最大の音の高さが一致しません'];
+    if (Math.abs(d.fMinHz - Math.min(...d.fHalf)) > 1e-9) return ['最小の音の高さが一致しません'];
+    if (Math.abs(d.beatMaxHz - Math.max(d.fMaxHz - d.f0, d.f0 - d.fMinHz)) > 1e-9) return ['最大のうなりが一致しません'];
+    // f'(t)：折り返し点では f0、中心ではその半周期の最大値。
+    if (Math.abs(d.fPrimeAt(0) - d.f0) > 1e-9) return ['t=0 の音の高さが f0 と一致しません'];
+    if (Math.abs(d.fPrimeAt(d.halfS / 2) - d.fHalf[0]) > 1e-9) return ['最初の中心の音の高さが一致しません'];
+    if (Math.abs(d.fPrimeAt(d.halfS) - d.f0) > 1e-9) return ['半周期後の音の高さが f0 と一致しません'];
+    if (Math.abs(d.fPrimeAt((3 * d.halfS) / 2) - d.fHalf[1]) > 1e-9) return ['2 番目の中心の音の高さが一致しません'];
+    if (Math.abs(d.fPrimeAt(d.stopTimeS) - d.f0) > 1e-9) return ['止まったときの音の高さが f0 と一致しません'];
+    // 罠（摩擦なし）：v_max = ωA。
+    if (Math.abs(d.vMaxMs - d.omega * d.ampM) > 1e-9) return ['摩擦なしの最大の速さが ωA と一致しません'];
+    if (Math.abs(d.fNoFricUp - (d.f0 * d.vSoundMs) / (d.vSoundMs - d.vMaxMs)) > 1e-9) return ['摩擦なしの近づく音が一致しません'];
+    if (Math.abs(d.fNoFricDown - (d.f0 * d.vSoundMs) / (d.vSoundMs + d.vMaxMs)) > 1e-9) return ['摩擦なしの遠ざかる音が一致しません'];
+    // 変えたら：μ=0.20 は早く止まる、k=200 は遅く止まる、A=0.20 は 7 半周期。
+    if (!(d.varyMu2.nHalf < d.nHalf)) return ['μ=0.20 の半周期の回数がもとより少なくなっていません'];
+    if (!(d.varyK200.nHalf > d.nHalf)) return ['k=200 の半周期の回数がもとより多くなっていません'];
+    if (d.varyA20.nHalf !== 7) return ['A=0.20 m の半周期の回数が 7 になっていません'];
+    const varyEnergyOk = (v, kk, AA) => Math.abs(0.5 * kk * AA * AA - (v.heatJ + 0.5 * kk * v.turns[v.turns.length - 1] * v.turns[v.turns.length - 1])) <= 1e-6;
+    if (!varyEnergyOk(d.varyMu2, d.k, d.ampM)) return ['μ=0.20 のエネルギーが一致しません'];
+    if (!varyEnergyOk(d.varyK200, 200, d.ampM)) return ['k=200 のエネルギーが一致しません'];
+    if (!varyEnergyOk(d.varyA20, d.k, 0.20)) return ['A=0.20 m のエネルギーが一致しません'];
+    for (const v of [d.varyMu2, d.varyK200, d.varyA20]) {
+      for (let i = 0; i < v.fHalf.length; i++) {
+        const eq = v.turns[i] > 0 ? v.xShiftM : -v.xShiftM;
+        const vv = v.omega * Math.abs(v.turns[i] - eq);
+        const expect = i % 2 === 0 ? (d.f0 * d.vSoundMs) / (d.vSoundMs - vv) : (d.f0 * d.vSoundMs) / (d.vSoundMs + vv);
+        if (Math.abs(v.fHalf[i] - expect) > 1e-9) return ['変えたらの音の高さが一致しません'];
+      }
+    }
+  }
+  if (scene.type === 'gasCarnotCycle') {
+    const d = scene.derived;
+    // P のサイクル：力のつり合い・状態方程式・各過程の仕事と熱。
+    if (Math.abs(d.pAPa - (scene.p0Pa + d.mgN / scene.areaM2)) > 1) return ['状態Aの圧力が p0+mg/S と一致しません'];
+    if (Math.abs(d.pBPa - (scene.p0Pa + d.mgN / scene.areaM2 + (scene.kNm * (d.hB - scene.hNatM)) / scene.areaM2)) > 1) return ['状態Bの圧力が一致しません'];
+    if (Math.abs(d.tBK - (d.pBPa * d.vBM3) / d.nRJ) > 1e-9) return ['状態Bの温度が pB·VB/nR と一致しません'];
+    if (Math.abs(d.wABJ - ((d.pAPa + d.pBPa) / 2) * (d.vBM3 - d.vAM3)) > 1e-9) return ['A→B の仕事が一致しません'];
+    if (Math.abs(d.qABJ - (d.dUABJ + d.wABJ)) > 1e-9) return ['A→B の吸熱が一致しません'];
+    if (Math.abs(d.pCPa - (d.nRJ * scene.tAK) / d.vBM3) > 1e-9) return ['状態Cの圧力が一致しません'];
+    if (Math.abs(d.wCAJ - d.nRJ * scene.tAK * Math.log(d.vAM3 / d.vBM3)) > 1e-9) return ['C→A の仕事が一致しません'];
+    if (Math.abs(d.wNetJ - (d.wABJ + d.wCAJ)) > 1e-9) return ['正味の仕事が一致しません'];
+    if (Math.abs(d.eta - d.wNetJ / d.qABJ) > 1e-12) return ['効率が正味の仕事/吸熱と一致しません'];
+    // カルノー効率：高温 491 K、低温 300 K。
+    if (Math.abs(d.etaCarnot - (1 - scene.tAK / d.tBK)) > 1e-12) return ['カルノー効率が 1−T_C/T_H と一致しません'];
+    if (Math.abs(d.wMaxJ - d.qABJ * d.etaCarnot) > 1e-9) return ['カルノーなら得られる仕事が一致しません'];
+    if (!(d.eta < d.etaCarnot)) return ['実際の効率がカルノー効率より低くなっていません'];
+    // A→B の仕事の内訳：大気 + 重力 + ばね。
+    if (Math.abs(d.atmW_AB + d.gravW_AB + d.springW_AB - d.wABJ) > 1e-9) return ['A→B の仕事の内訳の和が一致しません'];
+    if (Math.abs(d.atmW_AB - scene.p0Pa * (d.vBM3 - d.vAM3)) > 1e-9) return ['大気の仕事が一致しません'];
+    if (Math.abs(d.gravW_AB - d.mgN * (d.hB - scene.hNatM)) > 1e-9) return ['重力の仕事が一致しません'];
+    if (Math.abs(d.springW_AB - 0.5 * scene.kNm * (d.hB - scene.hNatM) * (d.hB - scene.hNatM)) > 1e-9) return ['ばねのエネルギーが一致しません'];
+    // 変えたら：k=2000、hB=0.40 m。どちらも効率は上がるが、カルノー効率より低い。
+    if (!(d.varyK2000.eta > d.eta)) return ['k=2000 の効率がもとより高くなっていません'];
+    if (!(d.varyH040.eta > d.varyK2000.eta)) return ['hB=0.40 m の効率が k=2000 より高くなっていません'];
+    if (!(d.varyK2000.eta < d.varyK2000.etaCarnot && d.varyH040.eta < d.varyH040.etaCarnot)) return ['変えたらの効率がカルノー効率より低くなっていません'];
+    if (Math.abs(d.varyK2000.atmW_AB + d.varyK2000.gravW_AB + d.varyK2000.springW_AB - d.varyK2000.wABJ) > 1e-9) return ['k=2000 の仕事の内訳が一致しません'];
+    if (Math.abs(d.varyH040.atmW_AB + d.varyH040.gravW_AB + d.varyH040.springW_AB - d.varyH040.wABJ) > 1e-9) return ['hB=0.40 m の仕事の内訳が一致しません'];
   }
   if (scene.type === 'charged-circle') {
     const d = scene.derived;
@@ -14368,6 +14472,308 @@ function drawBase(svg, scene) {
       note(274, 'C2=200 μF なら τ=0.12 s、Q=62 mC');
       note(292, 'f=60 Hz なら 373 V（全体を計算し直す）');
     }
+  } else if (scene.type === 'slopePulleyDoppler') {
+    const d = scene.derived;
+    const phase = scene.phase;
+    const tH = el('text', { x: 40, y: 36, fill: '#333' });
+    tH.textContent = phase === 'equilibrium' ? 'つり合い：m1 g sinθ = m2 g = 10 N'
+      : phase === 'oscillate' ? '単振動：振幅は半周期ごとに 0.029 m 減る'
+      : phase === 'doppler' ? '音の高さ：半周期ごとに 2003 Hz → 1998 Hz'
+      : phase === 'decay' ? '振幅の減り：0.10 m → 0.013 m で止まる'
+      : phase === 'energy' ? 'エネルギー：0.60 J = 0.59 J + 0.011 J'
+      : phase === 'trap' ? '罠と変えたら：音を決めるのは速さと向き'
+      : phase === 'vary' ? '変えたら：止まるまでの時間'
+      : '斜面＋滑車＋ばね＋摩擦＋ドップラー';
+    svg.appendChild(tH);
+    const note = (y, text) => { const t = el('text', { x: 60, y, fill: '#333' }); t.textContent = text; svg.appendChild(t); };
+    const barRows = (rows) => {
+      rows.forEach((r, i) => {
+        const y = 75 + i * 45;
+        const tN = el('text', { x: 60, y: y - 8 }); tN.textContent = r.name; svg.appendChild(tN);
+        svg.appendChild(el('rect', { x: 140, y, width: Math.max(r.w, 5), height: 18, fill: r.color, stroke: '#333', 'stroke-width': 1 }));
+        const tV = el('text', { x: 140 + Math.max(r.w, 5) + 8, y: y + 15 }); tV.textContent = r.val; svg.appendChild(tV);
+      });
+    };
+    // 斜面と滑車と糸とばねの図（AW と同じ座標）。観測者は m2 の真上の台にいる。
+    const drawDiagram = (withForces) => {
+      // 観測者の台（y=98）と観測者、滑車の支え。
+      svg.appendChild(el('line', { x1: 215, y1: 98, x2: 285, y2: 98, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx: 250, cy: 82, r: 7, fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 250, y1: 89, x2: 250, y2: 98, stroke: '#333', 'stroke-width': 2 }));
+      const tO = el('text', { x: 290, y: 86 }); tO.textContent = '観測者'; svg.appendChild(tO);
+      svg.appendChild(el('line', { x1: 250, y1: 98, x2: 250, y2: 121, stroke: '#333', 'stroke-width': 2 }));
+      // 斜面・床・θ の弧。
+      svg.appendChild(el('polygon', { points: '70,240 250,136 250,240', fill: '#eee' }));
+      svg.appendChild(el('line', { x1: 70, y1: 240, x2: 250, y2: 136, stroke: '#333', 'stroke-width': 3 }));
+      svg.appendChild(el('line', { x1: 40, y1: 240, x2: 390, y2: 240, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('path', { d: 'M 100 240 A 30 30 0 0 0 96 225', fill: 'none', stroke: '#333', 'stroke-width': 1.5 }));
+      const tTh = el('text', { x: 120, y: 232 }); tTh.textContent = 'θ'; svg.appendChild(tTh);
+      // 滑車。
+      svg.appendChild(el('circle', { cx: 250, cy: 130, r: 9, fill: '#fff', stroke: '#333', 'stroke-width': 2 }));
+      const tP = el('text', { x: 264, y: 122 }); tP.textContent = '滑車'; svg.appendChild(tP);
+      // m1。
+      const g1 = el('g', { transform: 'rotate(-30 160 188)' });
+      g1.appendChild(el('rect', { x: 140, y: 173, width: 40, height: 30, fill: '#cfe3ff', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(g1);
+      const t1 = el('text', { x: 55, y: 180 }); t1.textContent = 'm1=2.0 kg'; svg.appendChild(t1);
+      // 糸。
+      svg.appendChild(el('line', { x1: 152, y1: 175, x2: 242, y2: 123, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 250, y1: 139, x2: 250, y2: 155, stroke: '#333', 'stroke-width': 2 }));
+      // m2（音源の点は右上の角に）。
+      svg.appendChild(el('rect', { x: 230, y: 155, width: 40, height: 30, fill: '#ffd24d', stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('circle', { cx: 262, cy: 162, r: 4, fill: '#d35400', stroke: '#333', 'stroke-width': 1 }));
+      const t2 = el('text', { x: 276, y: 173 }); t2.textContent = 'm2=1.0 kg'; svg.appendChild(t2);
+      // ばね。
+      const springTop = withForces ? 200 : 185;
+      let zp = `M 250 ${springTop}`;
+      const seg = (240 - springTop) / 4;
+      for (let i = 1; i <= 4; i++) { zp += ` L ${i % 2 === 1 ? 258 : 242} ${(springTop + seg * i).toFixed(1)}`; }
+      svg.appendChild(el('path', { d: zp, fill: 'none', stroke: '#333', 'stroke-width': 2 }));
+      const tK = el('text', { x: 280, y: 226 }); tK.textContent = 'k=120 N/m'; svg.appendChild(tK);
+      if (withForces) {
+        // m1 の重力（赤）、垂直抗力（青）、張力（オレンジ）。
+        const fMg1 = el('line', { x1: 168, y1: 201, x2: 168, y2: 231, stroke: '#b00', 'stroke-width': 2 });
+        fMg1.setAttribute('marker-end', 'url(#arr)'); svg.appendChild(fMg1);
+        const tMg1 = el('text', { x: 60, y: 118, fill: '#b00' }); tMg1.textContent = '重力 20 N'; svg.appendChild(tMg1);
+        const fN1 = el('line', { x1: 160, y1: 188, x2: 147, y2: 166, stroke: '#00c', 'stroke-width': 2 });
+        fN1.setAttribute('marker-end', 'url(#arr)'); svg.appendChild(fN1);
+        const tN1 = el('text', { x: 60, y: 142, fill: '#00c' }); tN1.textContent = '垂直抗力 17 N'; svg.appendChild(tN1);
+        const fT1 = el('line', { x1: 177, y1: 178, x2: 190, y2: 170, stroke: '#d35400', 'stroke-width': 2 });
+        fT1.setAttribute('marker-end', 'url(#arr)'); svg.appendChild(fT1);
+        // 台の線（y=98）から 8 px あけるため、AW より 4 px 下げる。
+        const tT1 = el('text', { x: 230, y: 122, fill: '#d35400', 'text-anchor': 'end' }); tT1.textContent = '張力 10 N'; svg.appendChild(tT1);
+        // m2 の張力（オレンジ）、重力（赤）。
+        const fT2 = el('line', { x1: 250, y1: 155, x2: 250, y2: 140, stroke: '#d35400', 'stroke-width': 2 });
+        fT2.setAttribute('marker-end', 'url(#arr)'); svg.appendChild(fT2);
+        const tT2 = el('text', { x: 280, y: 148, fill: '#d35400' }); tT2.textContent = '張力 10 N'; svg.appendChild(tT2);
+        const fMg2 = el('line', { x1: 250, y1: 185, x2: 250, y2: 200, stroke: '#b00', 'stroke-width': 2 });
+        fMg2.setAttribute('marker-end', 'url(#arr)'); svg.appendChild(fMg2);
+        const tMg2 = el('text', { x: 262, y: 206, fill: '#b00' }); tMg2.textContent = '重力 10 N'; svg.appendChild(tMg2);
+      }
+    };
+    if (phase === 'base') {
+      // 流れの箱：斜面 → 滑車 → ばね → 音源（ドップラー）。
+      const boxes = [
+        { x: 50, y: 80, name: '斜面' },
+        { x: 210, y: 80, name: '滑車' },
+        { x: 50, y: 180, name: 'ばね＋摩擦' },
+        { x: 210, y: 180, name: '音源＋観測者' },
+      ];
+      for (const b of boxes) {
+        svg.appendChild(el('rect', { x: b.x, y: b.y, width: 140, height: 80, fill: '#eef', stroke: '#333', 'stroke-width': 1.5 }));
+        const tB = el('text', { x: b.x + 70, y: b.y + 46, 'text-anchor': 'middle' }); tB.textContent = b.name; svg.appendChild(tB);
+      }
+      svg.appendChild(el('line', { x1: 190, y1: 120, x2: 210, y2: 120, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: 280, y1: 160, x2: 280, y2: 180, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: 210, y1: 220, x2: 190, y2: 220, stroke: '#333', 'stroke-width': 1.5 }));
+      note(256, 'AW の単振動に音源と観測者を足す');
+      note(274, '速さがドップラーの音の高さを決める');
+      note(292, '橋渡し量は速度');
+    } else if (phase === 'equilibrium') {
+      drawDiagram(true);
+      note(258, 'つり合い：m1 g sinθ = m2 g = 10 N');
+      note(276, 'ばねは自然長、摩擦は向きが決まらない');
+      note(294, '観測者は m2 の真上の台にいる');
+    } else if (phase === 'oscillate') {
+      // x-t グラフ（AW と同じ）：半周期ごとにずれたつり合いを中心とする余弦。横軸は t 0→1.5 s、縦軸は x −0.10〜+0.10 m。
+      svg.appendChild(el('line', { x1: 60, y1: 60, x2: 60, y2: 235, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 60, y1: 200, x2: 350, y2: 200, stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: 60, y1: 150, x2: 350, y2: 150, stroke: '#888', 'stroke-width': 1, 'stroke-dasharray': '4 3' }));
+      // 半周期の区切り（t=0.50 s、1.0 s）の破線。
+      svg.appendChild(el('line', { x1: 153, y1: 110, x2: 153, y2: 200, stroke: '#888', 'stroke-width': 1, 'stroke-dasharray': '4 3' }));
+      svg.appendChild(el('line', { x1: 247, y1: 110, x2: 247, y2: 200, stroke: '#888', 'stroke-width': 1, 'stroke-dasharray': '4 3' }));
+      const gx = (t) => 60 + (t / 1.5) * 280;
+      const xy = (xM) => 150 - xM * 400;
+      const pts = d.xtCurve.map(([t, xM]) => [gx(t), xy(xM)]);
+      svg.appendChild(el('path', { d: pts.map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`).join(' '), fill: 'none', stroke: 'blue', 'stroke-width': 2 }));
+      const tX = el('text', { x: 66, y: 68 }); tX.textContent = 'x'; svg.appendChild(tX);
+      const tA = el('text', { x: 200, y: 100, 'text-anchor': 'middle' }); tA.textContent = '＋0.10 m'; svg.appendChild(tA);
+      const t0 = el('text', { x: 50, y: 204, fill: '#555', 'text-anchor': 'end' }); t0.textContent = '0'; svg.appendChild(t0);
+      const tH1 = el('text', { x: 153, y: 222, fill: '#555', 'text-anchor': 'middle' }); tH1.textContent = '0.50 s'; svg.appendChild(tH1);
+      const tH2 = el('text', { x: 247, y: 222, fill: '#555', 'text-anchor': 'middle' }); tH2.textContent = '1.0 s'; svg.appendChild(tH2);
+      const tH3 = el('text', { x: 340, y: 222, fill: '#555', 'text-anchor': 'middle' }); tH3.textContent = '1.5 s'; svg.appendChild(tH3);
+      const tT = el('text', { x: 356, y: 196, fill: '#555' }); tT.textContent = 't'; svg.appendChild(tT);
+      note(258, 'T≈0.99 s、半周期 0.50 s');
+      note(276, '折れ点で摩擦が向きを変える');
+      note(294, '0.10 → −0.071 → 0.042 → −0.013 m');
+    } else if (phase === 'doppler') {
+      // f'(t) のグラフ：t 0→1.5 s、f' 1995→2005 Hz。2000 Hz の破線。
+      const x0 = 60, x1 = 340, y0 = 240;
+      const yOf = (f) => y0 - (f - 1995) * 18;
+      svg.appendChild(el('line', { x1: x0, y1: y0, x2: x1, y2: y0, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: x0, y1: 60, x2: x0, y2: y0, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: x0, y1: yOf(2000), x2: x1, y2: yOf(2000), stroke: '#888', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+      const t2000 = el('text', { x: 296, y: yOf(2000) + 22, fill: '#555' }); t2000.textContent = '2000 Hz'; svg.appendChild(t2000);
+      let p = '';
+      for (let i = 0; i <= 100; i++) {
+        const t = (i / 100) * d.stopTimeS;
+        const x = x0 + (t / d.stopTimeS) * (x1 - x0);
+        const y = yOf(d.fPrimeAt(t));
+        p += (p ? ' L ' : 'M ') + x.toFixed(1) + ' ' + y.toFixed(1);
+      }
+      svg.appendChild(el('path', { d: p, fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
+      const tMax = el('text', { x: 70, y: 64, fill: '#b00' }); tMax.textContent = '最大 2003 Hz'; svg.appendChild(tMax);
+      const tMin = el('text', { x: 210, y: 232, fill: '#b00' }); tMin.textContent = '最小 1998 Hz'; svg.appendChild(tMin);
+      const t0 = el('text', { x: 56, y: 258, fill: '#555' }); t0.textContent = '0'; svg.appendChild(t0);
+      const tH1 = el('text', { x: 153, y: 258, fill: '#555', 'text-anchor': 'middle' }); tH1.textContent = '0.50 s'; svg.appendChild(tH1);
+      const tH2 = el('text', { x: 247, y: 258, fill: '#555', 'text-anchor': 'middle' }); tH2.textContent = '1.0 s'; svg.appendChild(tH2);
+      const tH3 = el('text', { x: 340, y: 258, fill: '#555', 'text-anchor': 'middle' }); tH3.textContent = '1.5 s'; svg.appendChild(tH3);
+      const tF = el('text', { x: 36, y: 64 }); tF.textContent = 'f′'; svg.appendChild(tF);
+    } else if (phase === 'decay') {
+      // 振幅の減り（1500 px/m）。
+      barRows([
+        { name: 'はじめ 0.10 m', w: d.turns[0] * 1500, val: '0.10 m', color: '#ffd24d' },
+        { name: '1 半周期後 0.071 m', w: Math.abs(d.turns[1]) * 1500, val: '0.071 m', color: '#cfe3ff' },
+        { name: '2 半周期後 0.042 m', w: Math.abs(d.turns[2]) * 1500, val: '0.042 m', color: '#b3e6b3' },
+        { name: '3 半周期後 0.013 m', w: Math.abs(d.turns[3]) * 1500, val: '0.013 m', color: '#ffb3b3' },
+      ]);
+      note(256, '振幅は半周期ごとに 0.029 m 減る');
+      note(274, '3 半周期（1.5 s）で止まる');
+      note(292, '音の変化も半周期ごとに小さくなる');
+    } else if (phase === 'energy') {
+      // エネルギーの棒グラフ（300 px/J）。
+      barRows([
+        { name: 'はじめ 0.60 J', w: d.energyJ * 300, val: '0.60 J', color: '#ffd24d' },
+        { name: '摩擦熱 0.59 J', w: d.heatJ * 300, val: '0.59 J', color: '#ffb3b3' },
+        { name: '最後のばね 0.011 J', w: d.peFinalJ * 300, val: '0.011 J', color: '#b3e6b3' },
+      ]);
+      note(256, '0.60 J = 0.59 J + 0.011 J');
+      note(274, '移動距離は 0.34 m');
+      note(292, '摩擦がなければ音はずっと変わる');
+    } else if (phase === 'trap') {
+      // 1 半周期後の振幅の比べ（1500 px/m）。
+      barRows([
+        { name: '摩擦なし 0.10 m', w: d.ampM * 1500, val: '0.10 m', color: '#ffd24d' },
+        { name: 'μ=0.10 0.071 m', w: Math.abs(d.turns[1]) * 1500, val: '0.071 m', color: '#cfe3ff' },
+        { name: 'μ=0.20 0.042 m', w: Math.abs(d.varyMu2.turns[1]) * 1500, val: '0.042 m', color: '#b3e6b3' },
+        { name: 'k=200 0.083 m', w: Math.abs(d.varyK200.turns[1]) * 1500, val: '0.083 m', color: '#ffb3b3' },
+      ]);
+      note(256, '罠：振幅は 1 周期で減ると思う');
+      note(274, '正しくは半周期で 0.029 m 減る');
+      note(292, '音も半周期ごとに小さくなる');
+    } else if (phase === 'vary') {
+      // 止まるまでの時間の比べ（60 px/s）。
+      barRows([
+        { name: 'もと 1.5 s', w: d.stopTimeS * 60, val: '1.5 s', color: '#ffd24d' },
+        { name: 'μ=0.20 1.0 s', w: d.varyMu2.stopTimeS * 60, val: '1.0 s', color: '#cfe3ff' },
+        { name: 'k=200 2.3 s', w: d.varyK200.stopTimeS * 60, val: '2.3 s', color: '#b3e6b3' },
+        { name: 'A=0.20 m 3.5 s', w: d.varyA20.stopTimeS * 60, val: '3.5 s', color: '#ffb3b3' },
+      ]);
+      note(256, 'μ=0.20 は 1.0 s で止まる');
+      note(274, 'k=200 は 2.3 s、A=0.20 m は 3.5 s');
+      note(292, '音の高さも同じだけ変わる');
+    }
+  } else if (scene.type === 'gasCarnotCycle') {
+    const d = scene.derived;
+    const phase = scene.phase;
+    const tH = el('text', { x: 40, y: 36, fill: '#333' });
+    tH.textContent = phase === 'pv' ? 'p–V 図：囲まれた面積が正味の仕事'
+      : phase === 'carnot' ? '効率の比べ：7.9% とカルノー 39%'
+      : phase === 'work' ? 'A→B の仕事 115 J の内訳'
+      : phase === 'trap' ? '罠：正味の熱で割ると 100% になる'
+      : phase === 'vary' ? '変えたら：効率はどう変わるか'
+      : '気体＋ピストン＋ばね＋カルノー効率';
+    svg.appendChild(tH);
+    const note = (y, text) => { const t = el('text', { x: 60, y, fill: '#333' }); t.textContent = text; svg.appendChild(t); };
+    const barRows = (rows) => {
+      rows.forEach((r, i) => {
+        const y = 75 + i * 45;
+        const tN = el('text', { x: 60, y: y - 8 }); tN.textContent = r.name; svg.appendChild(tN);
+        svg.appendChild(el('rect', { x: 140, y, width: Math.max(r.w, 5), height: 18, fill: r.color, stroke: '#333', 'stroke-width': 1 }));
+        const tV = el('text', { x: 140 + Math.max(r.w, 5) + 8, y: y + 15 }); tV.textContent = r.val; svg.appendChild(tV);
+      });
+    };
+    if (phase === 'base') {
+      // 流れの箱：気体 → ピストン＋ばね → サイクル → カルノー効率。
+      const boxes = [
+        { x: 50, y: 80, name: '気体（He）' },
+        { x: 210, y: 80, name: 'ピストン＋ばね' },
+        { x: 50, y: 180, name: 'サイクル' },
+        { x: 210, y: 180, name: 'カルノー効率' },
+      ];
+      for (const b of boxes) {
+        svg.appendChild(el('rect', { x: b.x, y: b.y, width: 140, height: 80, fill: '#eef', stroke: '#333', 'stroke-width': 1.5 }));
+        const tB = el('text', { x: b.x + 70, y: b.y + 46, 'text-anchor': 'middle' }); tB.textContent = b.name; svg.appendChild(tB);
+      }
+      svg.appendChild(el('line', { x1: 190, y1: 120, x2: 210, y2: 120, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: 280, y1: 160, x2: 280, y2: 180, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: 210, y1: 220, x2: 190, y2: 220, stroke: '#333', 'stroke-width': 1.5 }));
+      note(256, 'A→B 加熱、B→C 冷却、C→A 等温');
+      note(274, '効率 7.9%、カルノー 39%');
+      note(292, 'カルノーなら 127 J の仕事');
+    } else if (phase === 'pv') {
+      // p–V 図（P の trap と同じ）：A(2.0, 1.10)、B(3.0, 1.20)、C(3.0, 0.733)、C→A は等温線 p=2.20/V。
+      const pts = [[2.0, 1.10], [3.0, 1.20], [3.0, 0.7333]];
+      let poly = '';
+      for (const [vL, p] of pts) poly += (poly ? ' L ' : 'M ') + d.pvX(vL).toFixed(1) + ' ' + d.pvY(p).toFixed(1);
+      for (let i = 1; i <= 40; i++) {
+        const vL = 3.0 - (i / 40) * 1.0;
+        poly += ' L ' + d.pvX(vL).toFixed(1) + ' ' + d.pvY(2.20 / vL).toFixed(1);
+      }
+      poly += ' Z';
+      svg.appendChild(el('path', { d: poly, fill: '#e8f4ff', stroke: 'none' }));
+      svg.appendChild(el('line', { x1: 60, y1: 240, x2: 340, y2: 240, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: 60, y1: 60, x2: 60, y2: 240, stroke: '#333', 'stroke-width': 1.5 }));
+      svg.appendChild(el('line', { x1: d.pvX(2.0), y1: d.pvY(1.10), x2: d.pvX(3.0), y2: d.pvY(1.20), stroke: '#333', 'stroke-width': 2 }));
+      svg.appendChild(el('line', { x1: d.pvX(3.0), y1: d.pvY(1.20), x2: d.pvX(3.0), y2: d.pvY(0.7333), stroke: '#333', 'stroke-width': 2 }));
+      let curve = '';
+      for (let i = 0; i <= 40; i++) {
+        const vL = 2.0 + (i / 40) * 1.0;
+        curve += (curve ? ' L ' : 'M ') + d.pvX(vL).toFixed(1) + ' ' + d.pvY(2.20 / vL).toFixed(1);
+      }
+      svg.appendChild(el('path', { d: curve, fill: 'none', stroke: '#b00', 'stroke-width': 2 }));
+      for (const [vL, p, label, lx, ly] of [
+        [2.0, 1.10, 'A', d.pvX(2.0) - 14, d.pvY(1.10) - 8],
+        [3.0, 1.20, 'B', d.pvX(3.0) + 8, d.pvY(1.20) - 8],
+        [3.0, 0.7333, 'C', d.pvX(3.0) + 8, d.pvY(0.7333) + 4],
+      ]) {
+        svg.appendChild(el('circle', { cx: d.pvX(vL), cy: d.pvY(p), r: 4, fill: '#b00', stroke: '#333', 'stroke-width': 1 }));
+        const tL = el('text', { x: lx, y: ly }); tL.textContent = label; svg.appendChild(tL);
+      }
+      const tX = el('text', { x: 344, y: 244 }); tX.textContent = 'V'; svg.appendChild(tX);
+      const tY = el('text', { x: 48, y: 56 }); tY.textContent = 'p'; svg.appendChild(tY);
+      const tN = el('text', { x: 40, y: 258, fill: '#555' }); tN.textContent = '囲まれた面積＝正味の仕事 25.8 J'; svg.appendChild(tN);
+      const tN2 = el('text', { x: 40, y: 280, fill: '#555' }); tN2.textContent = '効率 η = 25.8/325 ≈ 7.9%'; svg.appendChild(tN2);
+    } else if (phase === 'carnot') {
+      // 効率の棒グラフ（5 px/%）。
+      barRows([
+        { name: 'このサイクル 7.9%', w: d.eta * 100 * 5, val: '7.9%', color: '#cfe3ff' },
+        { name: 'カルノー効率 39%', w: d.etaCarnot * 100 * 5, val: '39%', color: '#ffd24d' },
+      ]);
+      note(256, 'カルノーなら 325 J から 127 J');
+      note(274, '実際は 25.8 J しか得られない');
+      note(292, '熱は 300 K から 491 K で吸う');
+    } else if (phase === 'work') {
+      // A→B の仕事の内訳の棒グラフ（2 px/J）。
+      barRows([
+        { name: '大気の仕事 100 J', w: d.atmW_AB * 2, val: '100 J', color: '#cfe3ff' },
+        { name: '重力の仕事 10 J', w: d.gravW_AB * 2, val: '10 J', color: '#b3e6b3' },
+        { name: 'ばねの仕事 5.0 J', w: d.springW_AB * 2, val: '5.0 J', color: '#ffd24d' },
+      ]);
+      note(256, '100 + 10 + 5.0 = 115 J');
+      note(274, 'ばねの 5.0 J は C→A で返される');
+      note(292, '熱として捨てられるのではない');
+    } else if (phase === 'trap') {
+      // 効率の罠の棒グラフ（2 px/%）。
+      barRows([
+        { name: '正しい効率 7.9%', w: d.eta * 100 * 2, val: '7.9%', color: '#cfe3ff' },
+        { name: 'カルノー効率 39%', w: d.etaCarnot * 100 * 2, val: '39%', color: '#ffd24d' },
+        { name: '罠：正味の熱で割ると 100%', w: 100 * 2, val: '100%', color: '#ffb3b3' },
+      ]);
+      note(256, '効率は吸った熱 325 J で割る');
+      note(274, '正味の熱 25.8 J で割ると 100% になる');
+      note(292, '出した熱は分母に入れない');
+    } else if (phase === 'vary') {
+      // 効率の比べの棒グラフ（10 px/%）。
+      barRows([
+        { name: 'もと 7.9%', w: d.eta * 100 * 10, val: '7.9%', color: '#cfe3ff' },
+        { name: 'k=2000 8.2%', w: d.varyK2000.eta * 100 * 10, val: '8.2%', color: '#b3e6b3' },
+        { name: 'hB=0.40 m 13%', w: d.varyH040.eta * 100 * 10, val: '13%', color: '#ffd24d' },
+      ]);
+      note(256, 'k=2000 は 8.2%、hB=0.40 m は 13%');
+      note(274, 'カルノー効率は 44% と 58%');
+      note(292, 'どちらもカルノー効率より低い');
+    }
   } else if (scene.type === 'capacitor') {
     const topY = 110, dPx = scene.dPx;
     // 2枚の極板（水平）。上板が +、下板が −。
@@ -17123,4 +17529,85 @@ function genRectRcDerived(data) {
 
 function genRectRcForces(data) { return []; }
 
-if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, capSpringGravDerived, capSpringGravForces, gasSpringCycleDerived, gasSpringCycleForces, slopeSpringDerived, slopeSpringForces, fallLoopDerived, fallLoopForces, beltSpringDerived, beltSpringForces, massSpecDerived, massSpecForces, coilHallDerived, coilHallForces, platformChargeDerived, platformChargeForces, pendulumCollideDerived, pendulumCollideForces, photoCapDerived, photoCapForces, orbitTransferDerived, orbitTransferForces, cyclotronDerived, cyclotronForces, slopeSpringFricDerived, slopeSpringFricForces, projWallDerived, projWallForces, railSpringDampDerived, railSpringDampForces, pendulumSpringDerived, pendulumSpringForces, gasPistonOscDerived, gasPistonOscForces, photoCircleDerived, photoCircleForces, earthTunnelDerived, earthTunnelForces, heaterGasDerived, heaterGasForces, specPhotoCircleDerived, specPhotoCircleForces, ottoCycleDerived, ottoCycleForces, generatorACDerived, generatorACForces, explodeProjectileDerived, explodeProjectileForces, slopePulleySpringDerived, slopePulleySpringForces, cathodeRayDerived, cathodeRayForces, conicalPendulumDerived, conicalPendulumForces, rcChargeDerived, rcChargeForces, projWallFricDerived, projWallFricForces, rlcChargeDerived, rlcChargeForces, photoCapCircleDerived, photoCapCircleForces, acRlcDerived, acRlcForces, projDragIntegrate, projDragDerived, projDragForces, pendulumSpringFricDerived, pendulumSpringFricForces, slopePulleyFricDerived, slopePulleyFricForces, selectorCircleDerived, selectorCircleForces, fallLoopCapDerived, fallLoopCapForces, genTransformerDerived, genTransformerForces, projWallSpringDerived, projWallSpringForces, genRectSmoothDerived, genRectSmoothForces, projDragWallIntegrate, projDragWallDerived, projDragWallForces, photoDopplerCircleDerived, photoDopplerCircleForces, dopplerResonanceDerived, dopplerResonanceForces, fallDragSpringDerived, fallDragSpringForces, projDragWallSpringDerived, projDragWallSpringForces, pendulumDopplerDerived, pendulumDopplerForces, gasSoundPipeDerived, gasSoundPipeForces, photoDopplerCapDerived, photoDopplerCapForces, pendulumDopplerSpringDerived, pendulumDopplerSpringForces, genRectRcDerived, genRectRcForces, sceneFor, validateScene, renderFigure };
+// ---- 組み合わせBM：斜面＋滑車＋ばね＋摩擦＋ドップラー ----
+// AW の 2 物体単振動（m1=2.0 kg、m2=1.0 kg、θ=30°、k=120 N/m、μ=0.10、A=0.10 m）に、
+// m2 につけた音源（f0=2000 Hz）と、m2 の真上の台にいる観測者を足したもの。
+// m2 が上がると観測者に近づき（音が高くなる）、下がると遠ざかる（音が低くなる）。
+// 速さは半周期ごとに減るので、音の高さの変化も半周期ごとに小さくなる。
+function slopePulleyDopplerDerived(data) {
+  const base = slopePulleyFricDerived(data);
+  const f0 = data.f0Hz, V = data.vSoundMs;
+  // 音源が観測者に近づくとき f' = f0·V/(V−v)、遠ざかるとき f' = f0·V/(V+v)。
+  // はじめ m2 は下に引いてあるので、最初の半周期は m2 が上がる（近づく）。
+  // 偶数番目の半周期は上がり（近づく）、奇数番目は下がり（遠ざかる）。
+  const fToward = (vMs) => (f0 * V) / (V - vMs);
+  const fAway = (vMs) => (f0 * V) / (V + vMs);
+  const fHalf = base.vMaxList.map((v, i) => (i % 2 === 0 ? fToward(v) : fAway(v)));
+  const fMaxHz = Math.max(...fHalf);
+  const fMinHz = Math.min(...fHalf);
+  const beatMaxHz = Math.max(fMaxHz - f0, f0 - fMinHz);
+  // f'(t)：半周期ごとにずれたつり合いを中心とする余弦の速さから計算する。
+  // v(t) = dx/dt（x は m2 の下向きの変位）。m2 が上がる（v<0）と観測者に近づく。
+  const fPrimeAt = (t) => {
+    const hp = Math.min(Math.floor(t / base.halfS), base.nHalf - 1);
+    const ti = hp * base.halfS;
+    const eq = base.turns[hp] > 0 ? base.xShiftM : -base.xShiftM;
+    const ampSigned = base.turns[hp] - eq; // 符号つき（絶対値にしてはいけない）
+    const v = -ampSigned * base.omega * Math.sin(base.omega * (t - ti)); // dx/dt（+は下向き）
+    return (f0 * V) / (V + v); // v<0（上がる）なら分母が小さくなり、音は高くなる
+  };
+  // 罠（摩擦なし）：v_max = ωA でずっと振動し、音は 2004 Hz と 1996 Hz のあいだを往復する。
+  const fNoFricUp = fToward(base.vMaxMs);
+  const fNoFricDown = fAway(base.vMaxMs);
+  // 変えたら：μ=0.20、k=200（AW の vary）、A=0.20 m。
+  const fHalfFor = (calc) => {
+    const out = [];
+    for (let i = 0; i < calc.turns.length - 1; i++) {
+      const eq = calc.turns[i] > 0 ? calc.xShiftM : -calc.xShiftM;
+      const v = calc.omega * Math.abs(calc.turns[i] - eq);
+      out.push(i % 2 === 0 ? fToward(v) : fAway(v));
+    }
+    return out;
+  };
+  const varyMu2 = { ...base.varyMu2, fHalf: fHalfFor(base.varyMu2) };
+  const varyK200 = { ...base.varyK200, fHalf: fHalfFor(base.varyK200) };
+  const varyA20calc = slopePulleyFricDerived({ ...data, ampM: 0.20 });
+  const varyA20 = { ...varyA20calc, fHalf: fHalfFor(varyA20calc) };
+  return {
+    ...base, f0, vSoundMs: V, fHalf, fMaxHz, fMinHz, beatMaxHz, fPrimeAt,
+    fNoFricUp, fNoFricDown, varyMu2, varyK200, varyA20,
+  };
+}
+function slopePulleyDopplerForces(data) { return []; }
+
+// ---- 組み合わせBN：気体＋ピストン＋ばね＋サイクル＋カルノー効率 ----
+// P の気体＋ピストン＋ばねのサイクル（A→B 加熱、B→C 固定して冷却、C→A 等温圧縮）に、
+// カルノー効率との比べを足したもの。橋渡し量は仕事と熱。
+// このサイクルは 300 K から 491 K まで温度が上がりながら熱を吸うので、
+// すべて 491 K で吸うカルノーサイクルより効率がずっと低くなる。
+function gasCarnotCycleDerived(data) {
+  const base = gasSpringCycleDerived(data);
+  const etaCarnot = 1 - data.tAK / base.tBK;
+  const wMaxJ = base.qABJ * etaCarnot;
+  // A→B の仕事の内訳：大気の仕事 + 重力の位置エネルギー + ばねのエネルギー。
+  const atmW_AB = data.p0Pa * (base.vBM3 - base.vAM3);
+  const gravW_AB = base.mgN * (data.hBM - data.hNatM);
+  const springW_AB = 0.5 * data.kNm * (data.hBM - data.hNatM) * (data.hBM - data.hNatM);
+  // 変えたら：k=2000 N/m、hB=0.40 m（同じサイクル計算）。
+  const calcVary = (d2) => {
+    const c = gasSpringCycleDerived(d2);
+    const etaC = 1 - d2.tAK / c.tBK;
+    return {
+      ...c, etaCarnot: etaC, wMaxJ: c.qABJ * etaC,
+      atmW_AB: d2.p0Pa * (c.vBM3 - c.vAM3),
+      gravW_AB: c.mgN * (d2.hBM - d2.hNatM),
+      springW_AB: 0.5 * d2.kNm * (d2.hBM - d2.hNatM) * (d2.hBM - d2.hNatM),
+    };
+  };
+  const varyK2000 = calcVary({ ...data, kNm: 2000 });
+  const varyH040 = calcVary({ ...data, hBM: 0.40 });
+  return { ...base, etaCarnot, wMaxJ, atmW_AB, gravW_AB, springW_AB, varyK2000, varyH040 };
+}
+function gasCarnotCycleForces(data) { return []; }
+
+if (typeof module !== 'undefined') module.exports = { slopeForces, ladderForces, pullForces, hangForces, springForces, pulleyForces, slopePulleyForces, collisionSpringDerived, collisionSpringLayout, collisionSpringForces, chargedCircleDerived, chargedCircleForces, lcDerived, lcForces, gasPistonDerived, gasPistonForces, youngDerived, youngLayout, youngForces, capacitorDerived, capacitorForces, circleDerived, circleForces, shmDerived, shmForces, collisionDerived, collisionForces, gravitationDerived, gravitationForces, standingWaveDerived, photoelectricDerived, photoelectricForces, heatCycleDerived, heatCycleForces, railRodDerived, railRodForces, dopplerDerived, dopplerForces, dcCircuitDerived, dcCircuitForces, refractionLensDerived, refractionLensForces, bohrDerived, bohrForces, kineticTheoryDerived, kineticTheoryForces, travellingWaveDerived, travellingWaveForces, coulombFieldDerived, coulombFieldForces, calorimetryDerived, calorimetryForces, dragDerived, dragForces, decayDerived, decayForces, momentDerived, momentForces, solenoidDerived, solenoidForces, transientDerived, transientForces, twoBodyDerived, twoBodyForces, inductionDerived, inductionForces, ballisticDerived, ballisticForces, loopDerived, loopForces, projEnergyDerived, projEnergyForces, youngWaterDerived, youngWaterForces, dopplerShmDerived, dopplerShmForces, capSpringDerived, capSpringForces, slopeEnergyDerived, slopeEnergyForces, inductionLCDerived, inductionLCForces, gasResonanceDerived, gasResonanceForces, railCapCoilDerived, railCapCoilForces, capSpringGravDerived, capSpringGravForces, gasSpringCycleDerived, gasSpringCycleForces, slopeSpringDerived, slopeSpringForces, fallLoopDerived, fallLoopForces, beltSpringDerived, beltSpringForces, massSpecDerived, massSpecForces, coilHallDerived, coilHallForces, platformChargeDerived, platformChargeForces, pendulumCollideDerived, pendulumCollideForces, photoCapDerived, photoCapForces, orbitTransferDerived, orbitTransferForces, cyclotronDerived, cyclotronForces, slopeSpringFricDerived, slopeSpringFricForces, projWallDerived, projWallForces, railSpringDampDerived, railSpringDampForces, pendulumSpringDerived, pendulumSpringForces, gasPistonOscDerived, gasPistonOscForces, photoCircleDerived, photoCircleForces, earthTunnelDerived, earthTunnelForces, heaterGasDerived, heaterGasForces, specPhotoCircleDerived, specPhotoCircleForces, ottoCycleDerived, ottoCycleForces, generatorACDerived, generatorACForces, explodeProjectileDerived, explodeProjectileForces, slopePulleySpringDerived, slopePulleySpringForces, cathodeRayDerived, cathodeRayForces, conicalPendulumDerived, conicalPendulumForces, rcChargeDerived, rcChargeForces, projWallFricDerived, projWallFricForces, rlcChargeDerived, rlcChargeForces, photoCapCircleDerived, photoCapCircleForces, acRlcDerived, acRlcForces, projDragIntegrate, projDragDerived, projDragForces, pendulumSpringFricDerived, pendulumSpringFricForces, slopePulleyFricDerived, slopePulleyFricForces, selectorCircleDerived, selectorCircleForces, fallLoopCapDerived, fallLoopCapForces, genTransformerDerived, genTransformerForces, projWallSpringDerived, projWallSpringForces, genRectSmoothDerived, genRectSmoothForces, projDragWallIntegrate, projDragWallDerived, projDragWallForces, photoDopplerCircleDerived, photoDopplerCircleForces, dopplerResonanceDerived, dopplerResonanceForces, fallDragSpringDerived, fallDragSpringForces, projDragWallSpringDerived, projDragWallSpringForces, pendulumDopplerDerived, pendulumDopplerForces, gasSoundPipeDerived, gasSoundPipeForces, photoDopplerCapDerived, photoDopplerCapForces, pendulumDopplerSpringDerived, pendulumDopplerSpringForces, genRectRcDerived, genRectRcForces, slopePulleyDopplerDerived, slopePulleyDopplerForces, gasCarnotCycleDerived, gasCarnotCycleForces, sceneFor, validateScene, renderFigure };
